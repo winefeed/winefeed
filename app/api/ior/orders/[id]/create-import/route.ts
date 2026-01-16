@@ -68,11 +68,11 @@ export async function POST(
     }
 
     // Check if order already has import case
-    if (orderCheck.order.import_id) {
+    if (orderCheck.order.import_case_id) {
       return NextResponse.json(
         {
           error: 'Order already has import case',
-          import_id: orderCheck.order.import_id
+          import_id: orderCheck.order.import_case_id
         },
         { status: 409 }
       );

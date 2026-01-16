@@ -431,8 +431,10 @@ export class ProductMatcherV2 {
 
     if (error || !data) return null;
 
-    const product = data.master_products;
-    const family = product.product_families;
+    const product = Array.isArray(data.master_products) ? data.master_products[0] : data.master_products;
+    if (!product) return null;
+    const family = Array.isArray(product.product_families) ? product.product_families[0] : product.product_families;
+    if (!family) return null;
 
     // GTIN match scores 70 points
     const reasons: ReasonCode[] = ['GTIN_EXACT'];
@@ -502,9 +504,10 @@ export class ProductMatcherV2 {
     if (error || !data) return [];
 
     // Score each candidate
-    const candidates: MatchCandidate[] = data
+    const candidates = data
       .map(product => {
-        const family = product.product_families;
+        const family = Array.isArray(product.product_families) ? product.product_families[0] : product.product_families;
+        if (!family) return null;
         const scoreResult = this.calculateFuzzyScore(input, product, family);
 
         return {
@@ -525,8 +528,8 @@ export class ProductMatcherV2 {
           }
         };
       })
-      .filter(c => c.confidenceScore >= this.REVIEW_QUEUE_THRESHOLD)
-      .sort((a, b) => b.confidenceScore - a.confidenceScore);
+      .filter(c => c !== null && c.confidenceScore >= this.REVIEW_QUEUE_THRESHOLD)
+      .sort((a, b) => b!.confidenceScore - a!.confidenceScore) as MatchCandidate[];
 
     return candidates;
   }

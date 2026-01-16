@@ -93,11 +93,11 @@ export async function GET(
       .single();
 
     // Fetch import case if exists (compliance summary)
-    let importCase = null;
-    let documents = [];
-    let complianceSummary = null;
+    let importCase: any = null;
+    let documents: any[] = [];
+    let complianceSummary: any = null;
 
-    if (order.import_id) {
+    if (order.import_case_id) {
       const { data: imp } = await supabase
         .from('imports')
         .select(`
@@ -112,7 +112,7 @@ export async function GET(
             city
           )
         `)
-        .eq('id', order.import_id)
+        .eq('id', order.import_case_id)
         .single();
       importCase = imp;
 
@@ -121,7 +121,7 @@ export async function GET(
         const { data: docs } = await supabase
           .from('import_documents')
           .select('id, document_type, version, generated_at, file_path')
-          .eq('import_id', order.import_id)
+          .eq('import_id', order.import_case_id)
           .eq('document_type', '5369')
           .order('version', { ascending: false })
           .limit(1);
@@ -130,12 +130,13 @@ export async function GET(
       }
 
       // Build compliance summary (read-only)
+      const ddl = Array.isArray(imp?.delivery_location) ? imp.delivery_location[0] : imp?.delivery_location;
       complianceSummary = {
         import_case_id: imp?.id || null,
         import_status: imp?.status || null,
-        ddl_status: imp?.delivery_location?.status || null,
-        ddl_address: imp?.delivery_location
-          ? `${imp.delivery_location.delivery_address_line1}, ${imp.delivery_location.postal_code} ${imp.delivery_location.city}`
+        ddl_status: ddl?.status || null,
+        ddl_address: ddl
+          ? `${ddl.delivery_address_line1}, ${ddl.postal_code} ${ddl.city}`
           : null,
         latest_5369_version: documents.length > 0 ? documents[0].version : null,
         latest_5369_generated_at: documents.length > 0 ? documents[0].generated_at : null

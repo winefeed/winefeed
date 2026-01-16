@@ -44,8 +44,8 @@ export default function MatchDemoPage() {
         identifiers: {
           ...(gtin && { gtin }),
           ...(lwin && { lwin }),
-          ...(producerSku && producer_id && { producer_sku: producerSku, producer_id: producerId }),
-          ...(importerSku && importer_id && { importer_sku: importerSku, importer_id: importerId })
+          ...(producerSku && producerId && { producer_sku: producerSku, producer_id: producerId }),
+          ...(importerSku && importerId && { importer_sku: importerSku, importer_id: importerId })
         },
         textFallback: {
           ...(name && { name }),

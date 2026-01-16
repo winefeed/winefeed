@@ -28,7 +28,7 @@ export function MatchPanel({
       {/* Header: Status Badge */}
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-foreground">Matchningsresultat</h4>
-        <MatchStatusBadge status={result.status} confidence={result.confidence} />
+        <MatchStatusBadge latest_match={result} />
       </div>
 
       {/* Explanation */}

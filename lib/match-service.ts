@@ -166,7 +166,8 @@ class MatchService {
     // Step 5: Wine-Searcher canonical fallback (text-based)
     // POLICY: NEVER auto-creates entities for canonical/text matches
     if (input.textFallback?.name) {
-      const canonicalResult = await this.matchByCanonical(input.tenantId, input.textFallback);
+      // Type assertion: we've checked that name exists above
+      const canonicalResult = await this.matchByCanonical(input.tenantId, input.textFallback as { name: string; vintage?: number; bottle_ml?: number; producer?: string; region?: string; appellation?: string; });
       result = canonicalResult;
       await this.logMatchResult(input, result);
       return result;

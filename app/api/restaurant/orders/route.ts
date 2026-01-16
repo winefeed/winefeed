@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     // Build query
     let query = supabase
       .from('orders')
-      .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_id, total_lines, total_quantity, currency')
+      .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_case_id, total_lines, total_quantity, currency')
       .eq('tenant_id', tenantId)
       .eq('restaurant_id', restaurantId)
       .order('created_at', { ascending: false })
@@ -111,11 +111,11 @@ export async function GET(request: NextRequest) {
 
         // Fetch import case status if exists
         let importStatus = null;
-        if (order.import_id) {
+        if (order.import_case_id) {
           const { data: importCase } = await supabase
             .from('imports')
             .select('status')
-            .eq('id', order.import_id)
+            .eq('id', order.import_case_id)
             .single();
           importStatus = importCase?.status || null;
         }
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
           supplier_name: supplier?.namn || 'Unknown',
           supplier_type: supplier?.type || null,
           importer_name: importer?.legal_name || 'Unknown',
-          import_id: order.import_id,
+          import_id: order.import_case_id,
           import_status: importStatus,
           lines_count: order.total_lines,
           total_quantity: order.total_quantity,

@@ -185,7 +185,12 @@ export class DDLService {
         org_number: importer.org_number,
         contact_name: importer.contact_name,
         contact_email: importer.contact_email,
-        contact_phone: importer.contact_phone
+        contact_phone: importer.contact_phone,
+        address_line1: 'Address not available',
+        address_line2: undefined,
+        postal_code: '00000',
+        city: 'Stockholm',
+        country_code: 'SE'
       },
       restaurant: {
         legal_name: ddl.legal_name,

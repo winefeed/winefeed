@@ -381,7 +381,7 @@ async function testOutputFormat() {
   // Check candidates for REVIEW_QUEUE / NO_MATCH
   if (result.decision === 'REVIEW_QUEUE' || result.decision === 'NO_MATCH') {
     assert(
-      result.candidates && result.candidates.length <= 3,
+      !!(result.candidates && result.candidates.length <= 3),
       `Candidates provided (top 3): ${result.candidates?.length || 0}`
     );
   }

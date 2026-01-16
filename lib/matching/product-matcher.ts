@@ -266,8 +266,10 @@ export class ProductMatcher {
 
     if (error || !data) return null;
 
-    const product = data.master_products;
-    const family = product.product_families;
+    const product = Array.isArray(data.master_products) ? data.master_products[0] : data.master_products;
+    if (!product) return null;
+    const family = Array.isArray(product.product_families) ? product.product_families[0] : product.product_families;
+    if (!family) return null;
 
     return {
       masterProductId: product.id,
@@ -314,7 +316,8 @@ export class ProductMatcher {
     // Score each candidate
     const candidates: MatchCandidate[] = data
       .map(product => {
-        const family = product.product_families;
+        const family = Array.isArray(product.product_families) ? product.product_families[0] : product.product_families;
+        if (!family) return null;
         const score = this.calculateFuzzyScore(input, product, family);
 
         return {
@@ -334,8 +337,8 @@ export class ProductMatcher {
           }
         };
       })
-      .filter(c => c.confidence >= this.MIN_CANDIDATE_THRESHOLD)
-      .sort((a, b) => b.confidence - a.confidence);
+      .filter(c => c !== null && c.confidence >= this.MIN_CANDIDATE_THRESHOLD)
+      .sort((a, b) => b!.confidence - a!.confidence) as MatchCandidate[];
 
     return candidates;
   }

@@ -298,9 +298,9 @@ export default function PilotAdminPage() {
                 {expandedAlert === 'eu_orders' && data.alerts.eu_orders_without_import_case.items.length > 0 && (
                   <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
                     <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {data.alerts.eu_orders_without_import_case.items.map((item) => (
-                        <div key={item.id} className="text-xs bg-white p-2 rounded border border-gray-200">
-                          <div className="font-mono text-purple-600 mb-1">{item.id.substring(0, 16)}...</div>
+                      {data.alerts.eu_orders_without_import_case.items.map((item, index) => (
+                        <div key={item.id || index} className="text-xs bg-white p-2 rounded border border-gray-200">
+                          <div className="font-mono text-purple-600 mb-1">{item.id?.substring(0, 16) || 'N/A'}...</div>
                           <div className="text-gray-500">Created: {formatDate(item.created_at!)}</div>
                         </div>
                       ))}
@@ -333,9 +333,9 @@ export default function PilotAdminPage() {
                 {expandedAlert === 'missing_ddl' && data.alerts.import_cases_missing_ddl_or_not_approved.items.length > 0 && (
                   <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
                     <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {data.alerts.import_cases_missing_ddl_or_not_approved.items.map((item) => (
-                        <div key={item.id} className="text-xs bg-white p-2 rounded border border-gray-200">
-                          <div className="font-mono text-purple-600 mb-1">{item.id.substring(0, 16)}...</div>
+                      {data.alerts.import_cases_missing_ddl_or_not_approved.items.map((item, index) => (
+                        <div key={item.id || index} className="text-xs bg-white p-2 rounded border border-gray-200">
+                          <div className="font-mono text-purple-600 mb-1">{item.id?.substring(0, 16) || 'N/A'}...</div>
                           <div className="text-gray-500">
                             DDL Status: <span className="font-medium">{item.ddl_status || 'MISSING'}</span>
                           </div>
@@ -371,9 +371,9 @@ export default function PilotAdminPage() {
                 {expandedAlert === 'missing_5369' && data.alerts.approved_import_cases_missing_5369.items.length > 0 && (
                   <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
                     <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {data.alerts.approved_import_cases_missing_5369.items.map((item) => (
-                        <div key={item.id} className="text-xs bg-white p-2 rounded border border-gray-200">
-                          <div className="font-mono text-purple-600 mb-1">{item.id.substring(0, 16)}...</div>
+                      {data.alerts.approved_import_cases_missing_5369.items.map((item, index) => (
+                        <div key={item.id || index} className="text-xs bg-white p-2 rounded border border-gray-200">
+                          <div className="font-mono text-purple-600 mb-1">{item.id?.substring(0, 16) || 'N/A'}...</div>
                           <div className="text-gray-500">Created: {formatDate(item.created_at!)}</div>
                         </div>
                       ))}
@@ -406,9 +406,9 @@ export default function PilotAdminPage() {
                 {expandedAlert === 'stuck_orders' && data.alerts.orders_stuck_over_3_days.items.length > 0 && (
                   <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
                     <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {data.alerts.orders_stuck_over_3_days.items.map((item) => (
-                        <div key={item.id} className="text-xs bg-white p-2 rounded border border-gray-200">
-                          <div className="font-mono text-purple-600 mb-1">{item.id.substring(0, 16)}...</div>
+                      {data.alerts.orders_stuck_over_3_days.items.map((item, index) => (
+                        <div key={item.id || index} className="text-xs bg-white p-2 rounded border border-gray-200">
+                          <div className="font-mono text-purple-600 mb-1">{item.id?.substring(0, 16) || 'N/A'}...</div>
                           <div className="text-gray-500">Status: <span className="font-medium">{item.status}</span></div>
                           <div className="text-gray-500">Last Update: {formatDate(item.updated_at!)}</div>
                         </div>

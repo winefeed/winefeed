@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OfferLineItemRow } from '../components/OfferLineItemRow';
 import { MatchStatusBadge } from '@/app/components/match/MatchStatusBadge';
+import type { MatchStatus } from '@/app/components/wine-check/types';
 
 interface Offer {
   id: string;
@@ -567,27 +568,28 @@ export default function OfferEditorPage() {
                       name: line.name,
                       vintage: line.vintage,
                       quantity: line.quantity,
-                      offered_unit_price_ore: line.offered_unit_price_ore,
-                      bottle_ml: line.bottle_ml,
-                      packaging: line.packaging,
-                      enrichment: {
+                      unit_price: line.offered_unit_price_ore !== null ? line.offered_unit_price_ore / 100 : null,
+                      enrichment: line.canonical_name || line.producer ? {
                         canonical_name: line.canonical_name,
                         producer: line.producer,
                         country: line.country,
                         region: line.region,
                         appellation: line.appellation,
                         ws_id: line.ws_id,
-                        match_status: line.match_status,
-                        match_score: line.match_score
-                      }
+                        match_status: line.match_status as MatchStatus | null,
+                        match_score: line.match_score,
+                        checked_at: line.updated_at
+                      } : null,
+                      created_at: line.created_at,
+                      updated_at: line.updated_at
                     }}
                     onUpdate={(updated) => handleUpdateLine(index, {
                       name: updated.name,
                       vintage: updated.vintage,
                       quantity: updated.quantity,
-                      offered_unit_price_ore: updated.offered_unit_price_ore,
-                      bottle_ml: updated.bottle_ml,
-                      packaging: updated.packaging,
+                      offered_unit_price_ore: updated.unit_price !== null ? Math.round(updated.unit_price * 100) : null,
+                      bottle_ml: line.bottle_ml,
+                      packaging: line.packaging,
                       canonical_name: updated.enrichment?.canonical_name || null,
                       producer: updated.enrichment?.producer || null,
                       country: updated.enrichment?.country || null,
@@ -597,8 +599,7 @@ export default function OfferEditorPage() {
                       match_status: updated.enrichment?.match_status || null,
                       match_score: updated.enrichment?.match_score || null
                     })}
-                    onRemove={!isReadOnly ? () => handleRemoveLine(index) : undefined}
-                    readOnly={isReadOnly}
+                    onRemove={() => { if (!isReadOnly) handleRemoveLine(index); }}
                   />
                 </div>
               ))}
