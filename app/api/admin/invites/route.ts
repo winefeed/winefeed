@@ -15,13 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { inviteService } from '@/lib/invite-service';
 import { sendEmail } from '@/lib/email-service';
 import { userInviteEmail } from '@/lib/email-templates';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { getSupabaseAdmin } from '@/lib/supabase-server';
 
 // Helper: Check if user has admin access
 function isAdmin(request: NextRequest): boolean {
@@ -102,6 +96,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Fetch entity name for email
+    const supabase = getSupabaseAdmin();
     let entityName = 'Unknown';
 
     if (role === 'RESTAURANT') {

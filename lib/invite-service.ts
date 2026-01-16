@@ -11,14 +11,8 @@
  * - Tenant isolation
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from './supabase-server';
 import crypto from 'crypto';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export interface CreateInviteInput {
   tenant_id: string;
@@ -78,6 +72,8 @@ class InviteService {
    * Token hash is stored in DB
    */
   async createInvite(input: CreateInviteInput): Promise<{ invite_id: string; token: string; expires_at: string }> {
+    const supabase = getSupabaseAdmin();
+
     // Validate role-specific requirements
     if (input.role === 'RESTAURANT' && !input.restaurant_id) {
       throw new Error('restaurant_id is required for RESTAURANT role');
@@ -127,6 +123,7 @@ class InviteService {
    * Verify invite token and return invite metadata
    */
   async verifyInvite(token: string): Promise<VerifyInviteResult> {
+    const supabase = getSupabaseAdmin();
     const tokenHash = hashToken(token);
 
     // Fetch invite by token hash
@@ -206,6 +203,8 @@ class InviteService {
    * Accept invite: Create Supabase auth user and link to entity
    */
   async acceptInvite(input: AcceptInviteInput): Promise<{ user_id: string; email: string; role: string }> {
+    const supabase = getSupabaseAdmin();
+
     // 1. Verify invite token
     const verifyResult = await this.verifyInvite(input.token);
 
@@ -322,6 +321,8 @@ class InviteService {
    * Get recent invites for admin UI
    */
   async getRecentInvites(tenantId: string, limit: number = 20): Promise<any[]> {
+    const supabase = getSupabaseAdmin();
+
     const { data, error } = await supabase
       .from('invites')
       .select(`
