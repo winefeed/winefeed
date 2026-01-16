@@ -18,13 +18,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { getSupabaseAdmin } from '@/lib/supabase-server';
 
 // Helper: Mask email address (m***@domain.com)
 function maskEmail(email: string): string {
@@ -88,6 +82,7 @@ function calculateTimingStats(hours: number[]) {
 
 // Helper: Fetch pilot KPI metrics (counts and timings)
 async function fetchPilotMetrics(tenantId: string) {
+  const supabase = getSupabaseAdmin();
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   // ========================================
@@ -298,6 +293,7 @@ async function fetchPilotMetrics(tenantId: string) {
 
 // Helper: Fetch operational alerts for pilot monitoring
 async function fetchOperationalAlerts(tenantId: string) {
+  const supabase = getSupabaseAdmin();
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
@@ -488,6 +484,8 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const supabase = getSupabaseAdmin();
 
     // Fetch recent requests (max 20)
     const { data: requests, error: requestsError } = await supabase
