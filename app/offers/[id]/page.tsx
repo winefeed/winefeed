@@ -494,7 +494,7 @@ export default function OfferEditorPage() {
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-1">Wine Check-integration aktiverad</p>
                 <p className="text-blue-700">
-                  Klicka på "🔍 Wine Check" vid varje rad för att verifiera och normalisera vinnamn med Wine-Searcher.
+                  Klicka på &quot;🔍 Wine Check&quot; vid varje rad för att verifiera och normalisera vinnamn med Wine-Searcher.
                   Endast allowlist-data (namn, producent, region) sparas. <strong>INGEN prisdata.</strong>
                 </p>
               </div>
