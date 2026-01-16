@@ -13,7 +13,18 @@
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization - only create Resend client when API key is available
+let resendClient: Resend | null = null;
+
+function getResendClient(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    return null;
+  }
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -57,7 +68,8 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
   }
 
   // Validate Resend API key
-  if (!process.env.RESEND_API_KEY) {
+  const resend = getResendClient();
+  if (!resend) {
     console.warn('⚠️  RESEND_API_KEY not configured, skipping email');
     return { success: false, error: 'RESEND_API_KEY not configured' };
   }

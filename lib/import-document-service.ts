@@ -150,7 +150,7 @@ class ImportDocumentService {
         contact_email: typedImportCase.importer.contact_email,
         contact_phone: typedImportCase.importer.contact_phone,
         address_line1: typedImportCase.importer.address_line1,
-        address_line2: typedImportCase.importer.address_line2,
+        address_line2: typedImportCase.importer.address_line2 || undefined,
         postal_code: typedImportCase.importer.postal_code,
         city: typedImportCase.importer.city,
         country_code: typedImportCase.importer.country_code

@@ -73,7 +73,7 @@ function assertEquals(actual: any, expected: any, message: string): TestResult {
 
 function assertContains(text: string, substring: string, message: string): TestResult {
   return assert(
-    text && text.toLowerCase().includes(substring.toLowerCase()),
+    !!(text && text.toLowerCase().includes(substring.toLowerCase())),
     message,
     { text, substring }
   );
@@ -778,7 +778,7 @@ async function runResubmissionScenario(): Promise<boolean> {
     .eq('ddl_id', ddlId)
     .order('created_at', { ascending: true });
 
-  assert(events && events.length >= 2, 'At least 2 status events exist');
+  assert(!!(events && events.length >= 2), 'At least 2 status events exist');
   assertEquals(events?.[0]?.to_status, 'SUBMITTED', 'First event is submission');
   assertEquals(events?.[1]?.to_status, 'REJECTED', 'Second event is rejection');
   assert(!!events?.[1]?.note, 'Rejection note captured');

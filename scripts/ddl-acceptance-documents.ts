@@ -64,7 +64,7 @@ function assertEquals(actual: any, expected: any, message: string): void {
 
 function assertContains(text: string, substring: string, message: string): void {
   assert(
-    text && text.toLowerCase().includes(substring.toLowerCase()),
+    !!(text && text.toLowerCase().includes(substring.toLowerCase())),
     message,
     { text: text?.substring(0, 200), substring }
   );
@@ -95,7 +95,7 @@ async function apiCall(
   const response = await fetch(url, options);
   const data = await response.json().catch(() => ({}));
 
-  return { status, data };
+  return { status: response.status, data };
 }
 
 function computeSHA256(buffer: Buffer): string {

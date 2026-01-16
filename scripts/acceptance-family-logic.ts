@@ -409,11 +409,19 @@ async function runFamilyLogicTest() {
 
     // Cleanup on error
     if (importId) {
-      await cleanup(importId).catch(() => {});
+      try {
+        await cleanup(importId);
+      } catch (cleanupError) {
+        // Ignore cleanup errors
+      }
     }
     if (testData) {
-      await supabase.from('product_families').delete().eq('id', testData.productFamilyId).catch(() => {});
-      await supabase.from('master_products').delete().eq('id', testData.masterProductId).catch(() => {});
+      try {
+        await supabase.from('product_families').delete().eq('id', testData.productFamilyId);
+        await supabase.from('master_products').delete().eq('id', testData.masterProductId);
+      } catch (cleanupError) {
+        // Ignore cleanup errors
+      }
     }
 
     process.exit(1);

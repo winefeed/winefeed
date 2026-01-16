@@ -317,12 +317,12 @@ async function testCrossRestaurantIsolation(): Promise<void> {
     .eq('restaurant_id', RESTAURANT_A2_ID);
 
   assert(
-    a1Ddls?.every((ddl) => ddl.restaurant_id === RESTAURANT_A1_ID),
+    !!(a1Ddls?.every((ddl) => ddl.restaurant_id === RESTAURANT_A1_ID)),
     'Restaurant A1 DDLs have correct restaurant_id'
   );
 
   assert(
-    a2Ddls?.every((ddl) => ddl.restaurant_id === RESTAURANT_A2_ID),
+    !!(a2Ddls?.every((ddl) => ddl.restaurant_id === RESTAURANT_A2_ID)),
     'Restaurant A2 DDLs have correct restaurant_id'
   );
 

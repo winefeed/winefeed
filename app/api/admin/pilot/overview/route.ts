@@ -265,7 +265,7 @@ async function fetchPilotMetrics(tenantId: string) {
 
     orderToImportApprovedHours = (ordersWithImport || [])
       .map((order: any) => {
-        const approvedAt = importApprovalMap.get(order.import_id);
+        const approvedAt = importApprovalMap.get(order.import_case_id);
         if (!approvedAt) return null;
 
         const approvedTime = new Date(approvedAt).getTime();

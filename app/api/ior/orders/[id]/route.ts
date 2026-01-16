@@ -112,9 +112,9 @@ export async function GET(
     }
 
     // Fetch import case if exists (with full compliance details)
-    let importCase = null;
-    let documents = [];
-    if (order.import_id) {
+    let importCase: any = null;
+    let documents: any[] = [];
+    if (order.import_case_id) {
       const { data: imp } = await supabase
         .from('imports')
         .select(`
@@ -130,7 +130,7 @@ export async function GET(
             city
           )
         `)
-        .eq('id', order.import_id)
+        .eq('id', order.import_case_id)
         .single();
       importCase = imp;
 
@@ -139,7 +139,7 @@ export async function GET(
         const { data: docs } = await supabase
           .from('import_documents')
           .select('id, document_type, version, generated_at, file_path, file_size')
-          .eq('import_id', order.import_id)
+          .eq('import_id', order.import_case_id)
           .eq('document_type', '5369')
           .order('version', { ascending: false })
           .limit(5);  // Latest 5 versions
