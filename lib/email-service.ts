@@ -11,7 +11,7 @@
  */
 
 import { Resend } from 'resend';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from './supabase-server';
 
 // Lazy initialization - only create Resend client when API key is available
 let resendClient: Resend | null = null;
@@ -25,12 +25,6 @@ function getResendClient(): Resend | null {
   }
   return resendClient;
 }
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 // Email configuration
 const EMAIL_ENABLED = process.env.EMAIL_NOTIFICATIONS_ENABLED === 'true';
@@ -104,6 +98,8 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
  * @deprecated Use getRestaurantRecipients() for multi-user support
  */
 export async function getRestaurantEmail(restaurantId: string, tenantId: string): Promise<string | null> {
+  const supabase = getSupabaseAdmin();
+
   try {
     // Try restaurants.contact_email first
     const { data: restaurant } = await supabase
@@ -150,6 +146,7 @@ export async function getRestaurantEmail(restaurantId: string, tenantId: string)
  * Returns: Array of unique, validated email addresses
  */
 export async function getRestaurantRecipients(restaurantId: string, tenantId: string): Promise<string[]> {
+  const supabase = getSupabaseAdmin();
   const recipients: string[] = [];
 
   try {
@@ -244,6 +241,8 @@ function isValidEmail(email: string): boolean {
  * Priority: 1) suppliers.kontakt_email, 2) first supplier_user email
  */
 export async function getSupplierEmail(supplierId: string, tenantId: string): Promise<string | null> {
+  const supabase = getSupabaseAdmin();
+
   try {
     // Try suppliers.kontakt_email first
     const { data: supplier } = await supabase
@@ -293,6 +292,8 @@ export async function logEmailEvent(
   offerId: string,
   payload: EmailEventPayload
 ): Promise<void> {
+  const supabase = getSupabaseAdmin();
+
   try {
     await supabase.from('offer_events').insert({
       tenant_id: tenantId,
@@ -315,6 +316,8 @@ export async function logOrderEmailEvent(
   orderId: string,
   payload: EmailEventPayload
 ): Promise<void> {
+  const supabase = getSupabaseAdmin();
+
   try {
     // Mask email address for security
     const maskedEmail = maskEmail(payload.to);
