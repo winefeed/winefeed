@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run route slug compliance check before commit
+echo "🔍 Running route slug compliance check..."
+npm run check:routes
+
+# If you also want to run linting:
+# npm run lint
