@@ -17,6 +17,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OfferLineItemRow } from '../components/OfferLineItemRow';
+import { OfferStatusBadge } from '../components/OfferStatusBadge';
 import { MatchStatusBadge } from '@/app/components/match/MatchStatusBadge';
 import type { MatchStatus } from '@/app/components/wine-check/types';
 
@@ -366,13 +367,7 @@ export default function OfferEditorPage() {
     ? lines.reduce((sum, line) => sum + (line.offered_unit_price_ore || 0) * line.quantity, 0) / 100
     : null;
 
-  // Status badge styling
-  const statusStyles = {
-    DRAFT: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    SENT: 'bg-blue-100 text-blue-800 border-blue-300',
-    ACCEPTED: 'bg-green-100 text-green-800 border-green-300',
-    REJECTED: 'bg-red-100 text-red-800 border-red-300'
-  };
+  // Status badge styling moved to OfferStatusBadge component
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10">
@@ -404,14 +399,8 @@ export default function OfferEditorPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Status Badge */}
         <div className="mb-6 flex items-center gap-4">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium ${statusStyles[offer.status]}`}>
-            <span className="text-lg">
-              {offer.status === 'DRAFT' && '📝'}
-              {offer.status === 'SENT' && '📤'}
-              {offer.status === 'ACCEPTED' && '✅'}
-              {offer.status === 'REJECTED' && '❌'}
-            </span>
-            <span>Status: {offer.status}</span>
+          <div>
+            <OfferStatusBadge status={offer.status} size="lg" />
           </div>
 
           {offer.locked_at && (

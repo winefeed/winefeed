@@ -21,6 +21,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { OrderStatusBadge } from './components/StatusBadge';
 
 // MVP: Hardcoded tenant for testing
 // Production: Get from authenticated user context or environment
@@ -153,26 +154,16 @@ export default function RestaurantOrdersPage() {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'bg-blue-500';
-      case 'IN_FULFILLMENT': return 'bg-yellow-500';
-      case 'SHIPPED': return 'bg-purple-500';
-      case 'DELIVERED': return 'bg-green-500';
-      case 'CANCELLED': return 'bg-gray-500';
-      default: return 'bg-gray-400';
-    }
-  };
-
+  // Status color/label logic moved to OrderStatusBadge component
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'Bekräftad';
-      case 'IN_FULFILLMENT': return 'I leverans';
-      case 'SHIPPED': return 'Skickad';
-      case 'DELIVERED': return 'Levererad';
-      case 'CANCELLED': return 'Avbruten';
-      default: return status;
-    }
+    const labels: Record<string, string> = {
+      'CONFIRMED': 'Bekräftad',
+      'IN_FULFILLMENT': 'I leverans',
+      'SHIPPED': 'Skickad',
+      'DELIVERED': 'Levererad',
+      'CANCELLED': 'Avbruten',
+    };
+    return labels[status] || status;
   };
 
   const getSupplierTypeIcon = (type: string) => {
@@ -320,9 +311,7 @@ export default function RestaurantOrdersPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-600">{order.importer_name}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)}`}>
-                          {getStatusLabel(order.status)}
-                        </span>
+                        <OrderStatusBadge status={order.status} size="md" />
                       </td>
                       <td className="px-4 py-3 text-gray-600">{order.lines_count}</td>
                       <td className="px-4 py-3 text-gray-600">{order.total_quantity}</td>
