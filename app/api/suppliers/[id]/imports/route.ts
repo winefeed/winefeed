@@ -1,0 +1,177 @@
+/**
+ * POST /api/suppliers/:id/imports
+ *
+ * Upload CSV price list and create import
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { parse } from 'csv-parse/sync';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Helper to generate content hash
+function generateLineHash(line: any): string {
+  const parts = [
+    line.supplier_sku || '',
+    line.producer_name || '',
+    line.product_name || '',
+    line.vintage || 'NV',
+    line.volume_ml || '',
+    line.pack_type || ''
+  ];
+  // Simple hash (in production, use crypto.createHash('md5'))
+  return Buffer.from(parts.join('|')).toString('base64');
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id: supplierId } = params;
+
+    // Parse multipart form or JSON
+    const contentType = request.headers.get('content-type') || '';
+    let csvText: string;
+    let filename: string = 'upload.csv';
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const file = formData.get('file') as File;
+
+      if (!file) {
+        return NextResponse.json(
+          { error: 'No file provided' },
+          { status: 400 }
+        );
+      }
+
+      filename = file.name;
+      csvText = await file.text();
+    } else {
+      const body = await request.json();
+      csvText = body.csvText;
+      filename = body.filename || 'upload.csv';
+    }
+
+    // STEP 1: Create import record
+    const { data: importRecord, error: importError } = await supabase
+      .from('supplier_imports')
+      .insert({
+        supplier_id: supplierId,
+        filename,
+        status: 'UPLOADED'
+      })
+      .select()
+      .single();
+
+    if (importError || !importRecord) {
+      console.error('Failed to create import:', importError);
+      return NextResponse.json(
+        { error: 'Failed to create import', details: importError },
+        { status: 500 }
+      );
+    }
+
+    const importId = importRecord.id;
+
+    // STEP 2: Parse CSV
+    let records: any[];
+    try {
+      records = parse(csvText, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true
+      });
+    } catch (parseError) {
+      await supabase
+        .from('supplier_imports')
+        .update({ status: 'FAILED' })
+        .eq('id', importId);
+
+      return NextResponse.json(
+        { error: 'Failed to parse CSV', details: parseError },
+        { status: 400 }
+      );
+    }
+
+    // STEP 3: Insert lines
+    const lines = records.map((row, index) => {
+      const vintage = row.vintage ? parseInt(row.vintage, 10) : null;
+      const volumeMl = parseInt(row.volume_ml, 10);
+      const unitsPerCase = row.units_per_case ? parseInt(row.units_per_case, 10) : null;
+      const abvPercent = row.abv_percent ? parseFloat(row.abv_percent) : null;
+      const priceExVatSek = parseFloat(row.price_net || row.price_ex_vat_sek);
+
+      const contentHash = generateLineHash(row);
+
+      return {
+        import_id: importId,
+        line_number: index + 1,
+        raw_data: row,
+        supplier_sku: row.supplier_sku,
+        gtin_each: row.gtin_each || null,
+        gtin_case: row.gtin_case || null,
+        producer_name: row.producer_name,
+        product_name: row.product_name,
+        vintage,
+        volume_ml: volumeMl,
+        abv_percent: abvPercent,
+        pack_type: row.pack_type,
+        units_per_case: unitsPerCase,
+        country_of_origin: row.country_of_origin || null,
+        region: row.region || null,
+        grape_variety: row.grape_variety || null,
+        price_ex_vat_sek: priceExVatSek,
+        currency: row.currency || 'SEK',
+        content_hash: contentHash,
+        match_status: 'PENDING'
+      };
+    });
+
+    const { error: linesError } = await supabase
+      .from('supplier_import_lines')
+      .insert(lines);
+
+    if (linesError) {
+      console.error('Failed to insert lines:', linesError);
+      await supabase
+        .from('supplier_imports')
+        .update({ status: 'FAILED' })
+        .eq('id', importId);
+
+      return NextResponse.json(
+        { error: 'Failed to insert lines', details: linesError },
+        { status: 500 }
+      );
+    }
+
+    // STEP 4: Update import status
+    await supabase
+      .from('supplier_imports')
+      .update({
+        status: 'PARSED',
+        total_lines: records.length
+      })
+      .eq('id', importId);
+
+    return NextResponse.json({
+      importId,
+      supplierId,
+      filename,
+      totalLines: records.length,
+      status: 'PARSED'
+    });
+
+  } catch (error) {
+    console.error('Import upload error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: error },
+      { status: 500 }
+    );
+  }
+}

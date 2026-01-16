@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Vinogram färgpalett */
+    --background: 0 0% 100%; /* Vit */
+    --foreground: 30 19% 7%; /* Svart 1 */
+
+    --card: 0 0% 100%; /* Vit */
+    --card-foreground: 30 19% 7%; /* Svart 1 */
+
+    --primary: 351 88% 31%; /* Bordeaux */
+    --primary-foreground: 0 0% 100%; /* Vit text på bordeaux */
+
+    --secondary: 43 63% 84%; /* Riesling (guldgul) */
+    --secondary-foreground: 30 19% 7%; /* Svart 1 */
+
+    --muted: 20 6% 84%; /* Svart 3 (ljusgrå) */
+    --muted-foreground: 0 0% 51%; /* Svart 2 (mellangr) */
+
+    --accent: 4 65% 82%; /* Rosé */
+    --accent-foreground: 351 88% 31%; /* Bordeaux text på rosé */
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 20 6% 84%; /* Svart 3 */
+    --input: 20 6% 84%; /* Svart 3 */
+    --ring: 351 88% 31%; /* Bordeaux */
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

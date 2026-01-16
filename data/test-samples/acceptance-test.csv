@@ -1,0 +1,51 @@
+supplier_sku,gtin_each,gtin_case,producer_name,product_name,vintage,volume_ml,abv_percent,pack_type,units_per_case,country_of_origin,region,grape_variety,price_net,currency
+ACC-001,7350001234567,,Château Test,Test Rouge Premier Cru,2020,750,13.5,bottle,,France,Bordeaux,Cabernet Sauvignon,450.00,SEK
+ACC-002,7350001234568,,Château Test,Test Blanc Premier Cru,2021,750,12.5,bottle,,France,Bordeaux,Sauvignon Blanc,380.00,SEK
+ACC-003,,,Domaine Test,Test Pinot Noir Réserve,2019,750,13.0,bottle,,France,Bourgogne,Pinot Noir,650.00,SEK
+ACC-004,,,Producer Test,Test Product No Vintage,,750,14.0,bottle,,Italy,Tuscany,Sangiovese,280.00,SEK
+ACC-005,7350001234569,,Test Producer,Test Case Pack,2022,750,13.5,case,6,Spain,Rioja,Tempranillo,120.00,SEK
+ACC-006,,,Bodega Test,Test Tempranillo,2020,750,14.5,bottle,,Spain,Ribera del Duero,Tempranillo,320.00,SEK
+ACC-007,7350001234570,,Weingut Test,Test Riesling,2021,750,11.5,bottle,,Germany,Mosel,Riesling,240.00,SEK
+ACC-008,,,Producer Test 2,Test Merlot,2019,750,13.8,bottle,,France,Pomerol,Merlot,580.00,SEK
+ACC-009,,,Château Test,Test Rouge Second Wine,2020,750,13.0,bottle,,France,Bordeaux,Cabernet Sauvignon blend,280.00,SEK
+ACC-010,7350001234571,,Domaine Test 2,Test Chardonnay,2021,750,13.2,bottle,,France,Chablis,Chardonnay,420.00,SEK
+ACC-011,,,Producer Test 3,Test Syrah,,750,14.2,bottle,,Australia,Barossa Valley,Shiraz,380.00,SEK
+ACC-012,7350001234572,,Bodega Test 2,Test Albariño,2022,750,12.8,bottle,,Spain,Rías Baixas,Albariño,260.00,SEK
+ACC-013,,,Weingut Test 2,Test Pinot Noir,2020,750,13.5,bottle,,Germany,Baden,Pinot Noir,480.00,SEK
+ACC-014,,,Producer Test 4,Test Cabernet Sauvignon,2019,750,14.8,bottle,,USA,Napa Valley,Cabernet Sauvignon,750.00,SEK
+ACC-015,7350001234573,,Château Test 2,Test Sauternes,2018,375,13.5,bottle,,France,Sauternes,Sémillon,520.00,SEK
+ACC-016,,,Domaine Test 3,Test Rosé,2022,750,12.5,bottle,,France,Provence,Grenache,220.00,SEK
+ACC-017,7350001234574,,Bodega Test 3,Test Rioja Reserva,2017,750,14.0,bottle,,Spain,Rioja,Tempranillo,450.00,SEK
+ACC-018,,,Producer Test 5,Test Sauvignon Blanc,2022,750,12.8,bottle,,New Zealand,Marlborough,Sauvignon Blanc,280.00,SEK
+ACC-019,,,Weingut Test 3,Test Grüner Veltliner,2021,750,12.5,bottle,,Austria,Wachau,Grüner Veltliner,320.00,SEK
+ACC-020,7350001234575,,Château Test 3,Test Grand Cru,2019,750,14.5,bottle,,France,Bordeaux,Cabernet Sauvignon,980.00,SEK
+ACC-021,,,Domaine Test 4,Test Burgundy,2020,750,13.8,bottle,,France,Bourgogne,Pinot Noir,720.00,SEK
+ACC-022,7350001234576,,Producer Test 6,Test Champagne Brut,NV,750,12.0,bottle,,France,Champagne,Chardonnay,450.00,SEK
+ACC-023,,,Bodega Test 4,Test Priorat,2019,750,15.0,bottle,,Spain,Priorat,Garnacha,620.00,SEK
+ACC-024,,,Weingut Test 4,Test Spätburgunder,2020,750,13.2,bottle,,Germany,Pfalz,Pinot Noir,380.00,SEK
+ACC-025,7350001234577,,Producer Test 7,Test Barolo,2017,750,14.5,bottle,,Italy,Piemonte,Nebbiolo,850.00,SEK
+ACC-026,,,Château Test 4,Test Claret,2021,750,13.0,bottle,,France,Bordeaux,Merlot,320.00,SEK
+ACC-027,7350001234578,,Domaine Test 5,Test Chablis Premier Cru,2020,750,13.0,bottle,,France,Chablis,Chardonnay,580.00,SEK
+ACC-028,,,Bodega Test 5,Test Verdejo,2022,750,12.5,bottle,,Spain,Rueda,Verdejo,180.00,SEK
+ACC-029,,,Weingut Test 5,Test Silvaner,2021,750,11.8,bottle,,Germany,Franken,Silvaner,240.00,SEK
+ACC-030,7350001234579,,Producer Test 8,Test Amarone,2016,750,16.0,bottle,,Italy,Veneto,Corvina,1200.00,SEK
+ACC-031,,,Château Test 5,Test Margaux,2019,750,13.8,bottle,,France,Margaux,Cabernet Sauvignon,1500.00,SEK
+ACC-032,7350001234580,,Domaine Test 6,Test Pouilly-Fuissé,2021,750,13.2,bottle,,France,Bourgogne,Chardonnay,420.00,SEK
+ACC-033,,,Bodega Test 6,Test Monastrell,2020,750,14.2,bottle,,Spain,Jumilla,Monastrell,220.00,SEK
+ACC-034,,,Weingut Test 6,Test Zweigelt,2020,750,13.0,bottle,,Austria,Burgenland,Zweigelt,280.00,SEK
+ACC-035,7350001234581,,Producer Test 9,Test Brunello,2017,750,14.8,bottle,,Italy,Toscana,Sangiovese,980.00,SEK
+ACC-036,,,Château Test 6,Test Pauillac,2018,750,14.0,bottle,,France,Pauillac,Cabernet Sauvignon,1800.00,SEK
+ACC-037,7350001234582,,Domaine Test 7,Test Meursault,2020,750,13.5,bottle,,France,Bourgogne,Chardonnay,850.00,SEK
+ACC-038,,,Bodega Test 7,Test Cava Brut Nature,NV,750,11.8,bottle,,Spain,Penedès,Macabeo,180.00,SEK
+ACC-039,,,Weingut Test 7,Test Eiswein,2019,375,8.5,bottle,,Germany,Rheingau,Riesling,650.00,SEK
+ACC-040,7350001234583,,Producer Test 10,Test Chianti Classico,2020,750,13.5,bottle,,Italy,Toscana,Sangiovese,380.00,SEK
+ACC-041,,,Château Test 7,Test Saint-Émilion,2019,750,14.2,bottle,,France,Saint-Émilion,Merlot,920.00,SEK
+ACC-042,7350001234584,,Domaine Test 8,Test Côte de Beaune,2020,750,13.8,bottle,,France,Bourgogne,Pinot Noir,780.00,SEK
+ACC-043,,,Bodega Test 8,Test Garnacha Old Vines,2019,750,15.2,bottle,,Spain,Calatayud,Garnacha,480.00,SEK
+ACC-044,,,Weingut Test 8,Test Scheurebe,2021,750,12.2,bottle,,Germany,Pfalz,Scheurebe,220.00,SEK
+ACC-045,7350001234585,,Producer Test 11,Test Valpolicella Ripasso,2019,750,14.0,bottle,,Italy,Veneto,Corvina,420.00,SEK
+ACC-046,,,Château Test 8,Test Pessac-Léognan,2020,750,13.5,bottle,,France,Pessac-Léognan,Cabernet Sauvignon,680.00,SEK
+ACC-047,7350001234586,,Domaine Test 9,Test Volnay,2019,750,13.5,bottle,,France,Bourgogne,Pinot Noir,920.00,SEK
+ACC-048,,,Bodega Test 9,Test Mencía,2020,750,13.8,bottle,,Spain,Bierzo,Mencía,380.00,SEK
+ACC-049,,,Weingut Test 9,Test Trollinger,2021,750,12.5,bottle,,Germany,Württemberg,Trollinger,240.00,SEK
+ACC-050,7350001234587,,Producer Test 12,Test Super Tuscan,2018,750,14.5,bottle,,Italy,Toscana,Cabernet Sauvignon,1200.00,SEK
