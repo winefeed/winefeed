@@ -341,7 +341,7 @@ export default function MatchDemoPage() {
             {!loading && !error && !result && (
               <div className="bg-card border border-border rounded-lg shadow-sm p-8 text-center text-muted-foreground">
                 <div className="text-6xl mb-4">🔍</div>
-                <p className="text-lg font-medium">Fyll i parametrar och klicka "Matcha produkt"</p>
+                <p className="text-lg font-medium">Fyll i parametrar och klicka &quot;Matcha produkt&quot;</p>
                 <p className="text-sm mt-2">
                   Testa olika kombinationer av identifierare och text för att se hur matchningen fungerar.
                 </p>
