@@ -19,6 +19,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
+import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
 
 // MVP: Hardcoded tenant for testing
 // Production: Get from authenticated user context or environment
@@ -254,17 +256,6 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'bg-blue-500';
-      case 'IN_FULFILLMENT': return 'bg-yellow-500';
-      case 'SHIPPED': return 'bg-purple-500';
-      case 'DELIVERED': return 'bg-green-500';
-      case 'CANCELLED': return 'bg-gray-500';
-      default: return 'bg-gray-400';
-    }
-  };
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'CONFIRMED': return 'Bekräftad';
@@ -389,9 +380,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-800">Order Summary</h2>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getStatusColor(order.status)}`}>
-              {getStatusLabel(order.status)}
-            </span>
+            <OrderStatusBadge status={order.status} size="md" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -465,14 +454,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">Import Case Status</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${
-                    order.compliance?.import_case_status === 'APPROVED' ? 'bg-green-500' :
-                    order.compliance?.import_case_status === 'SUBMITTED' ? 'bg-yellow-500' :
-                    order.compliance?.import_case_status === 'REJECTED' ? 'bg-red-500' :
-                    'bg-gray-500'
-                  }`}>
-                    {order.compliance?.import_case_status || 'NOT_REGISTERED'}
-                  </span>
+                  <ImportStatusBadge status={order.compliance?.import_case_status || 'NOT_REGISTERED'} size="md" />
                 </div>
                 <p className="text-xs text-gray-600 mb-2">Import ID: {order.import_case.id}</p>
                 <a
@@ -490,13 +472,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700">Direct Delivery Location (DDL)</span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${
-                      order.compliance?.ddl_status === 'APPROVED' ? 'bg-green-500' :
-                      order.compliance?.ddl_status === 'PENDING' ? 'bg-yellow-500' :
-                      'bg-gray-500'
-                    }`}>
-                      {order.compliance?.ddl_status || 'UNKNOWN'}
-                    </span>
+                    <ImportStatusBadge status={order.compliance?.ddl_status || 'UNKNOWN'} size="md" />
                   </div>
                   <p className="text-sm text-gray-600">
                     {order.import_case.delivery_location.delivery_address_line1}

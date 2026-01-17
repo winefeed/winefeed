@@ -22,6 +22,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { OrderStatusBadge } from './components/StatusBadge';
+import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 
 // MVP: Hardcoded tenant for testing
 // Production: Get from authenticated user context or environment
@@ -317,13 +318,7 @@ export default function RestaurantOrdersPage() {
                       <td className="px-4 py-3 text-gray-600">{order.total_quantity}</td>
                       <td className="px-4 py-3">
                         {order.import_id ? (
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            order.import_status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                            order.import_status === 'SUBMITTED' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {order.import_status || 'N/A'}
-                          </span>
+                          <ImportStatusBadge status={order.import_status} size="sm" />
                         ) : (
                           <span className="text-gray-400 text-xs">—</span>
                         )}
