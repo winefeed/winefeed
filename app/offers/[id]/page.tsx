@@ -20,6 +20,7 @@ import { OfferLineItemRow } from '../components/OfferLineItemRow';
 import { OfferStatusBadge } from '../components/OfferStatusBadge';
 import { MatchStatusBadge } from '@/app/components/match/MatchStatusBadge';
 import type { MatchStatus } from '@/app/components/wine-check/types';
+import { getAlertColor } from '@/lib/design-system/alert-colors';
 
 interface Offer {
   id: string;
@@ -404,7 +405,7 @@ export default function OfferEditorPage() {
           </div>
 
           {offer.locked_at && (
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-purple-300 bg-purple-100 text-purple-800 font-medium">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium ${getAlertColor('NEUTRAL').badgeClass}`}>
               <span className="text-lg">🔒</span>
               <span>Låst snapshot finns</span>
             </div>
