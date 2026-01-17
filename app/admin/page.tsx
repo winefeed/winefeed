@@ -171,6 +171,12 @@ export default function AdminDashboardPage() {
           >
             ✉️ Invites
           </button>
+          <button
+            onClick={() => router.push('/admin/users')}
+            className="px-6 py-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 font-medium text-gray-700"
+          >
+            👥 Users
+          </button>
         </div>
 
         {/* Alerts Summary */}
