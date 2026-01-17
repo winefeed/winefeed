@@ -23,6 +23,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { OrderStatusBadge } from './components/StatusBadge';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { StepIndicator } from '@/components/ui/StepIndicator';
 
 // MVP: Hardcoded tenant for testing
 // Production: Get from authenticated user context or environment
@@ -247,6 +249,11 @@ export default function RestaurantOrdersPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Step Indicator */}
+        <div className="mb-6">
+          <StepIndicator currentStep={4} />
+        </div>
+
         {/* Status Filter */}
         <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
           {['ALL', 'CONFIRMED', 'IN_FULFILLMENT', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map(status => (
@@ -273,15 +280,26 @@ export default function RestaurantOrdersPage() {
           </div>
 
           {orders.length === 0 ? (
-            <div className="text-center py-12">
-              <span className="text-6xl mb-4 block">📭</span>
-              <p className="text-gray-500 text-lg">Inga orders ännu</p>
-              {statusFilter !== 'ALL' && (
-                <p className="text-gray-400 text-sm mt-2">
-                  Prova ett annat filter eller <button onClick={() => setStatusFilter('ALL')} className="text-green-600 underline">visa alla</button>
-                </p>
+            <>
+              {statusFilter !== 'ALL' ? (
+                <div className="text-center py-12">
+                  <span className="text-6xl mb-4 block">🔍</span>
+                  <p className="text-gray-500 text-lg">Inga orders med detta filter</p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Prova ett annat filter eller <button onClick={() => setStatusFilter('ALL')} className="text-green-600 underline">visa alla</button>
+                  </p>
+                </div>
+              ) : (
+                <EmptyState
+                  icon="📦"
+                  title="Inga orders ännu"
+                  description="Orders skapas automatiskt när du accepterar en offert. Skapa din första offertförfrågan för att komma igång."
+                  actionLabel="Skapa första offertförfrågan"
+                  actionHref="/dashboard/new-request"
+                  showSteps={true}
+                />
               )}
-            </div>
+            </>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

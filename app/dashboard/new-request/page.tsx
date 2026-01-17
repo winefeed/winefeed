@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { RequestForm } from '@/components/request-form';
+import { StepIndicator } from '@/components/ui/StepIndicator';
+import { RoleBasedMessage } from '@/components/ui/RoleBasedMessage';
 
 export default function NewRequestPage() {
   const router = useRouter();
@@ -29,6 +31,11 @@ export default function NewRequestPage() {
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 py-12">
+        {/* Step Indicator */}
+        <div className="max-w-3xl mx-auto mb-8">
+          <StepIndicator currentStep={1} />
+        </div>
+
         {/* Trust Signal */}
         <div className="text-center mb-6">
           <p className="text-sm text-muted-foreground">
@@ -89,6 +96,14 @@ export default function NewRequestPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Role-based messaging */}
+        <div className="max-w-5xl mx-auto mb-12">
+          <h3 className="text-center text-xl font-semibold text-foreground mb-6">
+            För alla roller på restaurangen
+          </h3>
+          <RoleBasedMessage variant="horizontal" />
         </div>
 
         {/* Benefits - Moved Down */}
