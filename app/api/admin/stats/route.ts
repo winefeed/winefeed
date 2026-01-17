@@ -17,22 +17,28 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { actorService } from '@/lib/actor-service';
+import { adminService } from '@/lib/admin-service';
 
 export async function GET(request: NextRequest) {
   try {
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
+    if (!tenantId || !userId) {
       return NextResponse.json(
-        { error: 'Missing tenant context' },
+        { error: 'Missing auth context' },
         { status: 401 }
       );
     }
 
-    // Access control: Check ADMIN_MODE in dev
-    if (process.env.ADMIN_MODE !== 'true') {
+    // Access control: Check admin privileges
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    const isAdmin = await adminService.isAdmin(actor);
+
+    if (!isAdmin) {
       return NextResponse.json(
-        { error: 'Forbidden: Admin access required', hint: 'Set ADMIN_MODE=true in .env.local for dev' },
+        { error: 'Forbidden: Admin access required', hint: 'Set ADMIN_MODE=true in .env.local for dev or add user to admin_users table' },
         { status: 403 }
       );
     }

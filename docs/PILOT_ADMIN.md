@@ -1312,3 +1312,323 @@ For full history, query the database directly or implement pagination.
 - [Pilot Loop 1.0 Spec](./PILOT_LOOP.md) (if exists)
 
 **Questions:** Contact dev team or open GitHub issue.
+
+---
+
+## Admin Users Dashboard
+
+### Overview
+
+Admin Users Dashboard provides a centralized view of all users in the tenant with their roles, linked entities, and recent activity.
+
+**Path:** `/admin/users`
+
+**Features:**
+- List all users in the tenant
+- Search by email (masked)
+- Filter by role (ADMIN, RESTAURANT, SELLER, IOR)
+- View linked entities (restaurants, suppliers, importers)
+- Click to view detailed user profile with activity history
+
+**Access Control:**
+- Dev: ADMIN_MODE=true in .env.local
+- Prod: Admin role required (via admin_users table)
+
+### Production-Ready Admin Auth
+
+**NEW:** Admin access is now production-ready with proper role-based authentication.
+
+**How It Works:**
+
+1. **Development Mode:**
+   ```bash
+   ADMIN_MODE=true  # Bypass admin_users table check
+   ```
+
+2. **Production Mode:**
+   ```bash
+   ADMIN_MODE=false  # Require entry in admin_users table
+   ```
+
+**Admin Users Table:**
+```sql
+CREATE TABLE admin_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_by_user_id UUID NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (tenant_id, user_id)
+);
+```
+
+**isAdmin Check:**
+```typescript
+import { adminService } from '@/lib/admin-service';
+
+const actor = await actorService.resolveActor({ user_id, tenant_id });
+const isAdmin = await adminService.isAdmin(actor);
+
+if (!isAdmin) {
+  return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+}
+```
+
+**Admin Service Methods:**
+- `isAdmin(actor)` - Check if user has admin access
+- `grantAdmin(grantedBy, userId, tenantId)` - Grant admin access
+- `revokeAdmin(revokedBy, userId, tenantId)` - Revoke admin access
+- `listAdmins(actor)` - List all admins for tenant
+
+### API Endpoints
+
+#### GET /api/admin/users
+
+Returns list of users in the tenant.
+
+**Headers:**
+```
+x-tenant-id: <tenant-uuid>
+x-user-id: <admin-user-uuid>
+```
+
+**Response:**
+```json
+{
+  "users": [
+    {
+      "user_id": "abc-123...",
+      "email_masked": "m***@example.com",
+      "created_at": "2025-01-16T10:00:00Z",
+      "roles": ["RESTAURANT", "ADMIN"],
+      "linked_entities": {
+        "restaurant_id": "def-456...",
+        "supplier_id": null,
+        "importer_id": null
+      },
+      "status": "active"
+    }
+  ],
+  "count": 15,
+  "timestamp": "2025-01-16T12:00:00Z"
+}
+```
+
+#### GET /api/admin/users/[id]
+
+Returns detailed user profile with recent activity.
+
+**Headers:**
+```
+x-tenant-id: <tenant-uuid>
+x-user-id: <admin-user-uuid>
+```
+
+**Response:**
+```json
+{
+  "user_id": "abc-123...",
+  "email_masked": "m***@example.com",
+  "created_at": "2025-01-16T10:00:00Z",
+  "roles": ["RESTAURANT"],
+  "linked_entities": {
+    "restaurant_id": "def-456...",
+    "restaurant_name": "Restaurang AB"
+  },
+  "status": "active",
+  "recent_activity": {
+    "recent_requests": [
+      {
+        "id": "req-123...",
+        "created_at": "2025-01-16T10:30:00Z",
+        "status": "OPEN",
+        "title": "Rödviner till jul"
+      }
+    ],
+    "recent_offers": [],
+    "recent_orders": []
+  },
+  "timestamp": "2025-01-16T12:00:00Z"
+}
+```
+
+### UI Features
+
+#### Users List Page (`/admin/users`)
+
+**Search:**
+- Search by masked email
+- Real-time filtering
+
+**Filters:**
+- All Roles
+- ADMIN
+- RESTAURANT
+- SELLER
+- IOR
+
+**Table Columns:**
+- Email (masked)
+- Roles (badges)
+- Linked Entities (restaurant/supplier/importer IDs)
+- Created Date
+- Status
+- Actions (View Details →)
+
+**Role Badges:**
+- ADMIN: Purple
+- RESTAURANT: Green
+- SELLER: Blue
+- IOR: Orange
+
+#### User Detail Page (`/admin/users/[id]`)
+
+**Sections:**
+1. **Profile:** User ID, email (masked), created_at, status
+2. **Roles:** Visual badges for all roles
+3. **Linked Entities:** Cards with entity details
+   - Restaurant: 🏪 + name + ID
+   - Supplier: 📦 + name + ID
+   - Importer: 🇪🇺 + name + ID
+4. **Recent Activity:** Last 10 requests/offers/orders
+   - Shows title, status, timestamp
+   - Status badges (color-coded)
+
+### Security
+
+**Email Masking:**
+All emails masked as `m***@example.com` for privacy.
+
+**Tenant Isolation:**
+Users can only see users from their own tenant.
+
+**Admin-Only Access:**
+All endpoints require `isAdmin(actor) === true`.
+
+**No Sensitive Data:**
+- ❌ No full email addresses
+- ❌ No passwords or tokens
+- ❌ No prices or payment info
+- ✅ Only IDs, roles, and masked emails
+
+### Migration to Production
+
+**Step 1: Run Migrations**
+```bash
+# Apply new migrations
+supabase migration up
+
+# Migrations:
+# - 20260120_create_admin_users.sql
+# - 20260120_enable_rls_admin_users.sql
+```
+
+**Step 2: Grant Admin Access to Existing Users**
+```sql
+-- Insert admin users manually
+INSERT INTO admin_users (tenant_id, user_id)
+VALUES
+  ('00000000-0000-0000-0000-000000000001', 'YOUR_USER_ID_1'),
+  ('00000000-0000-0000-0000-000000000001', 'YOUR_USER_ID_2');
+```
+
+**Step 3: Set Production Mode**
+```bash
+# In .env.local (or Vercel env vars)
+ADMIN_MODE=false  # Require admin_users table
+NODE_ENV=production
+```
+
+**Step 4: Verify Admin Access**
+1. Login as admin user
+2. Navigate to `/admin`
+3. Should see dashboard (not 403)
+4. Navigate to `/admin/users`
+5. Should see users list
+
+**Step 5: Remove ADMIN_MODE Fallback (Optional)**
+For maximum security, you can remove the ADMIN_MODE fallback entirely:
+
+```typescript
+// lib/admin-service.ts
+async isAdmin(actor: ActorContext): Promise<boolean> {
+  // Production: Check admin_users table only
+  const supabase = getSupabaseAdmin();
+  const { data } = await supabase
+    .from('admin_users')
+    .select('id')
+    .eq('tenant_id', actor.tenant_id)
+    .eq('user_id', actor.user_id)
+    .maybeSingle();
+
+  return !!data;
+}
+```
+
+### Testing
+
+**Smoke Test (Coming Soon):**
+```bash
+bash scripts/admin-users-smoke.sh
+```
+
+**Manual Test:**
+1. Set `ADMIN_MODE=true` in .env.local
+2. Navigate to `/admin/users`
+3. Verify users list loads
+4. Search for email
+5. Filter by role
+6. Click user to view details
+7. Verify recent activity loads
+
+### Integration with Actor Service
+
+**Actor Resolution Now Includes Admin Check:**
+```typescript
+// lib/actor-service.ts
+async resolveActor(input: ResolveActorInput): Promise<ActorContext> {
+  // ... resolve restaurant, supplier, IOR roles ...
+
+  // Check ADMIN role via adminService
+  const { adminService } = await import('./admin-service');
+  const isAdmin = await adminService.isAdmin(preliminaryActor);
+  if (isAdmin) {
+    roles.push('ADMIN');
+  }
+
+  return { tenant_id, user_id, roles, ... };
+}
+```
+
+**All Admin Routes Updated:**
+- `/api/admin/stats`
+- `/api/admin/pilot/overview`
+- `/api/admin/invites`
+- `/api/admin/users` (NEW)
+- `/api/admin/users/[id]` (NEW)
+
+### Files
+
+**Migrations:**
+- `supabase/migrations/20260120_create_admin_users.sql`
+- `supabase/migrations/20260120_enable_rls_admin_users.sql`
+
+**Service:**
+- `lib/admin-service.ts` (NEW)
+
+**API:**
+- `app/api/admin/users/route.ts` (NEW)
+- `app/api/admin/users/[id]/route.ts` (NEW)
+
+**UI:**
+- `app/admin/users/page.tsx` (NEW)
+- `app/admin/users/[id]/page.tsx` (NEW)
+
+**Updated:**
+- `lib/actor-service.ts` (now uses adminService for ADMIN role)
+- `app/admin/page.tsx` (added "Users" quick link)
+- `app/api/admin/stats/route.ts` (uses isAdmin)
+- `app/api/admin/pilot/overview/route.ts` (uses isAdmin)
+- `app/api/admin/invites/route.ts` (uses isAdmin)
+
+---

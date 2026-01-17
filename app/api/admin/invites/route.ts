@@ -16,16 +16,8 @@ import { inviteService } from '@/lib/invite-service';
 import { sendEmail } from '@/lib/email-service';
 import { userInviteEmail } from '@/lib/email-templates';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
-
-// Helper: Check if user has admin access
-function isAdmin(request: NextRequest): boolean {
-  if (process.env.ADMIN_MODE === 'true') {
-    return true;
-  }
-
-  const userRole = request.headers.get('x-user-role');
-  return userRole === 'admin';
-}
+import { actorService } from '@/lib/actor-service';
+import { adminService } from '@/lib/admin-service';
 
 /**
  * POST /api/admin/invites
@@ -33,22 +25,25 @@ function isAdmin(request: NextRequest): boolean {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Security: Admin check
-    if (!isAdmin(request)) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    // Extract tenant context
+    // Extract auth context
     const tenantId = request.headers.get('x-tenant-id');
     const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
+    if (!tenantId || !userId) {
       return NextResponse.json(
-        { error: 'Missing tenant context' },
+        { error: 'Missing auth context' },
         { status: 401 }
+      );
+    }
+
+    // Security: Admin check
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    const isAdmin = await adminService.isAdmin(actor);
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required', hint: 'Set ADMIN_MODE=true in .env.local for dev or add user to admin_users table' },
+        { status: 403 }
       );
     }
 
@@ -176,21 +171,25 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Security: Admin check
-    if (!isAdmin(request)) {
+    // Extract auth context
+    const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
+
+    if (!tenantId || !userId) {
       return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
+        { error: 'Missing auth context' },
+        { status: 401 }
       );
     }
 
-    // Extract tenant context
-    const tenantId = request.headers.get('x-tenant-id');
+    // Security: Admin check
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    const isAdmin = await adminService.isAdmin(actor);
 
-    if (!tenantId) {
+    if (!isAdmin) {
       return NextResponse.json(
-        { error: 'Missing tenant context' },
-        { status: 401 }
+        { error: 'Forbidden: Admin access required', hint: 'Set ADMIN_MODE=true in .env.local for dev or add user to admin_users table' },
+        { status: 403 }
       );
     }
 
