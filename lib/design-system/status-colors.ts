@@ -89,13 +89,19 @@ export const businessStatusMapping: Record<string, SemanticStatus> = {
   // Delivery location statuses
   // NOT_REGISTERED, SUBMITTED, APPROVED, REJECTED already mapped
 
-  // Match statuses (if needed)
+  // Match statuses
   AUTO_MATCH: 'completed',
-  AUTO_MATCH_WITH_GUARDS: 'progress',
-  SUGGESTED: 'pending',
-  CONFIRMED_MATCH: 'completed',
-  REJECTED_MATCH: 'rejected',
+  AUTO_MATCH_WITH_GUARDS: 'pending',
+  SUGGESTED: 'progress',
   PENDING_REVIEW: 'progress',
+  NO_MATCH: 'draft',
+
+  // Wine Check / Enrichment statuses
+  EXACT: 'completed',
+  FUZZY: 'pending',
+  MULTIPLE: 'progress',
+  NOT_FOUND: 'draft',
+  ERROR: 'rejected',
 } as const;
 
 export interface StatusColorResult {
@@ -146,4 +152,26 @@ export function getSemanticColor(category: SemanticStatus): StatusColorResult {
     badgeClass: colors.badge,
     dotClass: colors.dot,
   };
+}
+
+/**
+ * Get confidence color based on confidence score (0-1 or 0-100)
+ *
+ * @param confidence - Confidence score (0-1 or 0-100)
+ * @returns Text color class
+ *
+ * @example
+ * ```ts
+ * getConfidenceColor(0.95) // => 'text-green-700'
+ * getConfidenceColor(85) // => 'text-blue-700'
+ * ```
+ */
+export function getConfidenceColor(confidence: number): string {
+  // Normalize to 0-1 range
+  const normalized = confidence > 1 ? confidence / 100 : confidence;
+
+  if (normalized >= 0.9) return 'text-green-700';
+  if (normalized >= 0.7) return 'text-blue-700';
+  if (normalized >= 0.5) return 'text-yellow-700';
+  return 'text-orange-700';
 }
