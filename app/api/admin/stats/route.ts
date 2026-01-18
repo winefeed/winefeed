@@ -53,13 +53,12 @@ export async function GET(request: NextRequest) {
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
     const isAdmin = await adminService.isAdmin(actor);
 
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Forbidden: Admin access required', hint: 'Set ADMIN_MODE=true in .env.local for dev or add user to admin_users table' },
-        { status: 403 }
-      );
-    }
-
+if (!isAdmin) {
+  return NextResponse.json(
+    { error: 'Forbidden: Admin access required', hint: 'Set ADMIN_MODE=true in .env.local for dev or add user to admin_users table', debug: { userId, tenantId, userEmail: user.email } },
+    { status: 403 }
+  );
+}
     const supabaseAdmin = getSupabaseAdmin();
 
     // Fetch counts in parallel
