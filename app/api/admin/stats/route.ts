@@ -17,21 +17,38 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { actorService } from '@/lib/actor-service';
 import { adminService } from '@/lib/admin-service';
 
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = request.headers.get('x-tenant-id');
-    const userId = request.headers.get('x-user-id');
-
-    if (!tenantId || !userId) {
+// Get user from Supabase session
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
       return NextResponse.json(
-        { error: 'Missing auth context' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-
+    
+    const userId = user.id;
+    const tenantId = '00000000-0000-0000-0000-000000000001';
     // Access control: Check admin privileges
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
     const isAdmin = await adminService.isAdmin(actor);
@@ -43,7 +60,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabaseAdmin();
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Fetch counts in parallel
     const [
@@ -54,12 +71,12 @@ export async function GET(request: NextRequest) {
       ordersResult,
       importsResult,
     ] = await Promise.all([
-      supabase.from('restaurants').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabase.from('suppliers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabase.from('quote_requests').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabase.from('offers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabase.from('orders').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabase.from('imports').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+      supabaseAdmin.from('restaurants').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+      supabaseAdmin.from('suppliers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+      supabaseAdmin.from('quote_requests').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+      supabaseAdmin.from('offers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+      supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+      supabaseAdmin.from('imports').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
     ]);
 
     // Fetch recent activity (latest requests, offers, orders)
