@@ -17,13 +17,7 @@
  * - No sensitive data (passwords, tokens) returned
  */
 
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { getSupabaseAdmin } from './supabase-server';
 
 // ============================================================================
 // TYPES
@@ -66,7 +60,7 @@ class ActorService {
 
     // 1. Check RESTAURANT role (restaurant_users table)
     try {
-      const { data: restaurantUser } = await supabase
+      const { data: restaurantUser } = await supabaseAdmin()
         .from('restaurant_users')
         .select('restaurant_id')
         .eq('user_id', user_id)
@@ -83,7 +77,7 @@ class ActorService {
 
     // 2. Check SELLER role (supplier_users table)
     try {
-      const { data: supplierUser } = await supabase
+      const { data: supplierUser } = await supabaseAdmin()
         .from('supplier_users')
         .select('supplier_id')
         .eq('user_id', user_id)
@@ -102,7 +96,7 @@ class ActorService {
     if (supplier_id) {
       try {
         // Get supplier's org_number
-        const { data: supplier } = await supabase
+        const { data: supplier } = await supabaseAdmin()
           .from('suppliers')
           .select('org_number, type')
           .eq('id', supplier_id)
@@ -110,7 +104,7 @@ class ActorService {
 
         if (supplier && supplier.org_number) {
           // Check if this org_number exists in importers table
-          const { data: importer } = await supabase
+          const { data: importer } = await supabaseAdmin()
             .from('importers')
             .select('id, tenant_id')
             .eq('org_number', supplier.org_number)
