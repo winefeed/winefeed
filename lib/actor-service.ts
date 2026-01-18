@@ -127,9 +127,23 @@ class ActorService {
       }
     }
 
-    // 4. Check ADMIN role (ADMIN_MODE environment variable for MVP)
-    // In production, this would check a dedicated admin_users table or role flag
-    if (process.env.ADMIN_MODE === 'true') {
+    // 4. Check ADMIN role (admin_users table + ADMIN_MODE fallback in dev)
+    // Import adminService inline to avoid circular dependency
+    const { adminService } = await import('./admin-service');
+
+    // Build preliminary actor context for isAdmin check
+    const preliminaryActor = {
+      tenant_id,
+      user_id,
+      roles,
+      restaurant_id,
+      supplier_id,
+      importer_id,
+      user_email
+    };
+
+    const isAdmin = await adminService.isAdmin(preliminaryActor);
+    if (isAdmin) {
       roles.push('ADMIN');
     }
 

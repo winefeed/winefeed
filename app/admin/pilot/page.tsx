@@ -17,6 +17,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AlertBadge } from '../components/AlertBadge';
+import { getAlertColor } from '@/lib/design-system/alert-colors';
 
 interface Request {
   id: string;
@@ -275,7 +277,7 @@ export default function PilotAdminPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Alert 1: EU Orders Without Import Case */}
-              <div className="bg-white rounded-lg shadow-md border-l-4 border-red-500 overflow-hidden">
+              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('ERROR').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'eu_orders' ? null : 'eu_orders')}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
@@ -286,11 +288,10 @@ export default function PilotAdminPage() {
                       <div className="text-sm text-gray-700">Missing Import Case</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-3 py-1 rounded-full text-lg font-bold ${
-                        data.alerts.eu_orders_without_import_case.count > 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                      }`}>
-                        {data.alerts.eu_orders_without_import_case.count}
-                      </span>
+                      <AlertBadge
+                        count={data.alerts.eu_orders_without_import_case.count}
+                        severity={data.alerts.eu_orders_without_import_case.count > 0 ? 'ERROR' : 'OK'}
+                      />
                       <span className="text-gray-400">{expandedAlert === 'eu_orders' ? '▼' : '▶'}</span>
                     </div>
                   </div>
@@ -310,7 +311,7 @@ export default function PilotAdminPage() {
               </div>
 
               {/* Alert 2: Import Cases Missing DDL */}
-              <div className="bg-white rounded-lg shadow-md border-l-4 border-orange-500 overflow-hidden">
+              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('WARNING').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'missing_ddl' ? null : 'missing_ddl')}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
@@ -321,11 +322,10 @@ export default function PilotAdminPage() {
                       <div className="text-sm text-gray-700">Missing/Unapproved DDL</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-3 py-1 rounded-full text-lg font-bold ${
-                        data.alerts.import_cases_missing_ddl_or_not_approved.count > 0 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
-                      }`}>
-                        {data.alerts.import_cases_missing_ddl_or_not_approved.count}
-                      </span>
+                      <AlertBadge
+                        count={data.alerts.import_cases_missing_ddl_or_not_approved.count}
+                        severity={data.alerts.import_cases_missing_ddl_or_not_approved.count > 0 ? 'WARNING' : 'OK'}
+                      />
                       <span className="text-gray-400">{expandedAlert === 'missing_ddl' ? '▼' : '▶'}</span>
                     </div>
                   </div>
@@ -348,7 +348,7 @@ export default function PilotAdminPage() {
               </div>
 
               {/* Alert 3: Approved Imports Missing 5369 */}
-              <div className="bg-white rounded-lg shadow-md border-l-4 border-yellow-500 overflow-hidden">
+              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('INFO').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'missing_5369' ? null : 'missing_5369')}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
@@ -359,11 +359,10 @@ export default function PilotAdminPage() {
                       <div className="text-sm text-gray-700">Missing 5369 Docs</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-3 py-1 rounded-full text-lg font-bold ${
-                        data.alerts.approved_import_cases_missing_5369.count > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-                      }`}>
-                        {data.alerts.approved_import_cases_missing_5369.count}
-                      </span>
+                      <AlertBadge
+                        count={data.alerts.approved_import_cases_missing_5369.count}
+                        severity={data.alerts.approved_import_cases_missing_5369.count > 0 ? 'INFO' : 'OK'}
+                      />
                       <span className="text-gray-400">{expandedAlert === 'missing_5369' ? '▼' : '▶'}</span>
                     </div>
                   </div>
@@ -383,7 +382,7 @@ export default function PilotAdminPage() {
               </div>
 
               {/* Alert 4: Orders Stuck Over 3 Days */}
-              <div className="bg-white rounded-lg shadow-md border-l-4 border-purple-500 overflow-hidden">
+              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('SPECIAL').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'stuck_orders' ? null : 'stuck_orders')}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
@@ -394,11 +393,10 @@ export default function PilotAdminPage() {
                       <div className="text-sm text-gray-700">No Update &gt; 3 Days</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-3 py-1 rounded-full text-lg font-bold ${
-                        data.alerts.orders_stuck_over_3_days.count > 0 ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'
-                      }`}>
-                        {data.alerts.orders_stuck_over_3_days.count}
-                      </span>
+                      <AlertBadge
+                        count={data.alerts.orders_stuck_over_3_days.count}
+                        severity={data.alerts.orders_stuck_over_3_days.count > 0 ? 'SPECIAL' : 'OK'}
+                      />
                       <span className="text-gray-400">{expandedAlert === 'stuck_orders' ? '▼' : '▶'}</span>
                     </div>
                   </div>
@@ -419,7 +417,7 @@ export default function PilotAdminPage() {
               </div>
 
               {/* Alert 5: Email Failures Last 24h */}
-              <div className="bg-white rounded-lg shadow-md border-l-4 border-pink-500 overflow-hidden">
+              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('EMAIL_FAILURE').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'email_failures' ? null : 'email_failures')}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
@@ -430,11 +428,10 @@ export default function PilotAdminPage() {
                       <div className="text-sm text-gray-700">Last 24 Hours (offers + orders)</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-3 py-1 rounded-full text-lg font-bold ${
-                        data.alerts.email_failures_last_24h.count > 0 ? 'bg-pink-100 text-pink-700' : 'bg-green-100 text-green-700'
-                      }`}>
-                        {data.alerts.email_failures_last_24h.count}
-                      </span>
+                      <AlertBadge
+                        count={data.alerts.email_failures_last_24h.count}
+                        severity={data.alerts.email_failures_last_24h.count > 0 ? 'EMAIL_FAILURE' : 'OK'}
+                      />
                       <span className="text-gray-400">{expandedAlert === 'email_failures' ? '▼' : '▶'}</span>
                     </div>
                   </div>
@@ -468,7 +465,7 @@ export default function PilotAdminPage() {
                               <div className="flex items-center gap-2">
                                 {item.source && (
                                   <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                                    item.source === 'order_events' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                                    getAlertColor(item.source === 'order_events' ? 'SPECIAL' : 'NEUTRAL').badgeClass
                                   }`}>
                                     {item.source === 'order_events' ? '📦 Order' : '📄 Offer'}
                                   </span>

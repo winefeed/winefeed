@@ -21,6 +21,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
 
 // MVP: Hardcoded tenant for testing
 // Production: Get from authenticated user context or environment
@@ -152,17 +153,6 @@ export default function IOROrdersPage() {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'bg-blue-500';
-      case 'IN_FULFILLMENT': return 'bg-yellow-500';
-      case 'SHIPPED': return 'bg-purple-500';
-      case 'DELIVERED': return 'bg-green-500';
-      case 'CANCELLED': return 'bg-gray-500';
-      default: return 'bg-gray-400';
-    }
   };
 
   const getStatusLabel = (status: string) => {
@@ -325,9 +315,7 @@ export default function IOROrdersPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)}`}>
-                          {getStatusLabel(order.status)}
-                        </span>
+                        <OrderStatusBadge status={order.status} size="md" />
                       </td>
                       <td className="px-4 py-3 text-gray-600">{order.total_lines}</td>
                       <td className="px-4 py-3 text-gray-600">{order.total_quantity}</td>

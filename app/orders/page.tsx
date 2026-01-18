@@ -21,6 +21,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { OrderStatusBadge } from './components/StatusBadge';
+import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { StepIndicator } from '@/components/ui/StepIndicator';
 
 // MVP: Hardcoded tenant for testing
 // Production: Get from authenticated user context or environment
@@ -153,26 +157,16 @@ export default function RestaurantOrdersPage() {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'bg-blue-500';
-      case 'IN_FULFILLMENT': return 'bg-yellow-500';
-      case 'SHIPPED': return 'bg-purple-500';
-      case 'DELIVERED': return 'bg-green-500';
-      case 'CANCELLED': return 'bg-gray-500';
-      default: return 'bg-gray-400';
-    }
-  };
-
+  // Status color/label logic moved to OrderStatusBadge component
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'Bekräftad';
-      case 'IN_FULFILLMENT': return 'I leverans';
-      case 'SHIPPED': return 'Skickad';
-      case 'DELIVERED': return 'Levererad';
-      case 'CANCELLED': return 'Avbruten';
-      default: return status;
-    }
+    const labels: Record<string, string> = {
+      'CONFIRMED': 'Bekräftad',
+      'IN_FULFILLMENT': 'I leverans',
+      'SHIPPED': 'Skickad',
+      'DELIVERED': 'Levererad',
+      'CANCELLED': 'Avbruten',
+    };
+    return labels[status] || status;
   };
 
   const getSupplierTypeIcon = (type: string) => {
@@ -255,6 +249,11 @@ export default function RestaurantOrdersPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Step Indicator */}
+        <div className="mb-6">
+          <StepIndicator currentStep={4} />
+        </div>
+
         {/* Status Filter */}
         <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
           {['ALL', 'CONFIRMED', 'IN_FULFILLMENT', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map(status => (
@@ -281,15 +280,26 @@ export default function RestaurantOrdersPage() {
           </div>
 
           {orders.length === 0 ? (
-            <div className="text-center py-12">
-              <span className="text-6xl mb-4 block">📭</span>
-              <p className="text-gray-500 text-lg">Inga orders ännu</p>
-              {statusFilter !== 'ALL' && (
-                <p className="text-gray-400 text-sm mt-2">
-                  Prova ett annat filter eller <button onClick={() => setStatusFilter('ALL')} className="text-green-600 underline">visa alla</button>
-                </p>
+            <>
+              {statusFilter !== 'ALL' ? (
+                <div className="text-center py-12">
+                  <span className="text-6xl mb-4 block">🔍</span>
+                  <p className="text-gray-500 text-lg">Inga orders med detta filter</p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Prova ett annat filter eller <button onClick={() => setStatusFilter('ALL')} className="text-green-600 underline">visa alla</button>
+                  </p>
+                </div>
+              ) : (
+                <EmptyState
+                  icon="📦"
+                  title="Inga orders ännu"
+                  description="Orders skapas automatiskt när du accepterar en offert. Skapa din första offertförfrågan för att komma igång."
+                  actionLabel="Skapa första offertförfrågan"
+                  actionHref="/dashboard/new-request"
+                  showSteps={true}
+                />
               )}
-            </div>
+            </>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -320,21 +330,13 @@ export default function RestaurantOrdersPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-600">{order.importer_name}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)}`}>
-                          {getStatusLabel(order.status)}
-                        </span>
+                        <OrderStatusBadge status={order.status} size="md" />
                       </td>
                       <td className="px-4 py-3 text-gray-600">{order.lines_count}</td>
                       <td className="px-4 py-3 text-gray-600">{order.total_quantity}</td>
                       <td className="px-4 py-3">
                         {order.import_id ? (
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            order.import_status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                            order.import_status === 'SUBMITTED' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {order.import_status || 'N/A'}
-                          </span>
+                          <ImportStatusBadge status={order.import_status} size="sm" />
                         ) : (
                           <span className="text-gray-400 text-xs">—</span>
                         )}
