@@ -19,6 +19,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { actorService } from '@/lib/actor-service';
+import { adminService } from '@/lib/admin-service';
 
 // Helper: Mask email address (m***@domain.com)
 function maskEmail(email: string): string {
@@ -27,18 +29,6 @@ function maskEmail(email: string): string {
   const [local, domain] = email.split('@');
   const maskedLocal = local[0] + '***';
   return `${maskedLocal}@${domain}`;
-}
-
-// Helper: Check if user has admin access
-function isAdmin(request: NextRequest): boolean {
-  // Dev mode: Allow if ADMIN_MODE=true
-  if (process.env.ADMIN_MODE === 'true') {
-    return true;
-  }
-
-  // Production: Check x-user-role header (should be set by middleware)
-  const userRole = request.headers.get('x-user-role');
-  return userRole === 'admin';
 }
 
 // Helper: Get action hint for email failure based on template
@@ -81,8 +71,7 @@ function calculateTimingStats(hours: number[]) {
 }
 
 // Helper: Fetch pilot KPI metrics (counts and timings)
-async function fetchPilotMetrics(tenantId: string) {
-  const supabase = getSupabaseAdmin();
+async function fetchPilotMetrics(tenantId: string, supabase: ReturnType<typeof getSupabaseAdmin>) {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   // ========================================
@@ -292,8 +281,7 @@ async function fetchPilotMetrics(tenantId: string) {
 }
 
 // Helper: Fetch operational alerts for pilot monitoring
-async function fetchOperationalAlerts(tenantId: string) {
-  const supabase = getSupabaseAdmin();
+async function fetchOperationalAlerts(tenantId: string, supabase: ReturnType<typeof getSupabaseAdmin>) {
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
@@ -467,24 +455,29 @@ async function fetchOperationalAlerts(tenantId: string) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Security: Admin check
-    if (!isAdmin(request)) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    // Extract tenant context
+    // Extract auth context
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
+    if (!tenantId || !userId) {
       return NextResponse.json(
-        { error: 'Missing tenant context' },
+        { error: 'Missing auth context' },
         { status: 401 }
       );
     }
 
+    // Security: Admin check
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    const isAdmin = await adminService.isAdmin(actor);
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required', hint: 'Set ADMIN_MODE=true in .env.local for dev or add user to admin_users table' },
+        { status: 403 }
+      );
+    }
+
+    // Get Supabase admin client
     const supabase = getSupabaseAdmin();
 
     // Fetch recent requests (max 20)
@@ -600,10 +593,10 @@ export async function GET(request: NextRequest) {
     });
 
     // Fetch operational alerts
-    const alerts = await fetchOperationalAlerts(tenantId);
+    const alerts = await fetchOperationalAlerts(tenantId, supabase);
 
     // Fetch pilot KPI metrics
-    const pilot_metrics = await fetchPilotMetrics(tenantId);
+    const pilot_metrics = await fetchPilotMetrics(tenantId, supabase);
 
     return NextResponse.json(
       {

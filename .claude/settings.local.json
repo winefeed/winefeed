@@ -63,7 +63,15 @@
       "Bash(git branch:*)",
       "Bash(git remote add:*)",
       "Bash(git push:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm run lint:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(wait)",
+      "Bash(test:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from './Tooltip';
+import { getStatusColor } from '@/lib/design-system/status-colors';
 
 /**
  * WINE-SEARCHER CHECK COMPONENT
@@ -11,6 +12,7 @@ import { Tooltip } from './Tooltip';
  * Shows: canonical_name, producer, region, appellation, match_score, match_status, candidates
  *
  * CRITICAL: This component ONLY displays allowlist fields
+ * Uses unified design system colors from lib/design-system/status-colors.ts
  */
 
 interface WineCandidate {
@@ -38,31 +40,11 @@ interface WineSearcherCheckProps {
 }
 
 const MATCH_STATUS_CONFIG = {
-  EXACT: {
-    label: 'Exakt matchning',
-    color: 'bg-green-100 text-green-800 border-green-300',
-    icon: '✓'
-  },
-  FUZZY: {
-    label: 'Nära matchning',
-    color: 'bg-blue-100 text-blue-800 border-blue-300',
-    icon: '≈'
-  },
-  MULTIPLE: {
-    label: 'Flera kandidater',
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    icon: '?'
-  },
-  NOT_FOUND: {
-    label: 'Ej funnen',
-    color: 'bg-gray-100 text-gray-800 border-gray-300',
-    icon: '×'
-  },
-  ERROR: {
-    label: 'Fel',
-    color: 'bg-red-100 text-red-800 border-red-300',
-    icon: '!'
-  }
+  EXACT: { label: 'Exakt matchning', icon: '✓' },
+  FUZZY: { label: 'Nära matchning', icon: '≈' },
+  MULTIPLE: { label: 'Flera kandidater', icon: '?' },
+  NOT_FOUND: { label: 'Ej funnen', icon: '×' },
+  ERROR: { label: 'Fel', icon: '!' },
 };
 
 export function WineSearcherCheck({ wineName, vintage, onSelect }: WineSearcherCheckProps) {
@@ -113,6 +95,7 @@ export function WineSearcherCheck({ wineName, vintage, onSelect }: WineSearcherC
   };
 
   const statusInfo = result ? MATCH_STATUS_CONFIG[result.match_status] : null;
+  const statusColors = result ? getStatusColor(result.match_status) : null;
 
   return (
     <div className="space-y-4">
@@ -167,11 +150,11 @@ export function WineSearcherCheck({ wineName, vintage, onSelect }: WineSearcherC
       )}
 
       {/* Result Display */}
-      {result && statusInfo && (
+      {result && statusInfo && statusColors && (
         <div className="border border-border rounded-lg p-4 space-y-3">
           {/* Status Badge */}
           <div className="flex items-center justify-between">
-            <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${statusInfo.color}`}>
+            <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${statusColors.badgeClass}`}>
               <span className="mr-2">{statusInfo.icon}</span>
               {statusInfo.label}
             </span>

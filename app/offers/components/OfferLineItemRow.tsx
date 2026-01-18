@@ -12,8 +12,9 @@
 'use client';
 
 import { useState } from 'react';
-import { OfferLineItem, WineCheckEnrichment, assertNoForbiddenFieldsInEnrichment, getMatchStatusLabel, getMatchStatusVariant } from '@/lib/offer-types';
+import { OfferLineItem, WineCheckEnrichment, assertNoForbiddenFieldsInEnrichment, getMatchStatusLabel } from '@/lib/offer-types';
 import { WineCheckPanel, WineCheckCandidate } from '@/app/components/wine-check';
+import { getStatusColor } from '@/lib/design-system/status-colors';
 
 interface OfferLineItemRowProps {
   lineItem: OfferLineItem;
@@ -163,17 +164,9 @@ export function OfferLineItemRow({ lineItem, onUpdate, onRemove }: OfferLineItem
           </button>
 
           {/* Match Status Badge */}
-          {lineItem.enrichment && (
+          {lineItem.enrichment && lineItem.enrichment.match_status && (
             <div className="flex items-center gap-2">
-              <span
-                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  getMatchStatusVariant(lineItem.enrichment.match_status) === 'success'
-                    ? 'bg-green-100 text-green-800'
-                    : getMatchStatusVariant(lineItem.enrichment.match_status) === 'warning'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
-                }`}
-              >
+              <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(lineItem.enrichment.match_status).badgeClass}`}>
                 {getMatchStatusLabel(lineItem.enrichment.match_status)}
                 {lineItem.enrichment.match_score !== null && ` (${lineItem.enrichment.match_score}%)`}
               </span>

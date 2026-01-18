@@ -8,11 +8,14 @@
  * - Confidence indicator
  * - Match method (GTIN_EXACT, CANONICAL_SUGGEST, etc.)
  * - Tooltip with explanation
+ *
+ * Uses unified design system colors from lib/design-system/status-colors.ts
  */
 
 'use client';
 
 import { useState } from 'react';
+import { getStatusColor, getConfidenceColor } from '@/lib/design-system/status-colors';
 
 interface MatchStatusBadgeProps {
   latest_match: {
@@ -41,54 +44,24 @@ export function MatchStatusBadge({ latest_match, size = 'sm' }: MatchStatusBadge
 
   const { status, confidence, match_method, explanation, matched_entity_type } = latest_match;
 
-  // Status styling
-  const statusStyles: Record<string, { bg: string; text: string; border: string; icon: string }> = {
-    AUTO_MATCH: {
-      bg: 'bg-green-100',
-      text: 'text-green-800',
-      border: 'border-green-300',
-      icon: '✅'
-    },
-    AUTO_MATCH_WITH_GUARDS: {
-      bg: 'bg-blue-100',
-      text: 'text-blue-800',
-      border: 'border-blue-300',
-      icon: '🔵'
-    },
-    SUGGESTED: {
-      bg: 'bg-yellow-100',
-      text: 'text-yellow-800',
-      border: 'border-yellow-300',
-      icon: '💡'
-    },
-    CONFIRMED: {
-      bg: 'bg-green-100',
-      text: 'text-green-800',
-      border: 'border-green-300',
-      icon: '✓'
-    },
-    REJECTED: {
-      bg: 'bg-red-100',
-      text: 'text-red-800',
-      border: 'border-red-300',
-      icon: '✗'
-    },
-    PENDING_REVIEW: {
-      bg: 'bg-orange-100',
-      text: 'text-orange-800',
-      border: 'border-orange-300',
-      icon: '⏳'
-    }
-  };
+  // Status styling from design system
+  const { badgeClass } = getStatusColor(status);
 
-  const style = statusStyles[status] || statusStyles.PENDING_REVIEW;
+  // Status icons
+  const statusIcons: Record<string, string> = {
+    AUTO_MATCH: '✅',
+    AUTO_MATCH_WITH_GUARDS: '🔵',
+    SUGGESTED: '💡',
+    CONFIRMED: '✓',
+    REJECTED: '✗',
+    PENDING_REVIEW: '⏳',
+    NO_MATCH: '⚪',
+  };
+  const icon = statusIcons[status] || '⏳';
 
   // Confidence display
   const confidencePercent = Math.round(confidence * 100);
-  const confidenceColor =
-    confidence >= 0.9 ? 'text-green-700' :
-    confidence >= 0.7 ? 'text-blue-700' :
-    confidence >= 0.5 ? 'text-yellow-700' : 'text-orange-700';
+  const confidenceColor = getConfidenceColor(confidence);
 
   // Method display name
   const methodLabels: Record<string, string> = {
@@ -104,11 +77,11 @@ export function MatchStatusBadge({ latest_match, size = 'sm' }: MatchStatusBadge
   return (
     <div className="relative inline-block">
       <div
-        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-xs ${style.bg} ${style.text} ${style.border} cursor-help`}
+        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-xs ${badgeClass} cursor-help`}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >
-        <span className="text-sm">{style.icon}</span>
+        <span className="text-sm">{icon}</span>
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <span className="font-semibold">{status.replace('_', ' ')}</span>

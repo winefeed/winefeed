@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { StepIndicator } from '@/components/ui/StepIndicator';
 
 interface Request {
   id: string;
@@ -117,6 +118,11 @@ export default function RequestDetailPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Step Indicator */}
+        <div className="mb-6">
+          <StepIndicator currentStep={2} />
+        </div>
+
         {/* Status Badge */}
         {isAccepted && (
           <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-100 text-green-800 border border-green-300 font-medium">
