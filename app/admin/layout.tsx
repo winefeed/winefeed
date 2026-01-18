@@ -12,8 +12,7 @@
  * - /admin/pilot
  */
 
-import { Sidebar } from '@/components/navigation/Sidebar';
-import { getAdminNavigation } from '@/lib/navigation';
+import { AdminShell } from '@/components/navigation/AdminShell';
 import { actorService } from '@/lib/actor-service';
 import { adminService } from '@/lib/admin-service';
 import { createServerClient } from '@supabase/ssr';
@@ -64,21 +63,6 @@ export default async function AdminLayout({
     redirect('/dashboard/new-request?error=admin_access_denied');
   }
 
-  // Get admin navigation
-  const navigationSections = getAdminNavigation(actor.roles);
-
-  return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar
-        sections={navigationSections}
-        userEmail={user?.email}
-        userRoles={actor.roles}
-        isAdmin={true}
-      />
-
-      <main className="flex-1 lg:pl-0">
-        {children}
-      </main>
-    </div>
-  );
+  // Admin access granted - render admin shell
+  return <AdminShell>{children}</AdminShell>;
 }

@@ -71,7 +71,8 @@
       "Bash(git pull:*)",
       "Bash(wait)",
       "Bash(test:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(npm run build:skip-checks:*)"
     ]
   }
 }
