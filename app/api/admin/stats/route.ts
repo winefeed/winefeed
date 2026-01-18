@@ -39,25 +39,15 @@ export async function GET(request: NextRequest) {
     
     const userId = user.id;
     const tenantId = '00000000-0000-0000-0000-000000000001';
-    
-    // DEBUG: Direct database test
-    const supabaseAdminDebug = getSupabaseAdmin();
-    const { data: adminCheck, error: adminError } = await supabaseAdminDebug
-      .from('admin_users')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('user_id', userId)
-      .maybeSingle();
-    
+
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
     const isAdmin = await adminService.isAdmin(actor);
 
     if (!isAdmin) {
       return NextResponse.json(
-        { 
-          error: 'Forbidden: Admin access required', 
-          hint: 'Set ADMIN_MODE=true in .env.local for dev or add user to admin_users table', 
-          debug: { userId, tenantId, userEmail: user.email, actor, adminCheck, adminError } 
+        {
+          error: 'Forbidden: Admin access required',
+          hint: 'Set ADMIN_MODE=true in .env.local for dev or add user to admin_users table'
         },
         { status: 403 }
       );
