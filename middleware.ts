@@ -135,8 +135,7 @@ export async function middleware(request: NextRequest) {
     .eq('contact_email', user.email)
     .single();
 
-  const tenantId = restaurant?.tenant_id || '00000000-0000-0000-0000-000000000000';
-
+const tenantId = '00000000-0000-0000-0000-000000000001';
   // Clone request headers and add user context
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-user-id', user.id);
