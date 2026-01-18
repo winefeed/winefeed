@@ -60,7 +60,7 @@ class ActorService {
 
     // 1. Check RESTAURANT role (restaurant_users table)
     try {
-      const { data: restaurantUser } = await supabaseAdmin()
+      const { data: restaurantUser } = await getSupabaseAdmin()
         .from('restaurant_users')
         .select('restaurant_id')
         .eq('user_id', user_id)
@@ -77,7 +77,7 @@ class ActorService {
 
     // 2. Check SELLER role (supplier_users table)
     try {
-      const { data: supplierUser } = await supabaseAdmin()
+      const { data: supplierUser } = await getSupabaseAdmin()
         .from('supplier_users')
         .select('supplier_id')
         .eq('user_id', user_id)
@@ -96,7 +96,7 @@ class ActorService {
     if (supplier_id) {
       try {
         // Get supplier's org_number
-        const { data: supplier } = await supabaseAdmin()
+        const { data: supplier } = await getSupabaseAdmin()
           .from('suppliers')
           .select('org_number, type')
           .eq('id', supplier_id)
@@ -104,7 +104,7 @@ class ActorService {
 
         if (supplier && supplier.org_number) {
           // Check if this org_number exists in importers table
-          const { data: importer } = await supabaseAdmin()
+          const { data: importer } = await getSupabaseAdmin()
             .from('importers')
             .select('id, tenant_id')
             .eq('org_number', supplier.org_number)
