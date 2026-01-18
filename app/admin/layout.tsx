@@ -15,8 +15,10 @@
 import { Sidebar } from '@/components/navigation/Sidebar';
 import { getAdminNavigation } from '@/lib/navigation';
 import { actorService } from '@/lib/actor-service';
+import { adminService } from '@/lib/admin-service';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export default async function AdminLayout({
   children,
@@ -39,19 +41,30 @@ export default async function AdminLayout({
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Require authentication
+  if (!user) {
+    redirect('/login?redirect=/admin');
+  }
+
   // Default tenant (MVP - single tenant)
   const tenantId = '00000000-0000-0000-0000-000000000001';
 
   // Resolve actor context (roles and entity IDs)
-  const actor = user
-    ? await actorService.resolveActor({
-        user_id: user.id,
-        tenant_id: tenantId,
-        user_email: user.email,
-      })
-    : { roles: [], tenant_id: tenantId, user_id: '' };
+  const actor = await actorService.resolveActor({
+    user_id: user.id,
+    tenant_id: tenantId,
+    user_email: user.email,
+  });
 
-  // Get admin navigation (only if user is admin)
+  // Check if user is admin
+  const isAdmin = await adminService.isAdmin(actor);
+
+  // Block access if not admin
+  if (!isAdmin) {
+    redirect('/dashboard/new-request?error=admin_access_denied');
+  }
+
+  // Get admin navigation
   const navigationSections = getAdminNavigation(actor.roles);
 
   return (
