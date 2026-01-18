@@ -127,9 +127,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // User is authenticated - allow access
-  return response;
-}
+// User is authenticated - set headers and allow access
+  // Lookup tenant_id from restaurants table (user's restaurant)
+  const { data: restaurant } = await supabase
+    .from('restaurants')
+    .select('tenant_id')
+    .eq('contact_email', user.email)
+    .single();
+
+  const tenantId = restaurant?.tenant_id || '00000000-0000-0000-0000-000000000000';
+
+  // Clone request headers and add user context
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-user-id', user.id);
+  requestHeaders.set('x-tenant-id', tenantId);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });}
 
 export const config = {
   matcher: [
