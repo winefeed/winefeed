@@ -14,15 +14,40 @@
 import { useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { getMainNavigation } from '@/lib/navigation';
+import { cn } from '@/lib/utils';
 import type { ActorContext } from '@/lib/actor-service';
 
 interface DashboardShellProps {
   children: React.ReactNode;
 }
 
+const STORAGE_KEY = 'sidebar-collapsed';
+
 export function DashboardShell({ children }: DashboardShellProps) {
   const [actor, setActor] = useState<ActorContext | null>(null);
   const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Load collapsed state from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored !== null) {
+      setCollapsed(stored === 'true');
+    }
+
+    // Listen for storage changes (when user toggles in Sidebar)
+    const handleStorageChange = () => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored !== null) {
+        setCollapsed(stored === 'true');
+      }
+    };
+
+    // Poll localStorage for changes (Sidebar updates it)
+    const interval = setInterval(handleStorageChange, 100);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     async function fetchActor() {
@@ -68,7 +93,16 @@ export function DashboardShell({ children }: DashboardShellProps) {
         isAdmin={false}
       />
 
-      <main className="flex-1 lg:pl-0">
+      {/* Main content with margin to compensate for fixed sidebar */}
+      <main
+        className={cn(
+          'flex-1 transition-all duration-300',
+          // Desktop: Add margin for sidebar
+          // Mobile: No margin (sidebar is overlay)
+          'lg:ml-64', // Default expanded (256px)
+          collapsed && 'lg:ml-16' // Collapsed (64px)
+        )}
+      >
         {children}
       </main>
     </div>
