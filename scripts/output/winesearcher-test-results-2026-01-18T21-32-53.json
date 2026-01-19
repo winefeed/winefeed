@@ -1,0 +1,482 @@
+{
+  "test_run": {
+    "timestamp": "2026-01-18T21:32:53.421Z",
+    "total_duration_ms": 32220,
+    "api_key_prefix": "wnestest..."
+  },
+  "summary": {
+    "total_tests": 29,
+    "successful": 1,
+    "failed": 28,
+    "by_status": {
+      "EXACT": 0,
+      "FUZZY": 0,
+      "MULTIPLE": 0,
+      "NOT_FOUND": 0,
+      "ERROR": 29
+    },
+    "by_category": {
+      "bordeaux-premier-cru": {
+        "total": 3,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "bordeaux-pomerol": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "bordeaux-st-emilion": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "bourgogne-grand-cru": {
+        "total": 2,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "bourgogne-village": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "champagne": {
+        "total": 2,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "champagne-nv": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "italy-super-tuscan": {
+        "total": 2,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "italy-piedmont": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "spain-ribera": {
+        "total": 2,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "rhone-north": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "rhone-south": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "usa-napa": {
+        "total": 2,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "australia": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "test-misspelling": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "test-abbreviation": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "test-variation": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "test-word-order": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "alsace": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "germany-mosel": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "test-not-found": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      },
+      "test-empty-name": {
+        "total": 1,
+        "exact": 0,
+        "fuzzy": 0,
+        "not_found": 0
+      }
+    },
+    "average_score": 0,
+    "average_duration_ms": 628
+  },
+  "results": [
+    {
+      "input": {
+        "name": "Chateau Margaux",
+        "vintage": "2015",
+        "category": "bordeaux-premier-cru"
+      },
+      "output": null,
+      "duration_ms": 1360,
+      "timestamp": "2026-01-18T21:32:21.200Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Chateau Lafite Rothschild",
+        "vintage": "2018",
+        "category": "bordeaux-premier-cru"
+      },
+      "output": null,
+      "duration_ms": 677,
+      "timestamp": "2026-01-18T21:32:23.060Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Chateau Mouton Rothschild",
+        "vintage": "2016",
+        "category": "bordeaux-premier-cru"
+      },
+      "output": null,
+      "duration_ms": 660,
+      "timestamp": "2026-01-18T21:32:24.239Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Petrus",
+        "vintage": "2019",
+        "category": "bordeaux-pomerol"
+      },
+      "output": null,
+      "duration_ms": 618,
+      "timestamp": "2026-01-18T21:32:25.400Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Chateau Cheval Blanc",
+        "vintage": "2017",
+        "category": "bordeaux-st-emilion"
+      },
+      "output": null,
+      "duration_ms": 597,
+      "timestamp": "2026-01-18T21:32:26.518Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Domaine de la Romanée-Conti Romanée-Conti",
+        "vintage": "2018",
+        "category": "bourgogne-grand-cru"
+      },
+      "output": null,
+      "duration_ms": 642,
+      "timestamp": "2026-01-18T21:32:27.616Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Domaine Leroy Musigny",
+        "vintage": "2017",
+        "category": "bourgogne-grand-cru"
+      },
+      "output": null,
+      "duration_ms": 456,
+      "timestamp": "2026-01-18T21:32:28.759Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Louis Jadot Gevrey-Chambertin",
+        "vintage": "2019",
+        "category": "bourgogne-village"
+      },
+      "output": null,
+      "duration_ms": 676,
+      "timestamp": "2026-01-18T21:32:29.716Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Dom Perignon",
+        "vintage": "2012",
+        "category": "champagne"
+      },
+      "output": null,
+      "duration_ms": 981,
+      "timestamp": "2026-01-18T21:32:30.893Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Krug Grande Cuvée",
+        "category": "champagne-nv"
+      },
+      "output": null,
+      "duration_ms": 351,
+      "timestamp": "2026-01-18T21:32:32.374Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Louis Roederer Cristal",
+        "vintage": "2014",
+        "category": "champagne"
+      },
+      "output": null,
+      "duration_ms": 595,
+      "timestamp": "2026-01-18T21:32:33.226Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Sassicaia",
+        "vintage": "2018",
+        "category": "italy-super-tuscan"
+      },
+      "output": null,
+      "duration_ms": 574,
+      "timestamp": "2026-01-18T21:32:34.321Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Tignanello Antinori",
+        "vintage": "2019",
+        "category": "italy-super-tuscan"
+      },
+      "output": null,
+      "duration_ms": 1035,
+      "timestamp": "2026-01-18T21:32:35.395Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Gaja Barbaresco",
+        "vintage": "2017",
+        "category": "italy-piedmont"
+      },
+      "output": null,
+      "duration_ms": 629,
+      "timestamp": "2026-01-18T21:32:36.931Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Vega Sicilia Unico",
+        "vintage": "2011",
+        "category": "spain-ribera"
+      },
+      "output": null,
+      "duration_ms": 673,
+      "timestamp": "2026-01-18T21:32:38.061Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Pingus",
+        "vintage": "2018",
+        "category": "spain-ribera"
+      },
+      "output": null,
+      "duration_ms": 513,
+      "timestamp": "2026-01-18T21:32:39.234Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Guigal Côte-Rôtie La Mouline",
+        "vintage": "2017",
+        "category": "rhone-north"
+      },
+      "output": null,
+      "duration_ms": 627,
+      "timestamp": "2026-01-18T21:32:40.247Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Château de Beaucastel Châteauneuf-du-Pape",
+        "vintage": "2019",
+        "category": "rhone-south"
+      },
+      "output": null,
+      "duration_ms": 609,
+      "timestamp": "2026-01-18T21:32:41.375Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Opus One",
+        "vintage": "2018",
+        "category": "usa-napa"
+      },
+      "output": null,
+      "duration_ms": 564,
+      "timestamp": "2026-01-18T21:32:42.485Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Screaming Eagle Cabernet Sauvignon",
+        "vintage": "2019",
+        "category": "usa-napa"
+      },
+      "output": null,
+      "duration_ms": 486,
+      "timestamp": "2026-01-18T21:32:43.550Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Penfolds Grange",
+        "vintage": "2017",
+        "category": "australia"
+      },
+      "output": null,
+      "duration_ms": 537,
+      "timestamp": "2026-01-18T21:32:44.538Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Chateau Margau",
+        "vintage": "2015",
+        "category": "test-misspelling"
+      },
+      "output": null,
+      "duration_ms": 858,
+      "timestamp": "2026-01-18T21:32:45.576Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Ch. Lafite Rothschild",
+        "vintage": "2018",
+        "category": "test-abbreviation"
+      },
+      "output": null,
+      "duration_ms": 650,
+      "timestamp": "2026-01-18T21:32:46.935Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Romanee Conti DRC",
+        "vintage": "2018",
+        "category": "test-variation"
+      },
+      "output": null,
+      "duration_ms": 542,
+      "timestamp": "2026-01-18T21:32:48.085Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Margaux 2015 Chateau",
+        "vintage": "2015",
+        "category": "test-word-order"
+      },
+      "output": null,
+      "duration_ms": 833,
+      "timestamp": "2026-01-18T21:32:49.126Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Domaine Weinbach Riesling Grand Cru Schlossberg",
+        "vintage": "2020",
+        "category": "alsace"
+      },
+      "output": null,
+      "duration_ms": 530,
+      "timestamp": "2026-01-18T21:32:50.460Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Egon Müller Scharzhofberger Riesling Spätlese",
+        "vintage": "2019",
+        "category": "germany-mosel"
+      },
+      "output": null,
+      "duration_ms": 526,
+      "timestamp": "2026-01-18T21:32:51.491Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "Unknown Wine That Does Not Exist XYZ123",
+        "vintage": "2020",
+        "category": "test-not-found"
+      },
+      "output": null,
+      "duration_ms": 402,
+      "timestamp": "2026-01-18T21:32:52.518Z",
+      "error": "Unexpected token '<', \"<?xml vers\"... is not valid JSON"
+    },
+    {
+      "input": {
+        "name": "",
+        "vintage": "2020",
+        "category": "test-empty-name"
+      },
+      "output": {
+        "canonical_name": null,
+        "producer": null,
+        "region": null,
+        "appellation": null,
+        "match_score": null,
+        "match_status": "ERROR",
+        "candidates": []
+      },
+      "duration_ms": 0,
+      "timestamp": "2026-01-18T21:32:53.420Z"
+    }
+  ]
+}

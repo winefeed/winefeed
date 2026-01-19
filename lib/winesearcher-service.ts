@@ -29,6 +29,8 @@ export interface WineCheckInput {
   tenantId: string;
   name: string;
   vintage?: string;
+  type?: string;    // För NV-kategori-detektion (t.ex. "champagne", "port")
+  region?: string;  // För NV-kategori-detektion (t.ex. "Champagne", "Porto")
 }
 
 export interface WineCandidate {
@@ -81,6 +83,54 @@ const CACHE_TTL_DAYS = parseInt(process.env.WINESEARCHER_CACHE_TTL_DAYS || '7', 
 
 if (!WINESEARCHER_API_KEY || WINESEARCHER_API_KEY === 'your_winesearcher_api_key_here') {
   console.warn('[WineSearcher] API key not configured. Wine Check will return mock data.');
+}
+
+// ============================================================================
+// NV (Non-Vintage) Wine Handling
+// ============================================================================
+
+/**
+ * Kategorier som typiskt är NV (non-vintage)
+ * Kräver vintage=NV parameter för Wine-Searcher API
+ */
+const NV_KEYWORDS = [
+  // Mousserande
+  'champagne', 'cava', 'prosecco', 'cremant', 'crémant', 'sekt', 'sparkling',
+  // Starkvin
+  'sherry', 'porto', 'port', 'madeira', 'marsala', 'vermouth',
+  // Övrigt
+  'fortified', 'solera'
+];
+
+/**
+ * Kontrollera om vinet tillhör en NV-kategori
+ */
+function isNonVintageCategory(input: WineCheckInput): boolean {
+  const searchText = [
+    input.type,
+    input.region,
+    input.name
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  return NV_KEYWORDS.some(kw => searchText.includes(kw));
+}
+
+/**
+ * Bestäm vintage-parameter för API-anrop
+ *
+ * Logik:
+ * 1. vintage finns → använd vintage
+ * 2. vintage saknas + NV-kategori → använd "NV"
+ * 3. vintage saknas + ej NV-kategori → ingen vintage-param
+ */
+function getVintageParam(input: WineCheckInput): string | undefined {
+  if (input.vintage) {
+    return input.vintage.toString();
+  }
+  if (isNonVintageCategory(input)) {
+    return 'NV';
+  }
+  return undefined;
 }
 
 // ============================================================================
@@ -198,17 +248,18 @@ async function setCachedWineCheck(
 /**
  * Fetch wine data from Wine-Searcher /x endpoint
  * ONLY Wine Check - NO PRICE DATA
+ *
+ * API returnerar XML, inte JSON
  */
 async function fetchWineSearcherWineCheck(
-  name: string,
-  vintage?: string
-): Promise<{ result: WineCheckResult; rawResponse?: any }> {
+  input: WineCheckInput
+): Promise<{ result: WineCheckResult; rawResponse?: string }> {
   // If API key not configured, return mock data for development
   if (!WINESEARCHER_API_KEY || WINESEARCHER_API_KEY === 'your_winesearcher_api_key_here') {
     console.warn('[WineSearcher] Using mock data (API key not configured)');
     return {
       result: {
-        canonical_name: name,
+        canonical_name: input.name,
         producer: 'Mock Producer',
         region: 'Mock Region',
         appellation: null,
@@ -216,36 +267,43 @@ async function fetchWineSearcherWineCheck(
         match_status: 'FUZZY',
         candidates: [
           {
-            name: name,
+            name: input.name,
             producer: 'Mock Producer A',
             region: 'Mock Region A',
             score: 90
           },
           {
-            name: name,
+            name: input.name,
             producer: 'Mock Producer B',
             region: 'Mock Region B',
             score: 80
           }
         ]
       },
-      rawResponse: { mock: true }
+      rawResponse: '<mock>true</mock>'
     };
   }
 
   try {
-    // Wine-Searcher API endpoint: /x (Wine Check)
-    // Documentation: https://www.wine-searcher.com/api/docs
+    // Bygg API-parametrar
     const params = new URLSearchParams({
-      Xwapikey: WINESEARCHER_API_KEY,
-      s: name,
-      ...(vintage && { vintage })
+      api_key: WINESEARCHER_API_KEY,
+      winename: input.name,
     });
 
-    const response = await fetch(`https://api.wine-searcher.com/x?${params.toString()}`, {
+    // Lägg till vintage-parameter (hanterar NV-kategorier)
+    const vintageParam = getVintageParam(input);
+    if (vintageParam) {
+      params.append('vintage', vintageParam);
+    }
+
+    const url = `https://api.wine-searcher.com/x?${params.toString()}`;
+    console.log('[WineSearcher] API call:', input.name, vintageParam ? `(vintage=${vintageParam})` : '(no vintage)');
+
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        'Accept': 'application/xml',
         'User-Agent': 'Winefeed/1.0'
       }
     });
@@ -254,13 +312,10 @@ async function fetchWineSearcherWineCheck(
       throw new Error(`Wine-Searcher API error: ${response.status} ${response.statusText}`);
     }
 
-    const rawResponse = await response.json();
+    const rawXml = await response.text();
+    const result = parseWineSearcherXmlResponse(rawXml);
 
-    // Parse Wine-Searcher response
-    // NOTE: Adjust this based on actual API response format
-    const result = parseWineSearcherResponse(rawResponse);
-
-    return { result, rawResponse };
+    return { result, rawResponse: rawXml };
   } catch (err: any) {
     console.error('[WineSearcher] API call failed:', err.message);
     return {
@@ -278,17 +333,37 @@ async function fetchWineSearcherWineCheck(
 }
 
 /**
- * Parse Wine-Searcher API response into allowlist format
- * CRITICAL: Strip all price/offer/currency fields
+ * Parse Wine-Searcher XML response
+ *
+ * Format:
+ * <wine-searcher>
+ *   <return-code>0</return-code>
+ *   <list-currency-code>USD</list-currency-code>
+ *   <wine-details>
+ *     <wine>
+ *       <region>Pomerol</region>
+ *       <grape>Merlot</grape>
+ *       <price-average>3584.99</price-average>  <!-- IGNORERAS -->
+ *       <ws-score>94</ws-score>
+ *     </wine>
+ *   </wine-details>
+ * </wine-searcher>
+ *
+ * CRITICAL: Prisdata extraheras men returneras INTE till klient
  */
-function parseWineSearcherResponse(rawResponse: any): WineCheckResult {
-  // This is a placeholder implementation
-  // Adjust based on actual Wine-Searcher /x response format
-
+function parseWineSearcherXmlResponse(rawXml: string): WineCheckResult {
   try {
-    const results = rawResponse.results || [];
+    // Enkel XML-parsning utan externt bibliotek
+    const getTagValue = (xml: string, tag: string): string | null => {
+      const regex = new RegExp(`<${tag}>([^<]*)</${tag}>`, 'i');
+      const match = xml.match(regex);
+      return match ? match[1] : null;
+    };
 
-    if (results.length === 0) {
+    const returnCode = getTagValue(rawXml, 'return-code');
+
+    // return-code 0 = success
+    if (returnCode !== '0') {
       return {
         canonical_name: null,
         producer: null,
@@ -300,36 +375,42 @@ function parseWineSearcherResponse(rawResponse: any): WineCheckResult {
       };
     }
 
-    const topResult = results[0];
-    const isExactMatch = topResult.score >= 95;
-    const hasMultipleCandidates = results.length > 1 && results[1].score >= 80;
+    // Extrahera wine-details
+    const wineMatch = rawXml.match(/<wine-details>[\s\S]*?<wine>([\s\S]*?)<\/wine>[\s\S]*?<\/wine-details>/i);
+    if (!wineMatch) {
+      return {
+        canonical_name: null,
+        producer: null,
+        region: null,
+        appellation: null,
+        match_score: null,
+        match_status: 'NOT_FOUND',
+        candidates: []
+      };
+    }
 
-    // Extract ONLY allowlist fields
-    const canonical_name = topResult.wine_name || topResult.name || null;
-    const producer = topResult.producer || topResult.winery || null;
-    const region = topResult.region || null;
-    const appellation = topResult.appellation || null;
-    const match_score = topResult.score || null;
+    const wineXml = wineMatch[1];
 
-    const candidates: WineCandidate[] = results.slice(0, 3).map((r: any) => ({
-      name: r.wine_name || r.name || '',
-      producer: r.producer || r.winery || '',
-      region: r.region || undefined,
-      appellation: r.appellation || undefined,
-      score: r.score || 0
-    }));
+    // Extrahera ENDAST allowlist-fält (IGNORERA price-* fält)
+    const region = getTagValue(wineXml, 'region');
+    const grape = getTagValue(wineXml, 'grape');
+    const wsScore = getTagValue(wineXml, 'ws-score');
+
+    // Wine-Searcher /x returnerar inte canonical_name direkt
+    // Region används som indikator på matchning
+    const hasMatch = region !== null;
 
     return {
-      canonical_name,
-      producer,
-      region,
-      appellation,
-      match_score,
-      match_status: isExactMatch ? 'EXACT' : (hasMultipleCandidates ? 'MULTIPLE' : 'FUZZY'),
-      candidates
+      canonical_name: null,  // API returnerar inte detta
+      producer: null,        // API returnerar inte detta
+      region: region,
+      appellation: grape,    // Använder grape som appellation-info
+      match_score: wsScore ? parseInt(wsScore, 10) : null,
+      match_status: hasMatch ? 'EXACT' : 'NOT_FOUND',
+      candidates: []         // /x endpoint returnerar inte kandidater
     };
   } catch (err: any) {
-    console.error('[WineSearcher] Failed to parse response:', err.message);
+    console.error('[WineSearcher] Failed to parse XML response:', err.message);
     return {
       canonical_name: null,
       producer: null,
@@ -357,14 +438,21 @@ export class WineSearcherService {
    * Returns ONLY allowlist fields - NO PRICE DATA
    *
    * Uses cache with TTL from env var (default 7 days)
+   *
+   * NV-hantering:
+   * - Om vintage saknas och vinet är i en NV-kategori (champagne, port, etc.)
+   *   skickas vintage=NV automatiskt till API:et
    */
   async checkWine(input: WineCheckInput): Promise<WineCheckResponse> {
     const isMockMode = !WINESEARCHER_API_KEY || WINESEARCHER_API_KEY === 'your_winesearcher_api_key_here';
 
+    // Beräkna effektiv vintage (för cache-nyckel)
+    const effectiveVintage = getVintageParam(input);
+
     // 1. Try cache first
-    const cached = await getCachedWineCheck(input.tenantId, input.name, input.vintage);
+    const cached = await getCachedWineCheck(input.tenantId, input.name, effectiveVintage);
     if (cached) {
-      console.log('[WineSearcher] Cache hit:', input.name);
+      console.log('[WineSearcher] Cache hit:', input.name, effectiveVintage ? `(${effectiveVintage})` : '');
       return {
         data: cached,
         mock: isMockMode
@@ -374,13 +462,14 @@ export class WineSearcherService {
     console.log('[WineSearcher] Cache miss, fetching from API:', input.name);
 
     // 2. Fetch from Wine-Searcher API
-    const { result, rawResponse } = await fetchWineSearcherWineCheck(
-      input.name,
-      input.vintage
-    );
+    const { result, rawResponse } = await fetchWineSearcherWineCheck(input);
 
-    // 3. Cache result
-    await setCachedWineCheck(input, result, rawResponse);
+    // 3. Cache result (med effektiv vintage som nyckel)
+    await setCachedWineCheck(
+      { ...input, vintage: effectiveVintage },
+      result,
+      rawResponse
+    );
 
     // 4. Return allowlist-filtered result with mock flag
     return {

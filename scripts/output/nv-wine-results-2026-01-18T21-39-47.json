@@ -1,0 +1,203 @@
+{
+  "timestamp": "2026-01-18T21:39:47.191Z",
+  "totalTested": 36,
+  "found": 2,
+  "successRate": "6%",
+  "insights": {
+    "withoutNV": "0/14",
+    "withNVInName": "0/2",
+    "withNVParam": "2/2"
+  },
+  "results": [
+    {
+      "name": "Bollinger Special Cuvee",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Bollinger Special Cuvee Brut",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Ruinart Blanc de Blancs",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Ruinart Rose",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Pol Roger Brut Reserve",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Pol Roger White Foil",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Veuve Clicquot Yellow Label",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Veuve Clicquot Brut",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Moët & Chandon Imperial",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Moët Chandon Brut Imperial",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Taittinger Brut Reserve",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Louis Roederer Brut Premier",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Laurent-Perrier Brut",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Billecart-Salmon Brut Reserve",
+      "category": "champagne_nv",
+      "found": false
+    },
+    {
+      "name": "Krug Grande Cuvee NV",
+      "category": "champagne_nv_explicit",
+      "found": false
+    },
+    {
+      "name": "Bollinger Special Cuvee NV",
+      "category": "champagne_nv_explicit",
+      "found": false
+    },
+    {
+      "name": "Krug Grande Cuvee",
+      "vintage": "NV",
+      "category": "champagne_nv_param",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 286.37,
+      "wsScore": 94
+    },
+    {
+      "name": "Bollinger Special Cuvee",
+      "vintage": "NV",
+      "category": "champagne_nv_param",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 68.25,
+      "wsScore": 92
+    },
+    {
+      "name": "Lustau Pedro Ximenez San Emilio",
+      "category": "sherry",
+      "found": false
+    },
+    {
+      "name": "Gonzalez Byass Tio Pepe",
+      "category": "sherry",
+      "found": false
+    },
+    {
+      "name": "Tio Pepe Fino",
+      "category": "sherry",
+      "found": false
+    },
+    {
+      "name": "Valdespino Inocente Fino",
+      "category": "sherry",
+      "found": false
+    },
+    {
+      "name": "El Maestro Sierra Oloroso",
+      "category": "sherry",
+      "found": false
+    },
+    {
+      "name": "Hidalgo La Gitana Manzanilla",
+      "category": "sherry",
+      "found": false
+    },
+    {
+      "name": "Equipo Navazos La Bota",
+      "category": "sherry",
+      "found": false
+    },
+    {
+      "name": "Taylor Fladgate 10 Year Tawny",
+      "category": "porto",
+      "found": false
+    },
+    {
+      "name": "Taylor 10 Year Old Tawny Port",
+      "category": "porto",
+      "found": false
+    },
+    {
+      "name": "Graham 20 Year Old Tawny",
+      "category": "porto",
+      "found": false
+    },
+    {
+      "name": "Fonseca Bin 27",
+      "category": "porto",
+      "found": false
+    },
+    {
+      "name": "Dow Fine Ruby Port",
+      "category": "porto",
+      "found": false
+    },
+    {
+      "name": "Niepoort Ruby Dum",
+      "category": "porto",
+      "found": false
+    },
+    {
+      "name": "Quinta do Noval 10 Year Tawny",
+      "category": "porto",
+      "found": false
+    },
+    {
+      "name": "Sandeman 20 Year Old Tawny",
+      "category": "porto",
+      "found": false
+    },
+    {
+      "name": "Warre Otima 10 Year Tawny",
+      "category": "porto",
+      "found": false
+    },
+    {
+      "name": "Blandy 10 Year Malmsey",
+      "category": "madeira",
+      "found": false
+    },
+    {
+      "name": "Henriques & Henriques 15 Year Verdelho",
+      "category": "madeira",
+      "found": false
+    }
+  ]
+}
