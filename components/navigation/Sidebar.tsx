@@ -200,14 +200,6 @@ export function Sidebar({ sections, userEmail, userRoles, isAdmin = false }: Sid
           </button>
         </div>
       </aside>
-
-      {/* Spacer for Desktop */}
-      <div
-        className={cn(
-          'hidden lg:block flex-shrink-0 transition-all duration-300',
-          collapsed ? 'w-16' : 'w-64'
-        )}
-      />
     </>
   );
 }
