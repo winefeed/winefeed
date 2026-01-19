@@ -27,7 +27,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Default: Excel format
     const excelBuffer = generateExcelTemplate();
 
-    return new NextResponse(excelBuffer, {
+    return new NextResponse(new Uint8Array(excelBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
