@@ -1,5 +1,5 @@
 /**
- * PATCH /api/requests/[requestId]/adjust-quantity
+ * PATCH /api/requests/[id]/adjust-quantity
  *
  * Adjust wine quantity in a request to meet MOQ requirements.
  * Used when a restaurant wants to increase their order to meet minimum quantity.
@@ -36,10 +36,10 @@ export interface AdjustQuantityResponse {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { requestId: string } }
+  { params }: { params: { id: string } }
 ): Promise<NextResponse<AdjustQuantityResponse>> {
   try {
-    const { requestId } = params;
+    const { id: requestId } = params;
     const body: AdjustQuantityRequest = await request.json();
     const { wineId, newQuantity } = body;
 
