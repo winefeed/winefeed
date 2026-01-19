@@ -37,9 +37,11 @@
     "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.54.2",
     "resend": "^4.0.1",
     "tailwind-merge": "^2.6.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -50,6 +52,7 @@
     "dotenv": "^16.4.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.21",
+    "fast-xml-parser": "^5.3.3",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",

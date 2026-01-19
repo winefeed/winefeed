@@ -8,6 +8,43 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
+
+// Filter configuration - easily extensible for future filters
+type FilterType = 'certification' | 'region' | 'grape' | 'style';
+
+interface FilterOption {
+  id: string;
+  label: string;
+  type: FilterType;
+  description?: string;
+}
+
+const FILTER_OPTIONS: FilterOption[] = [
+  {
+    id: 'ekologiskt',
+    label: 'Ekologiskt',
+    type: 'certification',
+    description: 'Certifierat ekologiskt vin',
+  },
+  {
+    id: 'biodynamiskt',
+    label: 'Biodynamiskt',
+    type: 'certification',
+    description: 'Certifierat biodynamiskt vin',
+  },
+  {
+    id: 'veganskt',
+    label: 'Veganskt',
+    type: 'certification',
+    description: 'Certifierat veganskt vin',
+  },
+  // Future filters can be added here:
+  // { id: 'italien', label: 'Italien', type: 'region' },
+  // { id: 'frankrike', label: 'Frankrike', type: 'region' },
+  // { id: 'pinot-noir', label: 'Pinot Noir', type: 'grape' },
+];
 
 const requestSchema = z.object({
   fritext: z.string().min(10, 'Beskriv dina behov mer detaljerat (minst 10 tecken)'),
@@ -32,6 +69,7 @@ interface RequestFormProps {
 export function RequestForm({ onSuccess }: RequestFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
   const {
     register,
@@ -45,15 +83,40 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
     },
   });
 
+  // Toggle filter selection
+  const toggleFilter = (filterId: string) => {
+    setSelectedFilters((prev) =>
+      prev.includes(filterId)
+        ? prev.filter((id) => id !== filterId)
+        : [...prev, filterId]
+    );
+  };
+
+  // Remove filter
+  const removeFilter = (filterId: string) => {
+    setSelectedFilters((prev) => prev.filter((id) => id !== filterId));
+  };
+
+  // Get filter label by id
+  const getFilterLabel = (filterId: string) => {
+    return FILTER_OPTIONS.find((f) => f.id === filterId)?.label || filterId;
+  };
+
   const onSubmit = async (data: RequestFormData) => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // Include selected filters in the request
+      const requestData = {
+        ...data,
+        specialkrav: selectedFilters.length > 0 ? selectedFilters : undefined,
+      };
+
       const response = await fetch('/api/suggest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
@@ -124,25 +187,58 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>Specialkrav (valfritt)</Label>
-        <p className="text-xs text-muted-foreground">
-          Exempel: naturvin, låg alkohol, specifik region, fast pris
-        </p>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" value="ekologiskt" className="rounded" />
-            <span className="text-sm">Ekologiskt</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" value="biodynamiskt" className="rounded" />
-            <span className="text-sm">Biodynamiskt</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" value="veganskt" className="rounded" />
-            <span className="text-sm">Veganskt</span>
-          </label>
+      {/* Certification Filters */}
+      <div className="space-y-3">
+        <div>
+          <Label>Certifieringar (valfritt)</Label>
+          <p className="text-xs text-muted-foreground mt-1">
+            Filtrera viner baserat på certifieringar
+          </p>
         </div>
+
+        {/* Checkboxes */}
+        <div className="flex flex-wrap gap-3">
+          {FILTER_OPTIONS.filter((f) => f.type === 'certification').map((filter) => (
+            <label
+              key={filter.id}
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              <input
+                type="checkbox"
+                checked={selectedFilters.includes(filter.id)}
+                onChange={(e) => toggleFilter(filter.id)}
+                className="rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <span className="text-sm">{filter.label}</span>
+            </label>
+          ))}
+        </div>
+
+        {/* Selected Filters as Chips */}
+        {selectedFilters.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-2 border-t">
+            <span className="text-xs text-muted-foreground self-center">
+              Valda filter:
+            </span>
+            {selectedFilters.map((filterId) => (
+              <Badge
+                key={filterId}
+                variant="secondary"
+                className="flex items-center gap-1.5 pl-3 pr-2 py-1 cursor-pointer hover:bg-secondary/80 transition-colors"
+              >
+                <span>{getFilterLabel(filterId)}</span>
+                <button
+                  type="button"
+                  onClick={() => removeFilter(filterId)}
+                  className="hover:text-destructive transition-colors"
+                  aria-label={`Ta bort ${getFilterLabel(filterId)}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
 
       {error && (

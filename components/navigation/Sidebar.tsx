@@ -48,6 +48,13 @@ export function Sidebar({ sections, userEmail, userRoles, isAdmin = false }: Sid
     }
   }, []);
 
+  // Listen for custom event to open mobile menu
+  useEffect(() => {
+    const handleOpenMenu = () => setMobileOpen(true);
+    window.addEventListener('openMobileMenu', handleOpenMenu);
+    return () => window.removeEventListener('openMobileMenu', handleOpenMenu);
+  }, []);
+
   // Save collapsed state to localStorage
   const toggleCollapsed = () => {
     const newState = !collapsed;
@@ -67,8 +74,8 @@ export function Sidebar({ sections, userEmail, userRoles, isAdmin = false }: Sid
         onClick={() => setMobileOpen(true)}
         className={cn(
           'fixed top-4 left-4 z-50 p-2 rounded-lg',
-          'bg-background border border-border shadow-lg',
-          'hover:bg-accent transition-colors',
+          'bg-primary text-primary-foreground shadow-lg',
+          'hover:opacity-90 transition-opacity',
           'lg:hidden'
         )}
         aria-label="Open menu"

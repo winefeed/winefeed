@@ -1,0 +1,371 @@
+{
+  "timestamp": "2026-01-18T21:43:36.803Z",
+  "method": "vintage=NV parameter",
+  "totalTested": 28,
+  "found": 28,
+  "successRate": "100%",
+  "byCategory": {
+    "champagne": {
+      "found": 10,
+      "total": 10
+    },
+    "champagne_rose": {
+      "found": 2,
+      "total": 2
+    },
+    "sherry": {
+      "found": 5,
+      "total": 5
+    },
+    "porto_tawny": {
+      "found": 6,
+      "total": 6
+    },
+    "porto_ruby": {
+      "found": 2,
+      "total": 2
+    },
+    "madeira": {
+      "found": 3,
+      "total": 3
+    }
+  },
+  "results": [
+    {
+      "name": "Krug Grande Cuvee",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 286.37,
+      "priceMin": 244.89,
+      "priceMax": 394.76,
+      "wsScore": 94,
+      "currency": "USD"
+    },
+    {
+      "name": "Bollinger Special Cuvee",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 68.25,
+      "priceMin": 54.87,
+      "priceMax": 100.36,
+      "wsScore": 92,
+      "currency": "USD"
+    },
+    {
+      "name": "Ruinart Blanc de Blancs",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Blanc de Blancs",
+      "grape": "Chardonnay",
+      "priceAvg": 105.72,
+      "priceMin": 85.64,
+      "priceMax": 137.83,
+      "wsScore": 90,
+      "currency": "USD"
+    },
+    {
+      "name": "Pol Roger Brut Reserve",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 62.89,
+      "priceMin": 48.17,
+      "priceMax": 85.64,
+      "wsScore": 90,
+      "currency": "USD"
+    },
+    {
+      "name": "Veuve Clicquot Brut",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 68.25,
+      "priceMin": 50.85,
+      "priceMax": 97.69,
+      "wsScore": 89,
+      "currency": "USD"
+    },
+    {
+      "name": "Moet Chandon Brut Imperial",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 58.88,
+      "priceMin": 42.82,
+      "priceMax": 85.64,
+      "wsScore": 89,
+      "currency": "USD"
+    },
+    {
+      "name": "Taittinger Brut Reserve",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 60.22,
+      "priceMin": 46.84,
+      "priceMax": 78.95,
+      "wsScore": 89,
+      "currency": "USD"
+    },
+    {
+      "name": "Louis Roederer Brut Premier",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 68.25,
+      "priceMin": 50.85,
+      "priceMax": 100.36,
+      "wsScore": 91,
+      "currency": "USD"
+    },
+    {
+      "name": "Laurent-Perrier Brut",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 60.22,
+      "priceMin": 42.82,
+      "priceMax": 80.29,
+      "wsScore": 89,
+      "currency": "USD"
+    },
+    {
+      "name": "Billecart-Salmon Brut Reserve",
+      "category": "champagne",
+      "found": true,
+      "region": "Champagne Brut",
+      "grape": "Champagne Blend",
+      "priceAvg": 68.25,
+      "priceMin": 50.85,
+      "priceMax": 92.33,
+      "wsScore": 90,
+      "currency": "USD"
+    },
+    {
+      "name": "Veuve Clicquot Rose",
+      "category": "champagne_rose",
+      "found": true,
+      "region": "Champagne Rose",
+      "grape": "Champagne Blend",
+      "priceAvg": 72.26,
+      "priceMin": 58.88,
+      "priceMax": 92.33,
+      "wsScore": 89,
+      "currency": "USD"
+    },
+    {
+      "name": "Laurent-Perrier Cuvee Rose",
+      "category": "champagne_rose",
+      "found": true,
+      "region": "Champagne Rose",
+      "grape": "Champagne Blend",
+      "priceAvg": 96.35,
+      "priceMin": 76.28,
+      "priceMax": 129.8,
+      "wsScore": 91,
+      "currency": "USD"
+    },
+    {
+      "name": "Tio Pepe Fino",
+      "category": "sherry",
+      "found": true,
+      "region": "Fino Sherry",
+      "grape": "Palomino",
+      "priceAvg": 18.73,
+      "priceMin": 9.37,
+      "priceMax": 28.1,
+      "wsScore": 89,
+      "currency": "USD"
+    },
+    {
+      "name": "Lustau Pedro Ximenez San Emilio",
+      "category": "sherry",
+      "found": true,
+      "region": "PX Sherry",
+      "grape": "Pedro Ximenez",
+      "priceAvg": 32.12,
+      "priceMin": 22.75,
+      "priceMax": 41.48,
+      "wsScore": 91,
+      "currency": "USD"
+    },
+    {
+      "name": "Valdespino Inocente Fino",
+      "category": "sherry",
+      "found": true,
+      "region": "Fino Sherry",
+      "grape": "Palomino",
+      "priceAvg": 26.76,
+      "priceMin": 18.73,
+      "priceMax": 36.13,
+      "wsScore": 91,
+      "currency": "USD"
+    },
+    {
+      "name": "Hidalgo La Gitana Manzanilla",
+      "category": "sherry",
+      "found": true,
+      "region": "Manzanilla Sanlucar de Barrameda",
+      "grape": "Palomino",
+      "priceAvg": 20.07,
+      "priceMin": 8.03,
+      "priceMax": 29.44,
+      "wsScore": 89,
+      "currency": "USD"
+    },
+    {
+      "name": "Lustau Amontillado Los Arcos",
+      "category": "sherry",
+      "found": true,
+      "region": "Amontillado Sherry",
+      "grape": "Palomino",
+      "priceAvg": 20.07,
+      "priceMin": 14.72,
+      "priceMax": 28.1,
+      "wsScore": 90,
+      "currency": "USD"
+    },
+    {
+      "name": "Taylor 10 Year Tawny",
+      "category": "porto_tawny",
+      "found": true,
+      "region": "Aged Tawny Port",
+      "grape": "Port Blend Red",
+      "priceAvg": 33.45,
+      "priceMin": 25.43,
+      "priceMax": 41.48,
+      "wsScore": 90,
+      "currency": "USD"
+    },
+    {
+      "name": "Taylor 20 Year Tawny",
+      "category": "porto_tawny",
+      "found": true,
+      "region": "Aged Tawny Port",
+      "grape": "Port Blend Red",
+      "priceAvg": 58.88,
+      "priceMin": 48.17,
+      "priceMax": 73.6,
+      "wsScore": 92,
+      "currency": "USD"
+    },
+    {
+      "name": "Graham 20 Year Tawny",
+      "category": "porto_tawny",
+      "found": true,
+      "region": "Aged Tawny Port",
+      "grape": "Port Blend Red",
+      "priceAvg": 65.57,
+      "priceMin": 48.17,
+      "priceMax": 77.61,
+      "wsScore": 92,
+      "currency": "USD"
+    },
+    {
+      "name": "Fonseca 10 Year Tawny",
+      "category": "porto_tawny",
+      "found": true,
+      "region": "Aged Tawny Port",
+      "grape": "Port Blend Red",
+      "priceAvg": 33.45,
+      "priceMin": 28.1,
+      "priceMax": 41.48,
+      "wsScore": 89,
+      "currency": "USD"
+    },
+    {
+      "name": "Sandeman 20 Year Tawny",
+      "category": "porto_tawny",
+      "found": true,
+      "region": "Aged Tawny Port",
+      "grape": "Port Blend Red",
+      "priceAvg": 61.56,
+      "priceMin": 49.51,
+      "priceMax": 69.59,
+      "wsScore": 91,
+      "currency": "USD"
+    },
+    {
+      "name": "Warre Otima 10 Year Tawny",
+      "category": "porto_tawny",
+      "found": true,
+      "region": "Aged Tawny Port",
+      "grape": "Port Blend Red",
+      "priceAvg": 40.15,
+      "priceMin": 29.44,
+      "priceMax": 52.19,
+      "wsScore": 90,
+      "currency": "USD"
+    },
+    {
+      "name": "Fonseca Bin 27",
+      "category": "porto_ruby",
+      "found": true,
+      "region": "Reserve Ruby Port",
+      "grape": "Port Blend Red",
+      "priceAvg": 20.07,
+      "priceMin": 16.06,
+      "priceMax": 26.76,
+      "wsScore": 89,
+      "currency": "USD"
+    },
+    {
+      "name": "Graham Six Grapes",
+      "category": "porto_ruby",
+      "found": true,
+      "region": "Reserve Ruby Port",
+      "grape": "Port Blend Red",
+      "priceAvg": 25.43,
+      "priceMin": 18.73,
+      "priceMax": 33.45,
+      "wsScore": 88,
+      "currency": "USD"
+    },
+    {
+      "name": "Blandy 10 Year Malmsey",
+      "category": "madeira",
+      "found": true,
+      "region": "Madeira Malvasia - Malmsey",
+      "grape": "Malvasia",
+      "priceAvg": 45.5,
+      "priceMin": 33.45,
+      "priceMax": 64.23,
+      "wsScore": 90,
+      "currency": "USD"
+    },
+    {
+      "name": "Blandy 5 Year Verdelho",
+      "category": "madeira",
+      "found": true,
+      "region": "Madeira Verdelho",
+      "grape": "Verdelho",
+      "priceAvg": 26.76,
+      "priceMin": 17.4,
+      "priceMax": 36.13,
+      "wsScore": 90,
+      "currency": "USD"
+    },
+    {
+      "name": "Henriques Henriques 10 Year Malmsey",
+      "category": "madeira",
+      "found": true,
+      "region": "Madeira Malvasia - Malmsey",
+      "grape": "Malvasia",
+      "priceAvg": 42.82,
+      "priceMin": 33.45,
+      "priceMax": 57.54,
+      "wsScore": 89,
+      "currency": "USD"
+    }
+  ]
+}

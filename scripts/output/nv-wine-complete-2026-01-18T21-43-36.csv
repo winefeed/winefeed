@@ -1,0 +1,29 @@
+name,category,found,region,grape,price_avg,price_min,price_max,ws_score,currency
+"Krug Grande Cuvee",champagne,true,"Champagne Brut","Champagne Blend",286.37,244.89,394.76,94,USD
+"Bollinger Special Cuvee",champagne,true,"Champagne Brut","Champagne Blend",68.25,54.87,100.36,92,USD
+"Ruinart Blanc de Blancs",champagne,true,"Champagne Blanc de Blancs","Chardonnay",105.72,85.64,137.83,90,USD
+"Pol Roger Brut Reserve",champagne,true,"Champagne Brut","Champagne Blend",62.89,48.17,85.64,90,USD
+"Veuve Clicquot Brut",champagne,true,"Champagne Brut","Champagne Blend",68.25,50.85,97.69,89,USD
+"Moet Chandon Brut Imperial",champagne,true,"Champagne Brut","Champagne Blend",58.88,42.82,85.64,89,USD
+"Taittinger Brut Reserve",champagne,true,"Champagne Brut","Champagne Blend",60.22,46.84,78.95,89,USD
+"Louis Roederer Brut Premier",champagne,true,"Champagne Brut","Champagne Blend",68.25,50.85,100.36,91,USD
+"Laurent-Perrier Brut",champagne,true,"Champagne Brut","Champagne Blend",60.22,42.82,80.29,89,USD
+"Billecart-Salmon Brut Reserve",champagne,true,"Champagne Brut","Champagne Blend",68.25,50.85,92.33,90,USD
+"Veuve Clicquot Rose",champagne_rose,true,"Champagne Rose","Champagne Blend",72.26,58.88,92.33,89,USD
+"Laurent-Perrier Cuvee Rose",champagne_rose,true,"Champagne Rose","Champagne Blend",96.35,76.28,129.8,91,USD
+"Tio Pepe Fino",sherry,true,"Fino Sherry","Palomino",18.73,9.37,28.1,89,USD
+"Lustau Pedro Ximenez San Emilio",sherry,true,"PX Sherry","Pedro Ximenez",32.12,22.75,41.48,91,USD
+"Valdespino Inocente Fino",sherry,true,"Fino Sherry","Palomino",26.76,18.73,36.13,91,USD
+"Hidalgo La Gitana Manzanilla",sherry,true,"Manzanilla Sanlucar de Barrameda","Palomino",20.07,8.03,29.44,89,USD
+"Lustau Amontillado Los Arcos",sherry,true,"Amontillado Sherry","Palomino",20.07,14.72,28.1,90,USD
+"Taylor 10 Year Tawny",porto_tawny,true,"Aged Tawny Port","Port Blend Red",33.45,25.43,41.48,90,USD
+"Taylor 20 Year Tawny",porto_tawny,true,"Aged Tawny Port","Port Blend Red",58.88,48.17,73.6,92,USD
+"Graham 20 Year Tawny",porto_tawny,true,"Aged Tawny Port","Port Blend Red",65.57,48.17,77.61,92,USD
+"Fonseca 10 Year Tawny",porto_tawny,true,"Aged Tawny Port","Port Blend Red",33.45,28.1,41.48,89,USD
+"Sandeman 20 Year Tawny",porto_tawny,true,"Aged Tawny Port","Port Blend Red",61.56,49.51,69.59,91,USD
+"Warre Otima 10 Year Tawny",porto_tawny,true,"Aged Tawny Port","Port Blend Red",40.15,29.44,52.19,90,USD
+"Fonseca Bin 27",porto_ruby,true,"Reserve Ruby Port","Port Blend Red",20.07,16.06,26.76,89,USD
+"Graham Six Grapes",porto_ruby,true,"Reserve Ruby Port","Port Blend Red",25.43,18.73,33.45,88,USD
+"Blandy 10 Year Malmsey",madeira,true,"Madeira Malvasia - Malmsey","Malvasia",45.5,33.45,64.23,90,USD
+"Blandy 5 Year Verdelho",madeira,true,"Madeira Verdelho","Verdelho",26.76,17.4,36.13,90,USD
+"Henriques Henriques 10 Year Malmsey",madeira,true,"Madeira Malvasia - Malmsey","Malvasia",42.82,33.45,57.54,89,USD

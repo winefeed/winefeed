@@ -1,0 +1,734 @@
+{
+  "test_run": {
+    "timestamp": "2026-01-18T21:35:52.317Z",
+    "total_duration_ms": 31143,
+    "api_key_prefix": "wnestest..."
+  },
+  "summary": {
+    "total_tests": 29,
+    "successful": 28,
+    "failed": 1,
+    "by_status": {
+      "FOUND": 25,
+      "NOT_FOUND": 3,
+      "ERROR": 1
+    },
+    "by_category": {
+      "bordeaux-premier-cru": {
+        "total": 3,
+        "found": 3,
+        "not_found": 0,
+        "error": 0
+      },
+      "bordeaux-pomerol": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "bordeaux-st-emilion": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "bourgogne-grand-cru": {
+        "total": 2,
+        "found": 1,
+        "not_found": 1,
+        "error": 0
+      },
+      "bourgogne-village": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "champagne": {
+        "total": 2,
+        "found": 2,
+        "not_found": 0,
+        "error": 0
+      },
+      "champagne-nv": {
+        "total": 1,
+        "found": 0,
+        "not_found": 1,
+        "error": 0
+      },
+      "italy-super-tuscan": {
+        "total": 2,
+        "found": 2,
+        "not_found": 0,
+        "error": 0
+      },
+      "italy-piedmont": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "spain-ribera": {
+        "total": 2,
+        "found": 2,
+        "not_found": 0,
+        "error": 0
+      },
+      "rhone-north": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "rhone-south": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "usa-napa": {
+        "total": 2,
+        "found": 2,
+        "not_found": 0,
+        "error": 0
+      },
+      "australia": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "test-misspelling": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "test-abbreviation": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "test-variation": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "test-word-order": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "alsace": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "germany-mosel": {
+        "total": 1,
+        "found": 1,
+        "not_found": 0,
+        "error": 0
+      },
+      "test-not-found": {
+        "total": 1,
+        "found": 0,
+        "not_found": 1,
+        "error": 0
+      },
+      "test-empty-name": {
+        "total": 1,
+        "found": 0,
+        "not_found": 0,
+        "error": 1
+      }
+    },
+    "average_ws_score": 96,
+    "average_price_avg": 2897,
+    "average_duration_ms": 591
+  },
+  "results": [
+    {
+      "input": {
+        "name": "Chateau Margaux",
+        "vintage": "2015",
+        "category": "bordeaux-premier-cru"
+      },
+      "output": {
+        "region": "Margaux",
+        "grape": "Bordeaux Blend Red",
+        "price_average": 1740.98,
+        "price_min": 1047.8,
+        "price_max": 2273.57,
+        "ws_score": 98,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Margaux</region><grape>Bordeaux Blend Red</grape><price-average>1740.98</price-average><price-min>1047.80</price-min><price-max>2273.57</price-max><ws-score>98</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 982,
+      "timestamp": "2026-01-18T21:35:21.173Z"
+    },
+    {
+      "input": {
+        "name": "Chateau Lafite Rothschild",
+        "vintage": "2018",
+        "category": "bordeaux-premier-cru"
+      },
+      "output": {
+        "region": "Pauillac",
+        "grape": "Bordeaux Blend Red",
+        "price_average": 1077.24,
+        "price_min": 673.11,
+        "price_max": 1458.62,
+        "ws_score": 98,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Pauillac</region><grape>Bordeaux Blend Red</grape><price-average>1077.24</price-average><price-min>673.11</price-min><price-max>1458.62</price-max><ws-score>98</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 692,
+      "timestamp": "2026-01-18T21:35:22.655Z"
+    },
+    {
+      "input": {
+        "name": "Chateau Mouton Rothschild",
+        "vintage": "2016",
+        "category": "bordeaux-premier-cru"
+      },
+      "output": {
+        "region": "Pauillac",
+        "grape": "Bordeaux Blend Red",
+        "price_average": 936.73,
+        "price_min": 674.44,
+        "price_max": 1157.53,
+        "ws_score": 98,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Pauillac</region><grape>Bordeaux Blend Red</grape><price-average>936.73</price-average><price-min>674.44</price-min><price-max>1157.53</price-max><ws-score>98</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 628,
+      "timestamp": "2026-01-18T21:35:23.847Z"
+    },
+    {
+      "input": {
+        "name": "Petrus",
+        "vintage": "2019",
+        "category": "bordeaux-pomerol"
+      },
+      "output": {
+        "region": "Pomerol",
+        "grape": "Merlot",
+        "price_average": 4872.33,
+        "price_min": 3777.69,
+        "price_max": 7021.45,
+        "ws_score": 97,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Pomerol</region><grape>Merlot</grape><price-average>4872.33</price-average><price-min>3777.69</price-min><price-max>7021.45</price-max><ws-score>97</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 569,
+      "timestamp": "2026-01-18T21:35:24.974Z"
+    },
+    {
+      "input": {
+        "name": "Chateau Cheval Blanc",
+        "vintage": "2017",
+        "category": "bordeaux-st-emilion"
+      },
+      "output": {
+        "region": "Saint-Emilion",
+        "grape": "Bordeaux Blend Red",
+        "price_average": 657.05,
+        "price_min": 515.2,
+        "price_max": 911.3,
+        "ws_score": 95,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Saint-Emilion</region><grape>Bordeaux Blend Red</grape><price-average>657.05</price-average><price-min>515.20</price-min><price-max>911.30</price-max><ws-score>95</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 605,
+      "timestamp": "2026-01-18T21:35:26.043Z"
+    },
+    {
+      "input": {
+        "name": "Domaine de la Romanée-Conti Romanée-Conti",
+        "vintage": "2018",
+        "category": "bourgogne-grand-cru"
+      },
+      "output": {
+        "region": "Romanee-Conti",
+        "grape": "Pinot Noir",
+        "price_average": 24875.49,
+        "price_min": 20741.84,
+        "price_max": 31832.71,
+        "ws_score": 98,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Romanee-Conti</region><grape>Pinot Noir</grape><price-average>24875.49</price-average><price-min>20741.84</price-min><price-max>31832.71</price-max><ws-score>98</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 611,
+      "timestamp": "2026-01-18T21:35:27.148Z"
+    },
+    {
+      "input": {
+        "name": "Domaine Leroy Musigny",
+        "vintage": "2017",
+        "category": "bourgogne-grand-cru"
+      },
+      "output": {
+        "region": null,
+        "grape": null,
+        "price_average": null,
+        "price_min": null,
+        "price_max": null,
+        "ws_score": null,
+        "currency": null,
+        "match_status": "NOT_FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>1</return-code><return-comment>No matching wines were found</return-comment><list-count>0</list-count></wine-searcher>\n"
+      },
+      "duration_ms": 416,
+      "timestamp": "2026-01-18T21:35:28.259Z"
+    },
+    {
+      "input": {
+        "name": "Louis Jadot Gevrey-Chambertin",
+        "vintage": "2019",
+        "category": "bourgogne-village"
+      },
+      "output": {
+        "region": "Gevrey-Chambertin",
+        "grape": "Pinot Noir",
+        "price_average": 76.28,
+        "price_min": 69.59,
+        "price_max": 95.01,
+        "ws_score": 91,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Gevrey-Chambertin</region><grape>Pinot Noir</grape><price-average>76.28</price-average><price-min>69.59</price-min><price-max>95.01</price-max><ws-score>91</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 509,
+      "timestamp": "2026-01-18T21:35:29.175Z"
+    },
+    {
+      "input": {
+        "name": "Dom Perignon",
+        "vintage": "2012",
+        "category": "champagne"
+      },
+      "output": {
+        "region": "Champagne Brut",
+        "grape": "Champagne Blend",
+        "price_average": 285.03,
+        "price_min": 210.09,
+        "price_max": 452.31,
+        "ws_score": 95,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Champagne Brut</region><grape>Champagne Blend</grape><price-average>285.03</price-average><price-min>210.09</price-min><price-max>452.31</price-max><ws-score>95</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 623,
+      "timestamp": "2026-01-18T21:35:30.185Z"
+    },
+    {
+      "input": {
+        "name": "Krug Grande Cuvée",
+        "category": "champagne-nv"
+      },
+      "output": {
+        "region": null,
+        "grape": null,
+        "price_average": null,
+        "price_min": null,
+        "price_max": null,
+        "ws_score": null,
+        "currency": null,
+        "match_status": "NOT_FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>2</return-code><return-comment>Vintage should be NV or year between 1825 to 2026</return-comment><list-count>0</list-count></wine-searcher>\n"
+      },
+      "duration_ms": 413,
+      "timestamp": "2026-01-18T21:35:31.308Z"
+    },
+    {
+      "input": {
+        "name": "Louis Roederer Cristal",
+        "vintage": "2014",
+        "category": "champagne"
+      },
+      "output": {
+        "region": "Champagne Brut",
+        "grape": "Chardonnay - Pinot Noir",
+        "price_average": 314.47,
+        "price_min": 240.87,
+        "price_max": 400.12,
+        "ws_score": 96,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Champagne Brut</region><grape>Chardonnay - Pinot Noir</grape><price-average>314.47</price-average><price-min>240.87</price-min><price-max>400.12</price-max><ws-score>96</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 606,
+      "timestamp": "2026-01-18T21:35:32.222Z"
+    },
+    {
+      "input": {
+        "name": "Sassicaia",
+        "vintage": "2018",
+        "category": "italy-super-tuscan"
+      },
+      "output": {
+        "region": "Bolgheri",
+        "grape": "Cabernet Franc - Cabernet Sauvignon",
+        "price_average": 342.57,
+        "price_min": 250.24,
+        "price_max": 513.86,
+        "ws_score": 96,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Bolgheri</region><grape>Cabernet Franc - Cabernet Sauvignon</grape><price-average>342.57</price-average><price-min>250.24</price-min><price-max>513.86</price-max><ws-score>96</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 535,
+      "timestamp": "2026-01-18T21:35:33.327Z"
+    },
+    {
+      "input": {
+        "name": "Tignanello Antinori",
+        "vintage": "2019",
+        "category": "italy-super-tuscan"
+      },
+      "output": {
+        "region": "Toscana IGT",
+        "grape": "Cabernet - Sangiovese",
+        "price_average": 186.01,
+        "price_min": 144.52,
+        "price_max": 272.99,
+        "ws_score": 95,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Toscana IGT</region><grape>Cabernet - Sangiovese</grape><price-average>186.01</price-average><price-min>144.52</price-min><price-max>272.99</price-max><ws-score>95</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 564,
+      "timestamp": "2026-01-18T21:35:34.363Z"
+    },
+    {
+      "input": {
+        "name": "Gaja Barbaresco",
+        "vintage": "2017",
+        "category": "italy-piedmont"
+      },
+      "output": {
+        "region": "Barbaresco",
+        "grape": "Nebbiolo",
+        "price_average": 268.97,
+        "price_min": 183.33,
+        "price_max": 319.83,
+        "ws_score": 93,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Barbaresco</region><grape>Nebbiolo</grape><price-average>268.97</price-average><price-min>183.33</price-min><price-max>319.83</price-max><ws-score>93</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 593,
+      "timestamp": "2026-01-18T21:35:35.427Z"
+    },
+    {
+      "input": {
+        "name": "Vega Sicilia Unico",
+        "vintage": "2011",
+        "category": "spain-ribera"
+      },
+      "output": {
+        "region": "Ribera del Duero",
+        "grape": "Tempranillo",
+        "price_average": 516.54,
+        "price_min": 365.32,
+        "price_max": 849.75,
+        "ws_score": 95,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Ribera del Duero</region><grape>Tempranillo</grape><price-average>516.54</price-average><price-min>365.32</price-min><price-max>849.75</price-max><ws-score>95</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 522,
+      "timestamp": "2026-01-18T21:35:36.521Z"
+    },
+    {
+      "input": {
+        "name": "Pingus",
+        "vintage": "2018",
+        "category": "spain-ribera"
+      },
+      "output": {
+        "region": "Ribera del Duero",
+        "grape": "Tempranillo",
+        "price_average": 1211.06,
+        "price_min": 880.52,
+        "price_max": 1759.71,
+        "ws_score": 97,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Ribera del Duero</region><grape>Tempranillo</grape><price-average>1211.06</price-average><price-min>880.52</price-min><price-max>1759.71</price-max><ws-score>97</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 550,
+      "timestamp": "2026-01-18T21:35:37.543Z"
+    },
+    {
+      "input": {
+        "name": "Guigal Côte-Rôtie La Mouline",
+        "vintage": "2017",
+        "category": "rhone-north"
+      },
+      "output": {
+        "region": "Cote Rotie",
+        "grape": "Syrah - Viognier",
+        "price_average": 386.74,
+        "price_min": 235.52,
+        "price_max": 570.07,
+        "ws_score": 95,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Cote Rotie</region><grape>Syrah - Viognier</grape><price-average>386.74</price-average><price-min>235.52</price-min><price-max>570.07</price-max><ws-score>95</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 544,
+      "timestamp": "2026-01-18T21:35:38.593Z"
+    },
+    {
+      "input": {
+        "name": "Château de Beaucastel Châteauneuf-du-Pape",
+        "vintage": "2019",
+        "category": "rhone-south"
+      },
+      "output": {
+        "region": "Chateauneuf-du-Pape",
+        "grape": "Southern Rhone Red Blend",
+        "price_average": 104.38,
+        "price_min": 70.92,
+        "price_max": 141.85,
+        "ws_score": 94,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Chateauneuf-du-Pape</region><grape>Southern Rhone Red Blend</grape><price-average>104.38</price-average><price-min>70.92</price-min><price-max>141.85</price-max><ws-score>94</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 587,
+      "timestamp": "2026-01-18T21:35:39.638Z"
+    },
+    {
+      "input": {
+        "name": "Opus One",
+        "vintage": "2018",
+        "category": "usa-napa"
+      },
+      "output": {
+        "region": "Napa Valley",
+        "grape": "Bordeaux Blend Red",
+        "price_average": 456.32,
+        "price_min": 365.32,
+        "price_max": 587.46,
+        "ws_score": 96,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Napa Valley</region><grape>Bordeaux Blend Red</grape><price-average>456.32</price-average><price-min>365.32</price-min><price-max>587.46</price-max><ws-score>96</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 568,
+      "timestamp": "2026-01-18T21:35:40.726Z"
+    },
+    {
+      "input": {
+        "name": "Screaming Eagle Cabernet Sauvignon",
+        "vintage": "2019",
+        "category": "usa-napa"
+      },
+      "output": {
+        "region": "Napa Valley",
+        "grape": "Cabernet Sauvignon",
+        "price_average": 3728.18,
+        "price_min": 2873.08,
+        "price_max": 5147.99,
+        "ws_score": 97,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Napa Valley</region><grape>Cabernet Sauvignon</grape><price-average>3728.18</price-average><price-min>2873.08</price-min><price-max>5147.99</price-max><ws-score>97</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 824,
+      "timestamp": "2026-01-18T21:35:41.794Z"
+    },
+    {
+      "input": {
+        "name": "Penfolds Grange",
+        "vintage": "2017",
+        "category": "australia"
+      },
+      "output": {
+        "region": "Australia",
+        "grape": "Shiraz and Syrah",
+        "price_average": 600.84,
+        "price_min": 359.97,
+        "price_max": 796.22,
+        "ws_score": 95,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Australia</region><grape>Shiraz and Syrah</grape><price-average>600.84</price-average><price-min>359.97</price-min><price-max>796.22</price-max><ws-score>95</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 605,
+      "timestamp": "2026-01-18T21:35:43.118Z"
+    },
+    {
+      "input": {
+        "name": "Chateau Margau",
+        "vintage": "2015",
+        "category": "test-misspelling"
+      },
+      "output": {
+        "region": "Margaux",
+        "grape": "Bordeaux Blend Red",
+        "price_average": 1740.98,
+        "price_min": 1047.8,
+        "price_max": 2273.57,
+        "ws_score": 98,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Margaux</region><grape>Bordeaux Blend Red</grape><price-average>1740.98</price-average><price-min>1047.80</price-min><price-max>2273.57</price-max><ws-score>98</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 864,
+      "timestamp": "2026-01-18T21:35:44.222Z"
+    },
+    {
+      "input": {
+        "name": "Ch. Lafite Rothschild",
+        "vintage": "2018",
+        "category": "test-abbreviation"
+      },
+      "output": {
+        "region": "Pauillac",
+        "grape": "Bordeaux Blend Red",
+        "price_average": 1077.24,
+        "price_min": 673.11,
+        "price_max": 1458.62,
+        "ws_score": 98,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Pauillac</region><grape>Bordeaux Blend Red</grape><price-average>1077.24</price-average><price-min>673.11</price-min><price-max>1458.62</price-max><ws-score>98</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 638,
+      "timestamp": "2026-01-18T21:35:45.586Z"
+    },
+    {
+      "input": {
+        "name": "Romanee Conti DRC",
+        "vintage": "2018",
+        "category": "test-variation"
+      },
+      "output": {
+        "region": "Romanee-Conti",
+        "grape": "Pinot Noir",
+        "price_average": 24875.49,
+        "price_min": 20741.84,
+        "price_max": 31832.71,
+        "ws_score": 98,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Romanee-Conti</region><grape>Pinot Noir</grape><price-average>24875.49</price-average><price-min>20741.84</price-min><price-max>31832.71</price-max><ws-score>98</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 564,
+      "timestamp": "2026-01-18T21:35:46.724Z"
+    },
+    {
+      "input": {
+        "name": "Margaux 2015 Chateau",
+        "vintage": "2015",
+        "category": "test-word-order"
+      },
+      "output": {
+        "region": "Margaux",
+        "grape": "Bordeaux Blend Red",
+        "price_average": 1740.98,
+        "price_min": 1047.8,
+        "price_max": 2273.57,
+        "ws_score": 98,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Margaux</region><grape>Bordeaux Blend Red</grape><price-average>1740.98</price-average><price-min>1047.80</price-min><price-max>2273.57</price-max><ws-score>98</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 917,
+      "timestamp": "2026-01-18T21:35:47.790Z"
+    },
+    {
+      "input": {
+        "name": "Domaine Weinbach Riesling Grand Cru Schlossberg",
+        "vintage": "2020",
+        "category": "alsace"
+      },
+      "output": {
+        "region": "Schlossberg",
+        "grape": "Riesling",
+        "price_average": 76.28,
+        "price_min": 62.89,
+        "price_max": 89.66,
+        "ws_score": 93,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Schlossberg</region><grape>Riesling</grape><price-average>76.28</price-average><price-min>62.89</price-min><price-max>89.66</price-max><ws-score>93</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 563,
+      "timestamp": "2026-01-18T21:35:49.208Z"
+    },
+    {
+      "input": {
+        "name": "Egon Müller Scharzhofberger Riesling Spätlese",
+        "vintage": "2019",
+        "category": "germany-mosel"
+      },
+      "output": {
+        "region": "Wiltingen",
+        "grape": "Riesling",
+        "price_average": 267.64,
+        "price_min": 219.46,
+        "price_max": 354.62,
+        "ws_score": 98,
+        "currency": "USD",
+        "match_status": "FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>0</return-code><list-comment>Price Check</list-comment><list-location></list-location><list-state></list-state><list-currency-code>USD</list-currency-code><wine-details><wine><region>Wiltingen</region><grape>Riesling</grape><price-average>267.64</price-average><price-min>219.46</price-min><price-max>354.62</price-max><ws-score>98</ws-score></wine></wine-details></wine-searcher>\n"
+      },
+      "duration_ms": 558,
+      "timestamp": "2026-01-18T21:35:50.271Z"
+    },
+    {
+      "input": {
+        "name": "Unknown Wine That Does Not Exist XYZ123",
+        "vintage": "2020",
+        "category": "test-not-found"
+      },
+      "output": {
+        "region": null,
+        "grape": null,
+        "price_average": null,
+        "price_min": null,
+        "price_max": null,
+        "ws_score": null,
+        "currency": null,
+        "match_status": "NOT_FOUND",
+        "raw_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wine-searcher><return-code>1</return-code><return-comment>No matching wines were found</return-comment><list-count>0</list-count></wine-searcher>\n"
+      },
+      "duration_ms": 487,
+      "timestamp": "2026-01-18T21:35:51.329Z"
+    },
+    {
+      "input": {
+        "name": "",
+        "vintage": "2020",
+        "category": "test-empty-name"
+      },
+      "output": {
+        "region": null,
+        "grape": null,
+        "price_average": null,
+        "price_min": null,
+        "price_max": null,
+        "ws_score": null,
+        "currency": null,
+        "match_status": "ERROR"
+      },
+      "duration_ms": 0,
+      "timestamp": "2026-01-18T21:35:52.316Z"
+    }
+  ]
+}

@@ -10,6 +10,8 @@ export interface Wine {
   beskrivning: string;
   druva?: string;
   ekologisk: boolean;
+  biodynamiskt?: boolean;
+  veganskt?: boolean;
 }
 
 export interface RankedWine extends Wine {

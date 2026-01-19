@@ -30,8 +30,8 @@ export async function POST(request: Request) {
     // För nu: Skip saving request, bara testa vinfiltrering
     const mock_request_id = 'test-request-' + Date.now();
 
-    // 1. Filtrera viner (SQL)
-    const { data: wines, error: winesError } = await supabase
+    // 1. Filtrera viner (SQL + certifications filter)
+    let query = supabase
       .from('wines')
       .select(`
         *,
@@ -40,8 +40,24 @@ export async function POST(request: Request) {
         )
       `)
       .lte('pris_sek', budget_per_flaska * 1.3) // Tillåt 30% överskridning
-      .eq('lagerstatus', 'tillgänglig')
-      .limit(20);
+      .eq('lagerstatus', 'tillgänglig');
+
+    // Apply certification filters if provided
+    if (specialkrav && Array.isArray(specialkrav) && specialkrav.length > 0) {
+      console.log('Filtering wines by certifications:', specialkrav);
+
+      if (specialkrav.includes('ekologiskt')) {
+        query = query.eq('ekologisk', true);
+      }
+      if (specialkrav.includes('biodynamiskt')) {
+        query = query.eq('biodynamiskt', true);
+      }
+      if (specialkrav.includes('veganskt')) {
+        query = query.eq('veganskt', true);
+      }
+    }
+
+    const { data: wines, error: winesError } = await query.limit(20);
 
     if (winesError) {
       console.error('Error fetching wines:', winesError);
@@ -104,6 +120,8 @@ export async function POST(request: Request) {
         region: wine.region,
         pris_sek: wine.pris_sek,
         ekologisk: wine.ekologisk,
+        biodynamiskt: wine.biodynamiskt,
+        veganskt: wine.veganskt,
       },
       supplier: wines.find(w => w.id === wine.id)?.wine_suppliers?.[0]?.supplier || {
         namn: 'Vingruppen AB',

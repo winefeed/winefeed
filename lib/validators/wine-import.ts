@@ -1,0 +1,400 @@
+/**
+ * Wine Import Validation
+ *
+ * Validates wine data from Excel/CSV imports.
+ * Ensures all required fields are present and valid.
+ */
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export type WineColor = 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange';
+
+export interface RawWineRow {
+  wine_name?: string;
+  producer?: string;
+  region?: string;
+  color?: string;
+  vintage?: string | number;
+  grape?: string;
+  price?: string | number;
+  moq?: string | number;
+  alcohol_pct?: string | number;
+  bottle_size_ml?: string | number;
+  organic?: string | boolean;
+  biodynamic?: string | boolean;
+  description?: string;
+  sku?: string;
+  case_size?: string | number;
+  appellation?: string;
+  country?: string;
+}
+
+export interface ValidatedWine {
+  wine_name: string;
+  producer: string;
+  region: string;
+  color: WineColor;
+  vintage: string;
+  grape: string;
+  price: number;
+  moq: number;
+  alcohol_pct: number | null;
+  bottle_size_ml: number;
+  organic: boolean;
+  biodynamic: boolean;
+  description: string | null;
+  sku: string | null;
+  case_size: number;
+  appellation: string | null;
+  country: string | null;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+  data: ValidatedWine | null;
+}
+
+export interface WinePreviewRow {
+  rowNumber: number;
+  valid: boolean;
+  errors: string[];
+  data: ValidatedWine | null;
+  raw: RawWineRow;
+}
+
+export interface ImportPreview {
+  totalRows: number;
+  validCount: number;
+  invalidCount: number;
+  validRows: WinePreviewRow[];
+  invalidRows: WinePreviewRow[];
+}
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const VALID_COLORS: WineColor[] = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange'];
+
+// Color aliases for fuzzy matching
+const COLOR_ALIASES: Record<string, WineColor> = {
+  'red': 'red',
+  'röd': 'red',
+  'rött': 'red',
+  'rouge': 'red',
+  'rosso': 'red',
+  'tinto': 'red',
+
+  'white': 'white',
+  'vit': 'white',
+  'vitt': 'white',
+  'blanc': 'white',
+  'bianco': 'white',
+  'blanco': 'white',
+
+  'rose': 'rose',
+  'rosé': 'rose',
+  'rosa': 'rose',
+
+  'sparkling': 'sparkling',
+  'mousserande': 'sparkling',
+  'champagne': 'sparkling',
+  'cava': 'sparkling',
+  'prosecco': 'sparkling',
+  'spumante': 'sparkling',
+  'sekt': 'sparkling',
+  'cremant': 'sparkling',
+  'crémant': 'sparkling',
+
+  'fortified': 'fortified',
+  'starkvin': 'fortified',
+  'sherry': 'fortified',
+  'port': 'fortified',
+  'porto': 'fortified',
+  'madeira': 'fortified',
+  'marsala': 'fortified',
+
+  'orange': 'orange',
+};
+
+// ============================================================================
+// Validation Functions
+// ============================================================================
+
+/**
+ * Normalize color input to valid wine_color enum
+ */
+function normalizeColor(input: string | undefined): WineColor | null {
+  if (!input) return null;
+
+  const normalized = input.toLowerCase().trim();
+
+  // Direct match
+  if (VALID_COLORS.includes(normalized as WineColor)) {
+    return normalized as WineColor;
+  }
+
+  // Alias match
+  if (COLOR_ALIASES[normalized]) {
+    return COLOR_ALIASES[normalized];
+  }
+
+  return null;
+}
+
+/**
+ * Normalize vintage input
+ * Accepts: "2022", 2022, "NV", "nv", "N/V"
+ */
+function normalizeVintage(input: string | number | undefined): string | null {
+  if (input === undefined || input === null || input === '') return null;
+
+  const str = String(input).trim().toUpperCase();
+
+  // NV variants
+  if (['NV', 'N/V', 'N.V.', 'NON-VINTAGE', 'NONVINTAGE', 'SA'].includes(str)) {
+    return 'NV';
+  }
+
+  // Year (4 digits)
+  if (/^\d{4}$/.test(str)) {
+    const year = parseInt(str, 10);
+    if (year >= 1800 && year <= 2100) {
+      return str;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Normalize boolean input
+ * Accepts: true, false, "yes", "no", "ja", "nej", "1", "0", "x"
+ */
+function normalizeBoolean(input: string | boolean | undefined): boolean {
+  if (typeof input === 'boolean') return input;
+  if (!input) return false;
+
+  const str = String(input).toLowerCase().trim();
+  return ['true', 'yes', 'ja', '1', 'x', 'sant'].includes(str);
+}
+
+/**
+ * Normalize numeric input
+ */
+function normalizeNumber(input: string | number | undefined): number | null {
+  if (input === undefined || input === null || input === '') return null;
+
+  const num = typeof input === 'number' ? input : parseFloat(String(input).replace(',', '.').trim());
+
+  return isNaN(num) ? null : num;
+}
+
+/**
+ * Normalize price (handle Swedish format: "1 234,56")
+ */
+function normalizePrice(input: string | number | undefined): number | null {
+  if (input === undefined || input === null || input === '') return null;
+
+  if (typeof input === 'number') return input;
+
+  // Remove spaces and currency symbols
+  let cleaned = String(input)
+    .replace(/\s/g, '')
+    .replace(/SEK|kr|:-/gi, '')
+    .trim();
+
+  // Handle Swedish comma as decimal separator
+  // If there's a comma followed by exactly 2 digits at the end, treat as decimal
+  if (/,\d{2}$/.test(cleaned)) {
+    cleaned = cleaned.replace(',', '.');
+  } else {
+    // Otherwise remove commas (thousand separators)
+    cleaned = cleaned.replace(/,/g, '');
+  }
+
+  const num = parseFloat(cleaned);
+  return isNaN(num) || num <= 0 ? null : num;
+}
+
+/**
+ * Validate a single wine row
+ */
+export function validateWineRow(row: RawWineRow, rowNumber: number): ValidationResult {
+  const errors: string[] = [];
+
+  // Required fields
+  const wine_name = row.wine_name?.trim();
+  const producer = row.producer?.trim();
+  const region = row.region?.trim();
+  const grape = row.grape?.trim();
+  const colorInput = row.color?.trim();
+  const vintageInput = row.vintage;
+  const priceInput = row.price;
+  const moqInput = row.moq;
+
+  // Validate required fields
+  if (!wine_name) errors.push('Saknar wine_name');
+  if (!producer) errors.push('Saknar producer');
+  if (!region) errors.push('Saknar region');
+  if (!grape) errors.push('Saknar grape');
+
+  // Validate and normalize color
+  const color = normalizeColor(colorInput);
+  if (!colorInput) {
+    errors.push('Saknar color');
+  } else if (!color) {
+    errors.push(`Ogiltig color: "${colorInput}". Giltiga: ${VALID_COLORS.join(', ')}`);
+  }
+
+  // Validate and normalize vintage
+  const vintage = normalizeVintage(vintageInput);
+  if (vintageInput === undefined || vintageInput === null || vintageInput === '') {
+    errors.push('Saknar vintage');
+  } else if (!vintage) {
+    errors.push(`Ogiltig vintage: "${vintageInput}". Förväntat: årtal (t.ex. 2022) eller NV`);
+  }
+
+  // Validate price
+  const price = normalizePrice(priceInput);
+  if (priceInput === undefined || priceInput === null || priceInput === '') {
+    errors.push('Saknar price');
+  } else if (price === null) {
+    errors.push(`Ogiltigt price: "${priceInput}". Förväntat: positivt tal`);
+  }
+
+  // Validate MOQ
+  const moq = normalizeNumber(moqInput);
+  if (moqInput === undefined || moqInput === null || moqInput === '') {
+    errors.push('Saknar moq');
+  } else if (moq === null || moq <= 0 || !Number.isInteger(moq)) {
+    errors.push(`Ogiltigt moq: "${moqInput}". Förväntat: positivt heltal`);
+  }
+
+  // Optional fields
+  const alcohol_pct = normalizeNumber(row.alcohol_pct);
+  if (row.alcohol_pct !== undefined && row.alcohol_pct !== '' && alcohol_pct !== null) {
+    if (alcohol_pct < 0 || alcohol_pct > 100) {
+      errors.push(`Ogiltig alcohol_pct: "${row.alcohol_pct}". Förväntat: 0-100`);
+    }
+  }
+
+  const bottle_size_ml = normalizeNumber(row.bottle_size_ml) ?? 750;
+  if (bottle_size_ml <= 0) {
+    errors.push(`Ogiltig bottle_size_ml: "${row.bottle_size_ml}". Förväntat: positivt tal`);
+  }
+
+  const case_size = normalizeNumber(row.case_size) ?? 6;
+  if (case_size <= 0 || !Number.isInteger(case_size)) {
+    errors.push(`Ogiltig case_size: "${row.case_size}". Förväntat: positivt heltal`);
+  }
+
+  // If there are errors, return invalid result
+  if (errors.length > 0) {
+    return { valid: false, errors, data: null };
+  }
+
+  // Return validated data
+  return {
+    valid: true,
+    errors: [],
+    data: {
+      wine_name: wine_name!,
+      producer: producer!,
+      region: region!,
+      color: color!,
+      vintage: vintage!,
+      grape: grape!,
+      price: price!,
+      moq: Math.round(moq!),
+      alcohol_pct: alcohol_pct !== null && alcohol_pct >= 0 && alcohol_pct <= 100 ? alcohol_pct : null,
+      bottle_size_ml: Math.round(bottle_size_ml),
+      organic: normalizeBoolean(row.organic),
+      biodynamic: normalizeBoolean(row.biodynamic),
+      description: row.description?.trim() || null,
+      sku: row.sku?.trim() || null,
+      case_size: Math.round(case_size),
+      appellation: row.appellation?.trim() || null,
+      country: row.country?.trim() || null,
+    },
+  };
+}
+
+/**
+ * Validate an array of wine rows
+ */
+export function validateWineRows(rows: RawWineRow[]): ImportPreview {
+  const validRows: WinePreviewRow[] = [];
+  const invalidRows: WinePreviewRow[] = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const rowNumber = i + 2; // Excel rows start at 1, plus header row
+    const result = validateWineRow(rows[i], rowNumber);
+
+    const previewRow: WinePreviewRow = {
+      rowNumber,
+      valid: result.valid,
+      errors: result.errors,
+      data: result.data,
+      raw: rows[i],
+    };
+
+    if (result.valid) {
+      validRows.push(previewRow);
+    } else {
+      invalidRows.push(previewRow);
+    }
+  }
+
+  return {
+    totalRows: rows.length,
+    validCount: validRows.length,
+    invalidCount: invalidRows.length,
+    validRows,
+    invalidRows,
+  };
+}
+
+/**
+ * Map column headers to standard field names
+ * Handles variations like "Wine Name", "wine_name", "Vinnamn", etc.
+ */
+export function normalizeColumnHeaders(headers: string[]): Record<string, string> {
+  const mapping: Record<string, string> = {};
+
+  const aliases: Record<string, string[]> = {
+    wine_name: ['wine_name', 'wine name', 'winename', 'name', 'vinnamn', 'vin', 'produkt', 'product'],
+    producer: ['producer', 'producent', 'winery', 'vingård', 'chateau', 'domaine'],
+    region: ['region', 'område', 'area'],
+    color: ['color', 'colour', 'färg', 'typ', 'type', 'wine_type'],
+    vintage: ['vintage', 'årgång', 'year', 'år'],
+    grape: ['grape', 'grapes', 'druva', 'druvor', 'variety', 'varieties', 'cepage'],
+    price: ['price', 'pris', 'price_per_bottle', 'bottle_price', 'flaskpris', 'sek'],
+    moq: ['moq', 'min_order', 'min_qty', 'minimum', 'minimum_order', 'minsta_order'],
+    alcohol_pct: ['alcohol_pct', 'alcohol', 'abv', 'alk', 'alkohol', 'alcohol_%', 'vol'],
+    bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'size', 'ml', 'storlek', 'flaskstorlek'],
+    organic: ['organic', 'ekologisk', 'eko', 'bio'],
+    biodynamic: ['biodynamic', 'biodynamisk'],
+    description: ['description', 'beskrivning', 'notes', 'smakbeskrivning', 'tasting_notes'],
+    sku: ['sku', 'article', 'artikelnr', 'artikelnummer', 'article_number', 'product_code'],
+    case_size: ['case_size', 'kartong', 'case', 'per_case', 'bottles_per_case'],
+    appellation: ['appellation', 'aoc', 'doc', 'docg', 'igt'],
+    country: ['country', 'land'],
+  };
+
+  for (const header of headers) {
+    const normalized = header.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+
+    for (const [field, fieldAliases] of Object.entries(aliases)) {
+      if (fieldAliases.some(alias => normalized.includes(alias.replace(/[^a-z0-9_]/g, '_')))) {
+        mapping[header] = field;
+        break;
+      }
+    }
+  }
+
+  return mapping;
+}
