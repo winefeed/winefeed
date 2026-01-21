@@ -126,6 +126,42 @@ export const ADMIN_NAVIGATION: NavSection[] = [
 ];
 
 /**
+ * Supplier navigation
+ * Shown in supplier portal (/supplier/* pages)
+ */
+export const SUPPLIER_NAVIGATION: NavSection[] = [
+  {
+    items: [
+      {
+        label: 'Översikt',
+        href: '/supplier',
+        icon: LayoutDashboard,
+      },
+      {
+        label: 'Vinkatalog',
+        href: '/supplier/wines',
+        icon: Wine,
+      },
+      {
+        label: 'Förfrågningar',
+        href: '/supplier/requests',
+        icon: Inbox,
+      },
+      {
+        label: 'Offerter',
+        href: '/supplier/offers',
+        icon: FileText,
+      },
+      {
+        label: 'Ordrar',
+        href: '/supplier/orders',
+        icon: Package,
+      },
+    ],
+  },
+];
+
+/**
  * Filter navigation items based on user roles
  *
  * @param sections - Navigation sections to filter

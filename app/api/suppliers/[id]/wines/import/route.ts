@@ -1,0 +1,296 @@
+/**
+ * SUPPLIER WINES IMPORT API
+ *
+ * POST /api/suppliers/[id]/wines/import
+ *
+ * Import wines from parsed CSV/Excel data
+ *
+ * REQUIRED FIELDS (as of 2026-01-21):
+ * - reference (sku) - unique article number per supplier
+ * - producer
+ * - name (cuvée)
+ * - vintage (0 for NV)
+ * - country
+ * - type (color: red, white, rose, sparkling, fortified, orange)
+ * - volume (bottle_size_ml)
+ * - price (price_ex_vat_sek in öre)
+ * - quantity (stock_qty) - total bottles
+ * - q_per_box (case_size) - bottles per case, for logistics
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
+// Wine types that match the wine_color enum in database
+const VALID_WINE_TYPES = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange'];
+
+// Map common type names to our enum values
+const WINE_TYPE_MAP: Record<string, string> = {
+  'red': 'red',
+  'röd': 'red',
+  'rött': 'red',
+  'white': 'white',
+  'vit': 'white',
+  'vitt': 'white',
+  'rose': 'rose',
+  'rosé': 'rose',
+  'sparkling': 'sparkling',
+  'mousserande': 'sparkling',
+  'bubbel': 'sparkling',
+  'fortified': 'fortified',
+  'stärkt': 'fortified',
+  'orange': 'orange',
+};
+
+interface WineImportRow {
+  // Required fields
+  reference?: string;        // sku / article_number
+  producer?: string;
+  name?: string;             // cuvée
+  cuvee?: string;            // alternative name for name
+  vintage?: number | string;
+  country?: string;
+  type?: string;             // wine type (red, white, etc.)
+  volume?: number | string;  // bottle size in ml
+  price?: number | string;   // list price
+  quantity?: number | string; // stock quantity (total bottles)
+  q_per_box?: number | string; // case_size (bottles per case)
+
+  // Optional fields
+  region?: string;           // area/AOP
+  grapes?: string;           // grape varieties
+  alcohol?: number | string; // alcohol percentage
+  labels?: string;           // certifications (organic, biodynamic, etc.)
+  description?: string;
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: supplierId } = await params;
+    const { wines, mode = 'merge' } = await request.json() as {
+      wines: WineImportRow[];
+      mode: 'merge' | 'replace';
+    };
+
+    if (!wines || !Array.isArray(wines) || wines.length === 0) {
+      return NextResponse.json(
+        { error: 'No wines provided for import' },
+        { status: 400 }
+      );
+    }
+
+    // Validate supplier exists
+    const { data: supplier } = await supabase
+      .from('suppliers')
+      .select('id')
+      .eq('id', supplierId)
+      .single();
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: 'Supplier not found' },
+        { status: 404 }
+      );
+    }
+
+    let importedCount = 0;
+    let updatedCount = 0;
+    let errorCount = 0;
+    const errors: { row: number; error: string }[] = [];
+
+    // If replace mode, deactivate all existing wines first
+    if (mode === 'replace') {
+      await supabase
+        .from('supplier_wines')
+        .update({ is_active: false })
+        .eq('supplier_id', supplierId);
+    }
+
+    // Process each wine
+    for (let i = 0; i < wines.length; i++) {
+      const wine = wines[i];
+      const rowErrors: string[] = [];
+
+      // Extract and validate required fields
+      const reference = wine.reference?.toString().trim();
+      const producer = wine.producer?.toString().trim();
+      const name = (wine.name || wine.cuvee)?.toString().trim();
+      const country = wine.country?.toString().trim();
+      const typeRaw = wine.type?.toString().trim().toLowerCase();
+      const type = typeRaw ? WINE_TYPE_MAP[typeRaw] || typeRaw : undefined;
+
+      // Parse vintage (0 = NV)
+      let vintage: number | undefined;
+      if (wine.vintage !== undefined && wine.vintage !== null && wine.vintage !== '') {
+        const parsed = parseInt(String(wine.vintage));
+        if (!isNaN(parsed)) {
+          if (parsed === 0 || (parsed >= 1900 && parsed <= 2100)) {
+            vintage = parsed;
+          } else {
+            rowErrors.push('Årgång måste vara 0 (NV) eller mellan 1900-2100');
+          }
+        } else {
+          rowErrors.push('Ogiltig årgång');
+        }
+      }
+
+      // Parse volume
+      let volume: number | undefined;
+      if (wine.volume !== undefined && wine.volume !== null && wine.volume !== '') {
+        const parsed = parseInt(String(wine.volume).replace(/[^\d]/g, ''));
+        if (!isNaN(parsed) && parsed > 0) {
+          volume = parsed;
+        } else {
+          rowErrors.push('Ogiltig volym');
+        }
+      }
+
+      // Parse price (convert to öre if needed)
+      let price: number | undefined;
+      if (wine.price !== undefined && wine.price !== null && wine.price !== '') {
+        const parsed = parseFloat(String(wine.price).replace(/[^\d.,]/g, '').replace(',', '.'));
+        if (!isNaN(parsed) && parsed > 0) {
+          // Assume price is in SEK, convert to öre
+          price = Math.round(parsed * 100);
+        } else {
+          rowErrors.push('Ogiltigt pris');
+        }
+      }
+
+      // Parse quantity
+      let quantity: number | undefined;
+      if (wine.quantity !== undefined && wine.quantity !== null && wine.quantity !== '') {
+        const parsed = parseInt(String(wine.quantity));
+        if (!isNaN(parsed) && parsed >= 0) {
+          quantity = parsed;
+        } else {
+          rowErrors.push('Ogiltig kvantitet');
+        }
+      }
+
+      // Parse case_size (Q/box)
+      let caseSize: number | undefined;
+      if (wine.q_per_box !== undefined && wine.q_per_box !== null && wine.q_per_box !== '') {
+        const parsed = parseInt(String(wine.q_per_box));
+        if (!isNaN(parsed) && parsed > 0 && parsed <= 24) {
+          caseSize = parsed;
+        } else {
+          rowErrors.push('Q/box måste vara mellan 1-24');
+        }
+      }
+
+      // Validate required fields
+      if (!reference) rowErrors.push('Reference saknas');
+      if (!producer) rowErrors.push('Producer saknas');
+      if (!name) rowErrors.push('Cuvée/namn saknas');
+      if (vintage === undefined) rowErrors.push('Vintage saknas (använd 0 för NV)');
+      if (!country) rowErrors.push('Country saknas');
+      if (!type) rowErrors.push('Type saknas');
+      if (type && !VALID_WINE_TYPES.includes(type)) {
+        rowErrors.push(`Ogiltig type: ${type}. Giltiga: ${VALID_WINE_TYPES.join(', ')}`);
+      }
+      if (volume === undefined) rowErrors.push('Volume saknas');
+      if (price === undefined) rowErrors.push('List price saknas');
+      if (quantity === undefined) rowErrors.push('Quantity saknas');
+      if (caseSize === undefined) rowErrors.push('Q/box saknas');
+
+      // Skip row if validation errors
+      if (rowErrors.length > 0) {
+        errors.push({ row: i + 1, error: rowErrors.join('; ') });
+        errorCount++;
+        continue;
+      }
+
+      // Parse optional fields
+      const alcohol = wine.alcohol ? parseFloat(String(wine.alcohol).replace(',', '.')) : null;
+      const organic = wine.labels?.toLowerCase().includes('organic') ||
+                      wine.labels?.toLowerCase().includes('ekologisk') || false;
+      const biodynamic = wine.labels?.toLowerCase().includes('biodynamic') ||
+                         wine.labels?.toLowerCase().includes('biodynamisk') || false;
+
+      // Prepare wine data (using correct column names from schema)
+      const wineData = {
+        supplier_id: supplierId,
+        sku: reference,
+        name: name!,
+        producer: producer!,
+        vintage: vintage!,
+        country: country!,
+        color: type as 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange',
+        bottle_size_ml: volume!,
+        price_ex_vat_sek: price!,
+        stock_qty: quantity!,
+        case_size: caseSize!,
+        moq: caseSize!, // Default MOQ to case_size (1 full case)
+        region: wine.region?.trim() || null,
+        grape: wine.grapes?.trim() || null,
+        alcohol_pct: alcohol,
+        organic,
+        biodynamic,
+        description: wine.description?.trim() || null,
+        is_active: true,
+      };
+
+      // Check for existing wine by sku (reference)
+      const { data: existingWine } = await supabase
+        .from('supplier_wines')
+        .select('id')
+        .eq('supplier_id', supplierId)
+        .eq('sku', reference)
+        .single();
+
+      // Insert or update
+      if (existingWine) {
+        const { error } = await supabase
+          .from('supplier_wines')
+          .update(wineData)
+          .eq('id', existingWine.id);
+
+        if (error) {
+          errors.push({ row: i + 1, error: error.message });
+          errorCount++;
+        } else {
+          updatedCount++;
+        }
+      } else {
+        const { error } = await supabase
+          .from('supplier_wines')
+          .insert(wineData);
+
+        if (error) {
+          errors.push({ row: i + 1, error: error.message });
+          errorCount++;
+        } else {
+          importedCount++;
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      summary: {
+        total: wines.length,
+        imported: importedCount,
+        updated: updatedCount,
+        errors: errorCount,
+      },
+      errors: errors.slice(0, 10), // Return first 10 errors
+    });
+
+  } catch (error: any) {
+    console.error('Error in wines import:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
