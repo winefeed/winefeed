@@ -1,0 +1,129 @@
+/**
+ * SUPPLIER WINES API
+ *
+ * GET /api/suppliers/[id]/wines - List wines in supplier catalog
+ * POST /api/suppliers/[id]/wines - Add wine to catalog
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: supplierId } = await params;
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || '';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = (page - 1) * limit;
+
+    // Build query
+    let query = supabase
+      .from('supplier_wines')
+      .select('*', { count: 'exact' })
+      .eq('supplier_id', supplierId)
+      .order('created_at', { ascending: false });
+
+    // Add search filter
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,producer.ilike.%${search}%,article_number.ilike.%${search}%`);
+    }
+
+    // Add pagination
+    query = query.range(offset, offset + limit - 1);
+
+    const { data: wines, error, count } = await query;
+
+    if (error) {
+      console.error('Error fetching wines:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch wines' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      wines: wines || [],
+      total: count || 0,
+      page,
+      limit,
+      totalPages: Math.ceil((count || 0) / limit),
+    });
+
+  } catch (error: any) {
+    console.error('Error in wines API:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: supplierId } = await params;
+    const body = await request.json();
+
+    // Validate required fields
+    const { name, producer, vintage, price } = body;
+    if (!name) {
+      return NextResponse.json(
+        { error: 'Wine name is required' },
+        { status: 400 }
+      );
+    }
+
+    // Create wine entry
+    const { data: wine, error } = await supabase
+      .from('supplier_wines')
+      .insert({
+        supplier_id: supplierId,
+        name,
+        producer: producer || null,
+        vintage: vintage || null,
+        country: body.country || null,
+        region: body.region || null,
+        grape_varieties: body.grape_varieties || null,
+        wine_type: body.wine_type || null,
+        volume_ml: body.volume_ml || 750,
+        alcohol_percentage: body.alcohol_percentage || null,
+        price: price || null,
+        currency: body.currency || 'SEK',
+        stock_quantity: body.stock_quantity || null,
+        article_number: body.article_number || null,
+        ean: body.ean || null,
+        is_active: true,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating wine:', error);
+      return NextResponse.json(
+        { error: 'Failed to create wine' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ wine }, { status: 201 });
+
+  } catch (error: any) {
+    console.error('Error in wines POST:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
