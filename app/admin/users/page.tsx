@@ -4,22 +4,13 @@
  * /admin/users
  *
  * Shows all users in the tenant with roles, linked entities, and status.
- *
- * Features:
- * - User table with search and filters
- * - Role badges
- * - Click to view user detail
- * - Admin-only access
- *
- * Access Control:
- * - Dev: ADMIN_MODE=true in .env.local
- * - Prod: Admin role required
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Users, RefreshCw, ArrowLeft } from 'lucide-react';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -56,17 +47,14 @@ export default function AdminUsersPage() {
   }, []);
 
   useEffect(() => {
-    // Apply filters
     let filtered = users;
 
-    // Search filter (email)
     if (searchQuery) {
       filtered = filtered.filter((u) =>
         u.email_masked.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Role filter
     if (roleFilter !== 'ALL') {
       filtered = filtered.filter((u) => u.roles.includes(roleFilter));
     }
@@ -87,7 +75,7 @@ export default function AdminUsersPage() {
 
       if (!response.ok) {
         if (response.status === 403) {
-          throw new Error('Access Denied: Admin privileges required. Set ADMIN_MODE=true in .env.local');
+          throw new Error('Access Denied: Admin privileges required');
         }
         throw new Error('Failed to fetch users');
       }
@@ -106,7 +94,7 @@ export default function AdminUsersPage() {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'ADMIN':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
+        return 'bg-red-100 text-red-800 border-red-300';
       case 'RESTAURANT':
         return 'bg-green-100 text-green-800 border-green-300';
       case 'SELLER':
@@ -135,10 +123,10 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Laddar användare...</p>
+      <div className="p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
+          <div className="h-64 bg-muted rounded-lg"></div>
         </div>
       </div>
     );
@@ -146,204 +134,191 @@ export default function AdminUsersPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
-          <div className="text-center">
-            <span className="text-6xl mb-4 block">🚫</span>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={() => router.push('/admin')}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              ← Tillbaka till Admin
-            </button>
-          </div>
+      <div className="p-6">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
+          <div className="text-destructive text-5xl mb-4">!</div>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <button
+            onClick={() => router.push('/admin')}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+          >
+            ← Tillbaka till Admin
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">👥</span>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Users</h1>
-                <p className="text-sm text-white/80">Hantera användare och roller</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={fetchUsers}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                🔄 Refresh
-              </button>
-              <button
-                onClick={() => router.push('/admin')}
-                className="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
-              >
-                ← Admin Dashboard
-              </button>
-            </div>
-          </div>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Användare</h1>
+          <p className="text-muted-foreground mt-1">Hantera användare och roller</p>
         </div>
-      </header>
+        <div className="flex gap-3">
+          <button
+            onClick={fetchUsers}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm font-medium"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Uppdatera
+          </button>
+          <button
+            onClick={() => router.push('/admin')}
+            className="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground hover:bg-accent rounded-lg transition-colors text-sm font-medium"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
+          </button>
+        </div>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Filters */}
-        <div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-          <div className="flex flex-wrap gap-4">
-            {/* Search */}
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sök (email)
-              </label>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sök email..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
-            {/* Role Filter */}
-            <div className="w-48">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Roll
-              </label>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="ALL">Alla roller</option>
-                <option value="ADMIN">Admin</option>
-                <option value="RESTAURANT">Restaurant</option>
-                <option value="SELLER">Leverantör</option>
-                <option value="IOR">IOR</option>
-              </select>
-            </div>
+      {/* Filters */}
+      <div className="mb-6 bg-card rounded-lg p-4 border border-border">
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Sök (email)
+            </label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Sök email..."
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
           </div>
 
-          {/* Results Count */}
-          <div className="mt-3 text-sm text-gray-600">
-            Visar {filteredUsers.length} av {users.length} användare
+          <div className="w-48">
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Roll
+            </label>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="ALL">Alla roller</option>
+              <option value="ADMIN">Admin</option>
+              <option value="RESTAURANT">Restaurant</option>
+              <option value="SELLER">Leverantör</option>
+              <option value="IOR">IOR</option>
+            </select>
           </div>
         </div>
 
-        {/* Users Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+        <div className="mt-3 text-sm text-muted-foreground">
+          Visar {filteredUsers.length} av {users.length} användare
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Roller
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Länkade Entiteter
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Skapad
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Åtgärder
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-card divide-y divide-border">
+              {filteredUsers.length === 0 ? (
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Roller
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Länkade Entiteter
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Skapad
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Åtgärder
-                  </th>
+                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                    Inga användare hittades
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                      Inga användare hittades
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr
+                    key={user.user_id}
+                    className="hover:bg-accent cursor-pointer transition-colors"
+                    onClick={() => router.push(`/admin/users/${user.user_id}`)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-foreground">
+                        {user.email_masked}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {user.user_id.substring(0, 8)}...
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {user.roles.map((role) => (
+                          <span
+                            key={role}
+                            className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${getRoleBadgeColor(role)}`}
+                          >
+                            {getRoleLabel(role)}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        {user.linked_entities.restaurant_id && (
+                          <div>Restaurant: {user.linked_entities.restaurant_id.substring(0, 8)}...</div>
+                        )}
+                        {user.linked_entities.supplier_id && (
+                          <div>Supplier: {user.linked_entities.supplier_id.substring(0, 8)}...</div>
+                        )}
+                        {user.linked_entities.importer_id && (
+                          <div>Importer: {user.linked_entities.importer_id.substring(0, 8)}...</div>
+                        )}
+                        {!user.linked_entities.restaurant_id &&
+                          !user.linked_entities.supplier_id &&
+                          !user.linked_entities.importer_id && (
+                            <div className="text-muted-foreground/50">—</div>
+                          )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString('sv-SE')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+                        {user.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/admin/users/${user.user_id}`);
+                        }}
+                        className="text-primary hover:text-primary/80"
+                      >
+                        Visa detaljer →
+                      </button>
                     </td>
                   </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <tr
-                      key={user.user_id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/admin/users/${user.user_id}`)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.email_masked}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {user.user_id.substring(0, 8)}...
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {user.roles.map((role) => (
-                            <span
-                              key={role}
-                              className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${getRoleBadgeColor(role)}`}
-                            >
-                              {getRoleLabel(role)}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-xs text-gray-600 space-y-1">
-                          {user.linked_entities.restaurant_id && (
-                            <div>🏪 Restaurant: {user.linked_entities.restaurant_id.substring(0, 8)}...</div>
-                          )}
-                          {user.linked_entities.supplier_id && (
-                            <div>📦 Supplier: {user.linked_entities.supplier_id.substring(0, 8)}...</div>
-                          )}
-                          {user.linked_entities.importer_id && (
-                            <div>🇪🇺 Importer: {user.linked_entities.importer_id.substring(0, 8)}...</div>
-                          )}
-                          {!user.linked_entities.restaurant_id &&
-                            !user.linked_entities.supplier_id &&
-                            !user.linked_entities.importer_id && (
-                              <div className="text-gray-400">—</div>
-                            )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(user.created_at).toLocaleDateString('sv-SE')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-300">
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/admin/users/${user.user_id}`);
-                          }}
-                          className="text-purple-600 hover:text-purple-900"
-                        >
-                          Visa detaljer →
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
