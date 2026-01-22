@@ -42,7 +42,7 @@ export default function AdminLayout({
     <div className="flex min-h-screen bg-background">
       <Sidebar
         sections={ADMIN_NAVIGATION}
-        userEmail="markus@vinkoll.se"
+        userEmail="markus@esima.se"
         userRoles={['ADMIN']}
         isAdmin={true}
       />
