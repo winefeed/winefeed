@@ -19,6 +19,9 @@ import {
   CheckCircle,
   X,
   Download,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
 } from 'lucide-react';
 
 interface SupplierWine {
@@ -34,7 +37,11 @@ interface SupplierWine {
   stock_qty: number;
   moq: number;
   is_active: boolean;
+  created_at?: string;
 }
+
+type SortField = 'name' | 'producer' | 'region' | 'color' | 'price_ex_vat_sek' | 'stock_qty' | 'created_at';
+type SortDirection = 'asc' | 'desc';
 
 interface ImportPreview {
   valid: ImportRow[];
@@ -64,6 +71,8 @@ export default function SupplierWinesPage() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ success: boolean; message: string } | null>(null);
   const [supplierId, setSupplierId] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField>('producer');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   useEffect(() => {
     fetchSupplierAndWines();
@@ -162,11 +171,60 @@ export default function SupplierWinesPage() {
     }
   }
 
-  const filteredWines = wines.filter((wine) =>
-    wine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    wine.producer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    wine.region.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const filteredAndSortedWines = wines
+    .filter((wine) =>
+      wine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      wine.producer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (wine.region?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      let aValue: string | number = '';
+      let bValue: string | number = '';
+
+      switch (sortField) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'producer':
+          aValue = a.producer.toLowerCase();
+          bValue = b.producer.toLowerCase();
+          break;
+        case 'region':
+          aValue = (a.region || '').toLowerCase();
+          bValue = (b.region || '').toLowerCase();
+          break;
+        case 'color':
+          aValue = a.color || '';
+          bValue = b.color || '';
+          break;
+        case 'price_ex_vat_sek':
+          aValue = a.price_ex_vat_sek;
+          bValue = b.price_ex_vat_sek;
+          break;
+        case 'stock_qty':
+          aValue = a.stock_qty;
+          bValue = b.stock_qty;
+          break;
+        case 'created_at':
+          aValue = a.created_at || '';
+          bValue = b.created_at || '';
+          break;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
 
   const colorLabels: Record<string, string> = {
     red: 'Rött',
@@ -407,22 +465,60 @@ export default function SupplierWinesPage() {
       </div>
 
       {/* Wine List */}
-      {filteredWines.length > 0 ? (
+      {filteredAndSortedWines.length > 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left p-4 font-medium text-gray-600 text-sm">Vin</th>
-                <th className="text-left p-4 font-medium text-gray-600 text-sm">Producent</th>
-                <th className="text-left p-4 font-medium text-gray-600 text-sm">Region</th>
-                <th className="text-left p-4 font-medium text-gray-600 text-sm">Färg</th>
-                <th className="text-right p-4 font-medium text-gray-600 text-sm">Pris</th>
-                <th className="text-right p-4 font-medium text-gray-600 text-sm">Lager</th>
+                <SortableHeader
+                  label="Vin"
+                  field="name"
+                  currentField={sortField}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                />
+                <SortableHeader
+                  label="Producent"
+                  field="producer"
+                  currentField={sortField}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                />
+                <SortableHeader
+                  label="Region"
+                  field="region"
+                  currentField={sortField}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                />
+                <SortableHeader
+                  label="Färg"
+                  field="color"
+                  currentField={sortField}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                />
+                <SortableHeader
+                  label="Pris"
+                  field="price_ex_vat_sek"
+                  currentField={sortField}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                  align="right"
+                />
+                <SortableHeader
+                  label="Lager"
+                  field="stock_qty"
+                  currentField={sortField}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                  align="right"
+                />
                 <th className="text-center p-4 font-medium text-gray-600 text-sm">Status</th>
               </tr>
             </thead>
             <tbody>
-              {filteredWines.map((wine) => (
+              {filteredAndSortedWines.map((wine) => (
                 <tr key={wine.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="p-4">
                     <div className="font-medium text-gray-900">
@@ -485,5 +581,42 @@ export default function SupplierWinesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+interface SortableHeaderProps {
+  label: string;
+  field: SortField;
+  currentField: SortField;
+  direction: SortDirection;
+  onSort: (field: SortField) => void;
+  align?: 'left' | 'right';
+}
+
+function SortableHeader({ label, field, currentField, direction, onSort, align = 'left' }: SortableHeaderProps) {
+  const isActive = currentField === field;
+
+  return (
+    <th
+      className={`p-4 font-medium text-gray-600 text-sm cursor-pointer hover:bg-gray-100 transition-colors select-none ${
+        align === 'right' ? 'text-right' : 'text-left'
+      }`}
+      onClick={() => onSort(field)}
+    >
+      <div className={`inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
+        <span>{label}</span>
+        <span className="text-gray-400">
+          {isActive ? (
+            direction === 'asc' ? (
+              <ChevronUp className="h-4 w-4 text-primary" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-primary" />
+            )
+          ) : (
+            <ChevronsUpDown className="h-3 w-3" />
+          )}
+        </span>
+      </div>
+    </th>
   );
 }
