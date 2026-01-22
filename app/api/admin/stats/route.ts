@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     if (winesError) {
       console.error('Error fetching wines:', winesError);
-      return NextResponse.json({ error: 'Failed to fetch wines' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch wines', details: winesError.message }, { status: 500 });
     }
 
     // Get all supplier users
