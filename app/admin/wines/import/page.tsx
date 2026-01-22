@@ -7,7 +7,7 @@
  * Includes preview, validation, and error reporting.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 // ============================================================================
@@ -75,9 +75,9 @@ export default function WineImportPage() {
   const [showInvalidRows, setShowInvalidRows] = useState(false);
 
   // Load suppliers on mount
-  useState(() => {
+  useEffect(() => {
     loadSuppliers();
-  });
+  }, []);
 
   const loadSuppliers = async () => {
     setIsLoadingSuppliers(true);
