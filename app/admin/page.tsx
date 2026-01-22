@@ -1,52 +1,75 @@
 /**
- * ADMIN DASHBOARD - LANDING PAGE
+ * ADMIN DASHBOARD
  *
  * /admin
  *
- * Overview dashboard for administrators
- *
- * Features:
- * - Key metrics (restaurants, suppliers, users, requests, offers, orders)
- * - Recent activity timeline
- * - Quick links to admin tools (pilot console, invites)
- * - Alerts summary
- *
- * Access Control:
- * - Dev: ADMIN_MODE=true in .env.local
- * - Prod: Admin role required (TODO: implement role check)
+ * Overview of all suppliers and wines in the system
+ * Main landing page for admin users
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Wine, Users, Building2, Package, TrendingUp, ExternalLink, RefreshCw, ChevronRight } from 'lucide-react';
 
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+interface SupplierStats {
+  id: string;
+  name: string;
+  type: string;
+  isActive: boolean;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  orgNumber: string | null;
+  createdAt: string;
+  totalWines: number;
+  activeWines: number;
+  userCount: number;
+  avgPriceSek: number;
+  colorBreakdown: Record<string, number>;
+}
+
+interface RecentWine {
+  id: string;
+  name: string;
+  producer: string;
+  color: string;
+  priceSek: number | null;
+  supplierName: string;
+  createdAt: string;
+}
 
 interface Stats {
-  counts: {
-    restaurants: number;
-    suppliers: number;
-    users: number;
-    requests: number;
-    offers: number;
-    orders: number;
-    imports: number;
+  overview: {
+    totalSuppliers: number;
+    activeSuppliers: number;
+    totalWines: number;
+    activeWines: number;
+    totalUsers: number;
   };
-  recent_activity: Array<{
-    id: string;
-    type: 'request' | 'offer' | 'order';
-    status: string;
-    created_at: string;
-  }>;
-  alerts: {
-    eu_orders_without_import: number;
-  };
+  suppliers: SupplierStats[];
+  recentWines: RecentWine[];
+  colorDistribution: Record<string, number>;
+  typeDistribution: Record<string, { count: number; label: string }>;
   timestamp: string;
 }
 
+const SUPPLIER_TYPE_LABELS: Record<string, string> = {
+  'SWEDISH_IMPORTER': 'Svensk importör',
+  'EU_PRODUCER': 'EU-producent',
+  'EU_IMPORTER': 'EU-importör',
+};
+
+const COLOR_LABELS: Record<string, { label: string; color: string }> = {
+  red: { label: 'Rött', color: 'bg-red-500' },
+  white: { label: 'Vitt', color: 'bg-amber-200' },
+  rose: { label: 'Rosé', color: 'bg-pink-300' },
+  sparkling: { label: 'Mousserande', color: 'bg-yellow-300' },
+  orange: { label: 'Orange', color: 'bg-orange-400' },
+  fortified: { label: 'Starkvin', color: 'bg-amber-700' },
+};
+
 export default function AdminDashboardPage() {
-  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,16 +83,9 @@ export default function AdminDashboardPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/admin/stats', {
-        headers: {
-          'x-tenant-id': TENANT_ID,
-        },
-      });
+      const response = await fetch('/api/admin/stats');
 
       if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error('Access Denied: Admin privileges required. Set ADMIN_MODE=true in .env.local');
-        }
         throw new Error('Failed to fetch stats');
       }
 
@@ -85,10 +101,14 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Laddar admin dashboard...</p>
+      <div className="p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 bg-muted rounded-lg"></div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -96,232 +116,280 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
-          <div className="text-center">
-            <span className="text-6xl mb-4 block">🚫</span>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={() => router.push('/dashboard/new-request')}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              ← Tillbaka
-            </button>
-          </div>
+      <div className="p-6">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
+          <div className="text-destructive text-5xl mb-4">!</div>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <button
+            onClick={fetchStats}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+          >
+            Försök igen
+          </button>
         </div>
       </div>
     );
   }
 
-  if (!stats) {
-    return null;
-  }
+  if (!stats) return null;
 
-  const activityIcons = {
-    request: '📋',
-    offer: '📄',
-    order: '📦',
-  };
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Systemöversikt</h1>
+          <p className="text-muted-foreground mt-1">Alla leverantörer och viner</p>
+        </div>
+        <button
+          onClick={fetchStats}
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm font-medium"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Uppdatera
+        </button>
+      </div>
+        {/* Overview Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <StatCard
+            title="Leverantörer"
+            value={stats.overview.totalSuppliers}
+            subtitle={`${stats.overview.activeSuppliers} aktiva`}
+            icon={Building2}
+            color="blue"
+          />
+          <StatCard
+            title="Viner totalt"
+            value={stats.overview.totalWines}
+            subtitle={`${stats.overview.activeWines} aktiva`}
+            icon={Wine}
+            color="red"
+          />
+          <StatCard
+            title="Användare"
+            value={stats.overview.totalUsers}
+            subtitle="Leverantörkonton"
+            icon={Users}
+            color="green"
+          />
+          <StatCard
+            title="Snittbelopp"
+            value={stats.suppliers.length > 0
+              ? Math.round(stats.suppliers.reduce((sum, s) => sum + s.avgPriceSek, 0) / stats.suppliers.length)
+              : 0}
+            subtitle="SEK/vin"
+            icon={TrendingUp}
+            color="purple"
+            suffix=" kr"
+          />
+        </div>
 
-  const activityLabels = {
-    request: 'Request',
-    offer: 'Offer',
-    order: 'Order',
+        {/* Color Distribution */}
+        <div className="bg-card rounded-lg border border-border p-6 mb-8">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Fördelning per färg</h2>
+          <div className="flex flex-wrap gap-3">
+            {Object.entries(stats.colorDistribution).map(([color, count]) => {
+              const colorInfo = COLOR_LABELS[color] || { label: color, color: 'bg-muted' };
+              const percentage = stats.overview.totalWines > 0
+                ? Math.round((count / stats.overview.totalWines) * 100)
+                : 0;
+              return (
+                <div key={color} className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg">
+                  <div className={`w-3 h-3 rounded-full ${colorInfo.color}`}></div>
+                  <span className="text-sm font-medium text-foreground">{colorInfo.label}</span>
+                  <span className="text-sm text-muted-foreground">{count} ({percentage}%)</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Suppliers List */}
+          <div className="lg:col-span-2">
+            <div className="bg-card rounded-lg border border-border overflow-hidden">
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-foreground">Alla leverantörer</h2>
+                <span className="text-sm text-muted-foreground">{stats.suppliers.length} st</span>
+              </div>
+
+              {stats.suppliers.length === 0 ? (
+                <div className="text-center py-12">
+                  <Building2 className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                  <p className="text-muted-foreground">Inga leverantörer ännu</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {stats.suppliers.map((supplier) => (
+                    <div key={supplier.id} className="px-6 py-4 hover:bg-accent transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-foreground">{supplier.name}</h3>
+                            {!supplier.isActive && (
+                              <span className="px-2 py-0.5 text-xs bg-destructive/10 text-destructive rounded">
+                                Inaktiv
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-0.5">
+                            {SUPPLIER_TYPE_LABELS[supplier.type] || supplier.type}
+                          </p>
+                          {supplier.email && (
+                            <p className="text-sm text-muted-foreground/70 mt-1">{supplier.email}</p>
+                          )}
+                        </div>
+
+                        <div className="text-right">
+                          <div className="flex items-center gap-4">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-foreground">{supplier.totalWines}</div>
+                              <div className="text-xs text-muted-foreground">viner</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-foreground">{supplier.userCount}</div>
+                              <div className="text-xs text-muted-foreground">användare</div>
+                            </div>
+                          </div>
+
+                          {/* Color breakdown mini-chart */}
+                          {supplier.totalWines > 0 && (
+                            <div className="flex gap-1 mt-2 justify-end">
+                              {Object.entries(supplier.colorBreakdown).map(([color, count]) => {
+                                const colorInfo = COLOR_LABELS[color] || { color: 'bg-muted' };
+                                return (
+                                  <div
+                                    key={color}
+                                    className={`h-2 rounded ${colorInfo.color}`}
+                                    style={{ width: `${Math.max(8, (count / supplier.totalWines) * 60)}px` }}
+                                    title={`${color}: ${count}`}
+                                  ></div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Quick actions */}
+                      <div className="flex gap-2 mt-3">
+                        {supplier.website && (
+                          <a
+                            href={supplier.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Hemsida
+                          </a>
+                        )}
+                        <a
+                          href={`/supplier/wines?supplier=${supplier.id}`}
+                          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                        >
+                          <ChevronRight className="h-3 w-3" />
+                          Visa viner
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Wines */}
+          <div className="lg:col-span-1">
+            <div className="bg-card rounded-lg border border-border overflow-hidden">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-foreground">Senast tillagda viner</h2>
+              </div>
+
+              {stats.recentWines.length === 0 ? (
+                <div className="text-center py-12">
+                  <Wine className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                  <p className="text-muted-foreground">Inga viner ännu</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {stats.recentWines.map((wine) => {
+                    const colorInfo = COLOR_LABELS[wine.color] || { color: 'bg-muted' };
+                    return (
+                      <div key={wine.id} className="px-6 py-3 hover:bg-accent transition-colors">
+                        <div className="flex items-start gap-3">
+                          <div className={`w-2 h-full min-h-[40px] rounded ${colorInfo.color}`}></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{wine.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{wine.producer}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-muted-foreground/70">{wine.supplierName}</span>
+                              {wine.priceSek && (
+                                <span className="text-xs font-medium text-foreground">
+                                  {wine.priceSek} kr
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Type Distribution */}
+            <div className="bg-card rounded-lg border border-border p-6 mt-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4">Leverantörstyper</h2>
+              <div className="space-y-3">
+                {Object.entries(stats.typeDistribution).map(([type, data]) => (
+                  <div key={type} className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{data.label}</span>
+                    <span className="text-sm font-semibold text-foreground">{data.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      {/* Footer */}
+      <div className="mt-8 text-center text-sm text-muted-foreground">
+        Uppdaterad: {new Date(stats.timestamp).toLocaleString('sv-SE')}
+      </div>
+    </div>
+  );
+}
+
+interface StatCardProps {
+  title: string;
+  value: number;
+  subtitle: string;
+  icon: React.ElementType;
+  color: 'blue' | 'red' | 'green' | 'purple';
+  suffix?: string;
+}
+
+function StatCard({ title, value, subtitle, icon: Icon, color, suffix = '' }: StatCardProps) {
+  const colorClasses = {
+    blue: 'bg-blue-500/10 text-blue-600',
+    red: 'bg-primary/10 text-primary',
+    green: 'bg-green-500/10 text-green-600',
+    purple: 'bg-purple-500/10 text-purple-600',
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">👨‍💼</span>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
-                <p className="text-sm text-white/80">Översikt och systemstatus</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={fetchStats}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                🔄 Refresh
-              </button>
-            </div>
-          </div>
+    <div className="bg-card rounded-lg border border-border p-5">
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
+          <Icon className="h-5 w-5" />
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Quick Links */}
-        <div className="mb-8 flex gap-3">
-          <button
-            onClick={() => router.push('/admin/pilot')}
-            className="px-6 py-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 font-medium text-gray-700"
-          >
-            🔧 Pilot Console
-          </button>
-          <button
-            onClick={() => router.push('/admin/invites')}
-            className="px-6 py-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 font-medium text-gray-700"
-          >
-            ✉️ Invites
-          </button>
-          <button
-            onClick={() => router.push('/admin/users')}
-            className="px-6 py-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 font-medium text-gray-700"
-          >
-            👥 Users
-          </button>
-        </div>
-
-        {/* Alerts Summary */}
-        {stats.alerts.eu_orders_without_import > 0 && (
-          <div className="mb-8 bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">⚠️</span>
-              <div>
-                <h3 className="font-semibold text-red-800">Viktiga varningar</h3>
-                <p className="text-sm text-red-700">
-                  {stats.alerts.eu_orders_without_import} EU-orders saknar importärende
-                </p>
-              </div>
-              <button
-                onClick={() => router.push('/admin/pilot')}
-                className="ml-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-              >
-                Visa detaljer →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Restaurants */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-3xl">🏪</span>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{stats.counts.restaurants}</div>
-                <div className="text-sm text-gray-500">Restauranger</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Suppliers */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-3xl">📦</span>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{stats.counts.suppliers}</div>
-                <div className="text-sm text-gray-500">Leverantörer</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Requests */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-3xl">📋</span>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{stats.counts.requests}</div>
-                <div className="text-sm text-gray-500">Requests</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Offers */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-3xl">📄</span>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{stats.counts.offers}</div>
-                <div className="text-sm text-gray-500">Offerter</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Orders */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-3xl">📦</span>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{stats.counts.orders}</div>
-                <div className="text-sm text-gray-500">Orders</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Imports */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-3xl">🇪🇺</span>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{stats.counts.imports}</div>
-                <div className="text-sm text-gray-500">Importärenden</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Users (placeholder) */}
-          <div className="bg-white rounded-lg shadow-md p-6 opacity-50">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-3xl">👥</span>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">—</div>
-                <div className="text-sm text-gray-500">Användare</div>
-              </div>
-            </div>
-            <div className="text-xs text-gray-400 mt-2">Ej implementerat</div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800">Senaste aktivitet</h2>
-          </div>
-
-          {stats.recent_activity.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Ingen aktivitet ännu</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {stats.recent_activity.map((item) => (
-                <div key={`${item.type}-${item.id}`} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{activityIcons[item.type]}</span>
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {activityLabels[item.type]} {item.id.substring(0, 8)}...
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Status: {item.status}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {new Date(item.created_at).toLocaleString('sv-SE')}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Footer Timestamp */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          Uppdaterad: {new Date(stats.timestamp).toLocaleString('sv-SE')}
-        </div>
-      </main>
+        <span className="text-sm font-medium text-muted-foreground">{title}</span>
+      </div>
+      <p className="text-3xl font-bold text-foreground">{value}{suffix}</p>
+      <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
     </div>
   );
 }
