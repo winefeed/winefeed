@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
+import { CheckCircle2 } from 'lucide-react';
 
 interface Wine {
   id: string;
@@ -41,7 +42,10 @@ export default function ResultsPage() {
   const params = useParams<{ id: string }>();
   const requestId = params.id;
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [selectedWines, setSelectedWines] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
   useEffect(() => {
     // Hämta suggestions från sessionStorage (sparades av request-form)
@@ -50,12 +54,46 @@ export default function ResultsPage() {
       try {
         const parsed = JSON.parse(stored);
         setSuggestions(parsed);
+        // Pre-select all wines by default
+        setSelectedWines(new Set(parsed.map((s: Suggestion) => s.wine.id)));
       } catch (e) {
         console.error('Failed to parse suggestions:', e);
       }
     }
     setLoading(false);
   }, [requestId]);
+
+  const toggleWineSelection = (wineId: string) => {
+    setSelectedWines(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(wineId)) {
+        newSet.delete(wineId);
+      } else {
+        newSet.add(wineId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSendRequest = async () => {
+    if (selectedWines.size === 0) {
+      alert('Välj minst ett vin att skicka till leverantörer');
+      return;
+    }
+
+    setSending(true);
+    try {
+      // For MVP: Just show confirmation
+      // In production: This would dispatch to suppliers via API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setSent(true);
+    } catch (error) {
+      console.error('Failed to send request:', error);
+      alert('Kunde inte skicka förfrågan. Försök igen.');
+    } finally {
+      setSending(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -224,8 +262,13 @@ export default function ResultsPage() {
                       </p>
                     </div>
                   </div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="w-5 h-5 rounded border-border text-primary focus:ring-primary" />
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={selectedWines.has(suggestion.wine.id)}
+                      onChange={() => toggleWineSelection(suggestion.wine.id)}
+                      className="w-5 h-5 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                    />
                     <span className="text-sm font-medium">Inkludera i offert</span>
                   </label>
                 </div>
@@ -235,26 +278,65 @@ export default function ResultsPage() {
         </div>
 
         {/* CTA Section */}
-        <div className="bg-primary text-primary-foreground rounded-2xl shadow-xl p-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <h3 className="text-2xl font-bold mb-3">Bekräfta din offert</h3>
-            <p className="text-primary-foreground/90 mb-6">
-              Välj de viner du vill ha och skicka din offertförfrågan.
-              Leverantörerna kontaktar dig inom 24 timmar med bekräftelse på pris, tillgänglighet och leveranstid. För EU-viner hanteras all regelefterlevnad av vår licensierade importörpartner.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <button className="px-8 py-3 bg-primary-foreground text-primary rounded-xl hover:bg-primary-foreground/90 transition-colors font-medium shadow-lg">
-                📧 Skicka offert
-              </button>
-              <button
-                onClick={() => router.push('/dashboard/new-request')}
-                className="px-8 py-3 bg-primary/20 text-primary-foreground rounded-xl hover:bg-primary/30 transition-colors font-medium"
-              >
-                🔍 Ny offertförfrågan
-              </button>
+        {sent ? (
+          <div className="bg-green-600 text-white rounded-2xl shadow-xl p-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 mb-4">
+                <CheckCircle2 className="h-10 w-10" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Förfrågan skickad!</h3>
+              <p className="text-white/90 mb-6">
+                Din förfrågan om {selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''} har skickats till leverantörerna.
+                Du får svar inom 24 timmar.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => router.push('/dashboard/my-requests')}
+                  className="px-8 py-3 bg-white text-green-700 rounded-xl hover:bg-white/90 transition-colors font-medium shadow-lg"
+                >
+                  Mina förfrågningar
+                </button>
+                <button
+                  onClick={() => router.push('/dashboard/new-request')}
+                  className="px-8 py-3 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-colors font-medium"
+                >
+                  Ny förfrågan
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-primary text-primary-foreground rounded-2xl shadow-xl p-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <h3 className="text-2xl font-bold mb-3">Bekräfta din offert</h3>
+              <p className="text-primary-foreground/90 mb-2">
+                {selectedWines.size > 0 ? (
+                  <>Du har valt <span className="font-bold">{selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''}</span> att skicka till leverantörer.</>
+                ) : (
+                  <>Välj de viner du vill ha ovan.</>
+                )}
+              </p>
+              <p className="text-primary-foreground/70 text-sm mb-6">
+                Leverantörerna kontaktar dig inom 24 timmar med bekräftelse på pris, tillgänglighet och leveranstid.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleSendRequest}
+                  disabled={sending || selectedWines.size === 0}
+                  className="px-8 py-3 bg-primary-foreground text-primary rounded-xl hover:bg-primary-foreground/90 transition-colors font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {sending ? 'Skickar...' : `📧 Skicka förfrågan (${selectedWines.size} viner)`}
+                </button>
+                <button
+                  onClick={() => router.push('/dashboard/new-request')}
+                  className="px-8 py-3 bg-primary/20 text-primary-foreground rounded-xl hover:bg-primary/30 transition-colors font-medium"
+                >
+                  🔍 Ny förfrågan
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

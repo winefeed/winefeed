@@ -1,7 +1,52 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { rankWinesWithClaude } from '@/lib/ai/rank-wines';
 import { wineSearcherClient } from '@/lib/wine-searcher/client';
+
+// Admin client for DB operations
+const supabaseAdmin = createAdminClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
+// MVP: Default tenant and pilot restaurant for testing
+const PILOT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
+async function getOrCreatePilotRestaurant(): Promise<string> {
+  // Try to find existing pilot restaurant
+  const { data: existing } = await supabaseAdmin
+    .from('restaurants')
+    .select('id')
+    .eq('tenant_id', PILOT_TENANT_ID)
+    .eq('name', 'Pilot Restaurant')
+    .single();
+
+  if (existing) {
+    return existing.id;
+  }
+
+  // Create pilot restaurant if it doesn't exist
+  const { data: created, error } = await supabaseAdmin
+    .from('restaurants')
+    .insert({
+      tenant_id: PILOT_TENANT_ID,
+      name: 'Pilot Restaurant',
+      contact_email: 'pilot@winefeed.se',
+      address: 'Pilotgatan 1, Stockholm',
+      created_at: new Date().toISOString()
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('Failed to create pilot restaurant:', error);
+    throw new Error('Could not create pilot restaurant');
+  }
+
+  return created.id;
+}
 
 export async function POST(request: Request) {
   try {
@@ -16,19 +61,37 @@ export async function POST(request: Request) {
       );
     }
 
-    // TODO: Auth - Tillfälligt inaktiverat för MVP-test
-    // const supabase = await createClient();
-    // const { data: { user }, error: authError } = await supabase.auth.getUser();
-    // if (authError || !user) {
-    //   return NextResponse.json({ error: 'Ej autentiserad' }, { status: 401 });
-    // }
-
-    // Skapa Supabase-klient (utan auth för MVP-test)
+    // Skapa Supabase-klient
     const supabase = await createClient();
 
-    // TODO: Spara request i DB när auth fungerar
-    // För nu: Skip saving request, bara testa vinfiltrering
-    const mock_request_id = 'test-request-' + Date.now();
+    // MVP: Get pilot restaurant for testing (no auth required)
+    const restaurantId = await getOrCreatePilotRestaurant();
+
+    // Save request to database
+    const { data: savedRequest, error: requestError } = await supabaseAdmin
+      .from('requests')
+      .insert({
+        restaurant_id: restaurantId,
+        fritext,
+        budget_per_flaska,
+        antal_flaskor: antal_flaskor || null,
+        leverans_senast: leverans_senast || null,
+        specialkrav: specialkrav || null,
+        status: 'OPEN',
+        created_at: new Date().toISOString()
+      })
+      .select('id')
+      .single();
+
+    if (requestError) {
+      console.error('Failed to save request:', requestError);
+      return NextResponse.json(
+        { error: 'Kunde inte spara förfrågan' },
+        { status: 500 }
+      );
+    }
+
+    const request_id = savedRequest.id;
 
     // 1. Filtrera viner (SQL + certifications filter)
     let query = supabase
@@ -133,20 +196,9 @@ export async function POST(request: Request) {
       market_data: marketData,
     }));
 
-    // TODO: Spara suggestions i DB när auth fungerar
-    // const suggestionsToSave = suggestions.map((s) => ({
-    //   request_id: request_record.id,
-    //   wine_id: s.wine.id,
-    //   motivering: s.motivering,
-    //   ranking_score: s.ranking_score,
-    // }));
-    // const { error: suggestionsError } = await supabase
-    //   .from('suggestions')
-    //   .insert(suggestionsToSave);
-
-    // 6. Returnera förslag (för MVP-test utan DB-save)
+    // 6. Returnera förslag med det sparade request_id
     return NextResponse.json({
-      request_id: mock_request_id,
+      request_id,
       suggestions,
     });
   } catch (error) {
