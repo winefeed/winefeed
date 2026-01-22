@@ -32,6 +32,10 @@ export async function middleware(request: NextRequest) {
     '/api/invites/accept',
     '/api/admin/stats',  // MVP: Allow admin stats without auth
     '/admin',            // MVP: Allow admin pages without auth
+    '/supplier/login',
+    '/supplier/forgot-password',
+    '/supplier/reset-password',
+    '/api/auth/forgot-password',
   ];
 
   // Static assets - skip auth
