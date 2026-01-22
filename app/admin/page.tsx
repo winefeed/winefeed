@@ -10,7 +10,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wine, Users, Building2, Package, TrendingUp, ExternalLink, RefreshCw, ChevronRight } from 'lucide-react';
+import { Wine, Users, Building2, TrendingUp, ExternalLink, RefreshCw } from 'lucide-react';
 
 interface SupplierStats {
   id: string;
@@ -273,8 +273,8 @@ export default function AdminDashboardPage() {
                       </div>
 
                       {/* Quick actions */}
-                      <div className="flex gap-2 mt-3">
-                        {supplier.website && (
+                      {supplier.website && (
+                        <div className="flex gap-2 mt-3">
                           <a
                             href={supplier.website}
                             target="_blank"
@@ -284,15 +284,8 @@ export default function AdminDashboardPage() {
                             <ExternalLink className="h-3 w-3" />
                             Hemsida
                           </a>
-                        )}
-                        <a
-                          href={`/supplier/wines?supplier=${supplier.id}`}
-                          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                        >
-                          <ChevronRight className="h-3 w-3" />
-                          Visa viner
-                        </a>
-                      </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
