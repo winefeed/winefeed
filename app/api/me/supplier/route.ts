@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Get supplier details
     const { data: supplier, error: supplierError } = await supabase
       .from('suppliers')
-      .select('id, name, type, org_number, is_active')
+      .select('id, namn, type, org_number, is_active')
       .eq('id', supplierUser.supplier_id)
       .single();
 
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       supplierId: supplier.id,
-      supplierName: supplier.name,
+      supplierName: supplier.namn,
       supplierType: supplier.type,
       orgNumber: supplier.org_number,
       isActive: supplier.is_active,
