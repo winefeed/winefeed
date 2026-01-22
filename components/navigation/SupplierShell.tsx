@@ -50,8 +50,13 @@ export function SupplierShell({ children }: SupplierShellProps) {
   }, []);
 
   useEffect(() => {
-    // Don't redirect if already on login page (avoid loop)
-    const isLoginPage = window.location.pathname === '/supplier/login';
+    // Public pages that don't require auth
+    const publicPages = [
+      '/supplier/login',
+      '/supplier/forgot-password',
+      '/supplier/reset-password',
+    ];
+    const isPublicPage = publicPages.some(page => window.location.pathname.startsWith(page));
 
     async function fetchSupplier() {
       try {
@@ -59,14 +64,14 @@ export function SupplierShell({ children }: SupplierShellProps) {
         if (response.ok) {
           const data = await response.json();
           setSupplier(data);
-        } else if (!isLoginPage) {
+        } else if (!isPublicPage) {
           // Redirect to login if not authenticated as supplier
           window.location.href = '/supplier/login';
           return;
         }
       } catch (error) {
         console.error('Failed to fetch supplier:', error);
-        if (!isLoginPage) {
+        if (!isPublicPage) {
           window.location.href = '/supplier/login';
           return;
         }
@@ -78,10 +83,12 @@ export function SupplierShell({ children }: SupplierShellProps) {
     fetchSupplier();
   }, []);
 
-  // Check if on login page - render without shell
-  const isLoginPage = typeof window !== 'undefined' && window.location.pathname === '/supplier/login';
+  // Check if on public auth page - render without shell
+  const publicAuthPages = ['/supplier/login', '/supplier/forgot-password', '/supplier/reset-password'];
+  const isPublicAuthPage = typeof window !== 'undefined' &&
+    publicAuthPages.some(page => window.location.pathname.startsWith(page));
 
-  if (loading && !isLoginPage) {
+  if (loading && !isPublicAuthPage) {
     return (
       <div className="flex min-h-screen bg-background">
         <div className="flex-1 flex items-center justify-center">
@@ -94,8 +101,8 @@ export function SupplierShell({ children }: SupplierShellProps) {
     );
   }
 
-  // Login page - render without sidebar
-  if (isLoginPage) {
+  // Public auth pages - render without sidebar
+  if (isPublicAuthPage) {
     return <>{children}</>;
   }
 
