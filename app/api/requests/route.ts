@@ -70,8 +70,8 @@ export async function GET(request: NextRequest) {
       .select('id, restaurant_id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, accepted_offer_id, created_at')
       .in('restaurant_id', tenantRestaurantIds);
 
-    // Filter by status if provided
-    if (status) {
+    // Filter by status if provided and not empty
+    if (status && status.trim() !== '') {
       query = query.eq('status', status);
     }
 

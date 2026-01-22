@@ -48,14 +48,15 @@ export const MAIN_NAVIGATION: NavSection[] = [
     // Common navigation for all authenticated users
     items: [
       {
-        label: 'Dashboard',
+        label: 'Ny förfrågan',
         href: '/dashboard/new-request',
         icon: LayoutDashboard,
       },
       {
-        label: 'Requests',
-        href: '/dashboard/requests',
+        label: 'Mina förfrågningar',
+        href: '/dashboard/my-requests',
         icon: FileText,
+        roles: ['RESTAURANT'],
       },
       {
         label: 'Orders',
