@@ -50,19 +50,26 @@ export function SupplierShell({ children }: SupplierShellProps) {
   }, []);
 
   useEffect(() => {
+    // Don't redirect if already on login page (avoid loop)
+    const isLoginPage = window.location.pathname === '/supplier/login';
+
     async function fetchSupplier() {
       try {
         const response = await fetch('/api/me/supplier');
         if (response.ok) {
           const data = await response.json();
           setSupplier(data);
-        } else {
+        } else if (!isLoginPage) {
           // Redirect to login if not authenticated as supplier
           window.location.href = '/supplier/login';
+          return;
         }
       } catch (error) {
         console.error('Failed to fetch supplier:', error);
-        window.location.href = '/supplier/login';
+        if (!isLoginPage) {
+          window.location.href = '/supplier/login';
+          return;
+        }
       } finally {
         setLoading(false);
       }
@@ -71,7 +78,10 @@ export function SupplierShell({ children }: SupplierShellProps) {
     fetchSupplier();
   }, []);
 
-  if (loading) {
+  // Check if on login page - render without shell
+  const isLoginPage = typeof window !== 'undefined' && window.location.pathname === '/supplier/login';
+
+  if (loading && !isLoginPage) {
     return (
       <div className="flex min-h-screen bg-background">
         <div className="flex-1 flex items-center justify-center">
@@ -82,6 +92,11 @@ export function SupplierShell({ children }: SupplierShellProps) {
         </div>
       </div>
     );
+  }
+
+  // Login page - render without sidebar
+  if (isLoginPage) {
+    return <>{children}</>;
   }
 
   return (
