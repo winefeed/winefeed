@@ -109,6 +109,11 @@ export const ADMIN_NAVIGATION: NavSection[] = [
         icon: LayoutDashboard,
       },
       {
+        label: 'Viner',
+        href: '/admin/wines',
+        icon: Wine,
+      },
+      {
         label: 'Users',
         href: '/admin/users',
         icon: Users,
