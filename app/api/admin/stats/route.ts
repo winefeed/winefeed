@@ -29,10 +29,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch suppliers' }, { status: 500 });
     }
 
-    // Get all wines
+    // Get all wines from supplier_wines table
     const { data: wines, error: winesError } = await supabase
-      .from('wines')
-      .select('id, supplier_id, name, producer, color, price_ex_vat_sek, stock_qty, moq, created_at, is_active');
+      .from('supplier_wines')
+      .select('id, supplier_id, name, producer, color, price_ex_vat_sek, stock_qty, min_order_qty, created_at, is_active');
 
     if (winesError) {
       console.error('Error fetching wines:', winesError);
