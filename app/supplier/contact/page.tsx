@@ -76,6 +76,8 @@ export default function ContactPage() {
               context ? `Support: ${context.supplierName}` : 'Support',
               'Hej,\n\nJag behöver hjälp med:\n\n'
             )}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-[#7B1E1E] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#6B1A1A] transition-colors"
           >
             <Mail className="h-5 w-5" />
@@ -141,6 +143,8 @@ export default function ContactPage() {
             <p className="text-sm text-gray-500">E-post</p>
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-[#7B1E1E] hover:underline font-medium"
             >
               {SUPPORT_EMAIL}
@@ -163,6 +167,8 @@ function ContactTopic({ icon: Icon, title, description, href }: ContactTopicProp
   return (
     <a
       href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
     >
       <div className="p-2 bg-gray-100 rounded-lg">
