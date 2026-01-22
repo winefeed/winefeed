@@ -3,133 +3,149 @@
  *
  * GET /api/admin/stats
  *
- * Returns tenant-scoped statistics for admin dashboard
+ * Returns comprehensive overview stats for admin dashboard
+ * Shows all suppliers and wines in the system
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabase-server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { actorService } from '@/lib/actor-service';
-import { adminService } from '@/lib/admin-service';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'Authentication required' },
-        { status: 401 }
-      );
+    // Get all suppliers
+    const { data: suppliers, error: suppliersError } = await supabase
+      .from('suppliers')
+      .select('id, namn, type, is_active, kontakt_email, telefon, hemsida, org_number, created_at')
+      .order('created_at', { ascending: false });
+
+    if (suppliersError) {
+      console.error('Error fetching suppliers:', suppliersError);
+      return NextResponse.json({ error: 'Failed to fetch suppliers' }, { status: 500 });
     }
-    
-    const userId = user.id;
-    const tenantId = '00000000-0000-0000-0000-000000000001';
 
-    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
-    const isAdmin = await adminService.isAdmin(actor);
+    // Get all wines
+    const { data: wines, error: winesError } = await supabase
+      .from('wines')
+      .select('id, supplier_id, name, producer, color, price_ex_vat_sek, stock_qty, moq, created_at, is_active');
 
-    if (!isAdmin) {
-      return NextResponse.json(
-        {
-          error: 'Forbidden: Admin access required',
-          hint: 'Set ADMIN_MODE=true in .env.local for dev or add user to admin_users table'
-        },
-        { status: 403 }
-      );
+    if (winesError) {
+      console.error('Error fetching wines:', winesError);
+      return NextResponse.json({ error: 'Failed to fetch wines' }, { status: 500 });
     }
-    
-    const supabaseAdmin = getSupabaseAdmin();
 
-    const [
-      restaurantsResult,
-      suppliersResult,
-      requestsResult,
-      offersResult,
-      ordersResult,
-      importsResult,
-    ] = await Promise.all([
-      supabaseAdmin.from('restaurants').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabaseAdmin.from('suppliers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabaseAdmin.from('quote_requests').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabaseAdmin.from('offers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-      supabaseAdmin.from('imports').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-    ]);
+    // Get all supplier users
+    const { data: supplierUsers, error: usersError } = await supabase
+      .from('supplier_users')
+      .select('id, user_id, supplier_id, created_at');
 
-    const { data: recentRequests } = await supabase
-      .from('quote_requests')
-      .select('id, created_at, status')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(5);
+    // Calculate stats per supplier
+    const supplierStats = suppliers?.map(supplier => {
+      const supplierWines = wines?.filter(w => w.supplier_id === supplier.id) || [];
+      const activeWines = supplierWines.filter(w => w.is_active !== false);
+      const users = supplierUsers?.filter(u => u.supplier_id === supplier.id) || [];
 
-    const { data: recentOffers } = await supabase
-      .from('offers')
-      .select('id, created_at, status')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(5);
+      // Wine breakdown by color
+      const colorBreakdown: Record<string, number> = {};
+      supplierWines.forEach(wine => {
+        const color = wine.color || 'unknown';
+        colorBreakdown[color] = (colorBreakdown[color] || 0) + 1;
+      });
 
-    const { data: recentOrders } = await supabase
-      .from('orders')
-      .select('id, created_at, status')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(5);
+      // Calculate average price (convert from öre to SEK)
+      const avgPrice = supplierWines.length > 0
+        ? Math.round(supplierWines.reduce((sum, w) => sum + (w.price_ex_vat_sek || 0), 0) / supplierWines.length / 100)
+        : 0;
 
-    const recentActivity = [
-      ...(recentRequests || []).map((r) => ({ ...r, type: 'request' as const })),
-      ...(recentOffers || []).map((o) => ({ ...o, type: 'offer' as const })),
-      ...(recentOrders || []).map((o) => ({ ...o, type: 'order' as const })),
-    ]
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 20);
+      return {
+        id: supplier.id,
+        name: supplier.namn,
+        type: supplier.type,
+        isActive: supplier.is_active,
+        email: supplier.kontakt_email,
+        phone: supplier.telefon,
+        website: supplier.hemsida,
+        orgNumber: supplier.org_number,
+        createdAt: supplier.created_at,
+        totalWines: supplierWines.length,
+        activeWines: activeWines.length,
+        userCount: users.length,
+        avgPriceSek: avgPrice,
+        colorBreakdown,
+      };
+    }) || [];
 
-    const { data: euOrdersWithoutImport } = await supabase
-      .from('orders')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .in('supplier_type', ['EU_PRODUCER', 'EU_IMPORTER'])
-      .is('import_id', null)
-      .limit(100);
+    // Total stats
+    const totalWines = wines?.length || 0;
+    const activeWines = wines?.filter(w => w.is_active !== false).length || 0;
+    const totalSuppliers = suppliers?.length || 0;
+    const activeSuppliers = suppliers?.filter(s => s.is_active !== false).length || 0;
+    const totalUsers = supplierUsers?.length || 0;
 
-    const stats = {
-      counts: {
-        restaurants: restaurantsResult.count || 0,
-        suppliers: suppliersResult.count || 0,
-        users: 0,
-        requests: requestsResult.count || 0,
-        offers: offersResult.count || 0,
-        orders: ordersResult.count || 0,
-        imports: importsResult.count || 0,
-      },
-      recent_activity: recentActivity,
-      alerts: {
-        eu_orders_without_import: euOrdersWithoutImport?.length || 0,
-      },
-      timestamp: new Date().toISOString(),
+    // Recent wines (last 10)
+    const recentWines = wines
+      ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10)
+      .map(wine => {
+        const supplier = suppliers?.find(s => s.id === wine.supplier_id);
+        return {
+          id: wine.id,
+          name: wine.name,
+          producer: wine.producer,
+          color: wine.color,
+          priceSek: wine.price_ex_vat_sek ? Math.round(wine.price_ex_vat_sek / 100) : null,
+          supplierName: supplier?.namn || 'Okänd',
+          createdAt: wine.created_at,
+        };
+      }) || [];
+
+    // Wine color distribution (total)
+    const colorDistribution: Record<string, number> = {};
+    wines?.forEach(wine => {
+      const color = wine.color || 'unknown';
+      colorDistribution[color] = (colorDistribution[color] || 0) + 1;
+    });
+
+    // Type distribution
+    const typeLabels: Record<string, string> = {
+      'SWEDISH_IMPORTER': 'Svensk importör',
+      'EU_PRODUCER': 'EU-producent',
+      'EU_IMPORTER': 'EU-importör',
     };
 
-    return NextResponse.json(stats);
+    const typeDistribution: Record<string, { count: number; label: string }> = {};
+    suppliers?.forEach(supplier => {
+      const type = supplier.type || 'unknown';
+      if (!typeDistribution[type]) {
+        typeDistribution[type] = { count: 0, label: typeLabels[type] || type };
+      }
+      typeDistribution[type].count++;
+    });
+
+    return NextResponse.json({
+      overview: {
+        totalSuppliers,
+        activeSuppliers,
+        totalWines,
+        activeWines,
+        totalUsers,
+      },
+      suppliers: supplierStats,
+      recentWines,
+      colorDistribution,
+      typeDistribution,
+      timestamp: new Date().toISOString(),
+    });
+
   } catch (error: any) {
-    console.error('Failed to fetch admin stats:', error);
+    console.error('Error fetching admin stats:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch statistics', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
