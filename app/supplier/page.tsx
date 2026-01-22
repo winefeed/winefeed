@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Wine, Inbox, FileText, Package, TrendingUp, AlertCircle } from 'lucide-react';
+import { Wine, Inbox, FileText, Package, TrendingUp, AlertCircle, HelpCircle, Building2 } from 'lucide-react';
 
 interface DashboardStats {
   totalWines: number;
@@ -207,6 +207,39 @@ export default function SupplierDashboard() {
               </p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Help & Profile Widget */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Behöver du hjälp?
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <a
+            href="/supplier/contact"
+            className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
+          >
+            <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
+              <HelpCircle className="h-5 w-5 text-[#7B1E1E]" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">Kontakta support</p>
+              <p className="text-sm text-gray-500">Frågor eller teknisk hjälp</p>
+            </div>
+          </a>
+          <a
+            href="/supplier/profile"
+            className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
+          >
+            <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
+              <Building2 className="h-5 w-5 text-[#7B1E1E]" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">Företagsprofil</p>
+              <p className="text-sm text-gray-500">Se dina företagsuppgifter</p>
+            </div>
+          </a>
         </div>
       </div>
 
