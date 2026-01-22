@@ -27,9 +27,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the base URL for the redirect
-    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const redirectTo = `${origin}/supplier/reset-password`;
+    // Get the base URL for the redirect - must be in Supabase allowed redirect URLs
+    const redirectTo = 'https://winefeed.se/supplier/reset-password';
+
+    console.log('Password reset redirectTo:', redirectTo);
 
     // Send password reset email via Supabase Auth
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
