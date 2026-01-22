@@ -39,14 +39,18 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Password reset error:', error);
-      // Don't reveal if email exists or not for security
-      // Always return success to prevent email enumeration
+      // TEMP: Show error for debugging
+      return NextResponse.json({
+        success: false,
+        error: error.message,
+        debug: { redirectTo, email }
+      }, { status: 400 });
     }
 
-    // Always return success to prevent email enumeration attacks
     return NextResponse.json({
       success: true,
-      message: 'Om e-postadressen finns i systemet skickas en återställningslänk'
+      message: 'Återställningslänk skickad till ' + email,
+      debug: { redirectTo }
     });
 
   } catch (error: any) {
