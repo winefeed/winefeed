@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Get supplier details
     const { data: supplier } = await supabase
       .from('suppliers')
-      .select('id, name, is_active')
+      .select('id, namn, is_active')
       .eq('id', supplierUser.supplier_id)
       .single();
 
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         id: authData.user.id,
         email: authData.user.email,
         supplierId: supplier.id,
-        supplierName: supplier.name,
+        supplierName: supplier.namn,
         role: supplierUser.role,
       },
     });
