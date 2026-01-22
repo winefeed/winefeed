@@ -22,6 +22,8 @@ import {
   Wine,
   Inbox,
   Globe,
+  Building2,
+  HelpCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -156,6 +158,21 @@ export const SUPPLIER_NAVIGATION: NavSection[] = [
         label: 'Ordrar',
         href: '/supplier/orders',
         icon: Package,
+      },
+    ],
+  },
+  {
+    title: 'Konto',
+    items: [
+      {
+        label: 'Företagsprofil',
+        href: '/supplier/profile',
+        icon: Building2,
+      },
+      {
+        label: 'Kontakta Winefeed',
+        href: '/supplier/contact',
+        icon: HelpCircle,
       },
     ],
   },
