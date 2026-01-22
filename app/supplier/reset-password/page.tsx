@@ -24,40 +24,56 @@ function ResetPasswordContent() {
   const [hasValidSession, setHasValidSession] = useState(false);
 
   useEffect(() => {
-    // Check if user has a valid recovery session
-    const checkSession = async () => {
-      const supabase = createClient();
+    const supabase = createClient();
 
-      // Supabase automatically handles the recovery token from URL hash
-      const { data: { session }, error } = await supabase.auth.getSession();
+    // Listen for auth state changes - this catches the recovery token
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth event:', event, session?.user?.email);
 
-      if (session) {
-        setHasValidSession(true);
-      } else {
-        // Try to exchange token from URL if present
-        const { data, error: exchangeError } = await supabase.auth.getSession();
-        if (data?.session) {
+        if (event === 'PASSWORD_RECOVERY') {
+          // User clicked the recovery link - they can now set a new password
           setHasValidSession(true);
+          setCheckingSession(false);
+        } else if (event === 'SIGNED_IN' && session) {
+          // User is signed in (might be from recovery)
+          setHasValidSession(true);
+          setCheckingSession(false);
+        } else if (event === 'INITIAL_SESSION') {
+          // Check if there's already a session
+          if (session) {
+            setHasValidSession(true);
+          }
+          setCheckingSession(false);
         }
       }
+    );
 
+    // Also check for existing session after a short delay
+    // (in case the auth event already fired)
+    const timeout = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setHasValidSession(true);
+      }
       setCheckingSession(false);
-    };
+    }, 1500);
 
-    checkSession();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    // Validate passwords match
     if (password !== confirmPassword) {
       setError('Lösenorden matchar inte');
       return;
     }
 
-    // Validate password strength
     if (password.length < 8) {
       setError('Lösenordet måste vara minst 8 tecken');
       return;
@@ -77,6 +93,9 @@ function ResetPasswordContent() {
         setError(updateError.message || 'Kunde inte uppdatera lösenordet');
         return;
       }
+
+      // Sign out after password change
+      await supabase.auth.signOut();
 
       setSuccess(true);
 
@@ -148,7 +167,6 @@ function ResetPasswordContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      {/* Logo & Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
@@ -163,7 +181,6 @@ function ResetPasswordContent() {
         </p>
       </div>
 
-      {/* Form */}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-sm border border-gray-200 sm:rounded-lg sm:px-10">
           {success ? (
@@ -186,7 +203,6 @@ function ResetPasswordContent() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Error Alert */}
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
@@ -194,7 +210,6 @@ function ResetPasswordContent() {
                 </div>
               )}
 
-              {/* New Password */}
               <div>
                 <label
                   htmlFor="password"
@@ -221,7 +236,6 @@ function ResetPasswordContent() {
                 </div>
               </div>
 
-              {/* Confirm Password */}
               <div>
                 <label
                   htmlFor="confirmPassword"
@@ -248,7 +262,6 @@ function ResetPasswordContent() {
                 </div>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
