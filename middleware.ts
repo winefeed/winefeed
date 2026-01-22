@@ -30,6 +30,8 @@ export async function middleware(request: NextRequest) {
     '/invite',
     '/api/invites/verify',
     '/api/invites/accept',
+    '/api/admin/stats',  // MVP: Allow admin stats without auth
+    '/admin',            // MVP: Allow admin pages without auth
   ];
 
   // Static assets - skip auth
