@@ -34,41 +34,15 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = request.headers.get('x-tenant-id');
-
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant context' }, { status: 401 });
-    }
-
     // Query params
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'OPEN';
     const limit = parseInt(searchParams.get('limit') || '50', 10);
 
-    // SECURITY: Tenant-scope via restaurants.tenant_id JOIN
-    // Step 1: Get restaurant_ids for this tenant
-    const { data: tenantRestaurants, error: restaurantsError } = await supabase
-      .from('restaurants')
-      .select('id')
-      .eq('tenant_id', tenantId);
-
-    if (restaurantsError) {
-      throw new Error(`Failed to fetch tenant restaurants: ${restaurantsError.message}`);
-    }
-
-    const tenantRestaurantIds = tenantRestaurants?.map(r => r.id) || [];
-
-    if (tenantRestaurantIds.length === 0) {
-      // No restaurants in this tenant - return empty list
-      return NextResponse.json({ requests: [] }, { status: 200 });
-    }
-
-    // Step 2: Build query - using actual schema column names (Swedish)
-    // Filter by tenant via restaurant_id IN (tenant's restaurants)
+    // MVP: Get all requests (single tenant setup)
     let query = supabase
       .from('requests')
-      .select('id, restaurant_id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, accepted_offer_id, created_at')
-      .in('restaurant_id', tenantRestaurantIds);
+      .select('id, restaurant_id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, accepted_offer_id, created_at');
 
     // Filter by status if provided and not empty
     if (status && status.trim() !== '') {
@@ -91,12 +65,9 @@ export async function GET(request: NextRequest) {
     let offersCountMap: Record<string, number> = {};
 
     if (requestIds.length > 0) {
-      // SECURITY: Filter offers by tenant_id to prevent cross-tenant data leakage
-      // requests table doesn't have tenant_id, but offers table does
       const { data: offerCounts } = await supabase
         .from('offers')
         .select('request_id')
-        .eq('tenant_id', tenantId)
         .in('request_id', requestIds);
 
       if (offerCounts) {
