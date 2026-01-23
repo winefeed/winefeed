@@ -3,8 +3,8 @@
 /**
  * SUPPLIER LOGIN PAGE
  *
- * Simple login form for suppliers
- * MVP: Email/password authentication
+ * Login form for suppliers - uses unified login API
+ * Redirects to supplier portal or portal-select if user has multiple roles
  */
 
 import { useState } from 'react';
@@ -22,7 +22,8 @@ export default function SupplierLoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/supplier-login', {
+      // Use unified login API
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -35,8 +36,17 @@ export default function SupplierLoginPage() {
         return;
       }
 
-      // Redirect to dashboard on success
-      window.location.href = '/supplier';
+      // If multiple roles, store session for portal selector
+      if (data.roles.length > 1) {
+        localStorage.setItem('winefeed_login_session', JSON.stringify({
+          user: data.user,
+          roles: data.roles,
+        }));
+        window.location.href = '/portal-select';
+      } else {
+        // Single role - redirect based on role
+        window.location.href = data.redirectPath;
+      }
     } catch (err) {
       setError('Ett fel uppstod. Försök igen.');
     } finally {
