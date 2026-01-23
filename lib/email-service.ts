@@ -102,20 +102,15 @@ export async function getRestaurantEmail(restaurantId: string, tenantId: string)
 
   try {
     // Try restaurants.contact_email first
+    // Note: restaurants table doesn't have tenant_id column (MVP single-tenant)
     const { data: restaurant } = await supabase
       .from('restaurants')
-      .select('contact_email, tenant_id')
+      .select('contact_email')
       .eq('id', restaurantId)
       .single();
 
     if (!restaurant) {
       console.warn(`⚠️  Restaurant ${restaurantId} not found`);
-      return null;
-    }
-
-    // Verify tenant scope
-    if (restaurant.tenant_id !== tenantId) {
-      console.warn(`⚠️  Restaurant ${restaurantId} belongs to different tenant`);
       return null;
     }
 
@@ -150,21 +145,16 @@ export async function getRestaurantRecipients(restaurantId: string, tenantId: st
   const recipients: string[] = [];
 
   try {
-    // Verify restaurant exists and belongs to tenant
+    // Verify restaurant exists
+    // Note: restaurants table doesn't have tenant_id column (MVP single-tenant)
     const { data: restaurant } = await supabase
       .from('restaurants')
-      .select('contact_email, tenant_id')
+      .select('contact_email')
       .eq('id', restaurantId)
       .single();
 
     if (!restaurant) {
       console.warn(`⚠️  Restaurant ${restaurantId} not found`);
-      return [];
-    }
-
-    // Verify tenant scope
-    if (restaurant.tenant_id !== tenantId) {
-      console.warn(`⚠️  Restaurant ${restaurantId} belongs to different tenant`);
       return [];
     }
 

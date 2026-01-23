@@ -114,9 +114,10 @@ export async function middleware(request: NextRequest) {
 
   // Public route - allow access
   if (isPublicPath) {
-    // If user is already logged in and trying to access /login, redirect to home
+    // If user is already logged in and trying to access /login, redirect to dashboard
+    // The dashboard page will handle role-based routing
     if (pathname === '/login' && user) {
-      return NextResponse.redirect(new URL('/dashboard/new-request', request.url));
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return response;
   }
@@ -138,14 +139,8 @@ export async function middleware(request: NextRequest) {
   }
 
 // User is authenticated - set headers and allow access
-  // Lookup tenant_id from restaurants table (user's restaurant)
-  const { data: restaurant } = await supabase
-    .from('restaurants')
-    .select('tenant_id')
-    .eq('contact_email', user.email)
-    .single();
-
-const tenantId = '00000000-0000-0000-0000-000000000001';
+  // Note: restaurants table doesn't have tenant_id column (MVP single-tenant)
+  const tenantId = '00000000-0000-0000-0000-000000000001';
   // Clone request headers and add user context
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-user-id', user.id);
