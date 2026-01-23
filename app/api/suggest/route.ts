@@ -34,7 +34,6 @@ async function getOrCreatePilotRestaurant(): Promise<string> {
       tenant_id: PILOT_TENANT_ID,
       name: 'Pilot Restaurant',
       contact_email: 'pilot@winefeed.se',
-      address: 'Pilotgatan 1, Stockholm',
       created_at: new Date().toISOString()
     })
     .select('id')
