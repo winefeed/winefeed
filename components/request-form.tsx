@@ -91,7 +91,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
     resolver: zodResolver(requestSchema),
     defaultValues: {
       budget_per_flaska: 200,
-      antal_flaskor: 20,
+      antal_flaskor: 24,
       fritext: '',
     },
   });
@@ -193,7 +193,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           <Input
             id="antal_flaskor"
             type="number"
-            placeholder="20"
+            placeholder="24"
             {...register('antal_flaskor')}
           />
           {errors.antal_flaskor && (
@@ -202,7 +202,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="budget_per_flaska">Maxbudget per flaska (kr)</Label>
+          <Label htmlFor="budget_per_flaska">Maxbudget per flaska (kr ex moms)</Label>
           <Input
             id="budget_per_flaska"
             type="number"
