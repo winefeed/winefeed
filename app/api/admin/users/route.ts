@@ -155,29 +155,13 @@ export async function GET(request: NextRequest) {
     const userIds = new Set<string>();
 
     // From restaurant_users
-    const { data: restaurantUsers } = await supabase
+    // Note: restaurants table doesn't have tenant_id column (MVP single-tenant)
+    // Get all restaurant_users directly since we're in single-tenant mode
+    const { data: restUsers } = await supabase
       .from('restaurant_users')
-      .select('id, restaurant_id')
-      .eq('restaurant_id', tenantId)
-      .or(`restaurant_id.in.(select id from restaurants where tenant_id='${tenantId}')`);
+      .select('id, restaurant_id');
 
-    // Actually, restaurant_users.id IS the user_id (FK to auth.users.id)
-    // Let me get all users linked to restaurants in this tenant
-    const { data: restaurants } = await supabase
-      .from('restaurants')
-      .select('id')
-      .eq('tenant_id', tenantId);
-
-    const restaurantIds = (restaurants || []).map((r) => r.id);
-
-    if (restaurantIds.length > 0) {
-      const { data: restUsers } = await supabase
-        .from('restaurant_users')
-        .select('id')
-        .in('restaurant_id', restaurantIds);
-
-      (restUsers || []).forEach((u) => userIds.add(u.id));
-    }
+    (restUsers || []).forEach((u) => userIds.add(u.id));
 
     // From supplier_users (suppliers belonging to this tenant)
     const { data: suppliers } = await supabase

@@ -273,11 +273,8 @@ class InviteService {
         throw new Error(`Failed to link user to restaurant: ${linkError.message}`);
       }
 
-      // Also update restaurants table if user is primary (for backwards compat)
-      await supabase
-        .from('restaurants')
-        .update({ tenant_id: invite.tenant_id })
-        .eq('id', invite.restaurant_id!);
+      // Note: restaurants table doesn't have tenant_id column (MVP single-tenant)
+      // Removed backwards-compat tenant_id update
 
     } else if (invite.role === 'SUPPLIER') {
       // Link to supplier_users
