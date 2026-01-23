@@ -79,14 +79,10 @@ export async function POST(request: Request) {
     }
 
     // 1. Filtrera viner (SQL + certifications filter)
-    let query = supabase
+    // Use admin client to bypass RLS
+    let query = supabaseAdmin
       .from('wines')
-      .select(`
-        *,
-        wine_suppliers (
-          supplier:suppliers (*)
-        )
-      `)
+      .select('*')
       .lte('pris_sek', budget_per_flaska * 1.3) // Tillåt 30% överskridning
       .eq('lagerstatus', 'tillgänglig');
 
