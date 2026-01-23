@@ -80,6 +80,7 @@ export const businessStatusMapping: Record<string, SemanticStatus> = {
   // REJECTED already mapped above
 
   // Order statuses
+  PENDING_SUPPLIER_CONFIRMATION: 'draft',  // Waiting for supplier to confirm
   CONFIRMED: 'pending',
   IN_FULFILLMENT: 'progress',
   SHIPPED: 'locked',

@@ -222,6 +222,13 @@ class OrderService {
     const totalLines = offerLines.length;
     const totalQuantity = offerLines.reduce((sum, line) => sum + (line.quantity || 0), 0);
 
+    // Determine initial order status based on supplier type
+    // Swedish importers: require supplier confirmation before proceeding
+    // EU suppliers: auto-confirmed (IOR handles fulfillment flow)
+    const initialStatus = supplier.type === 'SWEDISH_IMPORTER'
+      ? 'PENDING_SUPPLIER_CONFIRMATION'
+      : 'CONFIRMED';
+
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -231,7 +238,7 @@ class OrderService {
         request_id: offer.request_id,
         seller_supplier_id: offer.supplier_id,
         importer_of_record_id,
-        status: 'CONFIRMED',
+        status: initialStatus,
         total_lines: totalLines,
         total_quantity: totalQuantity,
         currency: offer.currency || 'SEK',
@@ -284,14 +291,17 @@ class OrderService {
         order_id: order.id,
         event_type: 'ORDER_CREATED',
         from_status: null,
-        to_status: 'CONFIRMED',
-        note: `Order created from accepted offer ${offer_id}`,
+        to_status: initialStatus,
+        note: supplier.type === 'SWEDISH_IMPORTER'
+          ? `Order created - awaiting supplier confirmation`
+          : `Order created from accepted offer ${offer_id}`,
         metadata: {
           offer_id,
           seller_supplier_id: offer.supplier_id,
           importer_of_record_id,
           total_lines: totalLines,
-          total_quantity: totalQuantity
+          total_quantity: totalQuantity,
+          supplier_type: supplier.type
         },
         actor_user_id: actor_user_id || null,
         actor_name: null
@@ -659,6 +669,152 @@ class OrderService {
     }
 
     return { import_id: importCase.id };
+  }
+
+  /**
+   * Confirm order by supplier (for Swedish importers)
+   * Changes status from PENDING_SUPPLIER_CONFIRMATION to CONFIRMED
+   */
+  async confirmOrderBySupplier(input: {
+    order_id: string;
+    tenant_id: string;
+    supplier_id: string;
+    actor_user_id?: string;
+    note?: string;
+  }): Promise<{ order_id: string; status: string }> {
+    const { order_id, tenant_id, supplier_id, actor_user_id, note } = input;
+
+    // 1. Fetch order and verify supplier ownership
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, status, seller_supplier_id')
+      .eq('id', order_id)
+      .eq('tenant_id', tenant_id)
+      .single();
+
+    if (orderError || !order) {
+      throw new Error(`Order not found: ${orderError?.message || 'Unknown error'}`);
+    }
+
+    // 2. Verify this supplier owns the order
+    if (order.seller_supplier_id !== supplier_id) {
+      throw new Error('Access denied: You are not the supplier for this order');
+    }
+
+    // 3. Verify order is in correct status
+    if (order.status !== 'PENDING_SUPPLIER_CONFIRMATION') {
+      throw new Error(
+        `Cannot confirm order: Order is in status ${order.status}, expected PENDING_SUPPLIER_CONFIRMATION`
+      );
+    }
+
+    // 4. Update order status to CONFIRMED
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({
+        status: 'CONFIRMED',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', order_id)
+      .eq('tenant_id', tenant_id);
+
+    if (updateError) {
+      throw new Error(`Failed to confirm order: ${updateError.message}`);
+    }
+
+    // 5. Create order event (audit trail)
+    const { error: eventError } = await supabase
+      .from('order_events')
+      .insert({
+        tenant_id,
+        order_id,
+        event_type: 'SUPPLIER_CONFIRMED',
+        from_status: 'PENDING_SUPPLIER_CONFIRMATION',
+        to_status: 'CONFIRMED',
+        note: note || 'Order confirmed by supplier',
+        metadata: { supplier_id },
+        actor_user_id: actor_user_id || null,
+        actor_name: null
+      });
+
+    if (eventError) {
+      console.error('Failed to create confirmation event:', eventError);
+    }
+
+    return { order_id, status: 'CONFIRMED' };
+  }
+
+  /**
+   * Decline order by supplier (for Swedish importers)
+   * Changes status from PENDING_SUPPLIER_CONFIRMATION to CANCELLED
+   */
+  async declineOrderBySupplier(input: {
+    order_id: string;
+    tenant_id: string;
+    supplier_id: string;
+    actor_user_id?: string;
+    reason: string;
+  }): Promise<{ order_id: string; status: string }> {
+    const { order_id, tenant_id, supplier_id, actor_user_id, reason } = input;
+
+    // 1. Fetch order and verify supplier ownership
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, status, seller_supplier_id')
+      .eq('id', order_id)
+      .eq('tenant_id', tenant_id)
+      .single();
+
+    if (orderError || !order) {
+      throw new Error(`Order not found: ${orderError?.message || 'Unknown error'}`);
+    }
+
+    // 2. Verify this supplier owns the order
+    if (order.seller_supplier_id !== supplier_id) {
+      throw new Error('Access denied: You are not the supplier for this order');
+    }
+
+    // 3. Verify order is in correct status
+    if (order.status !== 'PENDING_SUPPLIER_CONFIRMATION') {
+      throw new Error(
+        `Cannot decline order: Order is in status ${order.status}, expected PENDING_SUPPLIER_CONFIRMATION`
+      );
+    }
+
+    // 4. Update order status to CANCELLED
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({
+        status: 'CANCELLED',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', order_id)
+      .eq('tenant_id', tenant_id);
+
+    if (updateError) {
+      throw new Error(`Failed to decline order: ${updateError.message}`);
+    }
+
+    // 5. Create order event (audit trail)
+    const { error: eventError } = await supabase
+      .from('order_events')
+      .insert({
+        tenant_id,
+        order_id,
+        event_type: 'SUPPLIER_DECLINED',
+        from_status: 'PENDING_SUPPLIER_CONFIRMATION',
+        to_status: 'CANCELLED',
+        note: `Order declined by supplier: ${reason}`,
+        metadata: { supplier_id, decline_reason: reason },
+        actor_user_id: actor_user_id || null,
+        actor_name: null
+      });
+
+    if (eventError) {
+      console.error('Failed to create decline event:', eventError);
+    }
+
+    return { order_id, status: 'CANCELLED' };
   }
 }
 

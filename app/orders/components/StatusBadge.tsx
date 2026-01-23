@@ -14,6 +14,7 @@ interface OrderStatusBadgeProps {
 }
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
+  PENDING_SUPPLIER_CONFIRMATION: 'Väntar på leverantör',
   CONFIRMED: 'Bekräftad',
   IN_FULFILLMENT: 'I leverans',
   SHIPPED: 'Skickad',

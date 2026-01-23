@@ -13,10 +13,12 @@ interface Order {
   id: string;
   offer_id: string;
   restaurant_name: string;
+  restaurant_email?: string;
   wine_name: string;
   quantity: number;
   total_price: number;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  raw_status?: string; // Original status for actions
   created_at: string;
   delivery_date: string | null;
   shipping_address: string | null;
@@ -27,6 +29,9 @@ export default function SupplierOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'shipped'>('pending');
   const [supplierId, setSupplierId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showDeclineModal, setShowDeclineModal] = useState<string | null>(null);
+  const [declineReason, setDeclineReason] = useState('');
 
   useEffect(() => {
     fetchOrders();
@@ -59,12 +64,65 @@ export default function SupplierOrdersPage() {
   }
 
   const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-    pending: { label: 'Ny order', color: 'bg-blue-100 text-blue-800', icon: Clock },
-    confirmed: { label: 'Bekräftad', color: 'bg-amber-100 text-amber-800', icon: CheckCircle },
+    pending: { label: 'Väntar på bekräftelse', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+    confirmed: { label: 'Bekräftad', color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
     shipped: { label: 'Skickad', color: 'bg-purple-100 text-purple-800', icon: Truck },
     delivered: { label: 'Levererad', color: 'bg-green-100 text-green-800', icon: CheckCircle },
     cancelled: { label: 'Avbruten', color: 'bg-red-100 text-red-800', icon: XCircle },
   };
+
+  async function confirmOrder(orderId: string) {
+    if (!supplierId) return;
+
+    setActionLoading(orderId);
+    try {
+      const res = await fetch(`/api/suppliers/${supplierId}/orders/${orderId}/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to confirm order');
+      }
+
+      // Refresh orders
+      await fetchOrders();
+    } catch (error: any) {
+      console.error('Failed to confirm order:', error);
+      alert(error.message || 'Kunde inte bekräfta ordern');
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function declineOrder(orderId: string) {
+    if (!supplierId || !declineReason.trim()) return;
+
+    setActionLoading(orderId);
+    try {
+      const res = await fetch(`/api/suppliers/${supplierId}/orders/${orderId}/decline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: declineReason }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to decline order');
+      }
+
+      // Refresh orders and close modal
+      setShowDeclineModal(null);
+      setDeclineReason('');
+      await fetchOrders();
+    } catch (error: any) {
+      console.error('Failed to decline order:', error);
+      alert(error.message || 'Kunde inte avböja ordern');
+    } finally {
+      setActionLoading(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -165,13 +223,46 @@ export default function SupplierOrdersPage() {
                     </div>
                   </div>
 
-                  {/* Status & Arrow */}
-                  <div className="flex items-center gap-3">
+                  {/* Status & Actions */}
+                  <div className="flex flex-col items-end gap-2">
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${config?.color}`}>
                       <StatusIcon className="h-3 w-3" />
                       {config?.label}
                     </span>
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
+
+                    {/* Action buttons for pending orders */}
+                    {order.status === 'pending' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            confirmOrder(order.id);
+                          }}
+                          disabled={actionLoading === order.id}
+                          className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        >
+                          <CheckCircle className="h-3 w-3" />
+                          {actionLoading === order.id ? 'Bekräftar...' : 'Bekräfta'}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowDeclineModal(order.id);
+                          }}
+                          disabled={actionLoading === order.id}
+                          className="px-3 py-1.5 bg-red-100 text-red-700 text-xs font-medium rounded-lg hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        >
+                          <XCircle className="h-3 w-3" />
+                          Avböj
+                        </button>
+                      </div>
+                    )}
+
+                    {order.status !== 'pending' && (
+                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                    )}
                   </div>
                 </div>
               </a>
@@ -235,12 +326,52 @@ export default function SupplierOrdersPage() {
           <div>
             <h3 className="font-medium text-blue-800">Orderflöde</h3>
             <p className="text-sm text-blue-700 mt-1">
-              När en restaurang accepterar din offert skapas en order automatiskt.
-              Bekräfta ordern och uppdatera status när du skickar leveransen.
+              När en restaurang accepterar din offert skapas en order som väntar på din bekräftelse.
+              Bekräfta att du kan leverera, eller avböj om du inte kan uppfylla ordern.
             </p>
           </div>
         </div>
       </div>
+
+      {/* Decline Modal */}
+      {showDeclineModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Avböj order
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Ange en anledning till varför du inte kan uppfylla denna order.
+              Restaurangen kommer att informeras.
+            </p>
+            <textarea
+              value={declineReason}
+              onChange={(e) => setDeclineReason(e.target.value)}
+              placeholder="T.ex. 'Vinet är tillfälligt slut i lager' eller 'Kan inte leverera inom önskad tid'"
+              className="w-full border border-gray-300 rounded-lg p-3 text-sm mb-4 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              rows={3}
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowDeclineModal(null);
+                  setDeclineReason('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={() => declineOrder(showDeclineModal)}
+                disabled={!declineReason.trim() || actionLoading === showDeclineModal}
+                className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {actionLoading === showDeclineModal ? 'Avböjer...' : 'Avböj order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
