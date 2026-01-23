@@ -57,21 +57,7 @@ export async function GET(
       throw new Error(`Failed to fetch request: ${requestError.message}`);
     }
 
-    // Step 2: Verify restaurant belongs to tenant
-    const { data: restaurant, error: restaurantError } = await supabase
-      .from('restaurants')
-      .select('tenant_id')
-      .eq('id', requestData.restaurant_id)
-      .single();
-
-    if (restaurantError || !restaurant) {
-      return NextResponse.json({ error: 'Request not found' }, { status: 404 });
-    }
-
-    if (restaurant.tenant_id !== tenantId) {
-      // Request exists but belongs to different tenant - return 404 to avoid leaking existence
-      return NextResponse.json({ error: 'Request not found' }, { status: 404 });
-    }
+    // MVP: Skip tenant verification (single tenant setup)
 
     // Map Swedish column names to English API response format
     const mappedRequest = {

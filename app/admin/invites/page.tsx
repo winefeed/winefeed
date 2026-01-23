@@ -93,7 +93,7 @@ export default function AdminInvitesPage() {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
         const [restaurantsRes, suppliersRes] = await Promise.all([
-          supabase.from('restaurants').select('id, name').eq('tenant_id', TENANT_ID).limit(100),
+          supabase.from('restaurants').select('id, name').limit(100),
           supabase.from('suppliers').select('id, namn').limit(100)
         ]);
 
