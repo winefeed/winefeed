@@ -46,8 +46,18 @@ const FILTER_OPTIONS: FilterOption[] = [
   // { id: 'pinot-noir', label: 'Pinot Noir', type: 'grape' },
 ];
 
+// Quick-select wine type tags
+const WINE_TYPE_TAGS = [
+  { id: 'rött', label: '🍷 Rött', text: 'rödvin' },
+  { id: 'vitt', label: '🥂 Vitt', text: 'vitt vin' },
+  { id: 'rosé', label: '🌸 Rosé', text: 'rosévin' },
+  { id: 'mousserande', label: '🍾 Mousserande', text: 'mousserande vin' },
+  { id: 'champagne', label: '✨ Champagne', text: 'champagne' },
+  { id: 'dessert', label: '🍯 Dessert', text: 'dessertvin' },
+];
+
 const requestSchema = z.object({
-  fritext: z.string().min(10, 'Beskriv dina behov mer detaljerat (minst 10 tecken)'),
+  fritext: z.string().min(1, 'Beskriv vad du söker'),
   budget_per_flaska: z.coerce
     .number()
     .min(50, 'Budget måste vara minst 50 kr')
@@ -74,14 +84,26 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<RequestFormData>({
     resolver: zodResolver(requestSchema),
     defaultValues: {
       budget_per_flaska: 200,
       antal_flaskor: 20,
+      fritext: '',
     },
   });
+
+  const fritextValue = watch('fritext');
+
+  // Add wine type tag to fritext
+  const addWineTypeTag = (text: string) => {
+    const currentText = fritextValue || '';
+    const newText = currentText ? `${currentText} ${text}` : text;
+    setValue('fritext', newText);
+  };
 
   // Toggle filter selection
   const toggleFilter = (filterId: string) => {
@@ -145,6 +167,21 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           rows={4}
           {...register('fritext')}
         />
+
+        {/* Quick-select wine type tags */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          {WINE_TYPE_TAGS.map((tag) => (
+            <button
+              key={tag.id}
+              type="button"
+              onClick={() => addWineTypeTag(tag.text)}
+              className="px-3 py-1.5 text-sm rounded-full border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 transition-colors"
+            >
+              {tag.label}
+            </button>
+          ))}
+        </div>
+
         {errors.fritext && (
           <p className="text-sm text-destructive">{errors.fritext.message}</p>
         )}
