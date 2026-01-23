@@ -151,6 +151,32 @@ export async function POST(request: NextRequest) {
       redirectPath: roleInfos.length === 1 ? roleInfos[0].path : '/portal-select',
     });
 
+    // Set Supabase auth cookies so middleware recognizes the session
+    // Extract project ref from Supabase URL for cookie name
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const projectRef = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1] || 'supabase';
+    const cookieName = `sb-${projectRef}-auth-token`;
+
+    if (authData.session) {
+      // Set the auth token cookie in Supabase's expected format
+      const cookieValue = JSON.stringify({
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token,
+        expires_at: authData.session.expires_at,
+        expires_in: authData.session.expires_in,
+        token_type: authData.session.token_type,
+        user: authData.user,
+      });
+
+      response.cookies.set(cookieName, cookieValue, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/',
+      });
+    }
+
     // Set unified session cookie
     response.cookies.set('winefeed_session', JSON.stringify({
       userId: authData.user.id,
