@@ -36,6 +36,10 @@ export async function middleware(request: NextRequest) {
     '/supplier/forgot-password',
     '/supplier/reset-password',
     '/api/auth/forgot-password',
+    '/api/auth/login',   // Unified login API
+    '/api/auth/logout',  // Logout API
+    '/portal-select',    // Portal selector for multi-role users
+    '/forgot-password',  // Forgot password page
   ];
 
   // Static assets - skip auth
