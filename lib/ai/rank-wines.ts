@@ -6,11 +6,21 @@ export interface Wine {
   producent: string;
   land: string;
   region?: string;
+  appellation?: string;
   druva?: string;
   color?: string;
   argang?: number;
   pris_sek: number;
   beskrivning?: string;
+  // Extended details
+  alkohol?: number;
+  volym_ml?: number;
+  sku?: string;
+  lager?: number;
+  moq?: number;
+  kartong?: number;
+  ledtid_dagar?: number;
+  // Legacy fields
   ekologisk?: boolean;
   biodynamiskt?: boolean;
   veganskt?: boolean;
