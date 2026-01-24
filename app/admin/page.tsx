@@ -10,7 +10,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wine, Users, Building2, TrendingUp, ExternalLink, RefreshCw } from 'lucide-react';
+import { Wine, Users, Building2, TrendingUp, ExternalLink, RefreshCw, ShoppingCart, FileText, Inbox, Store } from 'lucide-react';
 
 interface SupplierStats {
   id: string;
@@ -39,6 +39,30 @@ interface RecentWine {
   createdAt: string;
 }
 
+interface OrderStats {
+  total: number;
+  pending: number;
+  confirmed: number;
+  inFulfillment: number;
+  shipped: number;
+  delivered: number;
+  cancelled: number;
+}
+
+interface RequestStats {
+  total: number;
+  open: number;
+  closed: number;
+}
+
+interface OfferStats {
+  total: number;
+  draft: number;
+  sent: number;
+  accepted: number;
+  rejected: number;
+}
+
 interface Stats {
   overview: {
     totalSuppliers: number;
@@ -46,7 +70,11 @@ interface Stats {
     totalWines: number;
     activeWines: number;
     totalUsers: number;
+    totalRestaurants: number;
   };
+  orders: OrderStats;
+  requests: RequestStats;
+  offers: OfferStats;
   suppliers: SupplierStats[];
   recentWines: RecentWine[];
   colorDistribution: Record<string, number>;
@@ -150,14 +178,21 @@ export default function AdminDashboardPage() {
           Uppdatera
         </button>
       </div>
-        {/* Overview Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* Overview Stats - Row 1 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <StatCard
             title="Leverantörer"
             value={stats.overview.totalSuppliers}
             subtitle={`${stats.overview.activeSuppliers} aktiva`}
             icon={Building2}
             color="blue"
+          />
+          <StatCard
+            title="Restauranger"
+            value={stats.overview.totalRestaurants}
+            subtitle="Registrerade"
+            icon={Store}
+            color="green"
           />
           <StatCard
             title="Viner totalt"
@@ -171,18 +206,71 @@ export default function AdminDashboardPage() {
             value={stats.overview.totalUsers}
             subtitle="Leverantörkonton"
             icon={Users}
-            color="green"
-          />
-          <StatCard
-            title="Snittbelopp"
-            value={stats.suppliers.length > 0
-              ? Math.round(stats.suppliers.reduce((sum, s) => sum + s.avgPriceSek, 0) / stats.suppliers.length)
-              : 0}
-            subtitle="SEK/vin"
-            icon={TrendingUp}
             color="purple"
-            suffix=" kr"
           />
+        </div>
+
+        {/* Overview Stats - Row 2: Orders, Requests, Offers */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-card rounded-lg border border-border p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600">
+                <ShoppingCart className="h-5 w-5" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Ordrar</span>
+            </div>
+            <p className="text-3xl font-bold text-foreground">{stats.orders.total}</p>
+            <div className="flex flex-wrap gap-2 mt-2 text-xs">
+              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
+                {stats.orders.pending} väntande
+              </span>
+              <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
+                {stats.orders.confirmed + stats.orders.inFulfillment} bekräftade
+              </span>
+              <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded">
+                {stats.orders.delivered} levererade
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-lg border border-border p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600">
+                <Inbox className="h-5 w-5" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Förfrågningar</span>
+            </div>
+            <p className="text-3xl font-bold text-foreground">{stats.requests.total}</p>
+            <div className="flex flex-wrap gap-2 mt-2 text-xs">
+              <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded">
+                {stats.requests.open} öppna
+              </span>
+              <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded">
+                {stats.requests.closed} avslutade
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-lg border border-border p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-teal-500/10 text-teal-600">
+                <FileText className="h-5 w-5" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Offerter</span>
+            </div>
+            <p className="text-3xl font-bold text-foreground">{stats.offers.total}</p>
+            <div className="flex flex-wrap gap-2 mt-2 text-xs">
+              <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
+                {stats.offers.sent} skickade
+              </span>
+              <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded">
+                {stats.offers.accepted} accepterade
+              </span>
+              <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded">
+                {stats.offers.draft} utkast
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Color Distribution */}
