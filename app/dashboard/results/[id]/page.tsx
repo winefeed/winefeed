@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Wine {
   id: string;
@@ -11,14 +11,19 @@ interface Wine {
   producent: string;
   land: string;
   region?: string;
+  druva?: string;
+  color?: string;
+  argang?: number;
   pris_sek: number;
-  ekologisk: boolean;
+  ekologisk?: boolean;
+  biodynamiskt?: boolean;
+  veganskt?: boolean;
 }
 
 interface Supplier {
   namn: string;
   kontakt_email: string;
-  normalleveranstid_dagar: number;
+  normalleveranstid_dagar?: number;
 }
 
 interface MarketData {
@@ -37,6 +42,18 @@ interface Suggestion {
   market_data?: MarketData | null;
 }
 
+type SortOption = 'score' | 'price_asc' | 'price_desc' | 'country' | 'producer';
+
+const COLOR_LABELS: Record<string, string> = {
+  red: 'Rött',
+  white: 'Vitt',
+  rose: 'Rosé',
+  sparkling: 'Mousserande',
+  orange: 'Orange',
+  sweet: 'Sött',
+  fortified: 'Starkvin',
+};
+
 export default function ResultsPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -47,14 +64,22 @@ export default function ResultsPage() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
+  // Filter state
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    priceMin: '',
+    priceMax: '',
+    country: 'all',
+    producer: 'all',
+    sortBy: 'score' as SortOption,
+  });
+
   useEffect(() => {
-    // Hämta suggestions från sessionStorage (sparades av request-form)
     const stored = sessionStorage.getItem('latest-suggestions');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         setSuggestions(parsed);
-        // Pre-select all wines by default
         setSelectedWines(new Set(parsed.map((s: Suggestion) => s.wine.id)));
       } catch (e) {
         console.error('Failed to parse suggestions:', e);
@@ -62,6 +87,79 @@ export default function ResultsPage() {
     }
     setLoading(false);
   }, [requestId]);
+
+  // Extract unique values for filter dropdowns
+  const filterOptions = useMemo(() => {
+    const countries = [...new Set(suggestions.map(s => s.wine.land))].sort();
+    const producers = [...new Set(suggestions.map(s => s.wine.producent))].sort();
+    return { countries, producers };
+  }, [suggestions]);
+
+  // Apply filters and sorting
+  const filteredSuggestions = useMemo(() => {
+    let result = [...suggestions];
+
+    // Price filters
+    if (filters.priceMin) {
+      const min = parseInt(filters.priceMin);
+      result = result.filter(s => s.wine.pris_sek >= min);
+    }
+    if (filters.priceMax) {
+      const max = parseInt(filters.priceMax);
+      result = result.filter(s => s.wine.pris_sek <= max);
+    }
+
+    // Country filter
+    if (filters.country !== 'all') {
+      result = result.filter(s => s.wine.land === filters.country);
+    }
+
+    // Producer filter
+    if (filters.producer !== 'all') {
+      result = result.filter(s => s.wine.producent === filters.producer);
+    }
+
+    // Sorting
+    switch (filters.sortBy) {
+      case 'price_asc':
+        result.sort((a, b) => a.wine.pris_sek - b.wine.pris_sek);
+        break;
+      case 'price_desc':
+        result.sort((a, b) => b.wine.pris_sek - a.wine.pris_sek);
+        break;
+      case 'country':
+        result.sort((a, b) => a.wine.land.localeCompare(b.wine.land));
+        break;
+      case 'producer':
+        result.sort((a, b) => a.wine.producent.localeCompare(b.wine.producent));
+        break;
+      case 'score':
+      default:
+        result.sort((a, b) => b.ranking_score - a.ranking_score);
+        break;
+    }
+
+    return result;
+  }, [suggestions, filters]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.priceMin) count++;
+    if (filters.priceMax) count++;
+    if (filters.country !== 'all') count++;
+    if (filters.producer !== 'all') count++;
+    return count;
+  }, [filters]);
+
+  const clearFilters = () => {
+    setFilters({
+      priceMin: '',
+      priceMax: '',
+      country: 'all',
+      producer: 'all',
+      sortBy: 'score',
+    });
+  };
 
   const toggleWineSelection = (wineId: string) => {
     setSelectedWines(prev => {
@@ -83,8 +181,6 @@ export default function ResultsPage() {
 
     setSending(true);
     try {
-      // For MVP: Just show confirmation
-      // In production: This would dispatch to suppliers via API
       await new Promise(resolve => setTimeout(resolve, 1000));
       setSent(true);
     } catch (error) {
@@ -139,142 +235,291 @@ export default function ResultsPage() {
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-2">Din vinoffert</h1>
           <p className="text-xl text-muted-foreground">
-            Vi hittade <span className="font-semibold text-foreground">{suggestions.length} perfekta viner</span> för din restaurang
+            Vi hittade <span className="font-semibold text-foreground">{suggestions.length} viner</span> för din restaurang
           </p>
+        </div>
+
+        {/* Filter Section */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:bg-accent transition-colors"
+          >
+            <Filter className="h-4 w-4" />
+            <span className="font-medium">Filtrera & sortera</span>
+            {activeFilterCount > 0 && (
+              <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
+                {activeFilterCount}
+              </span>
+            )}
+            {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+
+          {showFilters && (
+            <div className="mt-4 p-4 bg-card border border-border rounded-lg">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {/* Min Price */}
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
+                    Min pris (kr)
+                  </label>
+                  <input
+                    type="number"
+                    value={filters.priceMin}
+                    onChange={(e) => setFilters(f => ({ ...f, priceMin: e.target.value }))}
+                    placeholder="0"
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  />
+                </div>
+
+                {/* Max Price */}
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
+                    Max pris (kr)
+                  </label>
+                  <input
+                    type="number"
+                    value={filters.priceMax}
+                    onChange={(e) => setFilters(f => ({ ...f, priceMax: e.target.value }))}
+                    placeholder="1000"
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  />
+                </div>
+
+                {/* Country */}
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
+                    Land
+                  </label>
+                  <select
+                    value={filters.country}
+                    onChange={(e) => setFilters(f => ({ ...f, country: e.target.value }))}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  >
+                    <option value="all">Alla länder</option>
+                    {filterOptions.countries.map(country => (
+                      <option key={country} value={country}>{country}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Producer */}
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
+                    Producent
+                  </label>
+                  <select
+                    value={filters.producer}
+                    onChange={(e) => setFilters(f => ({ ...f, producer: e.target.value }))}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  >
+                    <option value="all">Alla producenter</option>
+                    {filterOptions.producers.map(producer => (
+                      <option key={producer} value={producer}>{producer}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sort */}
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
+                    Sortera efter
+                  </label>
+                  <select
+                    value={filters.sortBy}
+                    onChange={(e) => setFilters(f => ({ ...f, sortBy: e.target.value as SortOption }))}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  >
+                    <option value="score">Bäst matchning</option>
+                    <option value="price_asc">Lägst pris först</option>
+                    <option value="price_desc">Högst pris först</option>
+                    <option value="country">Land A-Ö</option>
+                    <option value="producer">Producent A-Ö</option>
+                  </select>
+                </div>
+              </div>
+
+              {activeFilterCount > 0 && (
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Visar {filteredSuggestions.length} av {suggestions.length} viner
+                  </p>
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center gap-1 text-sm text-primary hover:underline"
+                  >
+                    <X className="h-4 w-4" />
+                    Rensa filter
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Wine Cards */}
         <div className="space-y-6 mb-12">
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={suggestion.wine.id}
-              className="bg-card border-2 border-border rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
-            >
-              {/* Card Header */}
-              <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-border">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
-                        {index + 1}
-                      </span>
-                      <h2 className="text-2xl font-bold text-foreground">
-                        {suggestion.wine.namn}
-                      </h2>
-                      {suggestion.wine.ekologisk && (
-                        <span className="px-2 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-full">
-                          🌱 Ekologisk
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-muted-foreground flex items-center gap-2">
-                      <span className="font-medium">{suggestion.wine.producent}</span>
-                      <span>•</span>
-                      <span>{suggestion.wine.land}</span>
-                      {suggestion.wine.region && (
-                        <>
-                          <span>•</span>
-                          <span>{suggestion.wine.region}</span>
-                        </>
-                      )}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-bold text-foreground">
-                      {formatPrice(suggestion.wine.pris_sek)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">per flaska</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card Body */}
-              <div className="p-6">
-                {/* Expert Recommendation */}
-                <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-xl">
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">✨</span>
-                    <div>
-                      <p className="text-sm font-medium text-foreground mb-1">Varför detta vin passar dig</p>
-                      <p className="text-sm text-foreground/80">{suggestion.motivering}</p>
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                          <div
-                            className="bg-primary h-full rounded-full"
-                            style={{ width: `${suggestion.ranking_score * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {Math.round(suggestion.ranking_score * 100)}% matchning
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Market Data */}
-                {suggestion.market_data && (
-                  <div className="mb-6 p-4 bg-secondary/10 border border-secondary/20 rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">💰</span>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground mb-2">Marknadsprisinfo</p>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">Lägsta marknadspris</p>
-                            <p className="text-lg font-bold text-foreground">
-                              {formatPrice(suggestion.market_data.lowest_price)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              från {suggestion.market_data.merchant_name}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">Prisjämförelse</p>
-                            <p className={`text-lg font-bold ${
-                              parseFloat(suggestion.market_data.price_difference_percent) > 0
-                                ? 'text-destructive'
-                                : 'text-green-600'
-                            }`}>
-                              {parseFloat(suggestion.market_data.price_difference_percent) > 0 ? '+' : ''}
-                              {suggestion.market_data.price_difference_percent}%
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {suggestion.market_data.merchant_count} återförsäljare
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Supplier Info */}
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="text-xl">📦</span>
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {suggestion.supplier.namn}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Leverans: {suggestion.supplier.normalleveranstid_dagar} dagar
-                      </p>
-                    </div>
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={selectedWines.has(suggestion.wine.id)}
-                      onChange={() => toggleWineSelection(suggestion.wine.id)}
-                      className="w-5 h-5 rounded border-border text-primary focus:ring-primary cursor-pointer"
-                    />
-                    <span className="text-sm font-medium">Inkludera i offert</span>
-                  </label>
-                </div>
-              </div>
+          {filteredSuggestions.length === 0 ? (
+            <div className="text-center py-12 bg-card border border-border rounded-xl">
+              <p className="text-xl text-muted-foreground mb-2">Inga viner matchar filtren</p>
+              <button
+                onClick={clearFilters}
+                className="text-primary hover:underline"
+              >
+                Rensa filter
+              </button>
             </div>
-          ))}
+          ) : (
+            filteredSuggestions.map((suggestion, index) => (
+              <div
+                key={suggestion.wine.id}
+                className="bg-card border-2 border-border rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
+              >
+                {/* Card Header */}
+                <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-border">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                          {index + 1}
+                        </span>
+                        <h2 className="text-2xl font-bold text-foreground">
+                          {suggestion.wine.namn}
+                        </h2>
+                        {suggestion.wine.color && (
+                          <span className="px-2 py-1 bg-muted text-muted-foreground text-xs font-medium rounded-full">
+                            {COLOR_LABELS[suggestion.wine.color] || suggestion.wine.color}
+                          </span>
+                        )}
+                        {suggestion.wine.ekologisk && (
+                          <span className="px-2 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-full">
+                            🌱 Eko
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground flex items-center gap-2 flex-wrap">
+                        <span className="font-medium">{suggestion.wine.producent}</span>
+                        <span>•</span>
+                        <span>{suggestion.wine.land}</span>
+                        {suggestion.wine.region && (
+                          <>
+                            <span>•</span>
+                            <span>{suggestion.wine.region}</span>
+                          </>
+                        )}
+                        {suggestion.wine.druva && (
+                          <>
+                            <span>•</span>
+                            <span>{suggestion.wine.druva}</span>
+                          </>
+                        )}
+                        {suggestion.wine.argang && (
+                          <>
+                            <span>•</span>
+                            <span>{suggestion.wine.argang}</span>
+                          </>
+                        )}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-3xl font-bold text-foreground">
+                        {formatPrice(suggestion.wine.pris_sek)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">per flaska</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-6">
+                  {/* Expert Recommendation */}
+                  <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">✨</span>
+                      <div>
+                        <p className="text-sm font-medium text-foreground mb-1">Varför detta vin passar dig</p>
+                        <p className="text-sm text-foreground/80">{suggestion.motivering}</p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                            <div
+                              className="bg-primary h-full rounded-full"
+                              style={{ width: `${suggestion.ranking_score * 100}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {Math.round(suggestion.ranking_score * 100)}% matchning
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Market Data */}
+                  {suggestion.market_data && (
+                    <div className="mb-6 p-4 bg-secondary/10 border border-secondary/20 rounded-xl">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">💰</span>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground mb-2">Marknadsprisinfo</p>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Lägsta marknadspris</p>
+                              <p className="text-lg font-bold text-foreground">
+                                {formatPrice(suggestion.market_data.lowest_price)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                från {suggestion.market_data.merchant_name}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Prisjämförelse</p>
+                              <p className={`text-lg font-bold ${
+                                parseFloat(suggestion.market_data.price_difference_percent) > 0
+                                  ? 'text-destructive'
+                                  : 'text-green-600'
+                              }`}>
+                                {parseFloat(suggestion.market_data.price_difference_percent) > 0 ? '+' : ''}
+                                {suggestion.market_data.price_difference_percent}%
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {suggestion.market_data.merchant_count} återförsäljare
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Supplier Info */}
+                  <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-xl">📦</span>
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {suggestion.supplier.namn}
+                        </p>
+                        {suggestion.supplier.normalleveranstid_dagar && (
+                          <p className="text-xs text-muted-foreground">
+                            Leverans: {suggestion.supplier.normalleveranstid_dagar} dagar
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={selectedWines.has(suggestion.wine.id)}
+                        onChange={() => toggleWineSelection(suggestion.wine.id)}
+                        className="w-5 h-5 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                      />
+                      <span className="text-sm font-medium">Inkludera i offert</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* CTA Section */}
