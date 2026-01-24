@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
-// Wine color options - matches database enum
+// Wine color options - matches database enum (wine_color)
+// Valid values: red, white, rose, sparkling, orange, fortified
 const WINE_COLORS = [
   { value: 'all', label: 'Alla typer', emoji: '🍷' },
   { value: 'sparkling', label: 'Mousserande', emoji: '🍾' },
@@ -17,8 +18,7 @@ const WINE_COLORS = [
   { value: 'rose', label: 'Rosé', emoji: '🌸' },
   { value: 'orange', label: 'Orange', emoji: '🍊' },
   { value: 'red', label: 'Rött', emoji: '🍷' },
-  { value: 'sweet', label: 'Sött', emoji: '🍯' },
-  { value: 'fortified', label: 'Starkvin', emoji: '🥃' },
+  { value: 'fortified', label: 'Starkvin/Dessertvin', emoji: '🥃' },
 ] as const;
 
 // Common wine countries

@@ -20,10 +20,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const supplierId = searchParams.get('supplier_id');
 
-    // Build query
+    // Build query - fetch all wine fields for detail view
     let query = supabase
       .from('supplier_wines')
-      .select('id, supplier_id, name, producer, country, region, color, price_ex_vat_sek, stock_qty, moq, is_active, created_at')
+      .select('id, supplier_id, sku, name, producer, country, region, appellation, grape, color, vintage, alcohol_pct, volume_ml, price_ex_vat_sek, price_sek_ib, currency, stock_qty, moq, case_size, lead_time_days, description, is_active, created_at, updated_at')
       .order('created_at', { ascending: false });
 
     // Filter by supplier if provided

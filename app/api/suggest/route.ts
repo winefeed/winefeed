@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { rankWinesWithClaude } from '@/lib/ai/rank-wines';
 
-// Admin client for DB operations
-const supabaseAdmin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+// Create admin client lazily to avoid startup errors
+function getSupabaseAdmin() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
 
 // MVP: Get any existing restaurant for testing
 async function getAnyRestaurant(): Promise<string | null> {
-  const { data: existing, error } = await supabaseAdmin
+  const { data: existing, error } = await getSupabaseAdmin()
     .from('restaurants')
     .select('id')
     .limit(1)
@@ -28,6 +29,22 @@ async function getAnyRestaurant(): Promise<string | null> {
 
 export async function POST(request: Request) {
   try {
+    // Check environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      console.error('Missing NEXT_PUBLIC_SUPABASE_URL');
+      return NextResponse.json(
+        { error: 'Server configuration error', details: 'Missing Supabase URL' },
+        { status: 500 }
+      );
+    }
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing SUPABASE_SERVICE_ROLE_KEY');
+      return NextResponse.json(
+        { error: 'Server configuration error', details: 'Missing service role key' },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const {
       // New structured fields
@@ -46,17 +63,17 @@ export async function POST(request: Request) {
       specialkrav,
     } = body;
 
-    // Use new fields if available, fall back to legacy
-    const effectiveBudgetMax = budget_max || budget_per_flaska;
+    // Use new fields if available, fall back to legacy, then default
+    const effectiveBudgetMax = budget_max || budget_per_flaska || 500; // Default 500 SEK
     const effectiveCertifications = certifications || specialkrav;
 
-    // Validation
-    if (!effectiveBudgetMax) {
-      return NextResponse.json(
-        { error: 'budget_max eller budget_per_flaska är obligatorisk' },
-        { status: 400 }
-      );
-    }
+    console.log('Suggest API called with:', {
+      color,
+      budget_min,
+      budget_max: effectiveBudgetMax,
+      country,
+      grape,
+    });
 
     // MVP: Get any existing restaurant for testing
     const restaurantId = await getAnyRestaurant();
@@ -65,7 +82,7 @@ export async function POST(request: Request) {
     let request_id: string;
 
     if (restaurantId) {
-      const { data: savedRequest, error: requestError } = await supabaseAdmin
+      const { data: savedRequest, error: requestError } = await getSupabaseAdmin()
         .from('requests')
         .insert({
           restaurant_id: restaurantId,
@@ -100,7 +117,9 @@ export async function POST(request: Request) {
       certifications: effectiveCertifications,
     });
 
-    let query = supabaseAdmin
+    // MVP: Don't filter by is_active - wines in catalog may have is_active=false or null
+    // First: Simple query to check if wines exist at all
+    let query = getSupabaseAdmin()
       .from('supplier_wines')
       .select(`
         id,
@@ -114,15 +133,10 @@ export async function POST(request: Request) {
         vintage,
         price_ex_vat_sek,
         description,
-        is_organic,
-        is_biodynamic,
-        is_vegan,
         stock_qty,
         moq,
-        case_size,
-        supplier:suppliers(id, namn, kontakt_email)
-      `)
-      .eq('is_active', true);
+        case_size
+      `);
 
     // Filter by color (if specified)
     if (color && color !== 'all') {
@@ -130,55 +144,36 @@ export async function POST(request: Request) {
       console.log(`Filtering by color: ${color}`);
     }
 
-    // Filter by budget range (price is in öre, convert from SEK)
-    const budgetMaxOre = effectiveBudgetMax * 100;
-    query = query.lte('price_ex_vat_sek', budgetMaxOre * 1.3); // Allow 30% overage
+    // Filter by budget range
+    // Note: price_ex_vat_sek is stored in öre (1 SEK = 100 öre)
+    // Allow generous range to find matches
+    if (effectiveBudgetMax) {
+      const budgetMaxOre = effectiveBudgetMax * 100;
+      // Allow up to 50% over budget to find matches
+      query = query.lte('price_ex_vat_sek', budgetMaxOre * 1.5);
+      console.log(`Filtering by max budget: ${budgetMaxOre * 1.5} öre (${effectiveBudgetMax * 1.5} SEK)`);
+    }
 
     if (budget_min) {
       const budgetMinOre = budget_min * 100;
-      query = query.gte('price_ex_vat_sek', budgetMinOre * 0.7); // Allow 30% under
+      // Allow 50% under min to find matches
+      query = query.gte('price_ex_vat_sek', budgetMinOre * 0.5);
+      console.log(`Filtering by min budget: ${budgetMinOre * 0.5} öre (${budget_min * 0.5} SEK)`);
     }
 
     // Filter by country (if specified)
-    if (country && country !== 'all') {
-      if (country === 'other') {
-        // "Other" = skip country filter, will include all countries
-        // Too complex to exclude - just don't filter
-        console.log('Filtering by OTHER countries - no filter applied');
-      } else {
-        query = query.eq('country', country);
-        console.log(`Filtering by country: ${country}`);
-      }
+    if (country && country !== 'all' && country !== 'other') {
+      query = query.eq('country', country);
+      console.log(`Filtering by country: ${country}`);
     }
 
     // Filter by grape (if specified) - use ilike for partial match
-    if (grape && grape !== 'all') {
-      if (grape === 'other') {
-        // "Other" = skip grape filter, will include all grapes
-        // Too complex to exclude - just don't filter
-        console.log('Filtering by OTHER grapes - no filter applied');
-      } else {
-        query = query.ilike('grape', `%${grape}%`);
-        console.log(`Filtering by grape: ${grape}`);
-      }
+    if (grape && grape !== 'all' && grape !== 'other') {
+      query = query.ilike('grape', `%${grape}%`);
+      console.log(`Filtering by grape: ${grape}`);
     }
 
-    // Filter by certifications
-    if (effectiveCertifications && Array.isArray(effectiveCertifications)) {
-      if (effectiveCertifications.includes('ekologiskt')) {
-        query = query.eq('is_organic', true);
-      }
-      if (effectiveCertifications.includes('biodynamiskt')) {
-        query = query.eq('is_biodynamic', true);
-      }
-      if (effectiveCertifications.includes('veganskt')) {
-        query = query.eq('is_vegan', true);
-      }
-    }
-
-    // Note: Stock filtering disabled for now - many test wines have stock_qty=0
-    // TODO: Re-enable when stock data is properly maintained
-    // query = query.or('stock_qty.gt.0,stock_qty.is.null');
+    // MVP: Certification filtering disabled - columns don't exist in current schema
 
     let wines;
     let winesError;
@@ -187,12 +182,39 @@ export async function POST(request: Request) {
       const result = await query.limit(50);
       wines = result.data;
       winesError = result.error;
+
+      // If filtered query fails or returns nothing, try without filters
+      if (winesError || !wines || wines.length === 0) {
+        console.log('Filtered query returned no results, trying without filters...');
+        const fallbackResult = await getSupabaseAdmin()
+          .from('supplier_wines')
+          .select('id, supplier_id, name, producer, country, region, grape, color, vintage, price_ex_vat_sek, description, stock_qty, moq, case_size')
+          .limit(50);
+
+        if (!fallbackResult.error && fallbackResult.data && fallbackResult.data.length > 0) {
+          wines = fallbackResult.data;
+          winesError = null;
+          console.log(`Fallback query found ${wines.length} wines`);
+        }
+      }
     } catch (queryError: any) {
       console.error('Query execution error:', queryError);
-      return NextResponse.json(
-        { error: 'Kunde inte hämta viner', details: queryError.message || 'Query failed' },
-        { status: 500 }
-      );
+      // Try a simple fallback
+      try {
+        const fallbackResult = await getSupabaseAdmin()
+          .from('supplier_wines')
+          .select('id, supplier_id, name, producer, country, region, grape, color, vintage, price_ex_vat_sek, description, stock_qty, moq, case_size')
+          .limit(50);
+        wines = fallbackResult.data;
+        winesError = fallbackResult.error;
+        console.log(`Fallback after error found ${wines?.length || 0} wines`);
+      } catch (fallbackError: any) {
+        console.error('Fallback query also failed:', fallbackError);
+        return NextResponse.json(
+          { error: 'Kunde inte hämta viner', details: queryError.message || 'Query failed' },
+          { status: 500 }
+        );
+      }
     }
 
     if (winesError) {
@@ -213,6 +235,23 @@ export async function POST(request: Request) {
       });
     }
 
+    // Fetch supplier info separately (relation may not work)
+    const supplierIds = [...new Set(wines.map(w => w.supplier_id).filter(Boolean))];
+    let suppliersMap: Record<string, any> = {};
+
+    if (supplierIds.length > 0) {
+      const { data: suppliers } = await getSupabaseAdmin()
+        .from('suppliers')
+        .select('id, namn, kontakt_email')
+        .in('id', supplierIds);
+
+      if (suppliers) {
+        suppliers.forEach(s => {
+          suppliersMap[s.id] = s;
+        });
+      }
+    }
+
     // Transform wines for AI ranking
     const winesForRanking = wines.map(wine => ({
       id: wine.id,
@@ -225,11 +264,8 @@ export async function POST(request: Request) {
       argang: wine.vintage,
       pris_sek: wine.price_ex_vat_sek ? Math.round(wine.price_ex_vat_sek / 100) : 0,
       beskrivning: wine.description,
-      ekologisk: wine.is_organic,
-      biodynamiskt: wine.is_biodynamic,
-      veganskt: wine.is_vegan,
       supplier_id: wine.supplier_id,
-      supplier: wine.supplier,
+      supplier: suppliersMap[wine.supplier_id] || null,
     }));
 
     // Build context for AI ranking
@@ -254,6 +290,7 @@ export async function POST(request: Request) {
     // Build suggestions response
     const suggestions = ranked.slice(0, 10).map((wine) => {
       const originalWine = wines.find(w => w.id === wine.id);
+      const supplier = originalWine ? suppliersMap[originalWine.supplier_id] : null;
       return {
         wine: {
           id: wine.id,
@@ -265,11 +302,8 @@ export async function POST(request: Request) {
           color: wine.color,
           argang: wine.argang,
           pris_sek: wine.pris_sek,
-          ekologisk: wine.ekologisk,
-          biodynamiskt: wine.biodynamiskt,
-          veganskt: wine.veganskt,
         },
-        supplier: originalWine?.supplier || {
+        supplier: supplier || {
           namn: 'Okänd leverantör',
           kontakt_email: null,
         },
@@ -291,10 +325,14 @@ export async function POST(request: Request) {
       total_matches: wines.length,
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in /api/suggest:', error);
     return NextResponse.json(
-      { error: 'Något gick fel' },
+      {
+        error: 'Något gick fel',
+        details: error?.message || 'Unknown error',
+        stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+      },
       { status: 500 }
     );
   }

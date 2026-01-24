@@ -149,68 +149,16 @@ export async function GET(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    // Get all user IDs associated with this tenant
-    // We'll query each role table and collect unique user IDs
-
-    const userIds = new Set<string>();
-
-    // From restaurant_users
-    // Note: restaurants table doesn't have tenant_id column (MVP single-tenant)
-    // Get all restaurant_users directly since we're in single-tenant mode
-    const { data: restUsers } = await supabase
-      .from('restaurant_users')
-      .select('id, restaurant_id');
-
-    (restUsers || []).forEach((u) => userIds.add(u.id));
-
-    // From supplier_users (suppliers belonging to this tenant)
-    const { data: suppliers } = await supabase
-      .from('suppliers')
-      .select('id')
-      .eq('tenant_id', tenantId);
-
-    const supplierIds = (suppliers || []).map((s) => s.id);
-
-    if (supplierIds.length > 0) {
-      const { data: suppUsers } = await supabase
-        .from('supplier_users')
-        .select('user_id')
-        .in('supplier_id', supplierIds);
-
-      (suppUsers || []).forEach((u) => userIds.add(u.user_id));
-    }
-
-    // From admin_users
-    const { data: adminUsers } = await supabase
-      .from('admin_users')
-      .select('user_id')
-      .eq('tenant_id', tenantId);
-
-    (adminUsers || []).forEach((u) => userIds.add(u.user_id));
-
-    // Now fetch auth.users data for all collected user IDs
-    const usersArray = Array.from(userIds);
-
-    if (usersArray.length === 0) {
-      return NextResponse.json(
-        {
-          users: [],
-          count: 0,
-          timestamp: new Date().toISOString()
-        },
-        { status: 200 }
-      );
-    }
-
-    // Fetch users from auth.users (using service role)
+    // Fetch ALL users from auth.users (using service role)
+    // Admin should see everyone in the system, not just users with roles
     const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
 
     if (authError) {
       throw new Error(`Failed to fetch auth users: ${authError.message}`);
     }
 
-    // Filter to only users in our collected set
-    const tenantUsers = authUsers.users.filter((u) => usersArray.includes(u.id));
+    // All auth users are tenant users (MVP: single-tenant)
+    const tenantUsers = authUsers.users;
 
     // Resolve roles and entities for each user
     const enrichedUsers = await Promise.all(

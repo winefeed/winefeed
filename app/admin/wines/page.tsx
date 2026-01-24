@@ -10,22 +10,34 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Wine, RefreshCw, Search, Filter } from 'lucide-react';
+import { Wine, RefreshCw, Search, Filter, X, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface WineItem {
   id: string;
   supplier_id: string;
+  sku: string | null;
   name: string;
   producer: string;
   country: string;
   region: string | null;
+  appellation: string | null;
+  grape: string | null;
   color: string;
+  vintage: number | null;
+  alcohol_pct: number | null;
+  volume_ml: number | null;
   price_ex_vat_sek: number;
+  price_sek_ib: number | null;
+  currency: string | null;
   priceSek: number | null;
   stock_qty: number | null;
   moq: number | null;
+  case_size: number | null;
+  lead_time_days: number | null;
+  description: string | null;
   is_active: boolean;
   created_at: string;
+  updated_at: string | null;
   supplierName: string;
   supplierType: string;
 }
@@ -58,6 +70,9 @@ function AdminWinesPageContent() {
   const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get('supplier') || '');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedWine, setSelectedWine] = useState<WineItem | null>(null);
+  const [sortColumn, setSortColumn] = useState<string>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     fetchWines();
@@ -87,8 +102,68 @@ function AdminWinesPageContent() {
       );
     }
 
+    // Sort
+    filtered = [...filtered].sort((a, b) => {
+      let aVal: any = a[sortColumn as keyof WineItem];
+      let bVal: any = b[sortColumn as keyof WineItem];
+
+      // Handle special cases
+      if (sortColumn === 'priceSek') {
+        aVal = a.priceSek ?? 0;
+        bVal = b.priceSek ?? 0;
+      } else if (sortColumn === 'supplierName') {
+        aVal = a.supplierName || '';
+        bVal = b.supplierName || '';
+      }
+
+      // Handle null/undefined
+      if (aVal == null) aVal = '';
+      if (bVal == null) bVal = '';
+
+      // String comparison
+      if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = (bVal as string).toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
     setFilteredWines(filtered);
-  }, [wines, selectedSupplier, selectedColor, searchQuery]);
+  }, [wines, selectedSupplier, selectedColor, searchQuery, sortColumn, sortDirection]);
+
+  // Handle column header click for sorting
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sortable header component
+  const SortableHeader = ({ column, label, className = '' }: { column: string; label: string; className?: string }) => (
+    <th
+      onClick={() => handleSort(column)}
+      className={`px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/50 transition-colors select-none ${className}`}
+    >
+      <div className={`flex items-center gap-1 ${className.includes('text-right') ? 'justify-end' : ''}`}>
+        {label}
+        {sortColumn === column ? (
+          sortDirection === 'asc' ? (
+            <ChevronUp className="h-3 w-3" />
+          ) : (
+            <ChevronDown className="h-3 w-3" />
+          )
+        ) : (
+          <div className="w-3" />
+        )}
+      </div>
+    </th>
+  );
 
   const fetchWines = async () => {
     try {
@@ -237,36 +312,160 @@ function AdminWinesPageContent() {
         </div>
       </div>
 
+      {/* Wine Detail Modal */}
+      {selectedWine && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedWine(null)}>
+          <div
+            className="bg-card rounded-xl border border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between p-6 border-b border-border">
+              <div className="flex items-center gap-4">
+                <div className={`w-3 h-12 rounded ${COLOR_LABELS[selectedWine.color]?.color || 'bg-gray-400'}`}></div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">{selectedWine.name}</h2>
+                  <p className="text-muted-foreground">{selectedWine.producer}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedWine(null)}
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Typ</p>
+                  <p className="text-foreground font-medium">{COLOR_LABELS[selectedWine.color]?.label || selectedWine.color}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Årgång</p>
+                  <p className="text-foreground font-medium">{selectedWine.vintage || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Land</p>
+                  <p className="text-foreground font-medium">{selectedWine.country}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Region</p>
+                  <p className="text-foreground font-medium">{selectedWine.region || '—'}</p>
+                </div>
+                {selectedWine.appellation && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Appellation</p>
+                    <p className="text-foreground font-medium">{selectedWine.appellation}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Druva</p>
+                  <p className="text-foreground font-medium">{selectedWine.grape || '—'}</p>
+                </div>
+              </div>
+
+              {/* Technical Info */}
+              <div className="pt-4 border-t border-border">
+                <h3 className="text-sm font-semibold text-foreground mb-3">Teknisk information</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  {selectedWine.alcohol_pct && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Alkohol</p>
+                      <p className="text-foreground font-medium">{selectedWine.alcohol_pct}%</p>
+                    </div>
+                  )}
+                  {selectedWine.volume_ml && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Volym</p>
+                      <p className="text-foreground font-medium">{selectedWine.volume_ml} ml</p>
+                    </div>
+                  )}
+                  {selectedWine.sku && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">SKU</p>
+                      <p className="text-foreground font-medium font-mono text-sm">{selectedWine.sku}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Pricing & Availability */}
+              <div className="pt-4 border-t border-border">
+                <h3 className="text-sm font-semibold text-foreground mb-3">Pris & tillgänglighet</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Pris (ex moms)</p>
+                    <p className="text-foreground font-bold text-lg">{selectedWine.priceSek ? `${selectedWine.priceSek} SEK` : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">MOQ</p>
+                    <p className="text-foreground font-medium">{selectedWine.moq || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Kartongstorlek</p>
+                    <p className="text-foreground font-medium">{selectedWine.case_size ? `${selectedWine.case_size} fl` : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Lagersaldo</p>
+                    <p className={`font-medium ${selectedWine.stock_qty !== null ? (selectedWine.stock_qty > 0 ? 'text-green-600' : 'text-red-600') : 'text-muted-foreground'}`}>
+                      {selectedWine.stock_qty !== null ? selectedWine.stock_qty : '∞'}
+                    </p>
+                  </div>
+                  {selectedWine.lead_time_days && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Ledtid</p>
+                      <p className="text-foreground font-medium">{selectedWine.lead_time_days} dagar</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Supplier */}
+              <div className="pt-4 border-t border-border">
+                <h3 className="text-sm font-semibold text-foreground mb-3">Leverantör</h3>
+                <p className="text-foreground font-medium">{selectedWine.supplierName}</p>
+                <p className="text-xs text-muted-foreground">{selectedWine.supplierType === 'IOR' ? 'Importör' : selectedWine.supplierType}</p>
+              </div>
+
+              {/* Description */}
+              {selectedWine.description && (
+                <div className="pt-4 border-t border-border">
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Beskrivning</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{selectedWine.description}</p>
+                </div>
+              )}
+
+              {/* Metadata */}
+              <div className="pt-4 border-t border-border text-xs text-muted-foreground">
+                <div className="flex gap-4">
+                  <span>ID: {selectedWine.id.slice(0, 8)}...</span>
+                  <span>Aktiv: {selectedWine.is_active ? 'Ja' : 'Nej'}</span>
+                  <span>Skapad: {new Date(selectedWine.created_at).toLocaleDateString('sv-SE')}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Wines Table */}
       <div className="bg-card rounded-lg border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Vin
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Producent
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Leverantör
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Typ
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Region
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Pris
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  MOQ
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Lager
-                </th>
+                <SortableHeader column="name" label="Vin" className="text-left" />
+                <SortableHeader column="producer" label="Producent" className="text-left" />
+                <SortableHeader column="supplierName" label="Leverantör" className="text-left" />
+                <SortableHeader column="color" label="Typ" className="text-left" />
+                <SortableHeader column="region" label="Region" className="text-left" />
+                <SortableHeader column="priceSek" label="Pris (ex moms)" className="text-right" />
+                <SortableHeader column="moq" label="MOQ" className="text-right" />
+                <SortableHeader column="stock_qty" label="Lager" className="text-right" />
               </tr>
             </thead>
             <tbody className="bg-card divide-y divide-border">
@@ -281,7 +480,11 @@ function AdminWinesPageContent() {
                 filteredWines.map((wine) => {
                   const colorInfo = COLOR_LABELS[wine.color] || { label: wine.color, color: 'bg-gray-400' };
                   return (
-                    <tr key={wine.id} className="hover:bg-accent transition-colors">
+                    <tr
+                      key={wine.id}
+                      className="hover:bg-accent transition-colors cursor-pointer"
+                      onClick={() => setSelectedWine(wine)}
+                    >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-8 rounded ${colorInfo.color}`}></div>
