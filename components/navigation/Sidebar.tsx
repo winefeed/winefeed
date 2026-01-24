@@ -110,27 +110,35 @@ export function Sidebar({ sections, userEmail, userRoles, isAdmin = false }: Sid
           collapsed && 'justify-center'
         )}>
           {!collapsed && (
-            <div className="flex items-center gap-2">
-              <Wine className={cn(
-                'h-6 w-6',
-                isAdmin ? 'text-red-600' : 'text-primary'
-              )} />
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                'h-10 w-10 rounded-xl flex items-center justify-center',
+                isAdmin
+                  ? 'bg-gradient-to-br from-red-500 to-red-700'
+                  : 'bg-gradient-to-br from-primary to-primary/80'
+              )}>
+                <Wine className="h-5 w-5 text-white" />
+              </div>
               <div>
-                <h2 className="text-lg font-bold text-foreground">
-                  {isAdmin ? 'Admin' : 'Winefeed'}
+                <h2 className="text-lg font-bold tracking-tight text-foreground">
+                  {isAdmin ? 'Winefeed' : 'Winefeed'}
                 </h2>
-                {isAdmin && (
-                  <p className="text-xs text-muted-foreground">Control Panel</p>
-                )}
+                <p className="text-[11px] text-muted-foreground">
+                  {isAdmin ? 'Admin Console' : 'Din vininköpare'}
+                </p>
               </div>
             </div>
           )}
 
           {collapsed && (
-            <Wine className={cn(
-              'h-6 w-6',
-              isAdmin ? 'text-red-600' : 'text-primary'
-            )} />
+            <div className={cn(
+              'h-10 w-10 rounded-xl flex items-center justify-center',
+              isAdmin
+                ? 'bg-gradient-to-br from-red-500 to-red-700'
+                : 'bg-gradient-to-br from-primary to-primary/80'
+            )}>
+              <Wine className="h-5 w-5 text-white" />
+            </div>
           )}
 
           {/* Mobile Close Button */}
