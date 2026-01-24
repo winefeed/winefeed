@@ -192,10 +192,11 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
       {/* Budget */}
       <div className="space-y-2">
-        <Label htmlFor="budget_max">Max budget per flaska (kr ex moms)</Label>
+        <Label htmlFor="budget_max">Max budget per flaska (SEK ex moms)</Label>
         <Input
           id="budget_max"
           type="number"
+          step="10"
           placeholder="200"
           {...register('budget_max')}
         />
