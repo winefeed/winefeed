@@ -92,7 +92,9 @@ export default function ResultsPage() {
       try {
         const parsed = JSON.parse(stored);
         setSuggestions(parsed);
-        setSelectedWines(new Set(parsed.map((s: Suggestion) => s.wine.id)));
+        // Start with empty selection - user must actively choose wines to include
+        // This is better UX for B2B: deliberate opt-in rather than opt-out
+        setSelectedWines(new Set());
       } catch (e) {
         console.error('Failed to parse suggestions:', e);
       }
@@ -736,8 +738,8 @@ export default function ResultsPage() {
               </div>
               <h3 className="text-2xl font-bold mb-3">Förfrågan skickad!</h3>
               <p className="text-white/90 mb-6">
-                Din förfrågan om {selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''} har skickats till leverantörerna.
-                Du får svar inom 24 timmar.
+                Din förfrågan om {selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''} har skickats.
+                Vi skickar offerterna till dig så snart leverantörerna har svarat.
               </p>
               <div className="flex gap-4 justify-center">
                 <button
@@ -758,16 +760,18 @@ export default function ResultsPage() {
         ) : (
           <div className="bg-primary text-primary-foreground rounded-2xl shadow-xl p-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h3 className="text-2xl font-bold mb-3">Bekräfta din offert</h3>
+              <h3 className="text-2xl font-bold mb-3">
+                {selectedWines.size > 0 ? 'Bekräfta din offert' : 'Välj viner att inkludera'}
+              </h3>
               <p className="text-primary-foreground/90 mb-2">
                 {selectedWines.size > 0 ? (
                   <>Du har valt <span className="font-bold">{selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''}</span> att skicka till leverantörer.</>
                 ) : (
-                  <>Välj de viner du vill ha ovan.</>
+                  <>Klicka i &quot;Inkludera i offert&quot; för de viner du vill begära offert på.</>
                 )}
               </p>
               <p className="text-primary-foreground/70 text-sm mb-6">
-                Leverantörerna kontaktar dig inom 24 timmar med bekräftelse på pris, tillgänglighet och leveranstid.
+                Vi skickar offerterna till dig så snart leverantörerna har svarat på din förfrågan.
               </p>
               <div className="flex gap-4 justify-center">
                 <button

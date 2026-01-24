@@ -73,13 +73,13 @@ export function UserMenu({ email, roles, collapsed = false }: UserMenuProps) {
             'group relative',
             isLoggingOut && 'opacity-50 cursor-not-allowed'
           )}
-          title="Logout"
+          title="Logga ut"
         >
           <LogOut className="h-5 w-5" />
 
           {/* Tooltip */}
           <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg border">
-            Logout
+            Logga ut
           </div>
         </button>
       </div>
@@ -104,10 +104,12 @@ export function UserMenu({ email, roles, collapsed = false }: UserMenuProps) {
 
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              {email || 'User'}
+              {email || 'Användare'}
             </p>
             <p className="text-xs text-muted-foreground">
-              {roles.length} {roles.length === 1 ? 'role' : 'roles'}
+              {roles.length === 1
+                ? ROLE_LABELS[roles[0]]
+                : `${roles.length} roller`}
             </p>
           </div>
 
@@ -154,7 +156,7 @@ export function UserMenu({ email, roles, collapsed = false }: UserMenuProps) {
           )}
         >
           <LogOut className="h-4 w-4" />
-          <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+          <span>{isLoggingOut ? 'Loggar ut...' : 'Logga ut'}</span>
         </button>
       </div>
     </div>

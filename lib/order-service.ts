@@ -56,6 +56,19 @@ export interface Order {
   total_lines: number;
   total_quantity: number;
   currency: string;
+  // Shipping info
+  is_franco: boolean;
+  shipping_cost_ore: number | null;
+  shipping_notes: string | null;
+  // Order value for Winefeed invoicing
+  total_goods_amount_ore: number | null;
+  total_order_value_ore: number | null;
+  service_fee_mode: string;
+  service_fee_amount_ore: number;
+  // Delivery location from request
+  delivery_city: string | null;
+  delivery_address: string | null;
+  delivery_postal_code: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -138,7 +151,7 @@ class OrderService {
   async createOrderFromAcceptedOffer(input: CreateOrderFromOfferInput): Promise<{ order_id: string }> {
     const { offer_id, tenant_id, actor_user_id } = input;
 
-    // 1. Fetch offer with related data
+    // 1. Fetch offer with related data (including shipping)
     const { data: offer, error: offerError } = await supabase
       .from('offers')
       .select(`
@@ -149,6 +162,9 @@ class OrderService {
         supplier_id,
         status,
         currency,
+        is_franco,
+        shipping_cost_sek,
+        shipping_notes,
         created_at
       `)
       .eq('id', offer_id)
@@ -218,9 +234,42 @@ class OrderService {
       throw new Error('Offer has no lines - cannot create order');
     }
 
+    // 3b. Fetch request data for delivery location
+    let deliveryCity: string | null = null;
+    let deliveryAddress: string | null = null;
+    let deliveryPostalCode: string | null = null;
+
+    if (offer.request_id) {
+      const { data: requestData } = await supabase
+        .from('requests')
+        .select('leverans_ort, leverans_adress, leverans_postnummer')
+        .eq('id', offer.request_id)
+        .single();
+
+      if (requestData) {
+        deliveryCity = requestData.leverans_ort || null;
+        deliveryAddress = requestData.leverans_adress || null;
+        deliveryPostalCode = requestData.leverans_postnummer || null;
+      }
+    }
+
     // 4. Create order
     const totalLines = offerLines.length;
     const totalQuantity = offerLines.reduce((sum, line) => sum + (line.quantity || 0), 0);
+
+    // Calculate total goods amount in öre (for Winefeed invoicing)
+    const totalGoodsAmountOre = offerLines.reduce((sum, line) => {
+      const lineTotal = line.offered_unit_price_ore && line.quantity
+        ? line.offered_unit_price_ore * line.quantity
+        : 0;
+      return sum + lineTotal;
+    }, 0);
+
+    // Shipping cost in öre (shipping_cost_sek is in SEK, convert to öre)
+    const shippingCostOre = offer.shipping_cost_sek ? offer.shipping_cost_sek * 100 : 0;
+
+    // Total order value = goods + shipping (for Winefeed invoicing)
+    const totalOrderValueOre = totalGoodsAmountOre + shippingCostOre;
 
     // Determine initial order status based on supplier type
     // Swedish importers: require supplier confirmation before proceeding
@@ -242,6 +291,19 @@ class OrderService {
         total_lines: totalLines,
         total_quantity: totalQuantity,
         currency: offer.currency || 'SEK',
+        // Shipping info
+        is_franco: offer.is_franco || false,
+        shipping_cost_ore: shippingCostOre > 0 ? shippingCostOre : null,
+        shipping_notes: offer.shipping_notes || null,
+        // Order value for Winefeed invoicing
+        total_goods_amount_ore: totalGoodsAmountOre,
+        total_order_value_ore: totalOrderValueOre,
+        service_fee_mode: 'PILOT_FREE', // No fee during pilot
+        service_fee_amount_ore: 0,
+        // Delivery location from request
+        delivery_city: deliveryCity,
+        delivery_address: deliveryAddress,
+        delivery_postal_code: deliveryPostalCode,
         created_by: actor_user_id || null
       })
       .select()
@@ -301,7 +363,13 @@ class OrderService {
           importer_of_record_id,
           total_lines: totalLines,
           total_quantity: totalQuantity,
-          supplier_type: supplier.type
+          supplier_type: supplier.type,
+          // Order value tracking (for Winefeed invoicing)
+          total_goods_amount_ore: totalGoodsAmountOre,
+          shipping_cost_ore: shippingCostOre,
+          total_order_value_ore: totalOrderValueOre,
+          is_franco: offer.is_franco || false,
+          delivery_city: deliveryCity
         },
         actor_user_id: actor_user_id || null,
         actor_name: null

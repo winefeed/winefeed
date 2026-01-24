@@ -43,6 +43,10 @@ export async function POST(
       quantity,
       deliveryDate,
       leadTimeDays,
+      // Shipping fields
+      is_franco,
+      shipping_cost_sek,
+      shipping_notes,
     } = body;
 
     if (!supplierId || !supplierWineId || !offeredPriceExVatSek ||
@@ -62,6 +66,9 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    // Parse shipping
+    const isFranco = is_franco === true;
 
     // Validate numeric fields
     if (offeredPriceExVatSek <= 0) {
@@ -223,6 +230,10 @@ export async function POST(
         notes: body.notes || null,
         status: 'pending',
         expires_at: expiresAt.toISOString(),
+        // Shipping fields
+        is_franco: isFranco,
+        shipping_cost_sek: isFranco ? null : (shipping_cost_sek || null),
+        shipping_notes: shipping_notes || null,
       })
       .select(`
         id,
@@ -237,7 +248,10 @@ export async function POST(
         notes,
         status,
         expires_at,
-        created_at
+        created_at,
+        is_franco,
+        shipping_cost_sek,
+        shipping_notes
       `)
       .single();
 
@@ -260,7 +274,12 @@ export async function POST(
         .eq('id', assignment.id);
     }
 
-    // 8. Return offer with wine details
+    // 8. Return offer with wine details and shipping
+    const priceExVat = offer.offered_price_ex_vat_sek / 100;
+    const totalWinePrice = priceExVat * offer.quantity;
+    const shippingCost = offer.is_franco ? 0 : (offer.shipping_cost_sek || 0);
+    const totalWithShipping = totalWinePrice + shippingCost;
+
     return NextResponse.json(
       {
         offer: {
@@ -269,7 +288,7 @@ export async function POST(
           supplierId: offer.supplier_id,
           supplierWineId: offer.supplier_wine_id,
           wineName: supplierWine.name,
-          offeredPriceExVatSek: offer.offered_price_ex_vat_sek / 100, // Convert back to SEK
+          offeredPriceExVatSek: priceExVat, // Convert back to SEK
           vatRate: offer.vat_rate,
           quantity: offer.quantity,
           deliveryDate: offer.delivery_date,
@@ -278,6 +297,13 @@ export async function POST(
           status: offer.status,
           expiresAt: offer.expires_at,
           createdAt: offer.created_at,
+          // Shipping info
+          isFranco: offer.is_franco,
+          shippingCostSek: offer.shipping_cost_sek,
+          shippingNotes: offer.shipping_notes,
+          // Calculated totals
+          totalWinePrice,
+          totalWithShipping,
         },
         message: 'Offer created successfully',
       },
@@ -360,6 +386,9 @@ export async function GET(
         status,
         expires_at,
         created_at,
+        is_franco,
+        shipping_cost_sek,
+        shipping_notes,
         suppliers (
           namn,
           kontakt_email
@@ -404,6 +433,12 @@ export async function GET(
       const totalExVat = priceExVatSek * offer.quantity;
       const totalIncVat = priceIncVatSek * offer.quantity;
 
+      // Shipping calculations
+      const isFranco = offer.is_franco || false;
+      const shippingCost = isFranco ? 0 : (offer.shipping_cost_sek || 0);
+      const totalWithShippingExVat = totalExVat + shippingCost;
+      const totalWithShippingIncVat = totalIncVat + shippingCost;
+
       // Calculate estimated delivery date
       const estimatedDeliveryDate = new Date(offer.delivery_date);
 
@@ -433,6 +468,12 @@ export async function GET(
         quantity: offer.quantity,
         totalExVatSek: parseFloat(totalExVat.toFixed(2)),
         totalIncVatSek: parseFloat(totalIncVat.toFixed(2)),
+        // Shipping info
+        isFranco,
+        shippingCostSek: offer.shipping_cost_sek,
+        shippingNotes: offer.shipping_notes,
+        totalWithShippingExVat: parseFloat(totalWithShippingExVat.toFixed(2)),
+        totalWithShippingIncVat: parseFloat(totalWithShippingIncVat.toFixed(2)),
         // Delivery
         deliveryDate: offer.delivery_date,
         estimatedDeliveryDate: estimatedDeliveryDate.toISOString().split('T')[0],

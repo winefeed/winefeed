@@ -28,6 +28,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
  *     budgetPerFlaska?: number;
  *     antalFlaskor?: number;
  *     leveransSenast?: string;
+ *     leveransOrt?: string;  // Delivery city for shipping calculation
  *     specialkrav?: string[];
  *     createdAt: string;
  *     assignment: {
@@ -213,6 +214,7 @@ export async function GET(
         budgetPerFlaska: req.budget_per_flaska,
         antalFlaskor: req.antal_flaskor,
         leveransSenast: req.leverans_senast,
+        leveransOrt: req.leverans_ort, // Delivery city for shipping calculation
         specialkrav: req.specialkrav || [],
         createdAt: req.created_at,
         assignment: {

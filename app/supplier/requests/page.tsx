@@ -14,19 +14,32 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X } from 'lucide-react';
+import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck } from 'lucide-react';
 
 interface QuoteRequest {
   id: string;
-  restaurant_name: string;
-  wine_name: string;
-  quantity: number;
-  budget_sek: number | null;
-  status: string;
-  created_at: string;
-  expires_at: string | null;
-  notes: string | null;
-  has_offer: boolean;
+  restaurantId: string;
+  restaurantName: string;
+  fritext: string;
+  budgetPerFlaska: number | null;
+  antalFlaskor: number | null;
+  leveransSenast: string | null;
+  leveransOrt: string | null; // For shipping calculation
+  specialkrav: string[];
+  createdAt: string;
+  assignment: {
+    id: string;
+    status: string;
+    matchScore: number;
+    matchReasons: string[];
+    sentAt: string;
+    viewedAt?: string;
+    respondedAt?: string;
+    expiresAt: string;
+    isExpired: boolean;
+  };
+  myOfferCount: number;
+  totalOfferCount: number;
 }
 
 export default function SupplierRequestsPage() {
@@ -42,6 +55,9 @@ export default function SupplierRequestsPage() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkPrice, setBulkPrice] = useState('');
   const [bulkLeadTime, setBulkLeadTime] = useState('14');
+  const [bulkShippingType, setBulkShippingType] = useState<'franco' | 'specified'>('specified');
+  const [bulkShippingCost, setBulkShippingCost] = useState('');
+  const [bulkShippingNotes, setBulkShippingNotes] = useState('');
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
 
   useEffect(() => {
@@ -61,7 +77,7 @@ export default function SupplierRequestsPage() {
 
   // Select all pending requests
   const selectAllPending = () => {
-    const pendingIds = requests.filter(r => !r.has_offer).map(r => r.id);
+    const pendingIds = requests.filter(r => r.myOfferCount === 0).map(r => r.id);
     setSelectedRequests(new Set(pendingIds));
   };
 
@@ -91,10 +107,16 @@ export default function SupplierRequestsPage() {
             },
             body: JSON.stringify({
               supplier_id: supplierId,
-              price_sek: bulkPrice ? parseInt(bulkPrice) : (request.budget_sek || 100),
-              quantity: request.quantity,
+              price_sek: bulkPrice ? parseInt(bulkPrice) : (request.budgetPerFlaska || 100),
+              quantity: request.antalFlaskor || 24,
               lead_time_days: parseInt(bulkLeadTime),
-              notes: `Offert för ${request.wine_name}`
+              notes: `Offert: ${request.fritext}`,
+              // Shipping information
+              is_franco: bulkShippingType === 'franco',
+              shipping_cost_sek: bulkShippingType === 'specified' && bulkShippingCost
+                ? parseInt(bulkShippingCost)
+                : null,
+              shipping_notes: bulkShippingNotes || null
             })
           });
 
@@ -151,8 +173,8 @@ export default function SupplierRequestsPage() {
     }
   }
 
-  const pendingCount = requests.filter((r) => !r.has_offer).length;
-  const respondedCount = requests.filter((r) => r.has_offer).length;
+  const pendingCount = requests.filter((r) => r.myOfferCount === 0).length;
+  const respondedCount = requests.filter((r) => r.myOfferCount > 0).length;
 
   if (loading) {
     return (
@@ -208,7 +230,7 @@ export default function SupplierRequestsPage() {
                 onClick={selectAllPending}
                 className="text-sm text-blue-600 hover:text-blue-800 underline"
               >
-                Välj alla väntande ({requests.filter(r => !r.has_offer).length})
+                Välj alla väntande ({requests.filter(r => r.myOfferCount === 0).length})
               </button>
               {selectedRequests.size > 0 && (
                 <button
@@ -284,7 +306,7 @@ export default function SupplierRequestsPage() {
             >
               <div className="flex items-start gap-4">
                 {/* Checkbox for bulk mode */}
-                {bulkMode && !request.has_offer && (
+                {bulkMode && request.myOfferCount === 0 && (
                   <button
                     onClick={() => toggleSelection(request.id)}
                     className="mt-1 flex-shrink-0"
@@ -298,7 +320,7 @@ export default function SupplierRequestsPage() {
                 )}
 
                 {/* Already responded - show disabled checkbox */}
-                {bulkMode && request.has_offer && (
+                {bulkMode && request.myOfferCount > 0 && (
                   <div className="mt-1 flex-shrink-0">
                     <CheckSquare className="h-5 w-5 text-green-400" />
                   </div>
@@ -314,35 +336,49 @@ export default function SupplierRequestsPage() {
                       <div className="flex items-center gap-2 mb-2">
                         <Building2 className="h-4 w-4 text-gray-400" />
                         <span className="font-medium text-gray-900">
-                          {request.restaurant_name}
+                          {request.restaurantName}
                         </span>
-                        {!request.has_offer && (
+                        {request.myOfferCount === 0 && (
                           <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium">
                             Ny
                           </span>
                         )}
                       </div>
 
-                      {/* Wine info */}
+                      {/* Request info */}
                       <div className="flex items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
                           <Wine className="h-4 w-4 text-gray-400" />
-                          <span>{request.wine_name}</span>
+                          <span className="line-clamp-1">{request.fritext}</span>
                         </div>
-                        <span>•</span>
-                        <span>{request.quantity} flaskor</span>
-                        {request.budget_sek && (
+                        {request.antalFlaskor && (
                           <>
                             <span>•</span>
-                            <span className="text-green-600 font-medium">{request.budget_sek} kr/fl</span>
+                            <span>{request.antalFlaskor} flaskor</span>
+                          </>
+                        )}
+                        {request.budgetPerFlaska && (
+                          <>
+                            <span>•</span>
+                            <span className="text-green-600 font-medium">{request.budgetPerFlaska} kr/fl</span>
                           </>
                         )}
                       </div>
 
-                      {/* Notes */}
-                      {request.notes && (
-                        <p className="mt-2 text-sm text-gray-500 line-clamp-1">
-                          &ldquo;{request.notes}&rdquo;
+                      {/* Delivery location - important for shipping calculation */}
+                      {request.leveransOrt && (
+                        <div className="flex items-center gap-2 mt-2 text-sm">
+                          <Truck className="h-4 w-4 text-blue-500" />
+                          <span className="text-blue-700 font-medium">
+                            Leverans till: {request.leveransOrt}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Special requirements */}
+                      {request.specialkrav && request.specialkrav.length > 0 && (
+                        <p className="mt-2 text-sm text-gray-500">
+                          Krav: {request.specialkrav.join(', ')}
                         </p>
                       )}
 
@@ -350,18 +386,18 @@ export default function SupplierRequestsPage() {
                       <div className="flex items-center gap-2 mt-3 text-xs text-gray-400">
                         <Clock className="h-3 w-3" />
                         <span>
-                          {new Date(request.created_at).toLocaleDateString('sv-SE', {
+                          {new Date(request.createdAt).toLocaleDateString('sv-SE', {
                             day: 'numeric',
                             month: 'short',
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
                         </span>
-                        {request.expires_at && (
+                        {request.assignment.expiresAt && (
                           <>
                             <span>•</span>
-                            <span className="text-amber-600">
-                              Svarstid: {new Date(request.expires_at).toLocaleDateString('sv-SE')}
+                            <span className={request.assignment.isExpired ? 'text-red-600' : 'text-amber-600'}>
+                              {request.assignment.isExpired ? 'Utgången' : `Svarstid: ${new Date(request.assignment.expiresAt).toLocaleDateString('sv-SE')}`}
                             </span>
                           </>
                         )}
@@ -370,7 +406,7 @@ export default function SupplierRequestsPage() {
 
                     {/* Status & Arrow */}
                     <div className="flex items-center gap-3">
-                      {request.has_offer ? (
+                      {request.myOfferCount > 0 ? (
                         <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
                           Offert skickad
                         </span>
@@ -449,8 +485,8 @@ export default function SupplierRequestsPage() {
                     const req = requests.find(r => r.id === id);
                     return req ? (
                       <div key={id} className="text-sm text-gray-600 flex justify-between">
-                        <span>{req.restaurant_name}</span>
-                        <span className="text-gray-400">{req.quantity} fl</span>
+                        <span>{req.restaurantName}</span>
+                        <span className="text-gray-400">{req.antalFlaskor || 0} fl</span>
                       </div>
                     ) : null;
                   })}
@@ -491,6 +527,79 @@ export default function SupplierRequestsPage() {
                   <option value="45">45 dagar</option>
                   <option value="60">60 dagar</option>
                 </select>
+              </div>
+
+              {/* Shipping section */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Truck className="h-4 w-4 text-gray-500" />
+                  <label className="text-sm font-medium text-gray-700">
+                    Frakt
+                  </label>
+                </div>
+
+                {/* Shipping type selection */}
+                <div className="space-y-2 mb-3">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="shippingType"
+                      checked={bulkShippingType === 'specified'}
+                      onChange={() => setBulkShippingType('specified')}
+                      className="text-blue-600"
+                    />
+                    <div>
+                      <span className="font-medium text-gray-900">Ange fraktkostnad</span>
+                      <p className="text-xs text-gray-500">Separat frakt tillkommer utöver vinpriset</p>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="shippingType"
+                      checked={bulkShippingType === 'franco'}
+                      onChange={() => setBulkShippingType('franco')}
+                      className="text-blue-600"
+                    />
+                    <div>
+                      <span className="font-medium text-gray-900">Fritt levererat (franco)</span>
+                      <p className="text-xs text-gray-500">Frakt ingår i priset</p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Shipping cost input - only shown if specified */}
+                {bulkShippingType === 'specified' && (
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Fraktkostnad (SEK)
+                    </label>
+                    <input
+                      type="number"
+                      value={bulkShippingCost}
+                      onChange={(e) => setBulkShippingCost(e.target.value)}
+                      placeholder="T.ex. 500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Total fraktkostnad för hela leveransen
+                    </p>
+                  </div>
+                )}
+
+                {/* Shipping notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fraktnotering (valfritt)
+                  </label>
+                  <input
+                    type="text"
+                    value={bulkShippingNotes}
+                    onChange={(e) => setBulkShippingNotes(e.target.value)}
+                    placeholder="T.ex. Leverans Sthlm, andra orter +200 kr"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
               </div>
             </div>
 

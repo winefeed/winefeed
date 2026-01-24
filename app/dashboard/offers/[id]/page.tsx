@@ -22,13 +22,20 @@ interface Offer {
   supplierEmail: string;
   wine: Wine;
 
-  // Pricing (all in SEK)
+  // Pricing (all in SEK, B2B = ex moms primary)
   offeredPriceExVatSek: number;
   vatRate: number;
   priceIncVatSek: number;
   quantity: number;
   totalExVatSek: number;
   totalIncVatSek: number;
+
+  // Shipping
+  isFranco: boolean; // true = frakt ingår i priset
+  shippingCostSek: number | null;
+  shippingNotes: string | null;
+  totalWithShippingExVat: number;
+  totalWithShippingIncVat: number;
 
   // Delivery
   deliveryDate: string;
@@ -250,9 +257,14 @@ export default function OffersPage() {
               </p>
             </div>
 
-            {/* Pricing breakdown */}
+            {/* Pricing breakdown - B2B ex moms */}
             <div className="p-4 bg-muted/30 rounded-xl">
-              <p className="text-sm font-medium text-foreground mb-3">Prissummering</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-medium text-foreground">Prissummering</p>
+                <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                  B2B ex moms
+                </span>
+              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
@@ -260,27 +272,36 @@ export default function OffersPage() {
                   </span>
                   <span className="font-medium">{formatPrice(acceptedOffer.order.pricing.totalGoodsSek)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    Moms ({acceptedOffer.order.pricing.vatRate}%)
-                  </span>
-                  <span className="font-medium">{formatPrice(acceptedOffer.order.pricing.vatAmountSek)}</span>
-                </div>
-                {acceptedOffer.order.pricing.shippingSek > 0 && (
+                {acceptedOffer.order.pricing.shippingSek > 0 ? (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Frakt</span>
+                    <span className="text-muted-foreground">🚚 Frakt</span>
                     <span className="font-medium">{formatPrice(acceptedOffer.order.pricing.shippingSek)}</span>
                   </div>
+                ) : (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">🚚 Frakt</span>
+                    <span className="font-medium text-green-600">Fritt levererat</span>
+                  </div>
                 )}
-                <div className="flex justify-between text-xs text-green-600">
+                <div className="border-t-2 border-primary/30 pt-2 flex justify-between text-base">
+                  <span className="font-bold text-foreground">Totalt ex moms</span>
+                  <span className="font-bold text-primary text-lg">
+                    {formatPrice(acceptedOffer.order.pricing.totalGoodsSek + (acceptedOffer.order.pricing.shippingSek || 0))}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground space-y-1 pt-1">
+                  <div className="flex justify-between">
+                    <span>Moms ({acceptedOffer.order.pricing.vatRate}%)</span>
+                    <span>+{formatPrice(acceptedOffer.order.pricing.vatAmountSek)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Totalt inkl. moms</span>
+                    <span>{formatPrice(acceptedOffer.order.pricing.totalPayableSek)}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs text-green-600 pt-2">
                   <span>Serviceavgift (PILOT - gratis)</span>
                   <span>0 kr</span>
-                </div>
-                <div className="border-t border-border pt-2 flex justify-between text-base">
-                  <span className="font-semibold text-foreground">Totalt att betala</span>
-                  <span className="font-bold text-foreground text-lg">
-                    {formatPrice(acceptedOffer.order.pricing.totalPayableSek)}
-                  </span>
                 </div>
               </div>
             </div>
@@ -500,42 +521,83 @@ export default function OffersPage() {
               {/* Card Body */}
               <div className="p-6">
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
-                  {/* Pricing */}
+                  {/* Pricing - B2B: ex moms is primary */}
                   <div className="space-y-3">
                     <h4 className="font-semibold text-foreground flex items-center gap-2">
                       <span>💰</span>
                       Prissättning
+                      <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-normal">
+                        B2B ex moms
+                      </span>
                     </h4>
 
                     <div className="space-y-2 text-sm">
+                      {/* Wine price */}
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Pris per flaska (exkl. moms)</span>
+                        <span className="text-muted-foreground">Pris per flaska</span>
                         <span className="font-medium">{formatPrice(offer.offeredPriceExVatSek)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Pris per flaska (inkl. moms)</span>
-                        <span className="font-medium">{formatPrice(offer.priceIncVatSek)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Antal</span>
                         <span className="font-medium">{offer.quantity} flaskor</span>
                       </div>
-                      <div className="border-t border-border pt-2 flex justify-between">
-                        <span className="text-muted-foreground">Totalt (exkl. moms)</span>
-                        <span className="font-semibold">{formatPrice(offer.totalExVatSek)}</span>
+                      <div className="flex justify-between font-medium">
+                        <span className="text-foreground">Delsumma vin</span>
+                        <span>{formatPrice(offer.totalExVatSek)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Moms ({offer.vatRate}%)</span>
-                        <span className="font-semibold">
-                          {formatPrice(offer.totalIncVatSek - offer.totalExVatSek)}
-                        </span>
+
+                      {/* Shipping */}
+                      <div className="border-t border-border pt-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground flex items-center gap-1.5">
+                            🚚 Frakt
+                            {offer.isFranco && (
+                              <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
+                                Fritt
+                              </span>
+                            )}
+                          </span>
+                          <span className="font-medium">
+                            {offer.isFranco ? (
+                              <span className="text-green-600">Ingår i priset</span>
+                            ) : offer.shippingCostSek ? (
+                              formatPrice(offer.shippingCostSek)
+                            ) : (
+                              <span className="text-muted-foreground">Ej angiven</span>
+                            )}
+                          </span>
+                        </div>
+                        {offer.shippingNotes && (
+                          <p className="text-xs text-muted-foreground mt-1 italic">
+                            {offer.shippingNotes}
+                          </p>
+                        )}
                       </div>
-                      <div className="border-t border-border pt-2 flex justify-between text-base">
-                        <span className="font-bold text-foreground">Totalt inkl. moms</span>
-                        <span className="font-bold text-primary text-xl">
-                          {formatPrice(offer.totalIncVatSek)}
-                        </span>
+
+                      {/* Total ex moms - PRIMARY */}
+                      <div className="border-t-2 border-primary/30 pt-3 mt-2">
+                        <div className="flex justify-between text-lg">
+                          <span className="font-bold text-foreground">Totalt ex moms</span>
+                          <span className="font-bold text-primary text-xl">
+                            {formatPrice(offer.totalWithShippingExVat || offer.totalExVatSek)}
+                          </span>
+                        </div>
                       </div>
+
+                      {/* VAT info (secondary) */}
+                      <div className="text-xs text-muted-foreground space-y-1 pt-1">
+                        <div className="flex justify-between">
+                          <span>Moms ({offer.vatRate}%)</span>
+                          <span>
+                            +{formatPrice((offer.totalWithShippingIncVat || offer.totalIncVatSek) - (offer.totalWithShippingExVat || offer.totalExVatSek))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Totalt inkl. moms</span>
+                          <span>{formatPrice(offer.totalWithShippingIncVat || offer.totalIncVatSek)}</span>
+                        </div>
+                      </div>
+
                       <div className="pt-2 text-xs text-green-600 flex justify-between">
                         <span>Serviceavgift (PILOT)</span>
                         <span className="font-medium">0 kr - Gratis under pilotfas</span>
