@@ -76,6 +76,7 @@ const requestSchema = z.object({
   country: z.string().optional(),
   grape: z.string().optional(),
   leverans_senast: z.string().optional(),
+  leverans_ort: z.string().min(1, 'Ange leveransort så importörer kan beräkna frakt'),
   certifications: z.array(z.string()).optional(),
   description: z.string().optional(),
 });
@@ -105,6 +106,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       antal_flaskor: 24,
       country: 'all',
       grape: 'all',
+      leverans_ort: '',
       description: '',
     },
   });
@@ -133,6 +135,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         country: data.country === 'all' ? null : data.country,
         grape: data.grape === 'all' ? null : data.grape,
         leverans_senast: data.leverans_senast || null,
+        leverans_ort: data.leverans_ort, // Delivery city for shipping calculation
         certifications: selectedCertifications.length > 0 ? selectedCertifications : null,
         // Free text for AI ranking
         description: data.description || null,
@@ -252,6 +255,23 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         </div>
       </div>
 
+      {/* Delivery Location */}
+      <div className="space-y-2">
+        <Label htmlFor="leverans_ort">Leveransort *</Label>
+        <Input
+          id="leverans_ort"
+          type="text"
+          placeholder="T.ex. Stockholm, Malmö, Göteborg"
+          {...register('leverans_ort')}
+        />
+        <p className="text-xs text-muted-foreground">
+          Ange stad där leverans ska ske - importörer behöver detta för att beräkna fraktkostnad
+        </p>
+        {errors.leverans_ort && (
+          <p className="text-sm text-destructive">{errors.leverans_ort.message}</p>
+        )}
+      </div>
+
       {/* Delivery Date */}
       <div className="space-y-2">
         <Label htmlFor="leverans_senast">Leverans senast (valfritt)</Label>
@@ -356,6 +376,11 @@ function buildFritext(data: RequestFormData, certifications: string[]): string {
   // Quantity
   if (data.antal_flaskor) {
     parts.push(`${data.antal_flaskor} flaskor`);
+  }
+
+  // Delivery location
+  if (data.leverans_ort) {
+    parts.push(`leverans till ${data.leverans_ort}`);
   }
 
   // Certifications

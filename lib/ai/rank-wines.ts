@@ -116,7 +116,10 @@ REGLER:
 - Svenskt språk i reason`;
 
   try {
+    console.log('Calling Claude AI to rank', wines.length, 'wines...');
+    console.log('User request:', userRequest);
     const response = await callClaude(prompt, 2000);
+    console.log('✓ Claude AI responded successfully');
     console.log('Claude raw response:', response.substring(0, 500));
 
     // Extract JSON from response
@@ -150,13 +153,15 @@ REGLER:
 
     console.log('Final ranked wines after filtering:', result.length, 'wines');
     return result;
-  } catch (error) {
-    console.error('Error ranking wines with Claude:', error);
+  } catch (error: any) {
+    console.error('❌ Error ranking wines with Claude:', error?.message || error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    console.log('⚠️  Falling back to default ranking (no AI)');
     // Fallback: return wines without AI ranking
     return wines.slice(0, 8).map((wine, index) => ({
       ...wine,
       score: 0.9 - index * 0.1,
-      ai_reason: 'Ett utmärkt val för din restaurang.',
+      ai_reason: 'Baserat på dina kriterier.', // Clearer fallback text
     }));
   }
 }

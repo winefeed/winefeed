@@ -57,6 +57,7 @@ export async function POST(request: Request) {
       certifications,
       description,
       leverans_senast,
+      leverans_ort, // Delivery city for shipping calculation
       // Legacy fields (for backwards compatibility)
       fritext,
       budget_per_flaska,
@@ -90,6 +91,7 @@ export async function POST(request: Request) {
           budget_per_flaska: effectiveBudgetMax,
           antal_flaskor: antal_flaskor || null,
           leverans_senast: leverans_senast || null,
+          leverans_ort: leverans_ort || null, // Delivery city for shipping calculation
           specialkrav: effectiveCertifications || null,
           status: 'OPEN',
           created_at: new Date().toISOString()

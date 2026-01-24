@@ -34,6 +34,9 @@ export async function GET(
         created_at,
         expires_at,
         notes,
+        is_franco,
+        shipping_cost_sek,
+        shipping_notes,
         quote_request:quote_requests!inner(
           id,
           wine:wines!inner(name),
@@ -69,6 +72,14 @@ export async function GET(
       status: offer.status,
       created_at: offer.created_at,
       expires_at: offer.expires_at,
+      // Shipping info
+      is_franco: offer.is_franco || false,
+      shipping_cost_sek: offer.shipping_cost_sek,
+      shipping_notes: offer.shipping_notes,
+      // Calculated total with shipping
+      total_with_shipping: offer.is_franco
+        ? offer.offered_price * offer.quantity
+        : (offer.offered_price * offer.quantity) + (offer.shipping_cost_sek || 0),
     }));
 
     return NextResponse.json({
@@ -92,7 +103,17 @@ export async function POST(
     const { id: supplierId } = await params;
     const body = await request.json();
 
-    const { quote_request_id, offered_price, quantity, notes, expires_at } = body;
+    const {
+      quote_request_id,
+      offered_price,
+      quantity,
+      notes,
+      expires_at,
+      // Shipping fields
+      is_franco,
+      shipping_cost_sek,
+      shipping_notes
+    } = body;
 
     // Validate required fields
     if (!quote_request_id || !offered_price || !quantity) {
@@ -101,6 +122,10 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    // Validate shipping: if not franco, shipping_cost_sek should be provided
+    // (optional for backwards compatibility)
+    const isFranco = is_franco === true;
 
     // Verify quote request exists and is open
     const { data: quoteRequest } = await supabase
@@ -138,7 +163,7 @@ export async function POST(
       );
     }
 
-    // Create offer
+    // Create offer with shipping info
     const { data: offer, error } = await supabase
       .from('offers')
       .insert({
@@ -149,6 +174,10 @@ export async function POST(
         notes: notes || null,
         expires_at: expires_at || null,
         status: 'pending',
+        // Shipping fields
+        is_franco: isFranco,
+        shipping_cost_sek: isFranco ? null : (shipping_cost_sek || null),
+        shipping_notes: shipping_notes || null,
       })
       .select()
       .single();
