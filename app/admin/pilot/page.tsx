@@ -237,8 +237,8 @@ export default function PilotAdminPage() {
             <div className="flex items-center gap-3">
               <span className="text-4xl">🔧</span>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Pilot Admin Console</h1>
-                <p className="text-sm text-white/80">Monitor pilot flows: requests → offers → events</p>
+                <h1 className="text-2xl font-bold tracking-tight">Pilot Konsol</h1>
+                <p className="text-sm text-white/80">Övervaka flöden: förfrågningar → offerter → ordrar</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -246,7 +246,7 @@ export default function PilotAdminPage() {
                 onClick={fetchOverview}
                 className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
               >
-                🔄 Refresh
+                🔄 Uppdatera
               </button>
               <button
                 onClick={() => router.push('/dashboard')}
@@ -263,7 +263,7 @@ export default function PilotAdminPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Timestamp */}
         <div className="mb-6 text-sm text-gray-500">
-          Last updated: {formatDate(data.timestamp)}
+          Senast uppdaterad: {formatDate(data.timestamp)}
         </div>
 
         {/* Pilot Ops Alerts Section */}
@@ -271,8 +271,8 @@ export default function PilotAdminPage() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-2xl">⚠️</span>
-              <h2 className="text-xl font-bold text-gray-800">Pilot Ops Alerts</h2>
-              <span className="text-sm text-gray-500">(Operational warnings for pilot monitoring)</span>
+              <h2 className="text-xl font-bold text-gray-800">Driftsvarningar</h2>
+              <span className="text-sm text-gray-500">(Operationella varningar för pilotövervakning)</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -284,8 +284,8 @@ export default function PilotAdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="text-xs font-medium text-red-600 uppercase mb-1">EU Orders</div>
-                      <div className="text-sm text-gray-700">Missing Import Case</div>
+                      <div className="text-xs font-medium text-red-600 uppercase mb-1">EU-ordrar</div>
+                      <div className="text-sm text-gray-700">Saknar importärende</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
@@ -318,8 +318,8 @@ export default function PilotAdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="text-xs font-medium text-orange-600 uppercase mb-1">Import Cases</div>
-                      <div className="text-sm text-gray-700">Missing/Unapproved DDL</div>
+                      <div className="text-xs font-medium text-orange-600 uppercase mb-1">Importärenden</div>
+                      <div className="text-sm text-gray-700">Saknar/ej godkänd DDL</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
@@ -355,8 +355,8 @@ export default function PilotAdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="text-xs font-medium text-yellow-600 uppercase mb-1">Approved Imports</div>
-                      <div className="text-sm text-gray-700">Missing 5369 Docs</div>
+                      <div className="text-xs font-medium text-yellow-600 uppercase mb-1">Godkända importer</div>
+                      <div className="text-sm text-gray-700">Saknar 5369-dok</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
@@ -389,8 +389,8 @@ export default function PilotAdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="text-xs font-medium text-purple-600 uppercase mb-1">Stuck Orders</div>
-                      <div className="text-sm text-gray-700">No Update &gt; 3 Days</div>
+                      <div className="text-xs font-medium text-purple-600 uppercase mb-1">Fastnade ordrar</div>
+                      <div className="text-sm text-gray-700">Ingen uppdatering &gt; 3 dagar</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
@@ -424,8 +424,8 @@ export default function PilotAdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="text-xs font-medium text-pink-600 uppercase mb-1">Email Failures</div>
-                      <div className="text-sm text-gray-700">Last 24 Hours (offers + orders)</div>
+                      <div className="text-xs font-medium text-pink-600 uppercase mb-1">E-postfel</div>
+                      <div className="text-sm text-gray-700">Senaste 24 timmar</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
@@ -528,66 +528,66 @@ export default function PilotAdminPage() {
             <div className="flex items-center gap-3 mb-4">
               <span className="text-2xl">📈</span>
               <h2 className="text-xl font-bold text-gray-800">Pilot KPI</h2>
-              <span className="text-sm text-gray-500">(Last 30 days, tenant-scoped)</span>
+              <span className="text-sm text-gray-500">(Senaste 30 dagar)</span>
             </div>
 
             {/* Funnel Cards */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">Conversion Funnel</h3>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">Konverteringstratt</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                 {/* Requests */}
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-blue-700">{data.pilot_metrics.counts.requests_created}</div>
-                  <div className="text-xs text-gray-600 mt-1">Requests</div>
+                  <div className="text-xs text-gray-600 mt-1">Förfrågningar</div>
                 </div>
 
                 {/* Offers Created */}
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-purple-700">{data.pilot_metrics.counts.offers_created}</div>
-                  <div className="text-xs text-gray-600 mt-1">Offers Created</div>
+                  <div className="text-xs text-gray-600 mt-1">Offerter skapade</div>
                 </div>
 
                 {/* Offers Sent */}
                 <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-yellow-700">{data.pilot_metrics.counts.offers_sent}</div>
-                  <div className="text-xs text-gray-600 mt-1">Offers Sent</div>
+                  <div className="text-xs text-gray-600 mt-1">Offerter skickade</div>
                 </div>
 
                 {/* Offers Accepted */}
                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-700">{data.pilot_metrics.counts.offers_accepted}</div>
-                  <div className="text-xs text-gray-600 mt-1">Accepted</div>
+                  <div className="text-xs text-gray-600 mt-1">Accepterade</div>
                 </div>
 
                 {/* Orders */}
                 <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-indigo-700">{data.pilot_metrics.counts.orders_created}</div>
-                  <div className="text-xs text-gray-600 mt-1">Orders</div>
+                  <div className="text-xs text-gray-600 mt-1">Ordrar</div>
                 </div>
 
                 {/* Imports Created */}
                 <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-pink-700">{data.pilot_metrics.counts.imports_created}</div>
-                  <div className="text-xs text-gray-600 mt-1">Imports</div>
+                  <div className="text-xs text-gray-600 mt-1">Importer</div>
                 </div>
 
                 {/* Imports Approved */}
                 <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-teal-700">{data.pilot_metrics.counts.imports_approved}</div>
-                  <div className="text-xs text-gray-600 mt-1">Approved</div>
+                  <div className="text-xs text-gray-600 mt-1">Godkända</div>
                 </div>
 
                 {/* Orders Shipped */}
                 <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-emerald-700">{data.pilot_metrics.counts.orders_shipped}</div>
-                  <div className="text-xs text-gray-600 mt-1">Shipped</div>
+                  <div className="text-xs text-gray-600 mt-1">Skickade</div>
                 </div>
               </div>
             </div>
 
             {/* Timing Metrics */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">Timing Metrics (hours)</h3>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">Tidsmått (timmar)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Request to Offer Created */}
                 <div className="border border-gray-200 rounded-lg p-4">
