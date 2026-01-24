@@ -2,6 +2,14 @@
 
 ## UX-förbättringar
 
+### Bekräftelse-steg innan förfrågan skickas
+- [ ] Visa sammanställning av valda viner (namn, pris, leverantör)
+- [ ] Visa och bekräfta kontaktuppgifter (e-post, telefon)
+- [ ] Fritextfält för meddelande till leverantörer
+- [ ] Visa leveransort
+- [ ] "Bekräfta och skicka"-knapp
+- [ ] Möjlighet att gå tillbaka och ändra
+
 ### Förifylla leveransort från restaurangprofil
 - [ ] Hämta restaurangens adress/stad från `restaurants`-tabellen vid registrering
 - [ ] Förifylla "Leveransort" i förfrågningsformuläret
