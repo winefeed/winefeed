@@ -1,7 +1,7 @@
 /**
- * SUPPLIER ORDER DECLINE API
+ * ORDER DECLINE API
  *
- * POST /api/suppliers/[supplierId]/orders/[orderId]/decline
+ * POST /api/orders/[id]/decline
  *
  * Decline an order (for Swedish importers)
  * Changes status from PENDING_SUPPLIER_CONFIRMATION to CANCELLED
@@ -19,10 +19,10 @@ const supabase = createClient(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { supplierId: string; orderId: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { supplierId, orderId } = params;
+    const { id: orderId } = await params;
     const tenantId = request.headers.get('x-tenant-id');
     const userId = request.headers.get('x-user-id');
 
@@ -33,17 +33,32 @@ export async function POST(
       );
     }
 
+    // Get order to find supplier
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('seller_supplier_id')
+      .eq('id', orderId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (orderError || !order) {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
     // Verify user has access to this supplier
     const { data: supplierUser, error: accessError } = await supabase
       .from('supplier_users')
       .select('supplier_id')
       .eq('id', userId)
-      .eq('supplier_id', supplierId)
+      .eq('supplier_id', order.seller_supplier_id)
       .single();
 
     if (accessError || !supplierUser) {
       return NextResponse.json(
-        { error: 'Access denied' },
+        { error: 'Access denied - not authorized for this order' },
         { status: 403 }
       );
     }
@@ -71,7 +86,7 @@ export async function POST(
     const result = await orderService.declineOrderBySupplier({
       order_id: orderId,
       tenant_id: tenantId,
-      supplier_id: supplierId,
+      supplier_id: order.seller_supplier_id,
       actor_user_id: userId,
       reason,
     });
@@ -85,14 +100,6 @@ export async function POST(
 
   } catch (error: any) {
     console.error('Error declining order:', error);
-
-    // Handle specific errors
-    if (error.message?.includes('Access denied')) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 403 }
-      );
-    }
 
     if (error.message?.includes('Cannot decline')) {
       return NextResponse.json(

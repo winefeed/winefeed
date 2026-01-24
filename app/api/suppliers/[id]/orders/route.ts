@@ -49,7 +49,21 @@ export async function GET(
 
     // Filter by status
     if (status !== 'all') {
-      query = query.eq('status', status);
+      // Map frontend status to actual status values
+      const statusMap: Record<string, string[]> = {
+        pending: ['PENDING_SUPPLIER_CONFIRMATION'],
+        confirmed: ['CONFIRMED', 'IN_FULFILLMENT'],
+        shipped: ['SHIPPED'],
+        delivered: ['DELIVERED'],
+        cancelled: ['CANCELLED'],
+      };
+
+      const mappedStatuses = statusMap[status];
+      if (mappedStatuses) {
+        query = query.in('status', mappedStatuses);
+      } else {
+        query = query.eq('status', status);
+      }
     }
 
     const { data: orders, error } = await query;
@@ -63,6 +77,16 @@ export async function GET(
     }
 
     // Transform to flat structure
+    // Map status for frontend display
+    const statusDisplayMap: Record<string, string> = {
+      'PENDING_SUPPLIER_CONFIRMATION': 'pending',
+      'CONFIRMED': 'confirmed',
+      'IN_FULFILLMENT': 'confirmed',
+      'SHIPPED': 'shipped',
+      'DELIVERED': 'delivered',
+      'CANCELLED': 'cancelled',
+    };
+
     const transformedOrders = (orders || []).map((order: any) => ({
       id: order.id,
       offer_id: order.offer?.id,
@@ -70,7 +94,8 @@ export async function GET(
       wine_name: order.offer?.quote_request?.wine?.name || 'Okänt vin',
       quantity: order.offer?.quantity || 0,
       total_price: order.total_price || order.offer?.offered_price || 0,
-      status: order.status,
+      status: statusDisplayMap[order.status] || order.status?.toLowerCase(),
+      raw_status: order.status, // Original status for actions
       created_at: order.created_at,
       delivery_date: order.delivery_date,
       shipping_address: order.shipping_address,
