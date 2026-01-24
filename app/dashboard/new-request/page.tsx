@@ -206,7 +206,7 @@ export default function NewRequestPage() {
                       <div className="text-3xl mb-3">💰</div>
                       <h4 className="font-semibold text-gray-900 mb-2">Jämför & välj</h4>
                       <p className="text-sm text-gray-600 leading-relaxed">
-                        Få tydlig prisöversikt och kontakta leverantörer direkt
+                        Få tydlig prisöversikt och offert av leverantörer direkt
                       </p>
                     </div>
                   </div>
