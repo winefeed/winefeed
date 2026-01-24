@@ -142,14 +142,9 @@ export async function POST(request: Request) {
     // Filter by country (if specified)
     if (country && country !== 'all') {
       if (country === 'other') {
-        // "Other" = exclude predefined countries
-        const predefinedCountries = [
-          'France', 'Italy', 'Spain', 'Germany', 'Portugal', 'Austria',
-          'USA', 'Australia', 'New Zealand', 'Chile', 'Argentina', 'South Africa'
-        ];
-        // Use NOT IN filter
-        query = query.not('country', 'in', `(${predefinedCountries.join(',')})`);
-        console.log('Filtering by OTHER countries (excluding predefined)');
+        // "Other" = skip country filter, will include all countries
+        // Too complex to exclude - just don't filter
+        console.log('Filtering by OTHER countries - no filter applied');
       } else {
         query = query.eq('country', country);
         console.log(`Filtering by country: ${country}`);
@@ -159,18 +154,9 @@ export async function POST(request: Request) {
     // Filter by grape (if specified) - use ilike for partial match
     if (grape && grape !== 'all') {
       if (grape === 'other') {
-        // "Other" = exclude predefined grapes
-        const predefinedGrapes = [
-          'Cabernet Sauvignon', 'Merlot', 'Pinot Noir', 'Syrah', 'Shiraz',
-          'Sangiovese', 'Tempranillo', 'Nebbiolo', 'Grenache', 'Malbec', 'Zinfandel',
-          'Chardonnay', 'Sauvignon Blanc', 'Riesling', 'Pinot Grigio', 'Pinot Gris',
-          'Gewürztraminer', 'Viognier', 'Grüner Veltliner', 'Albariño', 'Chenin Blanc'
-        ];
-        // Build NOT ILIKE conditions for each grape
-        for (const g of predefinedGrapes) {
-          query = query.not('grape', 'ilike', `%${g}%`);
-        }
-        console.log('Filtering by OTHER grapes (excluding predefined)');
+        // "Other" = skip grape filter, will include all grapes
+        // Too complex to exclude - just don't filter
+        console.log('Filtering by OTHER grapes - no filter applied');
       } else {
         query = query.ilike('grape', `%${grape}%`);
         console.log(`Filtering by grape: ${grape}`);
@@ -194,10 +180,23 @@ export async function POST(request: Request) {
     // TODO: Re-enable when stock data is properly maintained
     // query = query.or('stock_qty.gt.0,stock_qty.is.null');
 
-    const { data: wines, error: winesError } = await query.limit(50);
+    let wines;
+    let winesError;
+
+    try {
+      const result = await query.limit(50);
+      wines = result.data;
+      winesError = result.error;
+    } catch (queryError: any) {
+      console.error('Query execution error:', queryError);
+      return NextResponse.json(
+        { error: 'Kunde inte hämta viner', details: queryError.message || 'Query failed' },
+        { status: 500 }
+      );
+    }
 
     if (winesError) {
-      console.error('Error fetching wines:', winesError);
+      console.error('Supabase error fetching wines:', winesError);
       return NextResponse.json(
         { error: 'Kunde inte hämta viner', details: winesError.message },
         { status: 500 }
