@@ -39,23 +39,20 @@ const WINE_COUNTRIES = [
   { value: 'other', label: 'Övriga länder' },
 ] as const;
 
-// Common grape varieties (5 white + 6 red)
+// Common grape varieties (alphabetically sorted)
 const GRAPE_VARIETIES = [
   { value: 'all', label: 'Alla druvor' },
-  // White grapes (5)
-  { value: 'Chardonnay', label: 'Chardonnay' },
-  { value: 'Sauvignon Blanc', label: 'Sauvignon Blanc' },
-  { value: 'Riesling', label: 'Riesling' },
-  { value: 'Pinot Grigio', label: 'Pinot Grigio' },
-  { value: 'Chenin Blanc', label: 'Chenin Blanc' },
-  // Red grapes (6)
   { value: 'Cabernet Sauvignon', label: 'Cabernet Sauvignon' },
+  { value: 'Chardonnay', label: 'Chardonnay' },
+  { value: 'Chenin Blanc', label: 'Chenin Blanc' },
   { value: 'Merlot', label: 'Merlot' },
-  { value: 'Pinot Noir', label: 'Pinot Noir' },
-  { value: 'Syrah', label: 'Syrah/Shiraz' },
-  { value: 'Sangiovese', label: 'Sangiovese' },
   { value: 'Nebbiolo', label: 'Nebbiolo' },
-  // Other
+  { value: 'Pinot Grigio', label: 'Pinot Grigio' },
+  { value: 'Pinot Noir', label: 'Pinot Noir' },
+  { value: 'Riesling', label: 'Riesling' },
+  { value: 'Sangiovese', label: 'Sangiovese' },
+  { value: 'Sauvignon Blanc', label: 'Sauvignon Blanc' },
+  { value: 'Syrah', label: 'Syrah/Shiraz' },
   { value: 'other', label: 'Övriga druvor' },
 ] as const;
 
