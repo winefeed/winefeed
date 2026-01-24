@@ -40,4 +40,108 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Subtle background pattern */
+.bg-wine-pattern {
+  background-color: hsl(var(--background));
+  background-image:
+    radial-gradient(circle at 20% 80%, hsl(351 88% 31% / 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, hsl(4 65% 82% / 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, hsl(43 63% 84% / 0.04) 0%, transparent 40%);
+}
+
+/* Wine color stripes */
+.wine-stripe-red { border-left: 4px solid #722F37; }
+.wine-stripe-white { border-left: 4px solid #F5E6A3; }
+.wine-stripe-rose { border-left: 4px solid #E8B4B8; }
+.wine-stripe-sparkling { border-left: 4px solid #F7E7CE; }
+.wine-stripe-orange { border-left: 4px solid #E07020; }
+.wine-stripe-sweet { border-left: 4px solid #D4A574; }
+.wine-stripe-fortified { border-left: 4px solid #8B4513; }
+
+/* Card animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Staggered animation delays */
+.animate-delay-1 { animation-delay: 0.1s; }
+.animate-delay-2 { animation-delay: 0.2s; }
+.animate-delay-3 { animation-delay: 0.3s; }
+.animate-delay-4 { animation-delay: 0.4s; }
+.animate-delay-5 { animation-delay: 0.5s; }
+
+/* Button bounce effect */
+@keyframes bounce-click {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+}
+
+.btn-bounce:active {
+  animation: bounce-click 0.15s ease-in-out;
+}
+
+/* Animated checkbox */
+.checkbox-animated {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid hsl(var(--border));
+  border-radius: 0.25rem;
+  background: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.checkbox-animated:checked {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+.checkbox-animated:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  animation: checkmark 0.2s ease-in-out;
+}
+
+@keyframes checkmark {
+  from {
+    transform: rotate(45deg) scale(0);
+  }
+  to {
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
 }

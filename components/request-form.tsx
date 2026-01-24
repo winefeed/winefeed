@@ -179,7 +179,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       {/* Wine Color Selection */}
       <div className="space-y-3">
         <Label>Vintyp</Label>
-        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
           {WINE_COLORS.map((color) => (
             <button
               key={color.value}
