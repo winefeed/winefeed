@@ -35,6 +35,7 @@ const WINE_COUNTRIES = [
   { value: 'Chile', label: 'Chile' },
   { value: 'Argentina', label: 'Argentina' },
   { value: 'South Africa', label: 'Sydafrika' },
+  { value: 'other', label: 'Övriga länder' },
 ] as const;
 
 // Common grape varieties
@@ -61,6 +62,8 @@ const GRAPE_VARIETIES = [
   { value: 'Grüner Veltliner', label: 'Grüner Veltliner' },
   { value: 'Albariño', label: 'Albariño' },
   { value: 'Chenin Blanc', label: 'Chenin Blanc' },
+  // Other
+  { value: 'other', label: 'Övriga druvor' },
 ] as const;
 
 // Certifications
