@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox } from 'lucide-react';
 
 interface Wine {
   id: string;
@@ -73,6 +73,8 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [offersCount, setOffersCount] = useState(0);
+  const [newOffersCount, setNewOffersCount] = useState(0);
 
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
@@ -96,7 +98,27 @@ export default function ResultsPage() {
       }
     }
     setLoading(false);
+
+    // Fetch offer counts for this request
+    fetchOfferCounts();
   }, [requestId]);
+
+  const fetchOfferCounts = async () => {
+    try {
+      const response = await fetch(`/api/quote-requests/${requestId}/offers`, {
+        headers: {
+          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setOffersCount(data.summary?.total || data.offers?.length || 0);
+        setNewOffersCount(data.summary?.active || 0);
+      }
+    } catch (err) {
+      console.log('Could not fetch offer counts:', err);
+    }
+  };
 
   // Extract unique values for filter dropdowns
   const filterOptions = useMemo(() => {
@@ -238,12 +260,32 @@ export default function ResultsPage() {
                 <p className="text-sm text-primary-foreground/80">Din vininköpare</p>
               </div>
             </div>
-            <button
-              onClick={() => router.push('/dashboard/new-request')}
-              className="px-4 py-2 bg-primary-foreground text-primary rounded-lg hover:bg-primary-foreground/90 transition-colors text-sm font-medium"
-            >
-              Ny offertförfrågan
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push('/dashboard/my-requests')}
+                className="px-4 py-2 bg-primary-foreground/20 text-primary-foreground rounded-lg hover:bg-primary-foreground/30 transition-colors text-sm font-medium"
+              >
+                Mina förfrågningar
+              </button>
+              <button
+                onClick={() => router.push('/dashboard/offers')}
+                className="px-4 py-2 bg-primary-foreground/20 text-primary-foreground rounded-lg hover:bg-primary-foreground/30 transition-colors text-sm font-medium flex items-center gap-2"
+              >
+                <Inbox className="h-4 w-4" />
+                Inkommande offerter
+                {offersCount > 0 && (
+                  <span className="px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">
+                    {offersCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => router.push('/dashboard/new-request')}
+                className="px-4 py-2 bg-primary-foreground text-primary rounded-lg hover:bg-primary-foreground/90 transition-colors text-sm font-medium"
+              >
+                Ny förfrågan
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -260,6 +302,34 @@ export default function ResultsPage() {
             Vi hittade <span className="font-semibold text-foreground">{suggestions.length} viner</span> för din restaurang
           </p>
         </div>
+
+        {/* Incoming Offers Banner */}
+        {offersCount > 0 && (
+          <div
+            className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl cursor-pointer hover:shadow-lg transition-all group"
+            onClick={() => router.push(`/dashboard/offers/${requestId}`)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-600 rounded-xl">
+                  <Inbox className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-blue-900 text-lg">
+                    {offersCount} offert{offersCount > 1 ? 'er' : ''} mottagna!
+                  </p>
+                  <p className="text-blue-700 text-sm">
+                    Leverantörer har svarat på din förfrågan. Klicka här för att jämföra och acceptera.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-blue-600 font-medium group-hover:text-blue-800">
+                <span>Granska offerter</span>
+                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Filter Section */}
         <div className="mb-6">
