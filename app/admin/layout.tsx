@@ -50,6 +50,7 @@ export default function AdminLayout({
       <main
         className={cn(
           'flex-1 transition-all duration-300',
+          'pt-16 lg:pt-0', // Space for mobile hamburger menu
           'lg:ml-64',
           collapsed && 'lg:ml-16'
         )}
