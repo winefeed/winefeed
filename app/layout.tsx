@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Winefeed - Din guide i vindjungeln",
+  title: "Winefeed - Din vininköpare",
   description: "Hitta rätt vin till din restaurang. Jämför leverantörer och få offerter snabbt.",
 };
 
