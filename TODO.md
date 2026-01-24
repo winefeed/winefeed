@@ -22,6 +22,11 @@
 - [ ] "Bekräfta och skicka"-knapp
 - [ ] Möjlighet att gå tillbaka och ändra
 
+### Klickbara vinkort i leverantörens dashboard
+- [ ] Gör vinkorten i "Senast tillagda viner" klickbara
+- [ ] Visa all vininfo i modal/detaljvy (druva, region, årgång, lager, etc.)
+- [ ] Möjlighet att redigera vininfo direkt
+
 ### Förifylla leveransort från restaurangprofil
 - [ ] Hämta restaurangens adress/stad från `restaurants`-tabellen vid registrering
 - [ ] Förifylla "Leveransort" i förfrågningsformuläret
