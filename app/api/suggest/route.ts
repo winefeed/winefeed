@@ -118,30 +118,10 @@ export async function POST(request: Request) {
     });
 
     // MVP: Don't filter by is_active - wines in catalog may have is_active=false or null
-    // Fetch all available wine fields for detail view
+    // Fetch all available wine fields
     let query = getSupabaseAdmin()
       .from('supplier_wines')
-      .select(`
-        id,
-        supplier_id,
-        sku,
-        name,
-        producer,
-        country,
-        region,
-        appellation,
-        grape,
-        color,
-        vintage,
-        alcohol_pct,
-        volume_ml,
-        price_ex_vat_sek,
-        description,
-        stock_qty,
-        moq,
-        case_size,
-        lead_time_days
-      `);
+      .select('*');
 
     // Filter by color (if specified)
     if (color && color !== 'all') {
@@ -193,7 +173,7 @@ export async function POST(request: Request) {
         console.log('Filtered query returned no results, trying without filters...');
         const fallbackResult = await getSupabaseAdmin()
           .from('supplier_wines')
-          .select('id, supplier_id, sku, name, producer, country, region, appellation, grape, color, vintage, alcohol_pct, volume_ml, price_ex_vat_sek, description, stock_qty, moq, case_size, lead_time_days')
+          .select('*')
           .limit(50);
 
         if (!fallbackResult.error && fallbackResult.data && fallbackResult.data.length > 0) {
@@ -208,7 +188,7 @@ export async function POST(request: Request) {
       try {
         const fallbackResult = await getSupabaseAdmin()
           .from('supplier_wines')
-          .select('id, supplier_id, sku, name, producer, country, region, appellation, grape, color, vintage, alcohol_pct, volume_ml, price_ex_vat_sek, description, stock_qty, moq, case_size, lead_time_days')
+          .select('*')
           .limit(50);
         wines = fallbackResult.data;
         winesError = fallbackResult.error;
