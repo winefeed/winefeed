@@ -11,10 +11,20 @@ interface Wine {
   producent: string;
   land: string;
   region?: string;
+  appellation?: string;
   druva?: string;
   color?: string;
   argang?: number;
   pris_sek: number;
+  // Extended details
+  alkohol?: number;
+  volym_ml?: number;
+  beskrivning?: string;
+  sku?: string;
+  lager?: number;
+  moq?: number;
+  kartong?: number;
+  ledtid_dagar?: number;
   ekologisk?: boolean;
   biodynamiskt?: boolean;
   veganskt?: boolean;
@@ -60,6 +70,7 @@ export default function ResultsPage() {
   const requestId = params.id;
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [selectedWines, setSelectedWines] = useState<Set<string>>(new Set());
+  const [expandedWines, setExpandedWines] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -163,6 +174,18 @@ export default function ResultsPage() {
 
   const toggleWineSelection = (wineId: string) => {
     setSelectedWines(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(wineId)) {
+        newSet.delete(wineId);
+      } else {
+        newSet.add(wineId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleWineExpanded = (wineId: string) => {
+    setExpandedWines(prev => {
       const newSet = new Set(prev);
       if (newSet.has(wineId)) {
         newSet.delete(wineId);
@@ -436,7 +459,7 @@ export default function ResultsPage() {
                   <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-xl">
                     <div className="flex items-start gap-3">
                       <span className="text-2xl">✨</span>
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-foreground mb-1">Varför detta vin passar dig</p>
                         <p className="text-sm text-foreground/80">{suggestion.motivering}</p>
                         <div className="mt-2 flex items-center gap-2">
@@ -452,6 +475,130 @@ export default function ResultsPage() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Expandable Wine Details */}
+                  <div className="mb-6">
+                    <button
+                      onClick={() => toggleWineExpanded(suggestion.wine.id)}
+                      className="w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 rounded-xl transition-colors"
+                    >
+                      <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <span>🍇</span>
+                        Mer om detta vin
+                      </span>
+                      {expandedWines.has(suggestion.wine.id) ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </button>
+
+                    {expandedWines.has(suggestion.wine.id) && (
+                      <div className="mt-3 p-4 bg-muted/20 border border-border rounded-xl space-y-4">
+                        {/* Description */}
+                        {suggestion.wine.beskrivning && (
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Beskrivning</p>
+                            <p className="text-sm text-foreground">{suggestion.wine.beskrivning}</p>
+                          </div>
+                        )}
+
+                        {/* Wine Identity */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                          {suggestion.wine.druva && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Druva</p>
+                              <p className="text-sm text-foreground">{suggestion.wine.druva}</p>
+                            </div>
+                          )}
+                          {suggestion.wine.appellation && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Appellation</p>
+                              <p className="text-sm text-foreground">{suggestion.wine.appellation}</p>
+                            </div>
+                          )}
+                          {suggestion.wine.region && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Region</p>
+                              <p className="text-sm text-foreground">{suggestion.wine.region}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Technical Info */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-border">
+                          {suggestion.wine.alkohol && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Alkohol</p>
+                              <p className="text-sm text-foreground font-medium">{suggestion.wine.alkohol}%</p>
+                            </div>
+                          )}
+                          {suggestion.wine.volym_ml && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Flaskstorlek</p>
+                              <p className="text-sm text-foreground font-medium">{suggestion.wine.volym_ml} ml</p>
+                            </div>
+                          )}
+                          {suggestion.wine.sku && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Art.nr</p>
+                              <p className="text-sm text-foreground font-mono">{suggestion.wine.sku}</p>
+                            </div>
+                          )}
+                          {suggestion.wine.argang && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Årgång</p>
+                              <p className="text-sm text-foreground font-medium">{suggestion.wine.argang}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Purchase Info */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-border">
+                          {suggestion.wine.moq !== undefined && suggestion.wine.moq !== null && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Min. order</p>
+                              <p className="text-sm text-foreground font-medium">{suggestion.wine.moq} fl</p>
+                            </div>
+                          )}
+                          {suggestion.wine.kartong && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Per kartong</p>
+                              <p className="text-sm text-foreground font-medium">{suggestion.wine.kartong} fl</p>
+                            </div>
+                          )}
+                          {suggestion.wine.lager !== undefined && suggestion.wine.lager !== null && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">I lager</p>
+                              <p className={`text-sm font-medium ${suggestion.wine.lager > 0 ? 'text-green-600' : 'text-orange-500'}`}>
+                                {suggestion.wine.lager > 0 ? `${suggestion.wine.lager} fl` : 'Beställningsvara'}
+                              </p>
+                            </div>
+                          )}
+                          {suggestion.wine.ledtid_dagar && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Ledtid</p>
+                              <p className="text-sm text-foreground font-medium">{suggestion.wine.ledtid_dagar} dagar</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Supplier Contact */}
+                        {suggestion.supplier.kontakt_email && (
+                          <div className="pt-3 border-t border-border">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Leverantörskontakt</p>
+                            <p className="text-sm text-foreground">{suggestion.supplier.namn}</p>
+                            <a
+                              href={`mailto:${suggestion.supplier.kontakt_email}`}
+                              className="text-sm text-primary hover:underline"
+                            >
+                              {suggestion.supplier.kontakt_email}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Market Data */}
