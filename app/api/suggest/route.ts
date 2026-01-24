@@ -141,14 +141,40 @@ export async function POST(request: Request) {
 
     // Filter by country (if specified)
     if (country && country !== 'all') {
-      query = query.eq('country', country);
-      console.log(`Filtering by country: ${country}`);
+      if (country === 'other') {
+        // "Other" = exclude predefined countries
+        const predefinedCountries = [
+          'France', 'Italy', 'Spain', 'Germany', 'Portugal', 'Austria',
+          'USA', 'Australia', 'New Zealand', 'Chile', 'Argentina', 'South Africa'
+        ];
+        // Use NOT IN filter
+        query = query.not('country', 'in', `(${predefinedCountries.join(',')})`);
+        console.log('Filtering by OTHER countries (excluding predefined)');
+      } else {
+        query = query.eq('country', country);
+        console.log(`Filtering by country: ${country}`);
+      }
     }
 
     // Filter by grape (if specified) - use ilike for partial match
     if (grape && grape !== 'all') {
-      query = query.ilike('grape', `%${grape}%`);
-      console.log(`Filtering by grape: ${grape}`);
+      if (grape === 'other') {
+        // "Other" = exclude predefined grapes
+        const predefinedGrapes = [
+          'Cabernet Sauvignon', 'Merlot', 'Pinot Noir', 'Syrah', 'Shiraz',
+          'Sangiovese', 'Tempranillo', 'Nebbiolo', 'Grenache', 'Malbec', 'Zinfandel',
+          'Chardonnay', 'Sauvignon Blanc', 'Riesling', 'Pinot Grigio', 'Pinot Gris',
+          'Gewürztraminer', 'Viognier', 'Grüner Veltliner', 'Albariño', 'Chenin Blanc'
+        ];
+        // Build NOT ILIKE conditions for each grape
+        for (const g of predefinedGrapes) {
+          query = query.not('grape', 'ilike', `%${g}%`);
+        }
+        console.log('Filtering by OTHER grapes (excluding predefined)');
+      } else {
+        query = query.ilike('grape', `%${grape}%`);
+        console.log(`Filtering by grape: ${grape}`);
+      }
     }
 
     // Filter by certifications
@@ -164,8 +190,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Filter by stock (must have stock or allow backorder)
-    query = query.or('stock_qty.gt.0,stock_qty.is.null');
+    // Note: Stock filtering disabled for now - many test wines have stock_qty=0
+    // TODO: Re-enable when stock data is properly maintained
+    // query = query.or('stock_qty.gt.0,stock_qty.is.null');
 
     const { data: wines, error: winesError } = await query.limit(50);
 
