@@ -45,7 +45,8 @@ export interface NavSection {
  */
 export const MAIN_NAVIGATION: NavSection[] = [
   {
-    // Common navigation for all authenticated users
+    // Restaurant navigation
+    title: 'Restaurang',
     items: [
       {
         label: 'Ny förfrågan',
@@ -66,32 +67,68 @@ export const MAIN_NAVIGATION: NavSection[] = [
     ],
   },
   {
-    // Role-specific navigation
-    title: 'Quick Actions',
+    // Supplier navigation (for users with SELLER role)
+    title: 'Leverantör',
     items: [
       {
-        label: 'Order Quote',
-        href: '/dashboard/new-request',
-        icon: ShoppingCart,
-        roles: ['RESTAURANT'],
+        label: 'Leverantörsportal',
+        href: '/supplier',
+        icon: Building2,
+        roles: ['SELLER'],
       },
       {
-        label: 'Products',
-        href: '/products',
+        label: 'Vinkatalog',
+        href: '/supplier/wines',
         icon: Wine,
         roles: ['SELLER'],
       },
       {
-        label: 'Incoming Requests',
-        href: '/offers',
+        label: 'Förfrågningar',
+        href: '/supplier/requests',
         icon: Inbox,
         roles: ['SELLER'],
       },
+    ],
+  },
+  {
+    // IOR navigation
+    title: 'Importör',
+    items: [
       {
-        label: 'IOR Orders',
+        label: 'IOR Ordrar',
         href: '/ior/orders',
         icon: Globe,
         roles: ['IOR'],
+      },
+    ],
+  },
+  {
+    // Admin navigation (for users with ADMIN role viewing main dashboard)
+    title: 'Admin',
+    items: [
+      {
+        label: 'Admin Dashboard',
+        href: '/admin',
+        icon: Settings,
+        roles: ['ADMIN'],
+      },
+      {
+        label: 'Alla viner',
+        href: '/admin/wines',
+        icon: Wine,
+        roles: ['ADMIN'],
+      },
+      {
+        label: 'Användare',
+        href: '/admin/users',
+        icon: Users,
+        roles: ['ADMIN'],
+      },
+      {
+        label: 'Inbjudningar',
+        href: '/admin/invites',
+        icon: Mail,
+        roles: ['ADMIN'],
       },
     ],
   },
