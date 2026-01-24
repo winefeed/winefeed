@@ -60,21 +60,34 @@ export async function GET(request: NextRequest) {
       throw new Error(`Failed to fetch requests: ${requestsError.message}`);
     }
 
-    // Get offers count per request (in separate query for performance)
+    // Get offers count per request with timestamps (in separate query for performance)
     const requestIds = requests?.map(r => r.id) || [];
     let offersCountMap: Record<string, number> = {};
+    let newOffersCountMap: Record<string, number> = {};
+    let latestOfferMap: Record<string, string> = {};
 
     if (requestIds.length > 0) {
-      const { data: offerCounts } = await supabase
+      const { data: offers } = await supabase
         .from('offers')
-        .select('request_id')
-        .in('request_id', requestIds);
+        .select('request_id, status, created_at')
+        .in('request_id', requestIds)
+        .order('created_at', { ascending: false });
 
-      if (offerCounts) {
-        offersCountMap = offerCounts.reduce((acc, row) => {
-          acc[row.request_id] = (acc[row.request_id] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
+      if (offers) {
+        offers.forEach(offer => {
+          // Count total offers per request
+          offersCountMap[offer.request_id] = (offersCountMap[offer.request_id] || 0) + 1;
+
+          // Count new offers (SENT status = not viewed by restaurant)
+          if (offer.status === 'SENT') {
+            newOffersCountMap[offer.request_id] = (newOffersCountMap[offer.request_id] || 0) + 1;
+          }
+
+          // Track latest offer timestamp
+          if (!latestOfferMap[offer.request_id]) {
+            latestOfferMap[offer.request_id] = offer.created_at;
+          }
+        });
       }
     }
 
@@ -91,7 +104,9 @@ export async function GET(request: NextRequest) {
       status: req.status || 'OPEN',
       accepted_offer_id: req.accepted_offer_id || null,
       created_at: req.created_at,
-      offers_count: offersCountMap[req.id] || 0
+      offers_count: offersCountMap[req.id] || 0,
+      new_offers_count: newOffersCountMap[req.id] || 0,
+      latest_offer_at: latestOfferMap[req.id] || null
     }));
 
     return NextResponse.json({ requests: requestsWithCounts }, { status: 200 });
