@@ -75,14 +75,10 @@ const CERTIFICATIONS = [
 
 const requestSchema = z.object({
   color: z.string().min(1, 'Välj vintyp'),
-  budget_min: z.coerce
-    .number()
-    .min(0, 'Budget måste vara positiv')
-    .optional(),
   budget_max: z.coerce
     .number()
-    .min(50, 'Max budget måste vara minst 50 kr')
-    .max(10000, 'Max budget får vara högst 10 000 kr'),
+    .min(50, 'Budget måste vara minst 50 kr')
+    .max(10000, 'Budget får vara högst 10 000 kr'),
   antal_flaskor: z.coerce
     .number()
     .min(1, 'Minst 1 flaska')
@@ -115,8 +111,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
     resolver: zodResolver(requestSchema),
     defaultValues: {
       color: 'all',
-      budget_min: 100,
-      budget_max: 300,
+      budget_max: 200,
       antal_flaskor: 24,
       country: 'all',
       grape: 'all',
@@ -143,7 +138,6 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       const requestData = {
         // Structured filters (for SQL)
         color: data.color === 'all' ? null : data.color,
-        budget_min: data.budget_min || null,
         budget_max: data.budget_max,
         antal_flaskor: data.antal_flaskor,
         country: data.country === 'all' ? null : data.country,
@@ -206,27 +200,15 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         )}
       </div>
 
-      {/* Budget Range */}
-      <div className="space-y-3">
-        <Label>Budget per flaska (kr ex moms)</Label>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Input
-              type="number"
-              placeholder="Min"
-              {...register('budget_min')}
-            />
-            <p className="text-xs text-muted-foreground mt-1">Minimum</p>
-          </div>
-          <div>
-            <Input
-              type="number"
-              placeholder="Max"
-              {...register('budget_max')}
-            />
-            <p className="text-xs text-muted-foreground mt-1">Maximum</p>
-          </div>
-        </div>
+      {/* Budget */}
+      <div className="space-y-2">
+        <Label htmlFor="budget_max">Max budget per flaska (kr ex moms)</Label>
+        <Input
+          id="budget_max"
+          type="number"
+          placeholder="200"
+          {...register('budget_max')}
+        />
         {errors.budget_max && (
           <p className="text-sm text-destructive">{errors.budget_max.message}</p>
         )}
@@ -373,9 +355,7 @@ function buildFritext(data: RequestFormData, certifications: string[]): string {
   }
 
   // Budget
-  if (data.budget_min && data.budget_max) {
-    parts.push(`${data.budget_min}-${data.budget_max} kr/flaska`);
-  } else if (data.budget_max) {
+  if (data.budget_max) {
     parts.push(`max ${data.budget_max} kr/flaska`);
   }
 
