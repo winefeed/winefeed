@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Winefeed - AI-driven vinrekommendationer för restauranger",
-  description: "Få smarta vinförslag för din restaurang på 30 sekunder",
+  title: "Winefeed - Din guide i vindjungeln",
+  description: "Hitta rätt vin till din restaurang. Jämför leverantörer och få offerter snabbt.",
 };
 
 export default function RootLayout({

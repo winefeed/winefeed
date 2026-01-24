@@ -213,7 +213,7 @@ export default function ResultsPage() {
               <span className="text-4xl">🍷</span>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">Winefeed</h1>
-                <p className="text-sm text-primary-foreground/80">Offertförfrågningar för restauranger</p>
+                <p className="text-sm text-primary-foreground/80">Din guide i vindjungeln</p>
               </div>
             </div>
             <button
