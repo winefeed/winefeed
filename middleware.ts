@@ -31,7 +31,10 @@ export async function middleware(request: NextRequest) {
     '/api/invites/verify',
     '/api/invites/accept',
     '/api/admin/stats',  // MVP: Allow admin stats without auth
+    '/api/suggest',      // MVP: Allow wine suggestion without auth
     '/admin',            // MVP: Allow admin pages without auth
+    '/dashboard',        // MVP: Allow dashboard without auth
+    '/orders',           // MVP: Allow orders without auth
     '/supplier/login',
     '/supplier/forgot-password',
     '/supplier/reset-password',
