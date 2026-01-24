@@ -298,7 +298,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       {/* Mikro-trygghet */}
       <div className="text-center">
         <p className="text-xs text-muted-foreground">
-          Du får jämförbara vinförslag och kontaktuppgifter till leverantörer. Ingen förpliktelse.
+          Du får jämförbara vinförslag. Ingen förpliktelse.
         </p>
       </div>
     </form>
