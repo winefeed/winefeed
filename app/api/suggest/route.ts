@@ -118,24 +118,29 @@ export async function POST(request: Request) {
     });
 
     // MVP: Don't filter by is_active - wines in catalog may have is_active=false or null
-    // First: Simple query to check if wines exist at all
+    // Fetch all available wine fields for detail view
     let query = getSupabaseAdmin()
       .from('supplier_wines')
       .select(`
         id,
         supplier_id,
+        sku,
         name,
         producer,
         country,
         region,
+        appellation,
         grape,
         color,
         vintage,
+        alcohol_pct,
+        volume_ml,
         price_ex_vat_sek,
         description,
         stock_qty,
         moq,
-        case_size
+        case_size,
+        lead_time_days
       `);
 
     // Filter by color (if specified)
@@ -259,11 +264,19 @@ export async function POST(request: Request) {
       producent: wine.producer,
       land: wine.country,
       region: wine.region,
+      appellation: wine.appellation,
       druva: wine.grape,
       color: wine.color,
       argang: wine.vintage,
+      alkohol: wine.alcohol_pct,
+      volym_ml: wine.volume_ml,
       pris_sek: wine.price_ex_vat_sek ? Math.round(wine.price_ex_vat_sek / 100) : 0,
       beskrivning: wine.description,
+      sku: wine.sku,
+      lager: wine.stock_qty,
+      moq: wine.moq,
+      kartong: wine.case_size,
+      ledtid_dagar: wine.lead_time_days,
       supplier_id: wine.supplier_id,
       supplier: suppliersMap[wine.supplier_id] || null,
     }));
@@ -287,7 +300,7 @@ export async function POST(request: Request) {
     const ranked = await rankWinesWithClaude(winesForRanking, searchContext);
     console.log(`Claude returned ${ranked.length} ranked wines`);
 
-    // Build suggestions response
+    // Build suggestions response with all available wine details
     const suggestions = ranked.slice(0, 10).map((wine) => {
       const originalWine = wines.find(w => w.id === wine.id);
       const supplier = originalWine ? suppliersMap[originalWine.supplier_id] : null;
@@ -298,10 +311,20 @@ export async function POST(request: Request) {
           producent: wine.producent,
           land: wine.land,
           region: wine.region,
+          appellation: wine.appellation,
           druva: wine.druva,
           color: wine.color,
           argang: wine.argang,
           pris_sek: wine.pris_sek,
+          // Extended details
+          alkohol: wine.alkohol,
+          volym_ml: wine.volym_ml,
+          beskrivning: wine.beskrivning,
+          sku: wine.sku,
+          lager: wine.lager,
+          moq: wine.moq,
+          kartong: wine.kartong,
+          ledtid_dagar: wine.ledtid_dagar,
         },
         supplier: supplier || {
           namn: 'Okänd leverantör',
