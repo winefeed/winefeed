@@ -1,5 +1,15 @@
 # Winefeed TODO
 
+## UX-förbättringar
+
+### Förifylla leveransort från restaurangprofil
+- [ ] Hämta restaurangens adress/stad från `restaurants`-tabellen vid registrering
+- [ ] Förifylla "Leveransort" i förfrågningsformuläret
+- [ ] Låt användaren ändra om leverans ska till annan plats
+- [ ] Spara ev. alternativa leveransadresser på restaurangen
+
+---
+
 ## Admin-funktioner att bygga
 
 ### Ordervärde-rapporter (för fakturering)
