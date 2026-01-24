@@ -193,7 +193,7 @@ export async function POST(request: Request) {
         console.log('Filtered query returned no results, trying without filters...');
         const fallbackResult = await getSupabaseAdmin()
           .from('supplier_wines')
-          .select('id, supplier_id, name, producer, country, region, grape, color, vintage, price_ex_vat_sek, description, stock_qty, moq, case_size')
+          .select('id, supplier_id, sku, name, producer, country, region, appellation, grape, color, vintage, alcohol_pct, volume_ml, price_ex_vat_sek, description, stock_qty, moq, case_size, lead_time_days')
           .limit(50);
 
         if (!fallbackResult.error && fallbackResult.data && fallbackResult.data.length > 0) {
@@ -208,7 +208,7 @@ export async function POST(request: Request) {
       try {
         const fallbackResult = await getSupabaseAdmin()
           .from('supplier_wines')
-          .select('id, supplier_id, name, producer, country, region, grape, color, vintage, price_ex_vat_sek, description, stock_qty, moq, case_size')
+          .select('id, supplier_id, sku, name, producer, country, region, appellation, grape, color, vintage, alcohol_pct, volume_ml, price_ex_vat_sek, description, stock_qty, moq, case_size, lead_time_days')
           .limit(50);
         wines = fallbackResult.data;
         winesError = fallbackResult.error;
