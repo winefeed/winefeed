@@ -39,30 +39,22 @@ const WINE_COUNTRIES = [
   { value: 'other', label: 'Övriga länder' },
 ] as const;
 
-// Common grape varieties
+// Common grape varieties (5 white + 6 red)
 const GRAPE_VARIETIES = [
   { value: 'all', label: 'Alla druvor' },
-  // Red grapes
+  // White grapes (5)
+  { value: 'Chardonnay', label: 'Chardonnay' },
+  { value: 'Sauvignon Blanc', label: 'Sauvignon Blanc' },
+  { value: 'Riesling', label: 'Riesling' },
+  { value: 'Pinot Grigio', label: 'Pinot Grigio' },
+  { value: 'Chenin Blanc', label: 'Chenin Blanc' },
+  // Red grapes (6)
   { value: 'Cabernet Sauvignon', label: 'Cabernet Sauvignon' },
   { value: 'Merlot', label: 'Merlot' },
   { value: 'Pinot Noir', label: 'Pinot Noir' },
   { value: 'Syrah', label: 'Syrah/Shiraz' },
   { value: 'Sangiovese', label: 'Sangiovese' },
-  { value: 'Tempranillo', label: 'Tempranillo' },
   { value: 'Nebbiolo', label: 'Nebbiolo' },
-  { value: 'Grenache', label: 'Grenache' },
-  { value: 'Malbec', label: 'Malbec' },
-  { value: 'Zinfandel', label: 'Zinfandel' },
-  // White grapes
-  { value: 'Chardonnay', label: 'Chardonnay' },
-  { value: 'Sauvignon Blanc', label: 'Sauvignon Blanc' },
-  { value: 'Riesling', label: 'Riesling' },
-  { value: 'Pinot Grigio', label: 'Pinot Grigio' },
-  { value: 'Gewürztraminer', label: 'Gewürztraminer' },
-  { value: 'Viognier', label: 'Viognier' },
-  { value: 'Grüner Veltliner', label: 'Grüner Veltliner' },
-  { value: 'Albariño', label: 'Albariño' },
-  { value: 'Chenin Blanc', label: 'Chenin Blanc' },
   // Other
   { value: 'other', label: 'Övriga druvor' },
 ] as const;

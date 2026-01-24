@@ -48,6 +48,7 @@ interface Order {
   supplier_name: string;
   supplier_type: string;
   importer_name: string;
+  restaurant_name?: string;
   import_id: string | null;
   import_status: string | null;
   lines_count: number;
@@ -70,7 +71,7 @@ export default function RestaurantOrdersPage() {
 
   // Fetch orders when actor or filter changes
   useEffect(() => {
-    if (actor && actor.restaurant_id) {
+    if (actor && (actor.restaurant_id || actor.roles.includes('ADMIN'))) {
       fetchOrders();
     }
   }, [actor, statusFilter]);
@@ -94,9 +95,12 @@ export default function RestaurantOrdersPage() {
       const actorData = await response.json();
       setActor(actorData);
 
-      // Verify RESTAURANT access
-      if (!actorData.roles.includes('RESTAURANT') || !actorData.restaurant_id) {
-        throw new Error('Du saknar RESTAURANT-behörighet. Kontakta admin för att få åtkomst.');
+      // Allow ADMIN or RESTAURANT access
+      const isAdmin = actorData.roles.includes('ADMIN');
+      const isRestaurant = actorData.roles.includes('RESTAURANT') && actorData.restaurant_id;
+
+      if (!isAdmin && !isRestaurant) {
+        throw new Error('Du saknar behörighet. Kontakta admin för att få åtkomst.');
       }
     } catch (err: any) {
       console.error('Failed to fetch actor:', err);
@@ -106,7 +110,10 @@ export default function RestaurantOrdersPage() {
   };
 
   const fetchOrders = async () => {
-    if (!actor || !actor.restaurant_id) return;
+    if (!actor) return;
+
+    const isAdmin = actor.roles.includes('ADMIN');
+    if (!isAdmin && !actor.restaurant_id) return;
 
     try {
       setLoading(true);
@@ -118,7 +125,10 @@ export default function RestaurantOrdersPage() {
         params.append('status', statusFilter);
       }
 
-      const url = `/api/restaurant/orders${params.toString() ? `?${params.toString()}` : ''}`;
+      // Admin sees all orders, restaurant sees their own
+      const url = isAdmin
+        ? `/api/admin/orders${params.toString() ? `?${params.toString()}` : ''}`
+        : `/api/restaurant/orders${params.toString() ? `?${params.toString()}` : ''}`;
 
       const response = await fetch(url, {
         headers: {
@@ -231,8 +241,12 @@ export default function RestaurantOrdersPage() {
             <div className="flex items-center gap-3">
               <span className="text-4xl">📦</span>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Mina Orders</h1>
-                <p className="text-sm text-white/80">Följ dina beställningar</p>
+                <h1 className="text-2xl font-bold tracking-tight">
+                  {actor?.roles.includes('ADMIN') ? 'Alla Orders' : 'Mina Orders'}
+                </h1>
+                <p className="text-sm text-white/80">
+                  {actor?.roles.includes('ADMIN') ? 'Adminvy över alla orders' : 'Följ dina beställningar'}
+                </p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -306,6 +320,9 @@ export default function RestaurantOrdersPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Order ID</th>
+                    {actor?.roles.includes('ADMIN') && (
+                      <th className="px-4 py-3 text-left font-medium text-gray-700">Restaurang</th>
+                    )}
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Leverantör</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Importör</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Status</th>
@@ -322,6 +339,9 @@ export default function RestaurantOrdersPage() {
                       <td className="px-4 py-3 font-mono text-xs text-blue-600">
                         {order.id.substring(0, 8)}...
                       </td>
+                      {actor?.roles.includes('ADMIN') && (
+                        <td className="px-4 py-3 text-gray-600">{order.restaurant_name || '—'}</td>
+                      )}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           <span>{getSupplierTypeIcon(order.supplier_type)}</span>
