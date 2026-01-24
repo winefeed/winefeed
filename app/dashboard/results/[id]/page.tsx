@@ -54,14 +54,13 @@ interface Suggestion {
 
 type SortOption = 'score' | 'price_asc' | 'price_desc' | 'country' | 'producer';
 
-const COLOR_LABELS: Record<string, string> = {
-  red: 'Rött',
-  white: 'Vitt',
-  rose: 'Rosé',
-  sparkling: 'Mousserande',
-  orange: 'Orange',
-  sweet: 'Sött',
-  fortified: 'Starkvin',
+const COLOR_LABELS: Record<string, { label: string; bg: string; text: string }> = {
+  red: { label: 'Rött', bg: 'bg-red-100', text: 'text-red-700' },
+  white: { label: 'Vitt', bg: 'bg-amber-50', text: 'text-amber-700' },
+  rose: { label: 'Rosé', bg: 'bg-pink-100', text: 'text-pink-700' },
+  sparkling: { label: 'Mousserande', bg: 'bg-yellow-100', text: 'text-yellow-700' },
+  orange: { label: 'Orange', bg: 'bg-orange-100', text: 'text-orange-700' },
+  fortified: { label: 'Starkvin', bg: 'bg-amber-200', text: 'text-amber-800' },
 };
 
 export default function ResultsPage() {
@@ -410,8 +409,10 @@ export default function ResultsPage() {
                           {suggestion.wine.namn}
                         </h2>
                         {suggestion.wine.color && (
-                          <span className="px-2 py-1 bg-muted text-muted-foreground text-xs font-medium rounded-full">
-                            {COLOR_LABELS[suggestion.wine.color] || suggestion.wine.color}
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            COLOR_LABELS[suggestion.wine.color]?.bg || 'bg-muted'
+                          } ${COLOR_LABELS[suggestion.wine.color]?.text || 'text-muted-foreground'}`}>
+                            {COLOR_LABELS[suggestion.wine.color]?.label || suggestion.wine.color}
                           </span>
                         )}
                         {suggestion.wine.ekologisk && (
