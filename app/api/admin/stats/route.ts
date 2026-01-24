@@ -44,6 +44,29 @@ export async function GET(request: NextRequest) {
       .from('supplier_users')
       .select('id, user_id, supplier_id, created_at');
 
+    // Get all restaurants
+    const { data: restaurants, error: restaurantsError } = await supabase
+      .from('restaurants')
+      .select('id, name, created_at');
+
+    // Get all orders with status
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('id, status, created_at')
+      .order('created_at', { ascending: false });
+
+    // Get all requests with status
+    const { data: requests, error: requestsError } = await supabase
+      .from('requests')
+      .select('id, status, created_at')
+      .order('created_at', { ascending: false });
+
+    // Get all offers with status
+    const { data: offers, error: offersError } = await supabase
+      .from('offers')
+      .select('id, status, created_at')
+      .order('created_at', { ascending: false });
+
     // Calculate stats per supplier
     const supplierStats = suppliers?.map(supplier => {
       const supplierWines = wines?.filter(w => w.supplier_id === supplier.id) || [];
@@ -86,6 +109,41 @@ export async function GET(request: NextRequest) {
     const totalSuppliers = suppliers?.length || 0;
     const activeSuppliers = suppliers?.filter(s => s.is_active !== false).length || 0;
     const totalUsers = supplierUsers?.length || 0;
+    const totalRestaurants = restaurants?.length || 0;
+
+    // Order stats
+    const orderStats = {
+      total: orders?.length || 0,
+      pending: orders?.filter(o => o.status === 'PENDING_SUPPLIER_CONFIRMATION').length || 0,
+      confirmed: orders?.filter(o => o.status === 'CONFIRMED').length || 0,
+      inFulfillment: orders?.filter(o => o.status === 'IN_FULFILLMENT').length || 0,
+      shipped: orders?.filter(o => o.status === 'SHIPPED').length || 0,
+      delivered: orders?.filter(o => o.status === 'DELIVERED').length || 0,
+      cancelled: orders?.filter(o => o.status === 'CANCELLED').length || 0,
+    };
+
+    // Request stats
+    const requestStats = {
+      total: requests?.length || 0,
+      open: requests?.filter(r => r.status === 'OPEN').length || 0,
+      closed: requests?.filter(r => r.status === 'CLOSED' || r.status === 'ACCEPTED').length || 0,
+    };
+
+    // Offer stats
+    const offerStats = {
+      total: offers?.length || 0,
+      draft: offers?.filter(o => o.status === 'DRAFT').length || 0,
+      sent: offers?.filter(o => o.status === 'SENT').length || 0,
+      accepted: offers?.filter(o => o.status === 'ACCEPTED').length || 0,
+      rejected: offers?.filter(o => o.status === 'REJECTED').length || 0,
+    };
+
+    // Recent orders (last 5)
+    const recentOrders = orders?.slice(0, 5).map(order => ({
+      id: order.id,
+      status: order.status,
+      created_at: order.created_at,
+    })) || [];
 
     // Recent wines (last 10)
     const recentWines = wines
@@ -134,9 +192,14 @@ export async function GET(request: NextRequest) {
         totalWines,
         activeWines,
         totalUsers,
+        totalRestaurants,
       },
+      orders: orderStats,
+      requests: requestStats,
+      offers: offerStats,
       suppliers: supplierStats,
       recentWines,
+      recentOrders,
       colorDistribution,
       typeDistribution,
       timestamp: new Date().toISOString(),
