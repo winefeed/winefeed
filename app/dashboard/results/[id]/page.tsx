@@ -301,7 +301,7 @@ export default function ResultsPage() {
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-2">Din vinoffert</h1>
           <p className="text-xl text-muted-foreground">
-            Vi hittade <span className="font-semibold text-foreground">{suggestions.length} viner</span> för din restaurang
+            Vi hittade <span className="font-semibold text-foreground">{suggestions.length} {suggestions.length === 1 ? 'vin' : 'viner'}</span> för din restaurang
           </p>
         </div>
 
