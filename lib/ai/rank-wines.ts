@@ -6,10 +6,12 @@ export interface Wine {
   producent: string;
   land: string;
   region?: string;
-  pris_sek: number;
-  beskrivning: string;
   druva?: string;
-  ekologisk: boolean;
+  color?: string;
+  argang?: number;
+  pris_sek: number;
+  beskrivning?: string;
+  ekologisk?: boolean;
   biodynamiskt?: boolean;
   veganskt?: boolean;
 }
@@ -19,6 +21,16 @@ export interface RankedWine extends Wine {
   ai_reason: string;
 }
 
+// Color labels for display in prompt
+const COLOR_LABELS: Record<string, string> = {
+  red: 'Rött',
+  white: 'Vitt',
+  rose: 'Rosé',
+  sparkling: 'Mousserande',
+  orange: 'Orange',
+  fortified: 'Starkvin',
+};
+
 export async function rankWinesWithClaude(
   wines: Wine[],
   userRequest: string
@@ -27,40 +39,81 @@ export async function rankWinesWithClaude(
     return [];
   }
 
-  const prompt = `Du är en sommelier-AI för restauranger.
+  // Build wine list with all relevant info including color
+  const wineList = wines.map((w, i) => {
+    const parts = [
+      `${i + 1}. ID: ${w.id}`,
+      `   ${w.namn} - ${w.producent}`,
+      `   Typ: ${COLOR_LABELS[w.color || ''] || w.color || 'Okänd'}`,
+      `   Land: ${w.land}${w.region ? `, ${w.region}` : ''}`,
+      `   Pris: ${w.pris_sek} kr`,
+    ];
 
-En restaurang söker: "${userRequest}"
+    if (w.druva) {
+      parts.push(`   Druva: ${w.druva}`);
+    }
+    if (w.argang) {
+      parts.push(`   Årgång: ${w.argang}`);
+    }
 
-Här är ${wines.length} viner som matchar deras budget:
-${wines.map((w, i) => `${i + 1}. ID: ${w.id}
-   ${w.namn} - ${w.producent} (${w.land}, ${w.region || 'N/A'}, ${w.pris_sek} kr)
-   ${w.beskrivning}`).join('\n\n')}
+    const certifications = [];
+    if (w.ekologisk) certifications.push('Ekologisk');
+    if (w.biodynamiskt) certifications.push('Biodynamisk');
+    if (w.veganskt) certifications.push('Vegansk');
+    if (certifications.length > 0) {
+      parts.push(`   Certifiering: ${certifications.join(', ')}`);
+    }
+
+    if (w.beskrivning) {
+      parts.push(`   Beskrivning: ${w.beskrivning.substring(0, 150)}${w.beskrivning.length > 150 ? '...' : ''}`);
+    }
+
+    return parts.join('\n');
+  }).join('\n\n');
+
+  const prompt = `Du är en sommelier-AI för restauranger i Sverige.
+
+RESTAURANGENS SÖKNING:
+${userRequest}
+
+TILLGÄNGLIGA VINER (${wines.length} st):
+${wineList}
 
 UPPGIFT:
-Rangordna dessa viner från bäst till sämst match för restaurangens behov.
-Returnera JSON i detta exakta format (utan formatering):
+Rangordna vinerna baserat på hur väl de matchar restaurangens behov.
+
+BEDÖMNINGSKRITERIER (i prioritetsordning):
+1. Vintyp (rött/vitt/etc) - MÅSTE matcha om specificerat
+2. Budget - pris inom eller nära angiven budget
+3. Land/Region - om specificerat
+4. Druva - om specificerat
+5. Certifieringar - om ekologiskt/biodynamiskt/veganskt efterfrågas
+6. Stil/smakprofil - baserat på eventuell beskrivning
+
+Returnera JSON i detta exakta format (utan markdown-formatering):
 
 [
-  {"wine_id": "actual-uuid-from-above", "score": 0.95, "reason": "kort motivering"},
-  {"wine_id": "actual-uuid-from-above", "score": 0.87, "reason": "kort motivering"}
+  {"wine_id": "faktiskt-uuid-från-listan", "score": 0.95, "reason": "kort motivering på svenska"},
+  {"wine_id": "faktiskt-uuid-från-listan", "score": 0.87, "reason": "kort motivering på svenska"}
 ]
 
-Regler:
-- wine_id MÅSTE vara det faktiska UUID från vinlistan ovan (tex "a9c15ec1-de5c-41ff-b296-5c2d98743824")
+REGLER:
+- wine_id MÅSTE vara det faktiska UUID från vinlistan ovan
 - score: 0.0-1.0 (1.0 = perfekt match)
-- Ta hänsyn till pris, matstil, region, beskrivning
-- Max 6 viner i svaret
-- reason ska vara max 15 ord och förklara varför detta vin passar`;
+- Returnera max 8 viner
+- reason: max 20 ord, förklara varför vinet passar
+- Om restaurangen söker specifik vintyp, uteslut viner av annan typ
+- Svenskt språk i reason`;
 
   try {
     const response = await callClaude(prompt, 2000);
     console.log('Claude raw response:', response.substring(0, 500));
 
-    // Extrahera JSON från svaret
+    // Extract JSON from response
     const jsonMatch = response.match(/\[[\s\S]*?\]/);
     if (!jsonMatch) {
-      console.error('Claude returnerade inte JSON:', response);
-      throw new Error('Claude returnerade inte JSON');
+      console.error('Claude returned no JSON:', response);
+      throw new Error('Claude returned no JSON');
     }
 
     console.log('Extracted JSON:', jsonMatch[0].substring(0, 300));
@@ -69,7 +122,7 @@ Regler:
     );
     console.log('Parsed ranked wines:', ranked.length, 'wines');
 
-    // Mappa tillbaka till Wine-objekt med score och reason
+    // Map back to Wine objects with score and reason
     const result = ranked
       .map((r) => {
         const wine = wines.find((w) => w.id === r.wine_id);
@@ -89,8 +142,8 @@ Regler:
     return result;
   } catch (error) {
     console.error('Error ranking wines with Claude:', error);
-    // Fallback: returnera viner utan ranking
-    return wines.slice(0, 6).map((wine, index) => ({
+    // Fallback: return wines without AI ranking
+    return wines.slice(0, 8).map((wine, index) => ({
       ...wine,
       score: 0.9 - index * 0.1,
       ai_reason: 'Ett utmärkt val för din restaurang.',

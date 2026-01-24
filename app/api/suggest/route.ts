@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { rankWinesWithClaude } from '@/lib/ai/rank-wines';
-import { wineSearcherClient } from '@/lib/wine-searcher/client';
 
 // Admin client for DB operations
 const supabaseAdmin = createAdminClient(
@@ -13,7 +12,6 @@ const supabaseAdmin = createAdminClient(
 
 // MVP: Get any existing restaurant for testing
 async function getAnyRestaurant(): Promise<string | null> {
-  // Try to find any existing restaurant
   const { data: existing, error } = await supabaseAdmin
     .from('restaurants')
     .select('id')
@@ -31,23 +29,39 @@ async function getAnyRestaurant(): Promise<string | null> {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav } = body;
+    const {
+      // New structured fields
+      color,
+      budget_min,
+      budget_max,
+      antal_flaskor,
+      country,
+      grape,
+      certifications,
+      description,
+      leverans_senast,
+      // Legacy fields (for backwards compatibility)
+      fritext,
+      budget_per_flaska,
+      specialkrav,
+    } = body;
 
-    // Validering
-    if (!fritext || !budget_per_flaska) {
+    // Use new fields if available, fall back to legacy
+    const effectiveBudgetMax = budget_max || budget_per_flaska;
+    const effectiveCertifications = certifications || specialkrav;
+
+    // Validation
+    if (!effectiveBudgetMax) {
       return NextResponse.json(
-        { error: 'fritext och budget_per_flaska är obligatoriska' },
+        { error: 'budget_max eller budget_per_flaska är obligatorisk' },
         { status: 400 }
       );
     }
 
-    // Skapa Supabase-klient
-    const supabase = await createClient();
-
-    // MVP: Get any existing restaurant for testing (no auth required)
+    // MVP: Get any existing restaurant for testing
     const restaurantId = await getAnyRestaurant();
 
-    // Save request to database (if we have a restaurant)
+    // Save request to database
     let request_id: string;
 
     if (restaurantId) {
@@ -55,11 +69,11 @@ export async function POST(request: Request) {
         .from('requests')
         .insert({
           restaurant_id: restaurantId,
-          fritext,
-          budget_per_flaska,
+          fritext: fritext || description || 'Vinförfrågan',
+          budget_per_flaska: effectiveBudgetMax,
           antal_flaskor: antal_flaskor || null,
           leverans_senast: leverans_senast || null,
-          specialkrav: specialkrav || null,
+          specialkrav: effectiveCertifications || null,
           status: 'OPEN',
           created_at: new Date().toISOString()
         })
@@ -68,120 +82,189 @@ export async function POST(request: Request) {
 
       if (requestError) {
         console.error('Failed to save request:', requestError);
-        // Continue without saving - MVP fallback
         request_id = crypto.randomUUID();
       } else {
         request_id = savedRequest.id;
       }
     } else {
-      // No restaurant found - generate temporary ID for MVP
       request_id = crypto.randomUUID();
     }
 
-    // 1. Filtrera viner (SQL + certifications filter)
-    // Use admin client to bypass RLS
+    // Query supplier_wines with structured filters
+    console.log('Querying supplier_wines with filters:', {
+      color,
+      budget_min,
+      budget_max: effectiveBudgetMax,
+      country,
+      grape,
+      certifications: effectiveCertifications,
+    });
+
     let query = supabaseAdmin
-      .from('wines')
-      .select('*')
-      .lte('pris_sek', budget_per_flaska * 1.3) // Tillåt 30% överskridning
-      .eq('lagerstatus', 'tillgänglig');
+      .from('supplier_wines')
+      .select(`
+        id,
+        supplier_id,
+        name,
+        producer,
+        country,
+        region,
+        grape,
+        color,
+        vintage,
+        price_ex_vat_sek,
+        description,
+        is_organic,
+        is_biodynamic,
+        is_vegan,
+        stock_qty,
+        moq,
+        case_size,
+        supplier:suppliers(id, namn, kontakt_email)
+      `)
+      .eq('is_active', true);
 
-    // Apply certification filters if provided
-    if (specialkrav && Array.isArray(specialkrav) && specialkrav.length > 0) {
-      console.log('Filtering wines by certifications:', specialkrav);
+    // Filter by color (if specified)
+    if (color && color !== 'all') {
+      query = query.eq('color', color);
+      console.log(`Filtering by color: ${color}`);
+    }
 
-      if (specialkrav.includes('ekologiskt')) {
-        query = query.eq('ekologisk', true);
+    // Filter by budget range (price is in öre, convert from SEK)
+    const budgetMaxOre = effectiveBudgetMax * 100;
+    query = query.lte('price_ex_vat_sek', budgetMaxOre * 1.3); // Allow 30% overage
+
+    if (budget_min) {
+      const budgetMinOre = budget_min * 100;
+      query = query.gte('price_ex_vat_sek', budgetMinOre * 0.7); // Allow 30% under
+    }
+
+    // Filter by country (if specified)
+    if (country && country !== 'all') {
+      query = query.eq('country', country);
+      console.log(`Filtering by country: ${country}`);
+    }
+
+    // Filter by grape (if specified) - use ilike for partial match
+    if (grape && grape !== 'all') {
+      query = query.ilike('grape', `%${grape}%`);
+      console.log(`Filtering by grape: ${grape}`);
+    }
+
+    // Filter by certifications
+    if (effectiveCertifications && Array.isArray(effectiveCertifications)) {
+      if (effectiveCertifications.includes('ekologiskt')) {
+        query = query.eq('is_organic', true);
       }
-      if (specialkrav.includes('biodynamiskt')) {
-        query = query.eq('biodynamiskt', true);
+      if (effectiveCertifications.includes('biodynamiskt')) {
+        query = query.eq('is_biodynamic', true);
       }
-      if (specialkrav.includes('veganskt')) {
-        query = query.eq('veganskt', true);
+      if (effectiveCertifications.includes('veganskt')) {
+        query = query.eq('is_vegan', true);
       }
     }
 
-    const { data: wines, error: winesError } = await query.limit(20);
+    // Filter by stock (must have stock or allow backorder)
+    query = query.or('stock_qty.gt.0,stock_qty.is.null');
+
+    const { data: wines, error: winesError } = await query.limit(50);
 
     if (winesError) {
       console.error('Error fetching wines:', winesError);
       return NextResponse.json(
-        { error: 'Kunde inte hämta viner' },
+        { error: 'Kunde inte hämta viner', details: winesError.message },
         { status: 500 }
       );
     }
 
-    // 3. Rangordna med Claude AI
-    console.log(`Ranking ${wines.length} wines with Claude AI...`);
-    const ranked = await rankWinesWithClaude(wines, fritext);
-    console.log(`Claude returned ${ranked.length} ranked wines`);
+    console.log(`Found ${wines?.length || 0} wines matching criteria`);
 
-    // 4. Berika med marknadspriser från Wine-Searcher
-    console.log(`Fetching market prices for ${ranked.length} wines...`);
-    const enrichedWines = await Promise.all(
-      ranked.map(async (wine) => {
-        let marketData = null;
+    if (!wines || wines.length === 0) {
+      return NextResponse.json({
+        request_id,
+        suggestions: [],
+        message: 'Inga viner hittades som matchar dina kriterier. Prova att bredda sökningen.',
+      });
+    }
 
-        // Försök hämta marknadspriser (om Wine-Searcher är konfigurerat)
-        try {
-          const searchQuery = `${wine.producent} ${wine.namn}`;
-          const prices = await wineSearcherClient.getPricesByName(
-            searchQuery,
-            undefined,
-            'SEK'
-          );
-
-          if (prices && prices.results && prices.results.length > 0) {
-            marketData = {
-              lowest_price: prices.results[0].price,
-              merchant_name: prices.results[0].merchant_name,
-              merchant_count: prices.total_results,
-              price_difference: wine.pris_sek - prices.results[0].price,
-              price_difference_percent: (
-                ((wine.pris_sek - prices.results[0].price) / prices.results[0].price) * 100
-              ).toFixed(1),
-            };
-          }
-        } catch (error) {
-          // Wine-Searcher anrop misslyckades - fortsätt utan prisdata
-          console.log(`Could not fetch prices for ${wine.namn}:`, error instanceof Error ? error.message : 'Unknown error');
-        }
-
-        return {
-          wine,
-          marketData,
-        };
-      })
-    );
-
-    // 5. Skapa suggestions med AI-motiveringar och prisdata
-    const suggestions = enrichedWines.map(({ wine, marketData }) => ({
-      wine: {
-        id: wine.id,
-        namn: wine.namn,
-        producent: wine.producent,
-        land: wine.land,
-        region: wine.region,
-        pris_sek: wine.pris_sek,
-        ekologisk: wine.ekologisk,
-        biodynamiskt: wine.biodynamiskt,
-        veganskt: wine.veganskt,
-      },
-      supplier: wines.find(w => w.id === wine.id)?.wine_suppliers?.[0]?.supplier || {
-        namn: 'Vingruppen AB',
-        kontakt_email: 'order@vingruppen.se',
-        normalleveranstid_dagar: 3,
-      },
-      motivering: wine.ai_reason || wine.beskrivning || 'Ett utmärkt val för din restaurang.',
-      ranking_score: wine.score,
-      market_data: marketData,
+    // Transform wines for AI ranking
+    const winesForRanking = wines.map(wine => ({
+      id: wine.id,
+      namn: wine.name,
+      producent: wine.producer,
+      land: wine.country,
+      region: wine.region,
+      druva: wine.grape,
+      color: wine.color,
+      argang: wine.vintage,
+      pris_sek: wine.price_ex_vat_sek ? Math.round(wine.price_ex_vat_sek / 100) : 0,
+      beskrivning: wine.description,
+      ekologisk: wine.is_organic,
+      biodynamiskt: wine.is_biodynamic,
+      veganskt: wine.is_vegan,
+      supplier_id: wine.supplier_id,
+      supplier: wine.supplier,
     }));
 
-    // 6. Returnera förslag med det sparade request_id
+    // Build context for AI ranking
+    const searchContext = buildSearchContext({
+      color,
+      country,
+      grape,
+      budget_min,
+      budget_max: effectiveBudgetMax,
+      certifications: effectiveCertifications,
+      description,
+      fritext,
+    });
+
+    // Rank with Claude AI
+    console.log(`Ranking ${winesForRanking.length} wines with Claude AI...`);
+    console.log('Search context:', searchContext);
+
+    const ranked = await rankWinesWithClaude(winesForRanking, searchContext);
+    console.log(`Claude returned ${ranked.length} ranked wines`);
+
+    // Build suggestions response
+    const suggestions = ranked.slice(0, 10).map((wine) => {
+      const originalWine = wines.find(w => w.id === wine.id);
+      return {
+        wine: {
+          id: wine.id,
+          namn: wine.namn,
+          producent: wine.producent,
+          land: wine.land,
+          region: wine.region,
+          druva: wine.druva,
+          color: wine.color,
+          argang: wine.argang,
+          pris_sek: wine.pris_sek,
+          ekologisk: wine.ekologisk,
+          biodynamiskt: wine.biodynamiskt,
+          veganskt: wine.veganskt,
+        },
+        supplier: originalWine?.supplier || {
+          namn: 'Okänd leverantör',
+          kontakt_email: null,
+        },
+        motivering: wine.ai_reason || wine.beskrivning || 'Ett utmärkt val för din restaurang.',
+        ranking_score: wine.score,
+      };
+    });
+
     return NextResponse.json({
       request_id,
       suggestions,
+      filters_applied: {
+        color: color || 'all',
+        budget_range: `${budget_min || 0}-${effectiveBudgetMax} kr`,
+        country: country || 'all',
+        grape: grape || 'all',
+        certifications: effectiveCertifications || [],
+      },
+      total_matches: wines.length,
     });
+
   } catch (error) {
     console.error('Error in /api/suggest:', error);
     return NextResponse.json(
@@ -189,4 +272,65 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+// Build search context string for AI ranking
+function buildSearchContext(params: {
+  color?: string;
+  country?: string;
+  grape?: string;
+  budget_min?: number;
+  budget_max?: number;
+  certifications?: string[];
+  description?: string;
+  fritext?: string;
+}): string {
+  const parts: string[] = [];
+
+  // Wine type
+  const colorLabels: Record<string, string> = {
+    red: 'rött vin',
+    white: 'vitt vin',
+    rose: 'rosévin',
+    sparkling: 'mousserande vin',
+    orange: 'orange vin',
+    fortified: 'starkvin',
+  };
+
+  if (params.color && params.color !== 'all') {
+    parts.push(`Söker ${colorLabels[params.color] || params.color}`);
+  } else {
+    parts.push('Söker vin (alla typer)');
+  }
+
+  // Country
+  if (params.country && params.country !== 'all') {
+    parts.push(`från ${params.country}`);
+  }
+
+  // Grape
+  if (params.grape && params.grape !== 'all') {
+    parts.push(`druva: ${params.grape}`);
+  }
+
+  // Budget
+  if (params.budget_min && params.budget_max) {
+    parts.push(`budget ${params.budget_min}-${params.budget_max} kr/flaska`);
+  } else if (params.budget_max) {
+    parts.push(`budget max ${params.budget_max} kr/flaska`);
+  }
+
+  // Certifications
+  if (params.certifications && params.certifications.length > 0) {
+    parts.push(`krav: ${params.certifications.join(', ')}`);
+  }
+
+  // Free text description
+  if (params.description) {
+    parts.push(`Önskemål: ${params.description}`);
+  } else if (params.fritext) {
+    parts.push(`Beskrivning: ${params.fritext}`);
+  }
+
+  return parts.join('. ');
 }
