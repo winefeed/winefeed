@@ -76,7 +76,7 @@ export default function SupplierOrdersPage() {
 
     setActionLoading(orderId);
     try {
-      const res = await fetch(`/api/suppliers/${supplierId}/orders/${orderId}/confirm`, {
+      const res = await fetch(`/api/orders/${orderId}/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -101,7 +101,7 @@ export default function SupplierOrdersPage() {
 
     setActionLoading(orderId);
     try {
-      const res = await fetch(`/api/suppliers/${supplierId}/orders/${orderId}/decline`, {
+      const res = await fetch(`/api/orders/${orderId}/decline`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: declineReason }),
