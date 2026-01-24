@@ -1,5 +1,17 @@
 # Winefeed TODO
 
+## BUGGAR (fixa imorgon!)
+
+### IOR-behörighet saknas på /ior/orders/[id]
+- [ ] Felsök varför "Du saknar IOR-behörighet" visas
+- [ ] Kontrollera actor-service och rollhantering
+- [ ] Verifiera att användaren har rätt IOR-roll i databasen
+- [ ] Kolla om det är JWT/session-problem
+
+**URL:** `winefeed.se/ior/orders/68406ec1-4972-4b77-8335-06b21f31f757`
+
+---
+
 ## UX-förbättringar
 
 ### Bekräftelse-steg innan förfrågan skickas
