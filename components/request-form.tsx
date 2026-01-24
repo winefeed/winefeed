@@ -12,12 +12,13 @@ import { Textarea } from '@/components/ui/textarea';
 // Wine color options - matches database enum
 const WINE_COLORS = [
   { value: 'all', label: 'Alla typer', emoji: '🍷' },
-  { value: 'red', label: 'Rött', emoji: '🍷' },
+  { value: 'sparkling', label: 'Mousserande', emoji: '🍾' },
   { value: 'white', label: 'Vitt', emoji: '🥂' },
   { value: 'rose', label: 'Rosé', emoji: '🌸' },
-  { value: 'sparkling', label: 'Mousserande', emoji: '🍾' },
   { value: 'orange', label: 'Orange', emoji: '🍊' },
-  { value: 'fortified', label: 'Starkvin', emoji: '🍯' },
+  { value: 'red', label: 'Rött', emoji: '🍷' },
+  { value: 'sweet', label: 'Sött', emoji: '🍯' },
+  { value: 'fortified', label: 'Starkvin', emoji: '🥃' },
 ] as const;
 
 // Common wine countries
