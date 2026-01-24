@@ -584,19 +584,6 @@ export default function ResultsPage() {
                           )}
                         </div>
 
-                        {/* Supplier Contact */}
-                        {suggestion.supplier.kontakt_email && (
-                          <div className="pt-3 border-t border-border">
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Leverantörskontakt</p>
-                            <p className="text-sm text-foreground">{suggestion.supplier.namn}</p>
-                            <a
-                              href={`mailto:${suggestion.supplier.kontakt_email}`}
-                              className="text-sm text-primary hover:underline"
-                            >
-                              {suggestion.supplier.kontakt_email}
-                            </a>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
