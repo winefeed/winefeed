@@ -22,17 +22,24 @@ interface UserMenuProps {
 }
 
 const ROLE_LABELS: Record<ActorRole, string> = {
-  RESTAURANT: 'Restaurant',
-  SELLER: 'Seller',
-  IOR: 'IOR',
+  RESTAURANT: 'Restaurang',
+  SELLER: 'Leverantör',
+  IOR: 'Importör',
   ADMIN: 'Admin',
 };
 
 const ROLE_COLORS: Record<ActorRole, string> = {
-  RESTAURANT: 'bg-blue-100 text-blue-700 border-blue-200',
-  SELLER: 'bg-green-100 text-green-700 border-green-200',
-  IOR: 'bg-purple-100 text-purple-700 border-purple-200',
-  ADMIN: 'bg-red-100 text-red-700 border-red-200',
+  RESTAURANT: 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200',
+  SELLER: 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200',
+  IOR: 'bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200',
+  ADMIN: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200',
+};
+
+const ROLE_LINKS: Record<ActorRole, string> = {
+  RESTAURANT: '/dashboard/new-request',
+  SELLER: '/supplier',
+  IOR: '/ior/orders',
+  ADMIN: '/admin',
 };
 
 export function UserMenu({ email, roles, collapsed = false }: UserMenuProps) {
@@ -111,21 +118,24 @@ export function UserMenu({ email, roles, collapsed = false }: UserMenuProps) {
           )}
         </div>
 
-        {/* Expanded: Role Badges */}
+        {/* Expanded: Role Navigation */}
         {isExpanded && (
-          <div className="px-2 py-1 space-y-1">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Roles:</p>
-            <div className="flex flex-wrap gap-1">
+          <div className="px-2 py-1 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">Växla vy:</p>
+            <div className="flex flex-col gap-1">
               {roles.map((role) => (
-                <span
+                <button
                   key={role}
+                  onClick={() => router.push(ROLE_LINKS[role])}
                   className={cn(
-                    'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border',
+                    'flex items-center gap-2 px-3 py-2 rounded text-sm font-medium border',
+                    'transition-colors cursor-pointer text-left w-full',
                     ROLE_COLORS[role]
                   )}
                 >
                   {ROLE_LABELS[role]}
-                </span>
+                  <span className="text-xs opacity-70">→</span>
+                </button>
               ))}
             </div>
           </div>
