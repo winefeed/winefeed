@@ -228,6 +228,18 @@ export default function IOROrdersPage() {
             </div>
             <div className="flex gap-3">
               <button
+                onClick={() => router.push('/supplier')}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
+              >
+                ← Supplier Portal
+              </button>
+              <button
+                onClick={() => router.push('/supplier/orders')}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
+              >
+                Mina försäljningar
+              </button>
+              <button
                 onClick={fetchOrders}
                 className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
               >

@@ -352,6 +352,20 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                 <p className="text-sm text-white/80">Order detaljer och fulfillment</p>
               </div>
             </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => router.push('/supplier')}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
+              >
+                Supplier Portal
+              </button>
+              <button
+                onClick={() => router.push('/supplier/orders')}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
+              >
+                Mina försäljningar
+              </button>
+            </div>
           </div>
         </div>
       </header>
