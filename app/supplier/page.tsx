@@ -8,7 +8,9 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Wine, Inbox, FileText, Package, TrendingUp, AlertCircle, HelpCircle, Building2 } from 'lucide-react';
+import { Wine, Inbox, FileText, Package, TrendingUp, AlertCircle, HelpCircle, Building2, ArrowRight } from 'lucide-react';
+import { WineCard, type SupplierWine } from '@/components/supplier/WineCard';
+import { WineDetailModal } from '@/components/supplier/WineDetailModal';
 
 interface DashboardStats {
   totalWines: number;
@@ -31,6 +33,9 @@ export default function SupplierDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [supplierName, setSupplierName] = useState('');
+  const [supplierId, setSupplierId] = useState<string | null>(null);
+  const [recentWines, setRecentWines] = useState<SupplierWine[]>([]);
+  const [selectedWine, setSelectedWine] = useState<SupplierWine | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -40,6 +45,22 @@ export default function SupplierDashboard() {
         if (supplierRes.ok) {
           const supplierData = await supplierRes.json();
           setSupplierName(supplierData.supplierName);
+          setSupplierId(supplierData.supplierId);
+
+          // Fetch recent wines
+          if (supplierData.supplierId) {
+            const winesRes = await fetch(`/api/suppliers/${supplierData.supplierId}/wines?limit=6`);
+            if (winesRes.ok) {
+              const winesData = await winesRes.json();
+              // Sort by created_at descending and take first 6
+              const sorted = (winesData.wines || [])
+                .sort((a: SupplierWine, b: SupplierWine) =>
+                  new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+                )
+                .slice(0, 6);
+              setRecentWines(sorted);
+            }
+          }
         }
 
         // Fetch dashboard stats
@@ -209,6 +230,46 @@ export default function SupplierDashboard() {
           )}
         </div>
       </div>
+
+      {/* Recent Wines */}
+      {recentWines.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Senast tillagda viner
+            </h2>
+            <a
+              href="/supplier/wines"
+              className="inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:text-[#7B1E1E]/80"
+            >
+              Visa alla
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recentWines.map((wine) => (
+              <WineCard
+                key={wine.id}
+                wine={wine}
+                onClick={() => setSelectedWine(wine)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Wine Detail Modal */}
+      {selectedWine && (
+        <WineDetailModal
+          wine={selectedWine}
+          supplierId={supplierId || undefined}
+          onClose={() => setSelectedWine(null)}
+          onUpdate={(updated) => {
+            setRecentWines(wines => wines.map(w => w.id === updated.id ? updated : w));
+            setSelectedWine(updated);
+          }}
+        />
+      )}
 
       {/* Help & Profile Widget */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
