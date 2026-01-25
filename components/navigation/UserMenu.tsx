@@ -51,12 +51,19 @@ export function UserMenu({ email, roles, collapsed = false }: UserMenuProps) {
     try {
       setIsLoggingOut(true);
       const supabase = createClient();
-      await supabase.auth.signOut();
-      router.push('/login');
-      router.refresh();
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error('Logout error:', error);
+      }
+
+      // Force redirect regardless of signOut result
+      // This ensures user is taken to login even if there's an issue
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout failed:', error);
-      setIsLoggingOut(false);
+      // Force redirect on error too
+      window.location.href = '/login';
     }
   };
 
