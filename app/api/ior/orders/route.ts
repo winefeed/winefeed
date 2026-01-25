@@ -36,28 +36,33 @@ export async function GET(request: NextRequest) {
     const tenantId = request.headers.get('x-tenant-id');
     const userId = request.headers.get('x-user-id');
 
+    console.log('[IOR Orders API] Auth context:', { tenantId, userId });
+
     if (!tenantId || !userId) {
       return NextResponse.json(
-        { error: 'Missing authentication context' },
+        { error: 'Missing authentication context', tenantId: !!tenantId, userId: !!userId },
         { status: 401 }
       );
     }
 
     // Resolve actor context
+    console.log('[IOR Orders API] Resolving actor...');
     const actor = await actorService.resolveActor({
       user_id: userId,
       tenant_id: tenantId
     });
+    console.log('[IOR Orders API] Actor resolved:', { roles: actor.roles, importer_id: actor.importer_id });
 
     // Verify IOR access
     if (!actorService.hasIORAccess(actor)) {
       return NextResponse.json(
-        { error: 'Access denied: IOR role required' },
+        { error: 'Access denied: IOR role required', roles: actor.roles },
         { status: 403 }
       );
     }
 
     const importerId = actor.importer_id!;
+    console.log('[IOR Orders API] Using importer_id:', importerId);
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -75,6 +80,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch orders for IOR
+    console.log('[IOR Orders API] Fetching orders...', { importerId, tenantId, status, limit, offset });
     const orders = await orderService.listOrdersForIOR({
       importer_id: importerId,
       tenant_id: tenantId,
@@ -82,6 +88,7 @@ export async function GET(request: NextRequest) {
       limit,
       offset
     });
+    console.log('[IOR Orders API] Found', orders.length, 'orders');
 
     // Enrich orders with restaurant and supplier names
     const enrichedOrders = await Promise.all(
@@ -120,10 +127,14 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('Error listing IOR orders:', error);
+    console.error('[IOR Orders API] Error:', error?.message, error?.stack);
 
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      {
+        error: 'Internal server error',
+        details: error?.message,
+        stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+      },
       { status: 500 }
     );
   }
