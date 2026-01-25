@@ -3,11 +3,13 @@
  *
  * Import validated wines into supplier_wines table.
  * Called after preview has been reviewed and approved.
+ * REQUIRES: ADMIN role
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { ValidatedWine } from '@/lib/validators/wine-import';
+import { actorService } from '@/lib/actor-service';
 
 // Supabase client with service role for admin operations
 const supabase = createClient(
@@ -35,6 +37,26 @@ export interface ImportResponse {
 
 export async function POST(request: NextRequest): Promise<NextResponse<ImportResponse>> {
   try {
+    // Auth check
+    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json(
+        { success: false, imported: 0, skipped: 0, updated: 0, errors: ['Missing authentication context'] },
+        { status: 401 }
+      );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      return NextResponse.json(
+        { success: false, imported: 0, skipped: 0, updated: 0, errors: ['Admin access required'] },
+        { status: 403 }
+      );
+    }
+
     const body: ImportRequest = await request.json();
     const { supplierId, tenantId, wines, filename, importedBy } = body;
 

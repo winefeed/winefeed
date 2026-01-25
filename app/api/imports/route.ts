@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importService } from '@/lib/import-service';
+import { actorService } from '@/lib/actor-service';
 
 export async function POST(request: NextRequest) {
   try {
-    // Extract tenant context from headers
+    // Extract tenant context and user auth
     const tenantId = request.headers.get('x-tenant-id');
     const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant context' }, { status: 401 });
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Only IOR or ADMIN can create import cases
+    if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'IOR')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Parse request body

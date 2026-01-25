@@ -4,10 +4,12 @@
  * GET /api/admin/wines
  *
  * Returns all wines with supplier info, filterable by supplier_id
+ * REQUIRES: ADMIN role
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,6 +19,26 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    // Auth check
+    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const supplierId = searchParams.get('supplier_id');
 

@@ -12,6 +12,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { matchService, type MatchProductInput } from '@/lib/match-service';
+import { actorService } from '@/lib/actor-service';
 
 /**
  * Validate no forbidden fields in response
@@ -28,14 +29,24 @@ function validateNoForbiddenFields(obj: any): void {
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Extract tenant context
+    // 1. Extract tenant context and user auth
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
+    if (!tenantId || !userId) {
       return NextResponse.json(
-        { error: 'Missing tenant context' },
+        { error: 'Missing authentication context' },
         { status: 401 }
       );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Only SELLER, IOR, or ADMIN can run product matching
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        !actorService.hasRole(actor, 'SELLER') &&
+        !actorService.hasRole(actor, 'IOR')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // 2. Parse request body

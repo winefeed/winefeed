@@ -11,17 +11,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createDDLService } from '@/lib/compliance/ddl-service';
 import { ValidateDDLForShipmentRequest } from '@/lib/compliance/types';
+import { actorService } from '@/lib/actor-service';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get tenant context
+    // Get tenant context and user auth
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
+    if (!tenantId || !userId) {
       return NextResponse.json(
-        { error: 'Missing tenant context' },
+        { error: 'Missing authentication context' },
         { status: 401 }
       );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Only IOR or ADMIN can validate DDL for shipments
+    if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'IOR')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Parse request

@@ -5,6 +5,8 @@
  *
  * Get request details + related offers
  *
+ * REQUIRES: RESTAURANT (owner), SELLER (assigned), or ADMIN role
+ *
  * Response:
  * {
  *   request: {
@@ -19,10 +21,13 @@
  *
  * Security:
  * - Tenant isolation enforced
+ * - User authentication required
+ * - Ownership or assignment verification
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,10 +42,13 @@ export async function GET(
   try {
     const { id: requestId } = params;
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant context' }, { status: 401 });
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
     }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
     // SECURITY: Tenant-scope via restaurants.tenant_id JOIN
     // Step 1: Fetch request with restaurant info
@@ -57,7 +65,29 @@ export async function GET(
       throw new Error(`Failed to fetch request: ${requestError.message}`);
     }
 
-    // MVP: Skip tenant verification (single tenant setup)
+    // Access control: ADMIN can view all, RESTAURANT must own it, SELLER must be assigned
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      if (actorService.hasRole(actor, 'RESTAURANT')) {
+        // Restaurant users can only view their own requests
+        if (requestData.restaurant_id !== actor.restaurant_id) {
+          return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
+      } else if (actorService.hasRole(actor, 'SELLER')) {
+        // Sellers can only view requests they've been assigned to
+        const { data: assignment } = await supabase
+          .from('quote_request_assignments')
+          .select('id')
+          .eq('quote_request_id', requestId)
+          .eq('supplier_id', actor.supplier_id)
+          .single();
+
+        if (!assignment) {
+          return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
+      } else {
+        return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      }
+    }
 
     // Map Swedish column names to English API response format
     const mappedRequest = {

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { QuoteRequestRouter } from '@/lib/quote-request-router';
+import { actorService } from '@/lib/actor-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -37,6 +38,28 @@ export async function POST(
 ) {
   try {
     const quoteRequestId = params.id;
+
+    // Auth check
+    const userId = req.headers.get('x-user-id');
+    const tenantId = req.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Must be RESTAURANT owner or ADMIN to dispatch
+    if (!actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
 
     const maxMatches = body.maxMatches || 10;
@@ -59,6 +82,14 @@ export async function POST(
       return NextResponse.json(
         { error: 'Quote request not found' },
         { status: 404 }
+      );
+    }
+
+    // Verify ownership - request must belong to user's restaurant (unless ADMIN)
+    if (!actorService.hasRole(actor, 'ADMIN') && quoteRequest.restaurant_id !== actor.restaurant_id) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
       );
     }
 
@@ -188,6 +219,20 @@ export async function GET(
 ) {
   try {
     const quoteRequestId = params.id;
+
+    // Auth check
+    const userId = req.headers.get('x-user-id');
+    const tenantId = req.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
     const { searchParams } = new URL(req.url);
     const preview = searchParams.get('preview') === 'true';
 
@@ -206,6 +251,14 @@ export async function GET(
       return NextResponse.json(
         { error: 'Quote request not found' },
         { status: 404 }
+      );
+    }
+
+    // Verify ownership - request must belong to user's restaurant (unless ADMIN)
+    if (!actorService.hasRole(actor, 'ADMIN') && quoteRequest.restaurant_id !== actor.restaurant_id) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
       );
     }
 

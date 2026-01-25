@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importService } from '@/lib/import-service';
+import { actorService } from '@/lib/actor-service';
 
+/**
+ * POST /api/imports/[id]/attach-supplier-import
+ *
+ * Attach supplier import to import case
+ * REQUIRES: IOR or ADMIN role
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -8,9 +15,17 @@ export async function POST(
   try {
     const { id: importId } = params;
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant context' }, { status: 401 });
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Must have IOR or ADMIN role to attach supplier imports
+    if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'IOR')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const body = await request.json();

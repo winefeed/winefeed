@@ -19,6 +19,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,11 +48,19 @@ interface IdentifierCoverage {
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract tenant context from headers
+    // Extract tenant context and user auth
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant context' }, { status: 401 });
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Only ADMIN can view match status dashboard
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const timestamp = new Date().toISOString();

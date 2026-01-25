@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { rankWinesWithClaude } from '@/lib/ai/rank-wines';
+import { actorService } from '@/lib/actor-service';
 
 // Create admin client lazily to avoid startup errors
 function getSupabaseAdmin() {
@@ -27,8 +28,26 @@ async function getAnyRestaurant(): Promise<string | null> {
   return existing.id;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Auth check
+    const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
+
+    if (!tenantId || !userId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Only RESTAURANT or ADMIN can use wine suggestions
+    if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'RESTAURANT')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
     // Check environment variables
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       console.error('Missing NEXT_PUBLIC_SUPABASE_URL');
@@ -76,8 +95,8 @@ export async function POST(request: Request) {
       grape,
     });
 
-    // MVP: Get any existing restaurant for testing
-    const restaurantId = await getAnyRestaurant();
+    // Use authenticated user's restaurant
+    const restaurantId = actor.restaurant_id;
 
     // Save request to database
     let request_id: string;

@@ -3,7 +3,10 @@
  *
  * GET /api/requests
  *
- * Lists quote requests for supplier view (OPEN first)
+ * Lists quote requests
+ * - RESTAURANT users see their own requests
+ * - SELLER users see requests they're assigned to
+ * - ADMIN users see all requests
  *
  * Query params:
  * - status: Filter by status (default: OPEN)
@@ -20,11 +23,12 @@
  *
  * Security:
  * - Tenant isolation enforced
- * - Supplier sees all OPEN requests in tenant (marketplace view)
+ * - Role-based filtering
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,15 +38,53 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    // Auth check
+    const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
+
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
     // Query params
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'OPEN';
     const limit = parseInt(searchParams.get('limit') || '50', 10);
 
-    // MVP: Get all requests (single tenant setup)
+    // Role-based access control
+    let requestIds: string[] | null = null;
+
+    if (actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
+      // Restaurant users only see their own requests - filter by restaurant_id
+      const { data: requests } = await supabase
+        .from('requests')
+        .select('id')
+        .eq('restaurant_id', actor.restaurant_id);
+      requestIds = requests?.map(r => r.id) || [];
+    } else if (actorService.hasRole(actor, 'SELLER') && !actorService.hasRole(actor, 'ADMIN')) {
+      // Sellers only see requests they're assigned to
+      const { data: assignments } = await supabase
+        .from('quote_request_assignments')
+        .select('quote_request_id')
+        .eq('supplier_id', actor.supplier_id);
+      requestIds = assignments?.map(a => a.quote_request_id) || [];
+    }
+    // ADMIN sees all requests (requestIds remains null)
+
     let query = supabase
       .from('requests')
       .select('id, restaurant_id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, accepted_offer_id, created_at');
+
+    // Apply role-based filter if needed
+    if (requestIds !== null) {
+      if (requestIds.length === 0) {
+        // No requests to show
+        return NextResponse.json({ requests: [] }, { status: 200 });
+      }
+      query = query.in('id', requestIds);
+    }
 
     // Filter by status if provided and not empty
     if (status && status.trim() !== '') {

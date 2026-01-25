@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,6 +11,12 @@ const supabase = createClient(
 const STORAGE_BUCKET = 'documents';
 const SIGNED_URL_EXPIRES_IN = 300; // 5 minutes
 
+/**
+ * GET /api/imports/[id]/documents/[docId]/download
+ *
+ * Download import document
+ * REQUIRES: IOR, SELLER, or ADMIN role
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string; docId: string } }
@@ -17,9 +24,19 @@ export async function GET(
   try {
     const { id: importId, docId: documentId } = params;
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant context' }, { status: 401 });
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Must have IOR, SELLER, or ADMIN role to download import documents
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        !actorService.hasRole(actor, 'IOR') &&
+        !actorService.hasRole(actor, 'SELLER')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // 1. Verify import case exists and belongs to tenant
