@@ -65,6 +65,23 @@ export async function GET(request: NextRequest) {
       // Continue without email
     }
 
+    // Build roles array - check if supplier also has IOR access
+    const roles: string[] = ['SELLER'];
+
+    // Check if supplier's org_number matches an importer (gives IOR role)
+    if (supplier.org_number) {
+      const { data: importer } = await supabase
+        .from('importers')
+        .select('id')
+        .eq('org_number', supplier.org_number)
+        .eq('tenant_id', tenantId)
+        .single();
+
+      if (importer) {
+        roles.push('IOR');
+      }
+    }
+
     return NextResponse.json({
       supplierId: supplier.id,
       supplierName: supplier.namn,
@@ -72,7 +89,7 @@ export async function GET(request: NextRequest) {
       orgNumber: supplier.org_number,
       isActive: supplier.is_active,
       userEmail,
-      roles: ['SELLER'],
+      roles,
     });
 
   } catch (error: any) {
