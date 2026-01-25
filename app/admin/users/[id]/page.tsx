@@ -14,7 +14,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
@@ -64,11 +64,7 @@ export default function AdminUserDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchUserDetail();
-  }, [userId]);
-
-  const fetchUserDetail = async () => {
+  const fetchUserDetail = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -97,7 +93,11 @@ export default function AdminUserDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchUserDetail();
+  }, [fetchUserDetail]);
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {

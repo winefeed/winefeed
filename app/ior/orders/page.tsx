@@ -19,7 +19,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
 
@@ -59,19 +59,7 @@ export default function IOROrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  // Fetch actor context on mount
-  useEffect(() => {
-    fetchActor();
-  }, []);
-
-  // Fetch orders when actor or filter changes
-  useEffect(() => {
-    if (actor && actor.importer_id) {
-      fetchOrders();
-    }
-  }, [actor, statusFilter]);
-
-  const fetchActor = async () => {
+  const fetchActor = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -97,9 +85,9 @@ export default function IOROrdersPage() {
       setError(err.message || 'Kunde inte ladda användarprofil');
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!actor || !actor.importer_id) return;
 
     try {
@@ -137,7 +125,19 @@ export default function IOROrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [actor, statusFilter]);
+
+  // Fetch actor context on mount
+  useEffect(() => {
+    fetchActor();
+  }, [fetchActor]);
+
+  // Fetch orders when actor or filter changes
+  useEffect(() => {
+    if (actor && actor.importer_id) {
+      fetchOrders();
+    }
+  }, [actor, fetchOrders]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('sv-SE', {

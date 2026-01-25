@@ -14,7 +14,7 @@
  * - Popular wine categories
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { TrendingUp, TrendingDown, Award, Clock, Target, Wine, BarChart3, Percent } from 'lucide-react';
 
 interface SupplierStats {
@@ -41,11 +41,7 @@ export default function SupplierAnalyticsPage() {
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [timeRange]);
-
-  async function fetchAnalytics() {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -97,7 +93,11 @@ export default function SupplierAnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [timeRange]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(amount);

@@ -6,7 +6,7 @@
  * View and manage orders from accepted offers
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Package, Clock, Building2, Truck, CheckCircle, XCircle, ChevronRight, AlertCircle } from 'lucide-react';
 
 interface Order {
@@ -33,11 +33,7 @@ export default function SupplierOrdersPage() {
   const [showDeclineModal, setShowDeclineModal] = useState<string | null>(null);
   const [declineReason, setDeclineReason] = useState('');
 
-  useEffect(() => {
-    fetchOrders();
-  }, [filter]);
-
-  async function fetchOrders() {
+  const fetchOrders = useCallback(async () => {
     try {
       // Get supplier context
       const supplierRes = await fetch('/api/me/supplier');
@@ -61,7 +57,11 @@ export default function SupplierOrdersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [filter]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
     pending: { label: 'Väntar på bekräftelse', color: 'bg-yellow-100 text-yellow-800', icon: Clock },

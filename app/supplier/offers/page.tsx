@@ -6,7 +6,7 @@
  * View and manage sent offers
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { FileText, Clock, Building2, CheckCircle, XCircle, AlertCircle, ChevronRight } from 'lucide-react';
 
 interface Offer {
@@ -27,11 +27,7 @@ export default function SupplierOffersPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
   const [supplierId, setSupplierId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchOffers();
-  }, [filter]);
-
-  async function fetchOffers() {
+  const fetchOffers = useCallback(async () => {
     try {
       // Get supplier context
       const supplierRes = await fetch('/api/me/supplier');
@@ -55,7 +51,11 @@ export default function SupplierOffersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [filter]);
+
+  useEffect(() => {
+    fetchOffers();
+  }, [fetchOffers]);
 
   const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
     pending: { label: 'Väntar', color: 'bg-blue-100 text-blue-800', icon: Clock },

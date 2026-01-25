@@ -21,7 +21,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
@@ -102,19 +102,7 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch actor context on mount
-  useEffect(() => {
-    fetchActor();
-  }, []);
-
-  // Fetch order when actor is ready
-  useEffect(() => {
-    if (actor && actor.restaurant_id) {
-      fetchOrderDetail();
-    }
-  }, [actor, orderId]);
-
-  const fetchActor = async () => {
+  const fetchActor = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -142,9 +130,9 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
       setError(err.message || 'Kunde inte ladda användarprofil');
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchOrderDetail = async () => {
+  const fetchOrderDetail = useCallback(async () => {
     if (!actor || !actor.restaurant_id) return;
 
     try {
@@ -176,7 +164,19 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
     } finally {
       setLoading(false);
     }
-  };
+  }, [actor, orderId]);
+
+  // Fetch actor context on mount
+  useEffect(() => {
+    fetchActor();
+  }, [fetchActor]);
+
+  // Fetch order when actor is ready
+  useEffect(() => {
+    if (actor && actor.restaurant_id) {
+      fetchOrderDetail();
+    }
+  }, [actor, fetchOrderDetail]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('sv-SE', {

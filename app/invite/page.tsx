@@ -15,7 +15,7 @@
 
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface InviteDetails {
@@ -42,17 +42,7 @@ function InvitePageContent() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
 
-  useEffect(() => {
-    if (!token) {
-      setError('Missing invite token. Please check your email link.');
-      setLoading(false);
-      return;
-    }
-
-    verifyInvite();
-  }, [token]);
-
-  const verifyInvite = async () => {
+  const verifyInvite = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -71,7 +61,17 @@ function InvitePageContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) {
+      setError('Missing invite token. Please check your email link.');
+      setLoading(false);
+      return;
+    }
+
+    verifyInvite();
+  }, [token, verifyInvite]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

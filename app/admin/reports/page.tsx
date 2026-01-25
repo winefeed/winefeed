@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   FileText,
   Download,
@@ -93,11 +93,7 @@ export default function AdminReportsPage() {
   const [endDate, setEndDate] = useState(defaultEndDate);
   const [groupBy, setGroupBy] = useState<'none' | 'restaurant' | 'supplier' | 'month'>('none');
 
-  useEffect(() => {
-    fetchReport();
-  }, [startDate, endDate, groupBy]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -122,7 +118,11 @@ export default function AdminReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate, groupBy]);
+
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
 
   const handleExport = async () => {
     try {

@@ -12,7 +12,7 @@
  * - Quick actions per request
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck } from 'lucide-react';
 
@@ -60,9 +60,35 @@ export default function SupplierRequestsPage() {
   const [bulkShippingNotes, setBulkShippingNotes] = useState('');
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
 
+  const fetchRequests = useCallback(async () => {
+    try {
+      // Get supplier context
+      const supplierRes = await fetch('/api/me/supplier');
+      if (!supplierRes.ok) {
+        window.location.href = '/supplier/login';
+        return;
+      }
+      const supplierData = await supplierRes.json();
+      setSupplierId(supplierData.supplierId);
+
+      // Fetch requests
+      const requestsRes = await fetch(
+        `/api/suppliers/${supplierData.supplierId}/quote-requests?filter=${filter}`
+      );
+      if (requestsRes.ok) {
+        const data = await requestsRes.json();
+        setRequests(data.requests || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch requests:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [filter]);
+
   useEffect(() => {
     fetchRequests();
-  }, [filter]);
+  }, [fetchRequests]);
 
   // Toggle selection of a request
   const toggleSelection = (id: string) => {
@@ -146,32 +172,6 @@ export default function SupplierRequestsPage() {
       setBulkSubmitting(false);
     }
   };
-
-  async function fetchRequests() {
-    try {
-      // Get supplier context
-      const supplierRes = await fetch('/api/me/supplier');
-      if (!supplierRes.ok) {
-        window.location.href = '/supplier/login';
-        return;
-      }
-      const supplierData = await supplierRes.json();
-      setSupplierId(supplierData.supplierId);
-
-      // Fetch requests
-      const requestsRes = await fetch(
-        `/api/suppliers/${supplierData.supplierId}/quote-requests?filter=${filter}`
-      );
-      if (requestsRes.ok) {
-        const data = await requestsRes.json();
-        setRequests(data.requests || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch requests:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const pendingCount = requests.filter((r) => r.myOfferCount === 0).length;
   const respondedCount = requests.filter((r) => r.myOfferCount > 0).length;

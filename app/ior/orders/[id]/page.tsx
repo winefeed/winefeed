@@ -17,7 +17,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
@@ -98,19 +98,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
   const [creatingImport, setCreatingImport] = useState(false);
 
-  // Fetch actor context on mount
-  useEffect(() => {
-    fetchActor();
-  }, []);
-
-  // Fetch order when actor is ready
-  useEffect(() => {
-    if (actor && actor.importer_id) {
-      fetchOrderDetail();
-    }
-  }, [actor, orderId]);
-
-  const fetchActor = async () => {
+  const fetchActor = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -136,9 +124,9 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
       setError(err.message || 'Kunde inte ladda användarprofil');
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchOrderDetail = async () => {
+  const fetchOrderDetail = useCallback(async () => {
     if (!actor || !actor.importer_id) return;
 
     try {
@@ -168,7 +156,19 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
     } finally {
       setLoading(false);
     }
-  };
+  }, [actor, orderId]);
+
+  // Fetch actor context on mount
+  useEffect(() => {
+    fetchActor();
+  }, [fetchActor]);
+
+  // Fetch order when actor is ready
+  useEffect(() => {
+    if (actor && actor.importer_id) {
+      fetchOrderDetail();
+    }
+  }, [actor, fetchOrderDetail]);
 
   const updateOrderStatus = async (toStatus: string) => {
     if (!actor || !actor.importer_id) return;
