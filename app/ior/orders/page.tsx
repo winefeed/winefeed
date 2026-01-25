@@ -82,7 +82,9 @@ export default function IOROrdersPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch actor context');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Actor API error:', response.status, errorData);
+        throw new Error(errorData.error || `Failed to fetch actor context: ${response.status}`);
       }
 
       const actorData = await response.json();
@@ -120,13 +122,15 @@ export default function IOROrdersPage() {
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API error:', response.status, errorData);
         if (response.status === 401) {
-          throw new Error('Unauthorized: Missing authentication');
+          throw new Error(`Unauthorized: ${errorData.error || 'Missing authentication'}`);
         }
         if (response.status === 403) {
-          throw new Error('Access denied: Not authorized as IOR');
+          throw new Error(`Access denied: ${errorData.error || 'Not authorized as IOR'}`);
         }
-        throw new Error('Failed to fetch orders');
+        throw new Error(errorData.error || errorData.details || `Server error: ${response.status}`);
       }
 
       const data = await response.json();
