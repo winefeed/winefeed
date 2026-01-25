@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send } from 'lucide-react';
 
 // Wine color options - matches database enum (wine_color)
 // Valid values: red, white, rose, sparkling, orange, fortified
@@ -91,6 +92,9 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCertifications, setSelectedCertifications] = useState<string[]>([]);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingData, setPendingData] = useState<RequestFormData | null>(null);
+  const [supplierMessage, setSupplierMessage] = useState('');
 
   const {
     register,
@@ -121,7 +125,17 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
     );
   };
 
+  // Show confirmation modal instead of submitting directly
   const onSubmit = async (data: RequestFormData) => {
+    setPendingData(data);
+    setShowConfirmation(true);
+    setError(null);
+  };
+
+  // Actually submit the request after confirmation
+  const handleConfirmedSubmit = async () => {
+    if (!pendingData) return;
+
     setIsLoading(true);
     setError(null);
 
@@ -129,19 +143,21 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       // Build the request with structured data
       const requestData = {
         // Structured filters (for SQL)
-        color: data.color === 'all' ? null : data.color,
-        budget_max: data.budget_max,
-        antal_flaskor: data.antal_flaskor,
-        country: data.country === 'all' ? null : data.country,
-        grape: data.grape === 'all' ? null : data.grape,
-        leverans_senast: data.leverans_senast || null,
-        leverans_ort: data.leverans_ort, // Delivery city for shipping calculation
+        color: pendingData.color === 'all' ? null : pendingData.color,
+        budget_max: pendingData.budget_max,
+        antal_flaskor: pendingData.antal_flaskor,
+        country: pendingData.country === 'all' ? null : pendingData.country,
+        grape: pendingData.grape === 'all' ? null : pendingData.grape,
+        leverans_senast: pendingData.leverans_senast || null,
+        leverans_ort: pendingData.leverans_ort, // Delivery city for shipping calculation
         certifications: selectedCertifications.length > 0 ? selectedCertifications : null,
         // Free text for AI ranking
-        description: data.description || null,
+        description: pendingData.description || null,
+        // Message to suppliers (new field)
+        supplier_message: supplierMessage || null,
         // Legacy field - build fritext from structured data for backwards compatibility
-        fritext: buildFritext(data, selectedCertifications),
-        budget_per_flaska: data.budget_max, // Legacy field
+        fritext: buildFritext(pendingData, selectedCertifications),
+        budget_per_flaska: pendingData.budget_max, // Legacy field
         specialkrav: selectedCertifications.length > 0 ? selectedCertifications : undefined,
       };
 
@@ -158,6 +174,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
       const result = await response.json();
       sessionStorage.setItem('latest-suggestions', JSON.stringify(result.suggestions));
+      setShowConfirmation(false);
       onSuccess?.(result.request_id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Något gick fel');
@@ -165,6 +182,180 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       setIsLoading(false);
     }
   };
+
+  // Get labels for display
+  const getColorLabel = (value: string) => WINE_COLORS.find(c => c.value === value)?.label || value;
+  const getColorEmoji = (value: string) => WINE_COLORS.find(c => c.value === value)?.emoji || '';
+  const getCountryLabel = (value: string) => WINE_COUNTRIES.find(c => c.value === value)?.label || value;
+  const getGrapeLabel = (value: string) => GRAPE_VARIETIES.find(g => g.value === value)?.label || value;
+
+  // Confirmation Modal
+  if (showConfirmation && pendingData) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Bekräfta din förfrågan</h2>
+          <button
+            onClick={() => setShowConfirmation(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Summary */}
+        <div className="bg-gray-50 rounded-lg p-5 space-y-4">
+          <h3 className="font-medium text-gray-900 flex items-center gap-2">
+            <Wine className="h-5 w-5 text-primary" />
+            Vad du söker
+          </h3>
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            {/* Wine type */}
+            <div>
+              <span className="text-gray-500">Vintyp:</span>
+              <p className="font-medium">
+                {getColorEmoji(pendingData.color)} {getColorLabel(pendingData.color)}
+              </p>
+            </div>
+
+            {/* Budget */}
+            <div>
+              <span className="text-gray-500">Max budget:</span>
+              <p className="font-medium">{pendingData.budget_max} kr/flaska</p>
+            </div>
+
+            {/* Quantity */}
+            <div>
+              <span className="text-gray-500">Antal:</span>
+              <p className="font-medium">{pendingData.antal_flaskor} flaskor</p>
+            </div>
+
+            {/* Country */}
+            {pendingData.country && pendingData.country !== 'all' && (
+              <div>
+                <span className="text-gray-500">Land:</span>
+                <p className="font-medium">{getCountryLabel(pendingData.country)}</p>
+              </div>
+            )}
+
+            {/* Grape */}
+            {pendingData.grape && pendingData.grape !== 'all' && (
+              <div>
+                <span className="text-gray-500">Druva:</span>
+                <p className="font-medium">{getGrapeLabel(pendingData.grape)}</p>
+              </div>
+            )}
+
+            {/* Certifications */}
+            {selectedCertifications.length > 0 && (
+              <div className="col-span-2">
+                <span className="text-gray-500">Certifieringar:</span>
+                <div className="flex gap-2 mt-1">
+                  {selectedCertifications.map(cert => (
+                    <span key={cert} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                      {CERTIFICATIONS.find(c => c.id === cert)?.label || cert}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          {pendingData.description && (
+            <div className="pt-3 border-t border-gray-200">
+              <span className="text-gray-500 text-sm">Övriga önskemål:</span>
+              <p className="text-sm mt-1">{pendingData.description}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Delivery info */}
+        <div className="bg-gray-50 rounded-lg p-5 space-y-3">
+          <h3 className="font-medium text-gray-900 flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-primary" />
+            Leverans
+          </h3>
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-gray-500">Leveransort:</span>
+              <p className="font-medium">{pendingData.leverans_ort}</p>
+            </div>
+
+            {pendingData.leverans_senast && (
+              <div>
+                <span className="text-gray-500">Senast:</span>
+                <p className="font-medium">
+                  {new Date(pendingData.leverans_senast).toLocaleDateString('sv-SE')}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Message to suppliers */}
+        <div className="space-y-2">
+          <Label htmlFor="supplier_message">Meddelande till leverantörer (valfritt)</Label>
+          <Textarea
+            id="supplier_message"
+            value={supplierMessage}
+            onChange={(e) => setSupplierMessage(e.target.value)}
+            placeholder="T.ex. 'Vi planerar en vinprovning för 20 gäster', 'Vill gärna ha prover först'"
+            rows={3}
+          />
+          <p className="text-xs text-muted-foreground">
+            Detta meddelande visas för alla leverantörer som får din förfrågan
+          </p>
+        </div>
+
+        {error && (
+          <div className="p-4 border border-destructive bg-destructive/10 rounded-md">
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowConfirmation(false)}
+            className="flex-1"
+            disabled={isLoading}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Ändra
+          </Button>
+          <Button
+            type="button"
+            onClick={handleConfirmedSubmit}
+            className="flex-1"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              'Skickar...'
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Skicka förfrågan
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Trust text */}
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+            <CheckCircle className="h-3 w-3" />
+            Din förfrågan skickas till utvalda leverantörer. Ingen förpliktelse.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -334,7 +525,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       </div>
 
       <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Hämtar förslag...' : 'Få offertförslag'}
+        Granska och skicka
       </Button>
 
       {/* Trust text */}

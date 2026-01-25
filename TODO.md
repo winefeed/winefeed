@@ -10,13 +10,12 @@
 
 ## UX-förbättringar
 
-### Bekräftelse-steg innan förfrågan skickas
-- [ ] Visa sammanställning av valda viner (namn, pris, leverantör)
-- [ ] Visa och bekräfta kontaktuppgifter (e-post, telefon)
-- [ ] Fritextfält för meddelande till leverantörer
-- [ ] Visa leveransort
-- [ ] "Bekräfta och skicka"-knapp
-- [ ] Möjlighet att gå tillbaka och ändra
+### ~~Bekräftelse-steg innan förfrågan skickas~~ ✅ FIXAT
+- [x] Visa sammanställning av valda viner (typ, budget, antal)
+- [x] Fritextfält för meddelande till leverantörer
+- [x] Visa leveransort
+- [x] "Bekräfta och skicka"-knapp
+- [x] Möjlighet att gå tillbaka och ändra
 
 ### ~~Klickbara vinkort i leverantörens dashboard~~ ✅ FIXAT
 - [x] Gör vinkorten i "Senast tillagda viner" klickbara
