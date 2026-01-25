@@ -30,7 +30,6 @@ export async function middleware(request: NextRequest) {
     '/invite',
     '/api/invites/verify',
     '/api/invites/accept',
-    '/api/suggest',      // Wine suggestion API (public for demo)
     '/signup',           // Public restaurant registration
     '/api/org-lookup',   // Org number lookup (public)
     '/api/restaurants/onboard',  // Restaurant registration (public)
@@ -42,6 +41,7 @@ export async function middleware(request: NextRequest) {
     '/api/auth/logout',  // Logout API
     '/portal-select',    // Portal selector for multi-role users
     '/forgot-password',  // Forgot password page
+    '/pitch',            // Public pitch page
   ];
 
   // Static assets - skip auth
