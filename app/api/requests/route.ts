@@ -133,23 +133,83 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Get dispatch tracking data (quote_request_assignments)
+    interface TrackingData {
+      dispatched_to: number;
+      viewed_by: number;
+      responded_by: number;
+      dispatched_at: string | null;
+      expires_at: string | null;
+    }
+    let trackingMap: Record<string, TrackingData> = {};
+
+    if (fetchedRequestIds.length > 0) {
+      const { data: assignments } = await supabase
+        .from('quote_request_assignments')
+        .select('quote_request_id, status, sent_at, expires_at')
+        .in('quote_request_id', fetchedRequestIds);
+
+      if (assignments) {
+        assignments.forEach(assignment => {
+          const reqId = assignment.quote_request_id;
+          if (!trackingMap[reqId]) {
+            trackingMap[reqId] = {
+              dispatched_to: 0,
+              viewed_by: 0,
+              responded_by: 0,
+              dispatched_at: assignment.sent_at,
+              expires_at: assignment.expires_at
+            };
+          }
+
+          trackingMap[reqId].dispatched_to++;
+
+          // Track viewed (VIEWED or RESPONDED status)
+          if (assignment.status === 'VIEWED' || assignment.status === 'RESPONDED') {
+            trackingMap[reqId].viewed_by++;
+          }
+
+          // Track responded
+          if (assignment.status === 'RESPONDED') {
+            trackingMap[reqId].responded_by++;
+          }
+
+          // Use earliest sent_at as dispatched_at
+          if (assignment.sent_at && (!trackingMap[reqId].dispatched_at || assignment.sent_at < trackingMap[reqId].dispatched_at!)) {
+            trackingMap[reqId].dispatched_at = assignment.sent_at;
+          }
+        });
+      }
+    }
+
     // Map Swedish column names to English API response format
-    const requestsWithCounts = (requests || []).map(req => ({
-      id: req.id,
-      restaurant_id: req.restaurant_id,
-      title: null, // Not in schema
-      freetext: req.fritext || null,
-      budget_sek: req.budget_per_flaska || null,
-      quantity_bottles: req.antal_flaskor || null,
-      delivery_date_requested: req.leverans_senast || null,
-      specialkrav: req.specialkrav || null,
-      status: req.status || 'OPEN',
-      accepted_offer_id: req.accepted_offer_id || null,
-      created_at: req.created_at,
-      offers_count: offersCountMap[req.id] || 0,
-      new_offers_count: newOffersCountMap[req.id] || 0,
-      latest_offer_at: latestOfferMap[req.id] || null
-    }));
+    const requestsWithCounts = (requests || []).map(req => {
+      const tracking = trackingMap[req.id];
+      return {
+        id: req.id,
+        restaurant_id: req.restaurant_id,
+        title: null, // Not in schema
+        freetext: req.fritext || null,
+        budget_sek: req.budget_per_flaska || null,
+        quantity_bottles: req.antal_flaskor || null,
+        delivery_date_requested: req.leverans_senast || null,
+        specialkrav: req.specialkrav || null,
+        status: req.status || 'OPEN',
+        accepted_offer_id: req.accepted_offer_id || null,
+        created_at: req.created_at,
+        offers_count: offersCountMap[req.id] || 0,
+        new_offers_count: newOffersCountMap[req.id] || 0,
+        latest_offer_at: latestOfferMap[req.id] || null,
+        // Area A: Request tracking data
+        tracking: tracking ? {
+          dispatched_to: tracking.dispatched_to,
+          viewed_by: tracking.viewed_by,
+          responded_by: tracking.responded_by,
+          dispatched_at: tracking.dispatched_at,
+          expires_at: tracking.expires_at
+        } : null
+      };
+    });
 
     return NextResponse.json({ requests: requestsWithCounts }, { status: 200 });
 
