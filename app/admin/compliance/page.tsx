@@ -12,7 +12,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   FileText,
   Download,
@@ -149,11 +149,7 @@ export default function AdminCompliancePage() {
   const [startDate, setStartDate] = useState(defaultStartDate);
   const [endDate, setEndDate] = useState(defaultEndDate);
 
-  useEffect(() => {
-    fetchReport();
-  }, [startDate, endDate, activeTab]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -178,7 +174,11 @@ export default function AdminCompliancePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate, activeTab]);
+
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
 
   const handleExport = async (exportType: 'alcohol-tax' | 'vat' | 'transactions') => {
     try {

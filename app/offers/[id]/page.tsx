@@ -14,7 +14,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OfferLineItemRow } from '../components/OfferLineItemRow';
 import { OfferStatusBadge } from '../components/OfferStatusBadge';
@@ -97,7 +97,7 @@ export default function OfferEditorPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch offer from API
-  const fetchOffer = async () => {
+  const fetchOffer = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -121,11 +121,11 @@ export default function OfferEditorPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [offerId]);
 
   useEffect(() => {
     fetchOffer();
-  }, [offerId]);
+  }, [fetchOffer]);
 
   const handleUpdateLine = (index: number, updatedLine: Partial<OfferLine>) => {
     if (!data) return;

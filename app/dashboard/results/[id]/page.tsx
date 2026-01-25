@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox } from 'lucide-react';
@@ -86,6 +86,23 @@ export default function ResultsPage() {
     sortBy: 'score' as SortOption,
   });
 
+  const fetchOfferCounts = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/quote-requests/${requestId}/offers`, {
+        headers: {
+          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setOffersCount(data.summary?.total || data.offers?.length || 0);
+        setNewOffersCount(data.summary?.active || 0);
+      }
+    } catch (err) {
+      console.log('Could not fetch offer counts:', err);
+    }
+  }, [requestId]);
+
   useEffect(() => {
     const stored = sessionStorage.getItem('latest-suggestions');
     if (stored) {
@@ -103,24 +120,7 @@ export default function ResultsPage() {
 
     // Fetch offer counts for this request
     fetchOfferCounts();
-  }, [requestId]);
-
-  const fetchOfferCounts = async () => {
-    try {
-      const response = await fetch(`/api/quote-requests/${requestId}/offers`, {
-        headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setOffersCount(data.summary?.total || data.offers?.length || 0);
-        setNewOffersCount(data.summary?.active || 0);
-      }
-    } catch (err) {
-      console.log('Could not fetch offer counts:', err);
-    }
-  };
+  }, [fetchOfferCounts]);
 
   // Extract unique values for filter dropdowns
   const filterOptions = useMemo(() => {

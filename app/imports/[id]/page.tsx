@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { StatusTimeline } from '../components/StatusTimeline';
@@ -78,7 +78,7 @@ export default function ImportDetailsPage({ params }: { params: { id: string } }
   const [error, setError] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError('');
 
@@ -113,11 +113,11 @@ export default function ImportDetailsPage({ params }: { params: { id: string } }
     } finally {
       setLoading(false);
     }
-  };
+  }, [importId]);
 
   useEffect(() => {
     fetchData();
-  }, [importId]);
+  }, [fetchData]);
 
   if (loading) {
     return (

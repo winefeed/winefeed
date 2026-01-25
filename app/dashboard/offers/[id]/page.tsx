@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 
@@ -123,11 +123,7 @@ export default function OffersPage() {
   const [acceptedOffer, setAcceptedOffer] = useState<AcceptResponse | null>(null);
   const [acceptError, setAcceptError] = useState<ErrorResponse | null>(null);
 
-  useEffect(() => {
-    fetchOffers();
-  }, [requestId, includeExpired]);
-
-  const fetchOffers = async () => {
+  const fetchOffers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -147,7 +143,11 @@ export default function OffersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [requestId, includeExpired]);
+
+  useEffect(() => {
+    fetchOffers();
+  }, [fetchOffers]);
 
   const handleAcceptOffer = async (offerId: string) => {
     try {

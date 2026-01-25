@@ -19,7 +19,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { OrderStatusBadge } from './components/StatusBadge';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
@@ -64,19 +64,7 @@ export default function RestaurantOrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  // Fetch actor context on mount
-  useEffect(() => {
-    fetchActor();
-  }, []);
-
-  // Fetch orders when actor or filter changes
-  useEffect(() => {
-    if (actor && (actor.restaurant_id || actor.roles.includes('ADMIN'))) {
-      fetchOrders();
-    }
-  }, [actor, statusFilter]);
-
-  const fetchActor = async () => {
+  const fetchActor = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -107,9 +95,9 @@ export default function RestaurantOrdersPage() {
       setError(err.message || 'Kunde inte ladda användarprofil');
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!actor) return;
 
     const isAdmin = actor.roles.includes('ADMIN');
@@ -155,7 +143,19 @@ export default function RestaurantOrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [actor, statusFilter]);
+
+  // Fetch actor context on mount
+  useEffect(() => {
+    fetchActor();
+  }, [fetchActor]);
+
+  // Fetch orders when actor or filter changes
+  useEffect(() => {
+    if (actor && (actor.restaurant_id || actor.roles.includes('ADMIN'))) {
+      fetchOrders();
+    }
+  }, [actor, fetchOrders]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('sv-SE', {
