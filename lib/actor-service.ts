@@ -76,11 +76,12 @@ class ActorService {
     }
 
     // 2. Check SELLER role (supplier_users table)
+    // Note: supplier_users.id = auth.users.id (not user_id column)
     try {
       const { data: supplierUser } = await getSupabaseAdmin()
         .from('supplier_users')
         .select('supplier_id')
-        .eq('user_id', user_id)
+        .eq('id', user_id)
         .single();
 
       if (supplierUser) {

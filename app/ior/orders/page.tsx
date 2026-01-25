@@ -23,10 +23,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
 
-// MVP: Hardcoded tenant for testing
-// Production: Get from authenticated user context or environment
+// Tenant ID - single tenant for MVP
+// Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
-const USER_ID = '00000000-0000-0000-0000-000000000001'; // MVP: Simulated auth
 
 interface ActorContext {
   tenant_id: string;
@@ -77,12 +76,8 @@ export default function IOROrdersPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/me/actor', {
-        headers: {
-          'x-tenant-id': TENANT_ID,
-          'x-user-id': USER_ID
-        }
-      });
+      // Middleware sets x-user-id from Supabase auth session
+      const response = await fetch('/api/me/actor');
 
       if (!response.ok) {
         throw new Error('Failed to fetch actor context');
@@ -117,13 +112,8 @@ export default function IOROrdersPage() {
 
       const url = `/api/ior/orders${params.toString() ? `?${params.toString()}` : ''}`;
 
-      const response = await fetch(url, {
-        headers: {
-          'x-tenant-id': TENANT_ID,
-          'x-user-id': USER_ID,
-          'x-importer-id': actor.importer_id
-        }
-      });
+      // Middleware sets x-user-id and x-tenant-id from Supabase auth session
+      const response = await fetch(url);
 
       if (!response.ok) {
         if (response.status === 401) {
