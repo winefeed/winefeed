@@ -5,6 +5,8 @@
  *
  * Accepts a multi-line offer and locks it (immutable snapshot)
  *
+ * REQUIRES: RESTAURANT role and ownership of the offer's request
+ *
  * Flow:
  * 1. Validate offer exists and is not already accepted
  * 2. Lock offer (set status = ACCEPTED, locked_at = now)
@@ -14,6 +16,8 @@
  *
  * Security:
  * - Tenant isolation
+ * - User authentication required
+ * - Only restaurant owner can accept
  * - Cannot accept twice
  * - Immutable after acceptance
  * - Audit trail
@@ -25,6 +29,7 @@ import { orderService } from '@/lib/order-service';
 import { sendEmail, getSupplierEmail, logEmailEvent } from '@/lib/email-service';
 import { offerAcceptedEmail } from '@/lib/email-templates';
 import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,16 +45,31 @@ export async function POST(
     // Alias id to offerId per routing standard
     const { id: offerId } = params;
 
-    // Extract tenant context
+    // Extract auth context - userId is REQUIRED
     const tenantId = request.headers.get('x-tenant-id');
-    const userId = request.headers.get('x-user-id');  // Optional actor
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant context' }, { status: 401 });
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Only RESTAURANT users or ADMIN can accept offers
+    if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'RESTAURANT')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    // Verify restaurant ownership of the offer
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      const existingOffer = await offerService.getOffer(tenantId, offerId);
+      if (!existingOffer || existingOffer.offer.restaurant_id !== actor.restaurant_id) {
+        return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      }
     }
 
     // Accept offer via service (lock + snapshot + event)
-    const result = await offerService.acceptOffer(tenantId, offerId, userId || undefined);
+    const result = await offerService.acceptOffer(tenantId, offerId, userId);
 
     // EU-SELLER → IOR FLOW: Create order from accepted offer
     // Fail-safe: Order creation failure doesn't block acceptance (logged but not thrown)

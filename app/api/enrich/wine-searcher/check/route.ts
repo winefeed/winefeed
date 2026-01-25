@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { wineSearcherService, WineCheckResult, WineCheckResponse } from '@/lib/winesearcher-service';
+import { actorService } from '@/lib/actor-service';
 
 /**
  * SECURITY CHECK: Validate response contains NO price data
@@ -70,14 +71,24 @@ function validateAllowlistKeys(data: WineCheckResult): void {
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. Extract tenant context from headers
+    // 1. Extract tenant context and user auth
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
+    if (!tenantId || !userId) {
       return NextResponse.json(
-        { error: 'Missing tenant context' },
+        { error: 'Missing authentication context' },
         { status: 401 }
       );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Only SELLER, IOR, or ADMIN can use wine enrichment
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        !actorService.hasRole(actor, 'SELLER') &&
+        !actorService.hasRole(actor, 'IOR')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // 2. Parse query parameters

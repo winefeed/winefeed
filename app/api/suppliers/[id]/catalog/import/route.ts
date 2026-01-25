@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { actorService } from '@/lib/actor-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -49,6 +50,29 @@ export async function POST(
 ) {
   try {
     const supplierId = params.id;
+
+    // Auth check - verify user owns this supplier
+    const userId = req.headers.get('x-user-id');
+    const tenantId = req.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Must be SELLER and own this supplier (or ADMIN)
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        (!actorService.hasRole(actor, 'SELLER') || actor.supplier_id !== supplierId)) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
 
     if (!body.csvData || typeof body.csvData !== 'string') {

@@ -28,6 +28,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { matchService } from '@/lib/match-service';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -72,9 +73,17 @@ export async function POST(
   try {
     const { id: lineId } = params;
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant context' }, { status: 401 });
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Must be SELLER or ADMIN to run matching
+    if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'SELLER')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Load offer_line (tenant scoped)
@@ -90,6 +99,20 @@ export async function POST(
         { error: 'Offer line not found or access denied' },
         { status: 404 }
       );
+    }
+
+    // SELLER must own the offer that contains this line
+    if (actorService.hasRole(actor, 'SELLER') && !actorService.hasRole(actor, 'ADMIN')) {
+      const { data: offer } = await supabase
+        .from('offers')
+        .select('supplier_id')
+        .eq('id', line.offer_id)
+        .eq('tenant_id', tenantId)
+        .single();
+
+      if (!offer || offer.supplier_id !== actor.supplier_id) {
+        return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      }
     }
 
     // Build match payload from offer_line

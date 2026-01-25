@@ -2,11 +2,13 @@
  * POST /api/restaurants/:id/direct-delivery-locations
  *
  * Create a new Direct Delivery Location (DDL) for a restaurant
+ * REQUIRES: RESTAURANT role and ownership of the restaurant
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createDDLService } from '@/lib/compliance/ddl-service';
 import { CreateDDLRequest, DDLValidationError } from '@/lib/compliance/types';
+import { actorService } from '@/lib/actor-service';
 
 export async function POST(
   request: NextRequest,
@@ -23,6 +25,17 @@ export async function POST(
       return NextResponse.json(
         { error: 'Missing tenant or user context' },
         { status: 401 }
+      );
+    }
+
+    // Verify user owns this restaurant
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        (!actorService.hasRole(actor, 'RESTAURANT') || actor.restaurant_id !== restaurantId)) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
       );
     }
 

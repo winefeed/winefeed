@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { actorService } from '@/lib/actor-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -9,6 +10,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
  *
  * Lists quote requests assigned to this supplier via quote_request_assignments.
  * **ACCESS CONTROL:** Suppliers can ONLY see requests they have been assigned to.
+ *
+ * REQUIRES: User must be SELLER and owner of the supplier
  *
  * AUTO-STATUS UPDATE: When supplier lists, assignments are marked as VIEWED
  * (if status is still SENT).
@@ -54,6 +57,28 @@ export async function GET(
 ) {
   try {
     const supplierId = params.id;
+
+    // Auth check - verify user owns this supplier
+    const userId = req.headers.get('x-user-id');
+    const tenantId = req.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Must be SELLER and own this supplier (or ADMIN)
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        (!actorService.hasRole(actor, 'SELLER') || actor.supplier_id !== supplierId)) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
+    }
     const { searchParams } = new URL(req.url);
 
     const statusFilter = searchParams.get('status') || 'active';

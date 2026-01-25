@@ -14,6 +14,7 @@ import { offerService, CreateOfferInput } from '@/lib/offer-service';
 import { sendEmail, getRestaurantEmail, logEmailEvent } from '@/lib/email-service';
 import { offerCreatedEmail } from '@/lib/email-templates';
 import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,11 +24,19 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    // Extract tenant context
+    // Extract tenant context and user auth
     const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing tenant context' }, { status: 401 });
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Only SELLER or ADMIN can create offers
+    if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'SELLER')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Parse request body

@@ -2,11 +2,14 @@
  * POST /api/suppliers/:id/imports
  *
  * Upload CSV price list and create import
+ *
+ * REQUIRES: User must be SELLER and owner of the supplier
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { parse } from 'csv-parse/sync';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,6 +36,28 @@ export async function POST(
 ) {
   try {
     const { id: supplierId } = params;
+
+    // Auth check - verify user owns this supplier
+    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Must be SELLER and own this supplier (or ADMIN)
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        (!actorService.hasRole(actor, 'SELLER') || actor.supplier_id !== supplierId)) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
+    }
 
     // Parse multipart form or JSON
     const contentType = request.headers.get('content-type') || '';

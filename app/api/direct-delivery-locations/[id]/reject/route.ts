@@ -1,11 +1,12 @@
 /**
  * POST /api/direct-delivery-locations/:id/reject
  *
- * Reject DDL (compliance admin only)
+ * Reject DDL (ADMIN or IOR role only)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createDDLService } from '@/lib/compliance/ddl-service';
+import { actorService } from '@/lib/actor-service';
 import {
   DDLNotFoundError,
   DDLValidationError,
@@ -22,7 +23,6 @@ export async function POST(
     // Get tenant context
     const tenantId = request.headers.get('x-tenant-id');
     const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
 
     if (!tenantId || !userId) {
       return NextResponse.json(
@@ -31,10 +31,12 @@ export async function POST(
       );
     }
 
-    // Check role (compliance_admin only)
-    if (userRole !== 'compliance_admin') {
+    // Resolve actor and check role (ADMIN or IOR can reject DDLs)
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'IOR')) {
       return NextResponse.json(
-        { error: 'Forbidden: compliance_admin role required' },
+        { error: 'Forbidden: ADMIN or IOR role required to reject DDL' },
         { status: 403 }
       );
     }

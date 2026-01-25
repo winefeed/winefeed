@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+import { actorService } from '@/lib/actor-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,33 +18,32 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    // Get session from cookie
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('supplier_session');
+    // Use header-based authentication
+    const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
 
-    if (!sessionCookie?.value) {
+    if (!tenantId || !userId) {
       return NextResponse.json(
-        { error: 'Not authenticated' },
+        { error: 'Missing authentication context' },
         { status: 401 }
       );
     }
 
-    let session;
-    try {
-      session = JSON.parse(sessionCookie.value);
-    } catch {
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Must be SELLER to view supplier profile
+    if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'SELLER')) {
       return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
+        { error: 'Access denied' },
+        { status: 403 }
       );
     }
 
-    const { userId, supplierId } = session;
-
-    if (!userId || !supplierId) {
+    // SELLER can only view their own supplier profile
+    if (!actor.supplier_id) {
       return NextResponse.json(
-        { error: 'Invalid session data' },
-        { status: 401 }
+        { error: 'No supplier associated with this user' },
+        { status: 404 }
       );
     }
 
@@ -52,7 +51,7 @@ export async function GET(request: NextRequest) {
     const { data: supplier, error: supplierError } = await supabase
       .from('suppliers')
       .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active')
-      .eq('id', supplierId)
+      .eq('id', actor.supplier_id)
       .single();
 
     if (supplierError || !supplier) {
@@ -63,14 +62,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user email
-    let userEmail = session.email || '';
-    if (!userEmail) {
-      try {
-        const { data: user } = await supabase.auth.admin.getUserById(userId);
-        userEmail = user?.user?.email || '';
-      } catch {
-        // Continue without email
-      }
+    let userEmail = '';
+    try {
+      const { data: user } = await supabase.auth.admin.getUserById(userId);
+      userEmail = user?.user?.email || '';
+    } catch {
+      // Continue without email
     }
 
     return NextResponse.json({

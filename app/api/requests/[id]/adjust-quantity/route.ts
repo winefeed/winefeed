@@ -3,10 +3,13 @@
  *
  * Adjust wine quantity in a request to meet MOQ requirements.
  * Used when a restaurant wants to increase their order to meet minimum quantity.
+ *
+ * REQUIRES: RESTAURANT role and ownership of the request
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
 
 // Supabase client with service role
 const supabase = createClient(
@@ -40,6 +43,28 @@ export async function PATCH(
 ): Promise<NextResponse<AdjustQuantityResponse>> {
   try {
     const { id: requestId } = params;
+
+    // Auth check
+    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json(
+        { success: false, error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    // Must be RESTAURANT role
+    if (!actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied' },
+        { status: 403 }
+      );
+    }
+
     const body: AdjustQuantityRequest = await request.json();
     const { wineId, newQuantity } = body;
 
@@ -69,6 +94,14 @@ export async function PATCH(
       return NextResponse.json(
         { success: false, error: 'Förfrågan hittades inte' },
         { status: 404 }
+      );
+    }
+
+    // Verify ownership - request must belong to user's restaurant (unless ADMIN)
+    if (!actorService.hasRole(actor, 'ADMIN') && requestData.restaurant_id !== actor.restaurant_id) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied' },
+        { status: 403 }
       );
     }
 
