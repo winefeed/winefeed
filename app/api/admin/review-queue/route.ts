@@ -6,6 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
+import { adminService } from '@/lib/admin-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,6 +16,28 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    // Auth check
+    const tenantId = request.headers.get('x-tenant-id');
+    const userId = request.headers.get('x-user-id');
+
+    if (!tenantId || !userId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
+    // Admin access required
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    const isAdmin = await adminService.isAdmin(actor);
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required' },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
 
     // Query parameters

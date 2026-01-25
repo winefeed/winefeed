@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { actorService } from '@/lib/actor-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -32,6 +33,17 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Auth check
+    const tenantId = req.headers.get('x-tenant-id');
+    const userId = req.headers.get('x-user-id');
+
+    if (!tenantId || !userId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
     const requestId = params.id;
     const body = await req.json();
 
@@ -64,6 +76,15 @@ export async function POST(
           ],
         },
         { status: 400 }
+      );
+    }
+
+    // Verify supplierId matches authenticated user's supplier
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    if (!actor.supplier_id || actor.supplier_id !== supplierId) {
+      return NextResponse.json(
+        { error: 'Forbidden: Can only create offers for your own supplier' },
+        { status: 403 }
       );
     }
 
@@ -343,6 +364,17 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Auth check
+    const tenantId = req.headers.get('x-tenant-id');
+    const userId = req.headers.get('x-user-id');
+
+    if (!tenantId || !userId) {
+      return NextResponse.json(
+        { error: 'Missing authentication context' },
+        { status: 401 }
+      );
+    }
+
     const requestId = params.id;
     const { searchParams } = new URL(req.url);
     const includeExpired = searchParams.get('includeExpired') === 'true';
@@ -351,7 +383,7 @@ export async function GET(
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // NEW: Verify request exists AND get restaurant ownership
+    // Verify request exists AND get restaurant ownership
     const { data: quoteRequest, error: requestError } = await supabase
       .from('requests')
       .select('id, restaurant_id')
@@ -365,9 +397,14 @@ export async function GET(
       );
     }
 
-    // NEW: ACCESS CONTROL - For MVP, we'll comment this out since we don't have auth yet
-    // In production, you would check: if (restaurantId !== quoteRequest.restaurant_id) return 403
-    // For now, we allow access to demonstrate the API structure
+    // ACCESS CONTROL - Only restaurant owner can see offers
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    if (!actor.restaurant_id || actor.restaurant_id !== quoteRequest.restaurant_id) {
+      return NextResponse.json(
+        { error: 'Forbidden: Only the restaurant owner can view offers' },
+        { status: 403 }
+      );
+    }
 
     // Get all offers for this request
     const { data: offers, error: offersError } = await supabase
