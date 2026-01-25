@@ -103,16 +103,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Get offers count per request with timestamps (in separate query for performance)
-    const requestIds = requests?.map(r => r.id) || [];
+    const fetchedRequestIds = requests?.map(r => r.id) || [];
     let offersCountMap: Record<string, number> = {};
     let newOffersCountMap: Record<string, number> = {};
     let latestOfferMap: Record<string, string> = {};
 
-    if (requestIds.length > 0) {
+    if (fetchedRequestIds.length > 0) {
       const { data: offers } = await supabase
         .from('offers')
         .select('request_id, status, created_at')
-        .in('request_id', requestIds)
+        .in('request_id', fetchedRequestIds)
         .order('created_at', { ascending: false });
 
       if (offers) {

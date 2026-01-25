@@ -58,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ImportRes
     }
 
     const body: ImportRequest = await request.json();
-    const { supplierId, tenantId, wines, filename, importedBy } = body;
+    const { supplierId, tenantId: bodyTenantId, wines, filename, importedBy } = body;
 
     // Validate inputs
     if (!supplierId) {

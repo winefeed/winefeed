@@ -46,7 +46,7 @@ export async function GET(
 
     // Additional ownership check for RESTAURANT users
     if (actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
-      if (result.restaurant_id !== actor.restaurant_id) {
+      if (result.ddl.restaurant_id !== actor.restaurant_id) {
         return NextResponse.json(
           { error: 'Access denied' },
           { status: 403 }

@@ -297,7 +297,7 @@ export default function SettingsPage() {
                     )}
                     {address.delivery_instructions && (
                       <p className="text-xs text-muted-foreground mt-1 italic">
-                        "{address.delivery_instructions}"
+                        &ldquo;{address.delivery_instructions}&rdquo;
                       </p>
                     )}
                   </div>
