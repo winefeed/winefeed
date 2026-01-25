@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send } from 'lucide-react';
+import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send, Plus, Building2 } from 'lucide-react';
 
 // Wine color options - matches database enum (wine_color)
 // Valid values: red, white, rose, sparkling, orange, fortified
@@ -84,6 +84,16 @@ const requestSchema = z.object({
 
 type RequestFormData = z.infer<typeof requestSchema>;
 
+interface SavedAddress {
+  id: string;
+  label: string;
+  address_line1: string;
+  address_line2?: string;
+  postal_code: string;
+  city: string;
+  is_default: boolean;
+}
+
 interface RequestFormProps {
   onSuccess?: (requestId: string) => void;
 }
@@ -96,6 +106,10 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
   const [pendingData, setPendingData] = useState<RequestFormData | null>(null);
   const [supplierMessage, setSupplierMessage] = useState('');
   const [prefillLoaded, setPrefillLoaded] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | 'manual'>('manual');
+  const [showAddAddress, setShowAddAddress] = useState(false);
+  const [newAddressLabel, setNewAddressLabel] = useState('');
 
   const {
     register,
@@ -118,17 +132,34 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
   const selectedColor = watch('color');
 
-  // Prefill delivery city from restaurant profile
+  // Prefill delivery city from restaurant profile and fetch saved addresses
   useEffect(() => {
     if (prefillLoaded) return;
 
-    async function fetchRestaurantCity() {
+    async function fetchInitialData() {
       try {
-        const res = await fetch('/api/me/restaurant');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.city && !watch('leverans_ort')) {
-            setValue('leverans_ort', data.city);
+        // Fetch saved addresses
+        const addressRes = await fetch('/api/me/addresses');
+        if (addressRes.ok) {
+          const addressData = await addressRes.json();
+          setSavedAddresses(addressData.addresses || []);
+
+          // If there's a default address, select it
+          const defaultAddr = addressData.addresses?.find((a: SavedAddress) => a.is_default);
+          if (defaultAddr) {
+            setSelectedAddressId(defaultAddr.id);
+            setValue('leverans_ort', defaultAddr.city);
+          }
+        }
+
+        // If no default address, try to get city from restaurant profile
+        if (!watch('leverans_ort')) {
+          const res = await fetch('/api/me/restaurant');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.city) {
+              setValue('leverans_ort', data.city);
+            }
           }
         }
       } catch (err) {
@@ -138,7 +169,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       }
     }
 
-    fetchRestaurantCity();
+    fetchInitialData();
   }, [prefillLoaded, setValue, watch]);
 
   const toggleCertification = (certId: string) => {
@@ -147,6 +178,51 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         ? prev.filter((id) => id !== certId)
         : [...prev, certId]
     );
+  };
+
+  // Handle address selection
+  const handleAddressSelect = (addressId: string) => {
+    setSelectedAddressId(addressId);
+
+    if (addressId === 'manual') {
+      // Keep current value or clear
+      return;
+    }
+
+    const address = savedAddresses.find((a) => a.id === addressId);
+    if (address) {
+      setValue('leverans_ort', address.city);
+    }
+  };
+
+  // Save new address
+  const handleSaveAddress = async () => {
+    const currentCity = watch('leverans_ort');
+    if (!currentCity || !newAddressLabel.trim()) return;
+
+    try {
+      const res = await fetch('/api/me/addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          label: newAddressLabel.trim(),
+          address_line1: currentCity, // Simplified - just city for now
+          postal_code: '000 00', // Placeholder
+          city: currentCity,
+          is_default: savedAddresses.length === 0, // First address is default
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSavedAddresses((prev) => [...prev, data.address]);
+        setSelectedAddressId(data.address.id);
+        setShowAddAddress(false);
+        setNewAddressLabel('');
+      }
+    } catch (err) {
+      // Silently fail
+    }
   };
 
   // Show confirmation modal instead of submitting directly
@@ -471,16 +547,107 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       </div>
 
       {/* Delivery Location */}
-      <div className="space-y-2">
-        <Label htmlFor="leverans_ort">Leveransort *</Label>
-        <Input
-          id="leverans_ort"
-          type="text"
-          placeholder="T.ex. Stockholm, Malmö, Göteborg"
-          {...register('leverans_ort')}
-        />
+      <div className="space-y-3">
+        <Label>Leveransort *</Label>
+
+        {/* Saved addresses selector */}
+        {savedAddresses.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {savedAddresses.map((addr) => (
+                <button
+                  key={addr.id}
+                  type="button"
+                  onClick={() => handleAddressSelect(addr.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                    selectedAddressId === addr.id
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <Building2 className="h-4 w-4" />
+                  <span className="font-medium">{addr.label}</span>
+                  <span className="text-muted-foreground">({addr.city})</span>
+                  {addr.is_default && (
+                    <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">Standard</span>
+                  )}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => handleAddressSelect('manual')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                  selectedAddressId === 'manual'
+                    ? 'border-primary bg-primary/5 text-primary'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <MapPin className="h-4 w-4" />
+                <span>Annan ort</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Manual input (always shown if manual selected or no saved addresses) */}
+        {(selectedAddressId === 'manual' || savedAddresses.length === 0) && (
+          <div className="space-y-2">
+            <Input
+              id="leverans_ort"
+              type="text"
+              placeholder="T.ex. Stockholm, Malmö, Göteborg"
+              {...register('leverans_ort')}
+            />
+
+            {/* Save address option */}
+            {watch('leverans_ort') && !showAddAddress && (
+              <button
+                type="button"
+                onClick={() => setShowAddAddress(true)}
+                className="text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                Spara som leveransadress
+              </button>
+            )}
+
+            {showAddAddress && (
+              <div className="flex gap-2 items-center p-3 bg-muted/50 rounded-lg">
+                <Input
+                  type="text"
+                  placeholder="Namn på adressen (t.ex. Huvudrestaurang)"
+                  value={newAddressLabel}
+                  onChange={(e) => setNewAddressLabel(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleSaveAddress}
+                  disabled={!newAddressLabel.trim()}
+                >
+                  Spara
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowAddAddress(false);
+                    setNewAddressLabel('');
+                  }}
+                >
+                  Avbryt
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         <p className="text-xs text-muted-foreground">
-          Ange stad där leverans ska ske - importörer behöver detta för att beräkna fraktkostnad
+          {savedAddresses.length > 0
+            ? 'Välj en sparad adress eller ange annan ort'
+            : 'Ange stad där leverans ska ske - importörer behöver detta för att beräkna fraktkostnad'}
         </p>
         {errors.leverans_ort && (
           <p className="text-sm text-destructive">{errors.leverans_ort.message}</p>

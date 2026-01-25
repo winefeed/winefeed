@@ -24,6 +24,8 @@ import {
   Globe,
   Building2,
   HelpCircle,
+  BarChart3,
+  Shield,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -63,6 +65,12 @@ export const MAIN_NAVIGATION: NavSection[] = [
         label: 'Orders',
         href: '/orders',
         icon: Package,
+      },
+      {
+        label: 'Inställningar',
+        href: '/dashboard/settings',
+        icon: Settings,
+        roles: ['RESTAURANT'],
       },
     ],
   },
@@ -130,6 +138,18 @@ export const MAIN_NAVIGATION: NavSection[] = [
         icon: Mail,
         roles: ['ADMIN'],
       },
+      {
+        label: 'Rapporter',
+        href: '/admin/reports',
+        icon: BarChart3,
+        roles: ['ADMIN'],
+      },
+      {
+        label: 'Compliance',
+        href: '/admin/compliance',
+        icon: Shield,
+        roles: ['ADMIN'],
+      },
     ],
   },
 ];
@@ -165,6 +185,16 @@ export const ADMIN_NAVIGATION: NavSection[] = [
         label: 'Pilot Console',
         href: '/admin/pilot',
         icon: Settings,
+      },
+      {
+        label: 'Rapporter',
+        href: '/admin/reports',
+        icon: BarChart3,
+      },
+      {
+        label: 'Compliance',
+        href: '/admin/compliance',
+        icon: Shield,
       },
     ],
   },
