@@ -178,11 +178,36 @@ export async function GET(request: NextRequest) {
     const supplierIds = [...new Set((orders || []).map((o) => o.seller_supplier_id))];
     const importerIds = [...new Set((orders || []).map((o) => o.importer_of_record_id))];
 
-    const [restaurantsResult, suppliersResult, importersResult] = await Promise.all([
-      supabase.from('restaurants').select('id, name, org_number').in('id', restaurantIds.length > 0 ? restaurantIds : ['00000000-0000-0000-0000-000000000000']),
-      supabase.from('suppliers').select('id, namn, org_number, type').in('id', supplierIds.length > 0 ? supplierIds : ['00000000-0000-0000-0000-000000000000']),
-      supabase.from('importers').select('id, legal_name, org_number').in('id', importerIds.length > 0 ? importerIds : ['00000000-0000-0000-0000-000000000000'])
-    ]);
+    // Fetch entity names with error handling
+    const restaurantsResult = await supabase
+      .from('restaurants')
+      .select('id, name, org_number')
+      .in('id', restaurantIds.length > 0 ? restaurantIds : ['00000000-0000-0000-0000-000000000000']);
+
+    if (restaurantsResult.error) {
+      console.error('[Compliance] Restaurants query failed:', restaurantsResult.error);
+      throw new Error(`Failed to fetch restaurants: ${restaurantsResult.error.message}`);
+    }
+
+    const suppliersResult = await supabase
+      .from('suppliers')
+      .select('id, namn, org_number, type')
+      .in('id', supplierIds.length > 0 ? supplierIds : ['00000000-0000-0000-0000-000000000000']);
+
+    if (suppliersResult.error) {
+      console.error('[Compliance] Suppliers query failed:', suppliersResult.error);
+      throw new Error(`Failed to fetch suppliers: ${suppliersResult.error.message}`);
+    }
+
+    const importersResult = await supabase
+      .from('importers')
+      .select('id, legal_name, org_number')
+      .in('id', importerIds.length > 0 ? importerIds : ['00000000-0000-0000-0000-000000000000']);
+
+    if (importersResult.error) {
+      console.error('[Compliance] Importers query failed:', importersResult.error);
+      throw new Error(`Failed to fetch importers: ${importersResult.error.message}`);
+    }
 
     const restaurantMap = new Map((restaurantsResult.data || []).map((r) => [r.id, r]));
     const supplierMap = new Map((suppliersResult.data || []).map((s) => [s.id, s]));
