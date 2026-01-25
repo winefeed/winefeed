@@ -1,0 +1,442 @@
+/**
+ * RESTAURANT SETTINGS PAGE
+ *
+ * /dashboard/settings
+ *
+ * Manage restaurant profile and delivery addresses
+ */
+
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Building2, MapPin, Plus, Pencil, Trash2, Star, Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+
+interface Restaurant {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  org_number: string;
+  city: string;
+  address: string;
+  postal_code: string;
+}
+
+interface DeliveryAddress {
+  id: string;
+  label: string;
+  address_line1: string;
+  address_line2: string | null;
+  postal_code: string;
+  city: string;
+  contact_name: string | null;
+  contact_phone: string | null;
+  delivery_instructions: string | null;
+  is_default: boolean;
+}
+
+export default function SettingsPage() {
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [addresses, setAddresses] = useState<DeliveryAddress[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Address form state
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<DeliveryAddress | null>(null);
+  const [formData, setFormData] = useState({
+    label: '',
+    address_line1: '',
+    address_line2: '',
+    postal_code: '',
+    city: '',
+    contact_name: '',
+    contact_phone: '',
+    delivery_instructions: '',
+    is_default: false,
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+
+      const [restaurantRes, addressesRes] = await Promise.all([
+        fetch('/api/me/restaurant'),
+        fetch('/api/me/addresses'),
+      ]);
+
+      if (restaurantRes.ok) {
+        const data = await restaurantRes.json();
+        setRestaurant(data);
+      }
+
+      if (addressesRes.ok) {
+        const data = await addressesRes.json();
+        setAddresses(data.addresses || []);
+      }
+    } catch (err) {
+      setError('Kunde inte ladda data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      label: '',
+      address_line1: '',
+      address_line2: '',
+      postal_code: '',
+      city: '',
+      contact_name: '',
+      contact_phone: '',
+      delivery_instructions: '',
+      is_default: false,
+    });
+    setEditingAddress(null);
+    setShowAddressForm(false);
+  };
+
+  const handleEditAddress = (address: DeliveryAddress) => {
+    setEditingAddress(address);
+    setFormData({
+      label: address.label,
+      address_line1: address.address_line1,
+      address_line2: address.address_line2 || '',
+      postal_code: address.postal_code,
+      city: address.city,
+      contact_name: address.contact_name || '',
+      contact_phone: address.contact_phone || '',
+      delivery_instructions: address.delivery_instructions || '',
+      is_default: address.is_default,
+    });
+    setShowAddressForm(true);
+  };
+
+  const handleSaveAddress = async () => {
+    if (!formData.label || !formData.address_line1 || !formData.postal_code || !formData.city) {
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const url = editingAddress
+        ? `/api/me/addresses/${editingAddress.id}`
+        : '/api/me/addresses';
+
+      const method = editingAddress ? 'PATCH' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        await fetchData();
+        resetForm();
+      }
+    } catch (err) {
+      // Handle error
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteAddress = async (id: string) => {
+    if (!confirm('Vill du ta bort denna leveransadress?')) return;
+
+    try {
+      const res = await fetch(`/api/me/addresses/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setAddresses((prev) => prev.filter((a) => a.id !== id));
+      }
+    } catch (err) {
+      // Handle error
+    }
+  };
+
+  const handleSetDefault = async (id: string) => {
+    try {
+      const res = await fetch(`/api/me/addresses/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_default: true }),
+      });
+
+      if (res.ok) {
+        await fetchData();
+      }
+    } catch (err) {
+      // Handle error
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-muted rounded w-1/3"></div>
+          <div className="h-48 bg-muted rounded"></div>
+          <div className="h-48 bg-muted rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold text-foreground mb-8">Inställningar</h1>
+
+      {/* Restaurant Info */}
+      {restaurant && (
+        <div className="bg-card rounded-lg border border-border p-6 mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <Building2 className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Restaurangprofil</h2>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Namn:</span>
+              <p className="font-medium">{restaurant.name}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Orgnr:</span>
+              <p className="font-medium">{restaurant.org_number || '-'}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">E-post:</span>
+              <p className="font-medium">{restaurant.email || '-'}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Telefon:</span>
+              <p className="font-medium">{restaurant.phone || '-'}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Stad:</span>
+              <p className="font-medium">{restaurant.city || '-'}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delivery Addresses */}
+      <div className="bg-card rounded-lg border border-border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <MapPin className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Leveransadresser</h2>
+          </div>
+          {!showAddressForm && (
+            <Button
+              size="sm"
+              onClick={() => setShowAddressForm(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Lägg till
+            </Button>
+          )}
+        </div>
+
+        <p className="text-sm text-muted-foreground mb-4">
+          Spara leveransadresser för att snabbt välja dem när du skapar förfrågningar.
+        </p>
+
+        {/* Address List */}
+        {addresses.length === 0 && !showAddressForm ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <MapPin className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <p>Inga leveransadresser sparade</p>
+            <p className="text-sm">Lägg till en adress för snabbare beställning</p>
+          </div>
+        ) : (
+          <div className="space-y-3 mb-4">
+            {addresses.map((address) => (
+              <div
+                key={address.id}
+                className={`p-4 rounded-lg border ${
+                  address.is_default ? 'border-primary bg-primary/5' : 'border-border'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{address.label}</span>
+                      {address.is_default && (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded flex items-center gap-1">
+                          <Star className="h-3 w-3" />
+                          Standard
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {address.address_line1}
+                      {address.address_line2 && `, ${address.address_line2}`}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {address.postal_code} {address.city}
+                    </p>
+                    {address.contact_name && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Kontakt: {address.contact_name} {address.contact_phone && `(${address.contact_phone})`}
+                      </p>
+                    )}
+                    {address.delivery_instructions && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">
+                        "{address.delivery_instructions}"
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {!address.is_default && (
+                      <button
+                        onClick={() => handleSetDefault(address.id)}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                        title="Sätt som standard"
+                      >
+                        <Star className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleEditAddress(address)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteAddress(address.id)}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Address Form */}
+        {showAddressForm && (
+          <div className="border border-border rounded-lg p-4 space-y-4">
+            <h3 className="font-medium">
+              {editingAddress ? 'Redigera leveransadress' : 'Ny leveransadress'}
+            </h3>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="label">Namn på adressen *</Label>
+                <Input
+                  id="label"
+                  placeholder="T.ex. Huvudrestaurang, Eventlokal"
+                  value={formData.label}
+                  onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                />
+              </div>
+
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="address_line1">Gatuadress *</Label>
+                <Input
+                  id="address_line1"
+                  placeholder="Storgatan 1"
+                  value={formData.address_line1}
+                  onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="postal_code">Postnummer *</Label>
+                <Input
+                  id="postal_code"
+                  placeholder="123 45"
+                  value={formData.postal_code}
+                  onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="city">Stad *</Label>
+                <Input
+                  id="city"
+                  placeholder="Stockholm"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contact_name">Kontaktperson</Label>
+                <Input
+                  id="contact_name"
+                  placeholder="Anna Andersson"
+                  value={formData.contact_name}
+                  onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contact_phone">Telefon</Label>
+                <Input
+                  id="contact_phone"
+                  placeholder="070-123 45 67"
+                  value={formData.contact_phone}
+                  onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
+                />
+              </div>
+
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="delivery_instructions">Leveransinstruktioner</Label>
+                <Textarea
+                  id="delivery_instructions"
+                  placeholder="T.ex. Ring på vid bakdörren, leverans mellan 10-14"
+                  rows={2}
+                  value={formData.delivery_instructions}
+                  onChange={(e) => setFormData({ ...formData, delivery_instructions: e.target.value })}
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_default}
+                    onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm">Använd som standardadress</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" onClick={resetForm}>
+                Avbryt
+              </Button>
+              <Button
+                onClick={handleSaveAddress}
+                disabled={saving || !formData.label || !formData.address_line1 || !formData.postal_code || !formData.city}
+              >
+                {saving ? 'Sparar...' : editingAddress ? 'Uppdatera' : 'Spara'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
