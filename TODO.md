@@ -2,13 +2,18 @@
 
 ## BUGGAR (fixa imorgon!)
 
-### IOR-behörighet saknas på /ior/orders/[id]
-- [ ] Felsök varför "Du saknar IOR-behörighet" visas
-- [ ] Kontrollera actor-service och rollhantering
-- [ ] Verifiera att användaren har rätt IOR-roll i databasen
-- [ ] Kolla om det är JWT/session-problem
+### ~~IOR-behörighet saknas på /ior/orders/[id]~~ ✅ FIXAT
+**Problem:** Sidorna använde hårdkodad `USER_ID` istället för riktig session.
+**Lösning:** Tog bort hårdkodade headers, låter middleware sätta `x-user-id` från Supabase auth.
 
-**URL:** `winefeed.se/ior/orders/68406ec1-4972-4b77-8335-06b21f31f757`
+**Filer ändrade:**
+- `app/ior/orders/page.tsx`
+- `app/ior/orders/[id]/page.tsx`
+
+**OBS:** Om användaren fortfarande får "Du saknar IOR-behörighet" så har de inte IOR-roll i databasen:
+1. Användaren måste vara SELLER (finnas i `supplier_users`)
+2. Leverantören måste ha `org_number`
+3. Det måste finnas en `importer` med samma `org_number`
 
 ---
 
@@ -56,4 +61,24 @@
 
 ---
 
+## SÄKERHET (från audit 2026-01-24)
+
+Se fullständig rapport: `SECURITY_AUDIT.md`
+
+### Kritiska problem (fixa innan produktion)
+- [ ] `/api/admin/review-queue` - Saknar auth-kontroll helt
+- [ ] `/api/quote-requests/[id]/offers` GET - Access control kommenterad bort
+- [ ] Ta bort `/admin`, `/dashboard`, `/orders` från middleware publicPaths
+
+### Höga prioritet
+- [ ] Ta bort eller skydda `/api/debug/env`
+- [ ] Verifiera supplier_id mot session vid offer-skapande
+
+### Medelprioritet
+- [ ] Dokumentera tenant-isolation strategi
+- [ ] Förbered för multi-tenant (hårdkodad tenant_id i middleware)
+
+---
+
 *Skapad: 2026-01-24*
+*Uppdaterad: 2026-01-24 (säkerhetsaudit)*
