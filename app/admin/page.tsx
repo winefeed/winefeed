@@ -3,14 +3,60 @@
  *
  * /admin
  *
- * Overview of all suppliers and wines in the system
+ * Operational clarity dashboard - identify stalled workflows
  * Main landing page for admin users
  */
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Wine, Users, Building2, TrendingUp, ExternalLink, RefreshCw, ShoppingCart, FileText, Inbox, Store } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { Wine, Users, Building2, TrendingUp, ExternalLink, RefreshCw, ShoppingCart, FileText, Inbox, Store, AlertTriangle, Clock, ChevronRight, Filter } from 'lucide-react';
+import { ComplianceStatusBadge, type ComplianceStatus } from '@/components/compliance';
+
+// ============================================================================
+// PENDING ACTIONS TYPES
+// ============================================================================
+
+interface PendingItem {
+  id: string;
+  type: 'request' | 'order' | 'import_case';
+  status: string;
+  reason: string;
+  owner: {
+    role: string;
+    name: string;
+    id: string;
+  };
+  ageHours: number;
+  ageLabel: string;
+  createdAt: string;
+  updatedAt: string;
+  metadata: Record<string, any>;
+}
+
+interface PendingSummary {
+  requests: number;
+  orders: number;
+  importCases: number;
+  total: number;
+  byAgeBucket: {
+    today: number;
+    '1-2d': number;
+    '3-7d': number;
+    '7d+': number;
+  };
+  byOwnerRole: {
+    SUPPLIER: number;
+    RESTAURANT: number;
+    IOR: number;
+  };
+}
+
+interface PendingActionsData {
+  items: PendingItem[];
+  summary: PendingSummary;
+  timestamp: string;
+}
 
 interface SupplierStats {
   id: string;
@@ -99,31 +145,93 @@ const COLOR_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [pendingActions, setPendingActions] = useState<PendingActionsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filters for pending actions
+  const [typeFilter, setTypeFilter] = useState<'all' | 'request' | 'order' | 'import_case'>('all');
+  const [ownerFilter, setOwnerFilter] = useState<'all' | 'SUPPLIER' | 'RESTAURANT' | 'IOR'>('all');
+  const [ageFilter, setAgeFilter] = useState<'all' | 'today' | '1-2d' | '3-7d' | '7d+'>('all');
+
   useEffect(() => {
-    fetchStats();
+    fetchData();
   }, []);
 
-  const fetchStats = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/admin/stats');
+      // Fetch both stats and pending actions in parallel
+      const [statsRes, pendingRes] = await Promise.all([
+        fetch('/api/admin/stats'),
+        fetch('/api/admin/pending-actions'),
+      ]);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch stats');
-      }
+      if (!statsRes.ok) throw new Error('Failed to fetch stats');
+      if (!pendingRes.ok) throw new Error('Failed to fetch pending actions');
 
-      const data = await response.json();
-      setStats(data);
+      const [statsData, pendingData] = await Promise.all([
+        statsRes.json(),
+        pendingRes.json(),
+      ]);
+
+      setStats(statsData);
+      setPendingActions(pendingData);
     } catch (err: any) {
-      console.error('Failed to fetch admin stats:', err);
-      setError(err.message || 'Kunde inte ladda statistik');
+      console.error('Failed to fetch admin data:', err);
+      setError(err.message || 'Kunde inte ladda data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStats = fetchData; // Alias for backward compatibility
+
+  // Filter pending items
+  const filteredPendingItems = useMemo(() => {
+    if (!pendingActions) return [];
+    return pendingActions.items.filter(item => {
+      if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+      if (ownerFilter !== 'all' && item.owner.role !== ownerFilter) return false;
+      if (ageFilter !== 'all') {
+        const bucket = item.ageHours < 24 ? 'today' :
+                       item.ageHours < 48 ? '1-2d' :
+                       item.ageHours < 168 ? '3-7d' : '7d+';
+        if (bucket !== ageFilter) return false;
+      }
+      return true;
+    });
+  }, [pendingActions, typeFilter, ownerFilter, ageFilter]);
+
+  // Get link for pending item
+  const getItemLink = (item: PendingItem): string => {
+    switch (item.type) {
+      case 'request': return `/dashboard/requests/${item.id}`;
+      case 'order': return `/admin/reports`;
+      case 'import_case': return `/ior/orders`;
+      default: return '#';
+    }
+  };
+
+  // Get type label
+  const getTypeLabel = (type: string): string => {
+    switch (type) {
+      case 'request': return 'Förfrågan';
+      case 'order': return 'Order';
+      case 'import_case': return 'Importärende';
+      default: return type;
+    }
+  };
+
+  // Get owner role label
+  const getOwnerRoleLabel = (role: string): string => {
+    switch (role) {
+      case 'SUPPLIER': return 'Leverantör';
+      case 'RESTAURANT': return 'Restaurang';
+      case 'IOR': return 'IOR';
+      default: return role;
     }
   };
 
@@ -165,10 +273,10 @@ export default function AdminDashboardPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Systemöversikt</h1>
-          <p className="text-muted-foreground mt-1">Alla leverantörer och viner</p>
+          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Operativ översikt - identifiera vad som behöver åtgärdas</p>
         </div>
         <button
           onClick={fetchStats}
@@ -178,6 +286,206 @@ export default function AdminDashboardPage() {
           Uppdatera
         </button>
       </div>
+
+      {/* ================================================================== */}
+      {/* PENDING ACTIONS - System Overview Counts */}
+      {/* ================================================================== */}
+      {pendingActions && pendingActions.summary.total > 0 && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600" />
+            <h2 className="font-semibold text-amber-900">Kräver åtgärd</h2>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <button
+              onClick={() => { setTypeFilter('request'); setOwnerFilter('all'); setAgeFilter('all'); }}
+              className={`p-3 rounded-lg border transition-colors ${
+                typeFilter === 'request' ? 'bg-amber-100 border-amber-300' : 'bg-white border-amber-200 hover:bg-amber-50'
+              }`}
+            >
+              <div className="text-2xl font-bold text-amber-900">{pendingActions.summary.requests}</div>
+              <div className="text-sm text-amber-700">Förfrågningar</div>
+            </button>
+            <button
+              onClick={() => { setTypeFilter('order'); setOwnerFilter('all'); setAgeFilter('all'); }}
+              className={`p-3 rounded-lg border transition-colors ${
+                typeFilter === 'order' ? 'bg-amber-100 border-amber-300' : 'bg-white border-amber-200 hover:bg-amber-50'
+              }`}
+            >
+              <div className="text-2xl font-bold text-amber-900">{pendingActions.summary.orders}</div>
+              <div className="text-sm text-amber-700">Ordrar</div>
+            </button>
+            <button
+              onClick={() => { setTypeFilter('import_case'); setOwnerFilter('all'); setAgeFilter('all'); }}
+              className={`p-3 rounded-lg border transition-colors ${
+                typeFilter === 'import_case' ? 'bg-amber-100 border-amber-300' : 'bg-white border-amber-200 hover:bg-amber-50'
+              }`}
+            >
+              <div className="text-2xl font-bold text-amber-900">{pendingActions.summary.importCases}</div>
+              <div className="text-sm text-amber-700">Importärenden</div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* No pending actions - success state */}
+      {pendingActions && pendingActions.summary.total === 0 && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-lg">✓</div>
+          <div>
+            <p className="font-medium text-green-800">Inga väntande åtgärder</p>
+            <p className="text-sm text-green-700">Alla processer flyter på som de ska.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================== */}
+      {/* PENDING ACTIONS LIST */}
+      {/* ================================================================== */}
+      {pendingActions && pendingActions.summary.total > 0 && (
+        <div className="mb-8 bg-card rounded-lg border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Clock className="h-5 w-5 text-muted-foreground" />
+                Väntande åtgärder
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({filteredPendingItems.length} av {pendingActions.summary.total})
+                </span>
+              </h2>
+
+              {/* Filters */}
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+
+                {/* Type filter */}
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value as any)}
+                  className="text-sm border border-border rounded px-2 py-1 bg-background"
+                >
+                  <option value="all">Alla typer</option>
+                  <option value="request">Förfrågningar</option>
+                  <option value="order">Ordrar</option>
+                  <option value="import_case">Importärenden</option>
+                </select>
+
+                {/* Owner filter */}
+                <select
+                  value={ownerFilter}
+                  onChange={(e) => setOwnerFilter(e.target.value as any)}
+                  className="text-sm border border-border rounded px-2 py-1 bg-background"
+                >
+                  <option value="all">Alla ägare</option>
+                  <option value="SUPPLIER">Leverantör</option>
+                  <option value="RESTAURANT">Restaurang</option>
+                  <option value="IOR">IOR</option>
+                </select>
+
+                {/* Age filter */}
+                <select
+                  value={ageFilter}
+                  onChange={(e) => setAgeFilter(e.target.value as any)}
+                  className="text-sm border border-border rounded px-2 py-1 bg-background"
+                >
+                  <option value="all">Alla åldrar</option>
+                  <option value="today">Idag</option>
+                  <option value="1-2d">1-2 dagar</option>
+                  <option value="3-7d">3-7 dagar</option>
+                  <option value="7d+">7+ dagar</option>
+                </select>
+
+                {(typeFilter !== 'all' || ownerFilter !== 'all' || ageFilter !== 'all') && (
+                  <button
+                    onClick={() => { setTypeFilter('all'); setOwnerFilter('all'); setAgeFilter('all'); }}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Rensa
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* List */}
+          <div className="divide-y divide-border max-h-[400px] overflow-y-auto">
+            {filteredPendingItems.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                Inga objekt matchar dina filter
+              </div>
+            ) : (
+              filteredPendingItems.map((item) => (
+                <a
+                  key={`${item.type}-${item.id}`}
+                  href={getItemLink(item)}
+                  className="flex items-center gap-4 px-6 py-4 hover:bg-accent transition-colors"
+                >
+                  {/* Type badge */}
+                  <div className={`px-2 py-1 rounded text-xs font-medium ${
+                    item.type === 'request' ? 'bg-blue-100 text-blue-800' :
+                    item.type === 'order' ? 'bg-orange-100 text-orange-800' :
+                    'bg-purple-100 text-purple-800'
+                  }`}>
+                    {getTypeLabel(item.type)}
+                  </div>
+
+                  {/* Main content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">{item.reason}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                        {item.status}
+                      </span>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-0.5">
+                      {item.type === 'request' && item.metadata.fritext && (
+                        <span>&quot;{item.metadata.fritext}&quot; - {item.metadata.restaurantName}</span>
+                      )}
+                      {item.type === 'order' && (
+                        <span>{item.metadata.restaurantName} → {item.metadata.supplierName}</span>
+                      )}
+                      {item.type === 'import_case' && (
+                        <span className="flex items-center gap-2">
+                          <span>IOR: {item.metadata.importerName}</span>
+                          {item.metadata.complianceStatus && (
+                            <ComplianceStatusBadge
+                              status={item.metadata.complianceStatus as ComplianceStatus}
+                              size="sm"
+                            />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Owner */}
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-foreground">{item.owner.name}</div>
+                    <div className="text-xs text-muted-foreground">{getOwnerRoleLabel(item.owner.role)} måste agera</div>
+                  </div>
+
+                  {/* Age */}
+                  <div className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                    item.ageHours >= 168 ? 'bg-red-100 text-red-800' :
+                    item.ageHours >= 72 ? 'bg-amber-100 text-amber-800' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {item.ageLabel}
+                  </div>
+
+                  {/* Arrow */}
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </a>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================== */}
+      {/* EXISTING STATS SECTION */}
+      {/* ================================================================== */}
+
         {/* Overview Stats - Row 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <StatCard

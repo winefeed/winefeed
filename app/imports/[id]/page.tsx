@@ -10,6 +10,12 @@ import { Tooltip, InfoIcon } from '../components/Tooltip';
 import { Accordion } from '../components/Accordion';
 import { StatusBadge } from '../components/StatusBadge';
 import { WineCheckPanel } from '@/app/components/wine-check';
+import {
+  ComplianceCard,
+  checkImportCaseCompliance,
+  getImportCaseSteps,
+  type ComplianceStatus,
+} from '@/components/compliance';
 
 interface ImportCaseData {
   id: string;
@@ -66,6 +72,49 @@ interface Document {
   sha256: string;
   created_at: string;
   created_by?: string;
+}
+
+/**
+ * Import Case Compliance Card
+ * Shows overall compliance status for the import case
+ */
+function ImportCaseComplianceCard({
+  importCase,
+  hasDocuments,
+}: {
+  importCase: ImportCaseData;
+  hasDocuments: boolean;
+}) {
+  // Compute compliance status
+  const complianceResult = checkImportCaseCompliance({
+    status: importCase.status,
+    ddl_status: importCase.delivery_location?.status,
+    has_document: hasDocuments,
+    has_shipment: !!importCase.delivery_location,
+  });
+
+  // Get progress steps
+  const steps = getImportCaseSteps({
+    status: importCase.status,
+    has_identifiers: true, // Assume identifiers exist if import case was created
+    has_shipment: !!importCase.delivery_location,
+    has_required_fields: true, // Assume fields are complete for import case level
+    has_document: hasDocuments,
+  });
+
+  return (
+    <div className="mb-6">
+      <ComplianceCard
+        title="Import Case Compliance"
+        status={complianceResult.status}
+        missingFields={complianceResult.missingFields}
+        blockReason={complianceResult.blockReason}
+        steps={steps}
+        collapsible={true}
+        defaultExpanded={complianceResult.status !== 'OK'}
+      />
+    </div>
+  );
 }
 
 export default function ImportDetailsPage({ params }: { params: { id: string } }) {
@@ -178,6 +227,12 @@ export default function ImportDetailsPage({ params }: { params: { id: string } }
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Compliance Card - Overall Import Case Compliance */}
+        <ImportCaseComplianceCard
+          importCase={importCase}
+          hasDocuments={documents.length > 0}
+        />
+
         {/* Summary Card */}
         <div className="bg-card border border-border rounded-lg shadow-sm p-6 mb-6">
           <div className="grid md:grid-cols-4 gap-6">
@@ -445,6 +500,7 @@ export default function ImportDetailsPage({ params }: { params: { id: string } }
               currentStatus={importCase.status}
               hasDocuments={documents.length > 0}
               deliveryPlaceStatus={importCase.delivery_location?.status || 'NOT_REGISTERED'}
+              ddlStatus={importCase.delivery_location?.status}
               onRefresh={fetchData}
             />
 
@@ -472,6 +528,7 @@ interface ImprovedActionsPanelProps {
   currentStatus: string;
   hasDocuments: boolean;
   deliveryPlaceStatus: string;
+  ddlStatus?: string;
   onRefresh: () => void;
 }
 
@@ -480,6 +537,7 @@ function ImprovedActionsPanel({
   currentStatus,
   hasDocuments,
   deliveryPlaceStatus,
+  ddlStatus,
   onRefresh,
 }: ImprovedActionsPanelProps) {
   const [loading, setLoading] = useState(false);
@@ -491,10 +549,18 @@ function ImprovedActionsPanel({
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectNote, setRejectNote] = useState('');
 
-  const canSubmit = hasDocuments && currentStatus === 'NOT_REGISTERED';
-  const canApprove = currentStatus === 'SUBMITTED';
+  // Check compliance status to block actions if needed
+  const complianceResult = checkImportCaseCompliance({
+    status: currentStatus,
+    ddl_status: ddlStatus,
+    has_document: hasDocuments,
+  });
+  const isBlocked = complianceResult.status === 'BLOCKED';
+
+  const canSubmit = hasDocuments && currentStatus === 'NOT_REGISTERED' && !isBlocked;
+  const canApprove = currentStatus === 'SUBMITTED' && !isBlocked;
   const canReject = currentStatus === 'SUBMITTED';
-  const canValidate = currentStatus === 'APPROVED';
+  const canValidate = currentStatus === 'APPROVED' && !isBlocked;
 
   const handleValidateShipment = async () => {
     setLoading(true);
@@ -582,6 +648,21 @@ function ImprovedActionsPanel({
         <div className="flex items-center gap-2 mb-4">
           <h2 className="text-lg font-bold">Åtgärder</h2>
         </div>
+
+        {/* Blocked Warning */}
+        {isBlocked && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <p className="font-medium text-red-800 text-sm">Åtgärder blockerade</p>
+                <p className="text-xs text-red-700 mt-1">{complianceResult.blockReason}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Primary Actions */}
         <div className="space-y-3 pb-6 border-b border-border">
