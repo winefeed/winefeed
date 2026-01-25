@@ -288,8 +288,29 @@ export default function PitchPage() {
         </div>
       </section>
 
-      {/* What Winefeed Is Not */}
+      {/* Who This Is For */}
       <section className="py-16 px-6">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Är Winefeed något för dig?</h2>
+          <p className="text-gray-600 mb-6">Winefeed passar importörer som...</p>
+
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
+            {[
+              { text: 'Hanterar många småorder från restauranger' },
+              { text: 'Jobbar med flera EU-producenter' },
+              { text: 'Lägger för mycket tid på mejl och Excel' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <span className="text-gray-700">{item.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* What Winefeed Is Not */}
+      <section className="py-12 px-6 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Vad Winefeed inte är</h2>
 
@@ -371,23 +392,30 @@ export default function PitchPage() {
               <span className="text-green-800 font-semibold">Kostnad under pilot: Gratis</span>
             </div>
 
+            {/* Action Buttons */}
             <div className="border-t border-gray-200 pt-8">
-              <h3 className="font-semibold text-gray-900 mb-4 text-center">Nästa steg</h3>
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                {[
-                  { step: '1', text: 'Boka ett samtal – 30 min demo' },
-                  { step: '2', text: 'Vi sätter upp ert konto – inom 24h' },
-                  { step: '3', text: 'Kör första requesten live' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-[#7B1E1E] text-white rounded-full flex items-center justify-center font-bold text-sm">
-                      {item.step}
-                    </div>
-                    <span className="text-gray-700">{item.text}</span>
-                    {i < 2 && <ArrowRight className="h-4 w-4 text-gray-300 hidden md:block" />}
-                  </div>
-                ))}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+                <a
+                  href="mailto:markus@winefeed.se?subject=Intresserad%20av%20Winefeed-pilot"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-[#7B1E1E] hover:bg-[#6B1818] text-white rounded-xl transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
+                >
+                  <Mail className="h-5 w-5" />
+                  Kontakta oss
+                </a>
+                <a
+                  href="https://calendly.com/winefeed/pilot-demo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-[#7B1E1E] border-2 border-[#7B1E1E] rounded-xl transition-colors font-semibold text-lg"
+                >
+                  <Calendar className="h-5 w-5" />
+                  Boka 20 min demo
+                </a>
               </div>
+
+              <p className="text-center text-sm text-gray-500">
+                Pilotplatser: 2–3 st &bull; Start: inom 2 veckor &bull; Ingen IT-integration första steget
+              </p>
             </div>
           </div>
         </div>

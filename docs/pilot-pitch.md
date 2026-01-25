@@ -4,6 +4,105 @@
 
 ---
 
+# 📧 OUTREACH KIT
+
+## 30-sekunderspitch
+
+> "Winefeed är en plattform som kopplar ihop restauranger, leverantörer och importörer i ett gemensamt flöde – från offert till leverans. Istället för mejl och Excel ser alla parter samma status i realtid: vilka offerter som kommit, vilka ordrar som är bekräftade, och var leveransen befinner sig. Vi kör pilot just nu med ett par importörer och söker 2–3 till som vill vara med och forma produkten. Kostnadsfritt under piloten."
+
+---
+
+## Ämnesrader (A/B-testa)
+
+1. **Kort & direkt:** `Vinimport utan Excel-kaos?`
+2. **Problem-fokus:** `Trött på att jaga DDL-status via mejl?`
+3. **Pilot-vinkel:** `Pilotplats: Winefeed för vinimportörer`
+
+---
+
+## Email-mall: Kort version
+
+```
+Ämne: Vinimport utan Excel-kaos?
+
+Hej [Namn],
+
+Jag heter Markus och bygger Winefeed – en plattform för vinflödet från offert till leverans.
+
+Problemet vi löser: Mejl-kaos, Excel-offerter och "var är min leverans?"-samtal.
+
+Lösningen: Ett gemensamt flöde där restaurang, leverantör och importör ser samma status i realtid.
+
+Vi kör pilot med importörer nu och har 2–3 platser kvar. Gratis under piloten.
+
+Intresserad av en 20-minutersdemo?
+
+/Markus
+markus@winefeed.se
+```
+
+---
+
+## Email-mall: Längre version
+
+```
+Ämne: Pilotplats: Winefeed för vinimportörer
+
+Hej [Namn],
+
+Jag når ut för att jag tror Winefeed kan spara dig mycket tid.
+
+**Problemet vi ser hos importörer:**
+- Offertförfrågningar kommer via mejl, i olika format
+- Ordrar kopieras manuellt från Excel → fel uppstår
+- "Var är min leverans?" – ingen vet utan att ringa lagret
+- DDL-status och compliance-dokument spåras i mejltrådar
+
+**Vad Winefeed gör:**
+En plattform där restaurang, leverantör och importör ser samma status i realtid:
+- Strukturerade offerter (jämförbara)
+- Order skapas från offert med ett klick (inga fel)
+- Compliance-status synlig: ✅ OK / ⚠️ Saknas / ❌ Blockerad
+- Komplett spårbarhet
+
+**Pilot-erbjudande:**
+- Gratis under piloten
+- Vi sätter upp allt (1–2 timmar av din tid)
+- Du påverkar produktens riktning
+
+Vi har kört pilot sedan januari 2025. Tid till första offert har gått från dagar till timmar.
+
+Har du 20 minuter för en demo?
+
+/Markus Nilsson
+markus@winefeed.se
+```
+
+---
+
+## Invändningshantering
+
+| Invändning | Svar |
+|------------|------|
+| **"Vi har redan ett system"** | Winefeed ersätter inte ert affärssystem – det är ett operativt lager ovanpå. Ni behåller era befintliga verktyg. |
+| **"Vi har inte tid just nu"** | Uppsättning tar 1–2 timmar. Sedan sparar ni tid varje dag. Under pilot sköter vi det mesta. |
+| **"Vad kostar det?"** | Gratis under piloten. Vi vill validera värdet innan vi sätter pris. |
+| **"Våra producenter kommer inte använda det"** | Vi onboardar dem åt er. De flesta vill ha ett enklare sätt att svara på förfrågningar. |
+| **"Hur är det med säkerhet/GDPR?"** | All data lagras inom EU (Supabase/AWS). Vi hanterar bara affärsdata, inga personnummer. |
+
+---
+
+## UTM-länkar för spårning
+
+- Demo-bokning: `https://calendly.com/winefeed/pilot-demo?utm_source=email&utm_campaign=importer_pilot`
+- Pitch-sida: `https://winefeed.se/pitch?utm_source=email&utm_campaign=importer_pilot`
+
+---
+
+# 📄 PITCH-DOKUMENT
+
+---
+
 ## Problemet
 
 ### Så ser det ut idag
