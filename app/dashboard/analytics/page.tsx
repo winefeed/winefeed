@@ -92,12 +92,15 @@ export default function RestaurantAnalyticsPage() {
       setError(null);
 
       const response = await fetch(`/api/dashboard/analytics?months=${months}`);
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error('Failed to fetch analytics');
+        if (response.status === 403) {
+          throw new Error('Du behöver vara inloggad som restaurang för att se statistik');
+        }
+        throw new Error(result.error || 'Kunde inte ladda statistik');
       }
 
-      const result = await response.json();
       setData(result);
     } catch (err: any) {
       console.error('Failed to fetch analytics:', err);
