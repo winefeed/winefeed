@@ -13,9 +13,18 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, RefreshCw, Plus, ChevronRight, Clock, CheckCircle2, AlertCircle, Inbox } from 'lucide-react';
+import { FileText, RefreshCw, Plus, ChevronRight, Clock, CheckCircle2, AlertCircle, Inbox, Info } from 'lucide-react';
+import { RequestStatusBadge, ExpectationText } from '@/components/dashboard/RequestTimeline';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
+interface RequestTracking {
+  dispatched_to: number;
+  viewed_by: number;
+  responded_by: number;
+  dispatched_at: string | null;
+  expires_at: string | null;
+}
 
 interface Request {
   id: string;
@@ -31,14 +40,10 @@ interface Request {
   new_offers_count: number;
   latest_offer_at: string | null;
   created_at: string;
+  tracking: RequestTracking | null;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  OPEN: { label: 'Väntar på svar', color: 'bg-amber-100 text-amber-800 border-amber-300', icon: Clock },
-  HAS_OFFERS: { label: 'Offerter mottagna', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: FileText },
-  ACCEPTED: { label: 'Offert accepterad', color: 'bg-green-100 text-green-800 border-green-300', icon: CheckCircle2 },
-  CLOSED: { label: 'Avslutad', color: 'bg-gray-100 text-gray-600 border-gray-300', icon: CheckCircle2 },
-};
+// Status config removed - now using RequestStatusBadge component
 
 export default function MyRequestsPage() {
   const router = useRouter();
@@ -137,6 +142,20 @@ export default function MyRequestsPage() {
         </div>
       </div>
 
+      {/* Area A: Expectation setting info box (only show if there are open requests without responses) */}
+      {requests.some(r => r.offers_count === 0 && r.status === 'OPEN') && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm text-blue-800 font-medium">Så fungerar det</p>
+            <p className="text-sm text-blue-700 mt-1">
+              Din förfrågan skickas till matchade leverantörer. De flesta svar kommer inom 24-48 timmar.
+              Du ser statusen uppdateras när leverantörer öppnar och svarar på din förfrågan.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Requests List */}
       {requests.length === 0 ? (
         <div className="bg-card rounded-lg border border-border p-12 text-center">
@@ -156,21 +175,12 @@ export default function MyRequestsPage() {
       ) : (
         <div className="space-y-4">
           {requests.map((req) => {
-            // Determine display status based on offers
-            let displayStatus = req.status;
-            if (req.accepted_offer_id) {
-              displayStatus = 'ACCEPTED';
-            } else if (req.offers_count > 0) {
-              displayStatus = 'HAS_OFFERS';
-            }
-
-            const statusConfig = STATUS_CONFIG[displayStatus] || STATUS_CONFIG.OPEN;
-            const StatusIcon = statusConfig.icon;
-
             // Navigate to offers if offers exist, otherwise to results
             const targetUrl = req.offers_count > 0
               ? `/dashboard/offers/${req.id}`
               : `/dashboard/results/${req.id}`;
+
+            const isAccepted = req.status === 'ACCEPTED' || req.accepted_offer_id;
 
             return (
               <div
@@ -178,18 +188,22 @@ export default function MyRequestsPage() {
                 className={`bg-card border-2 rounded-lg p-6 hover:shadow-md transition-all cursor-pointer group ${
                   req.new_offers_count > 0
                     ? 'border-blue-300 bg-blue-50/30 hover:border-blue-400'
+                    : isAccepted
+                    ? 'border-green-200 hover:border-green-300'
                     : 'border-border hover:border-primary/30'
                 }`}
                 onClick={() => router.push(targetUrl)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    {/* Status and new badge */}
+                    {/* Status badge - Area A: Now shows tracking info */}
                     <div className="flex items-center gap-3 mb-3">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${statusConfig.color}`}>
-                        <StatusIcon className="h-3.5 w-3.5" />
-                        {statusConfig.label}
-                      </span>
+                      <RequestStatusBadge
+                        tracking={req.tracking}
+                        offersCount={req.offers_count}
+                        newOffersCount={req.new_offers_count}
+                        status={req.status}
+                      />
                       {req.new_offers_count > 0 && (
                         <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded-full animate-pulse">
                           <AlertCircle className="h-3 w-3" />
@@ -227,6 +241,13 @@ export default function MyRequestsPage() {
                       )}
                     </div>
 
+                    {/* Area A: Expectation text for requests without responses */}
+                    {req.offers_count === 0 && !isAccepted && (
+                      <div className="mt-3">
+                        <ExpectationText tracking={req.tracking} offersCount={req.offers_count} />
+                      </div>
+                    )}
+
                     {/* Created date and latest offer */}
                     <div className="flex items-center gap-4 mt-3">
                       <p className="text-xs text-muted-foreground">
@@ -260,7 +281,7 @@ export default function MyRequestsPage() {
 
                     {/* Action text */}
                     <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
-                      {req.offers_count > 0 ? 'Granska offerter' : 'Visa förslag'}
+                      {req.offers_count > 0 ? 'Granska offerter' : 'Visa status'}
                     </span>
 
                     {/* Arrow */}
