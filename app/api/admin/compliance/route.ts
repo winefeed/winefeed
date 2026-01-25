@@ -104,6 +104,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (ordersError) {
+      console.error('[Compliance] Orders query failed:', ordersError);
       throw new Error(`Failed to fetch orders: ${ordersError.message}`);
     }
 
