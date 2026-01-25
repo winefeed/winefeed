@@ -19,7 +19,7 @@ const WINE_COLORS = [
   { value: 'rose', label: 'Rosé', emoji: '🌸' },
   { value: 'orange', label: 'Orange', emoji: '🍊' },
   { value: 'red', label: 'Rött', emoji: '🍷' },
-  { value: 'fortified', label: 'Starkvin/Dessertvin', emoji: '🥃' },
+  { value: 'fortified', label: 'Starkvin', emoji: '🥃' },
 ] as const;
 
 // Common wine countries
@@ -77,7 +77,7 @@ const requestSchema = z.object({
   country: z.string().optional(),
   grape: z.string().optional(),
   leverans_senast: z.string().optional(),
-  leverans_ort: z.string().min(1, 'Ange leveransort så importörer kan beräkna frakt'),
+  leverans_ort: z.string().optional(),
   certifications: z.array(z.string()).optional(),
   description: z.string().optional(),
 });
@@ -403,7 +403,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
             id="supplier_message"
             value={supplierMessage}
             onChange={(e) => setSupplierMessage(e.target.value)}
-            placeholder="T.ex. 'Vi planerar en vinprovning för 20 gäster', 'Vill gärna ha prover först'"
+            placeholder="T.ex. 'Vi planerar en vinprovning för 20 gäster'"
             rows={3}
           />
           <p className="text-xs text-muted-foreground">
@@ -548,7 +548,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
       {/* Delivery Location */}
       <div className="space-y-3">
-        <Label>Leveransort *</Label>
+        <Label>Leveransort (valfritt)</Label>
 
         {/* Saved addresses selector */}
         {savedAddresses.length > 0 && (
@@ -647,7 +647,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         <p className="text-xs text-muted-foreground">
           {savedAddresses.length > 0
             ? 'Välj en sparad adress eller ange annan ort'
-            : 'Ange stad där leverans ska ske - importörer behöver detta för att beräkna fraktkostnad'}
+            : 'Du kan ange leveransort nu eller senare när du valt viner'}
         </p>
         {errors.leverans_ort && (
           <p className="text-sm text-destructive">{errors.leverans_ort.message}</p>

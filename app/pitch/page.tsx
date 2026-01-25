@@ -1,5 +1,6 @@
-import { Wine, ArrowRight, Check, AlertTriangle, XCircle, Mail, Clock, FileText, Shield, Users, TrendingUp } from 'lucide-react';
+import { Wine, ArrowRight, Check, AlertTriangle, XCircle, Mail, Clock, FileText, Shield, Users, TrendingUp, Calendar, Target } from 'lucide-react';
 import Link from 'next/link';
+import { Metadata } from 'next';
 
 /**
  * PILOT PITCH PAGE
@@ -10,9 +11,35 @@ import Link from 'next/link';
  * Clean, professional, scannable.
  */
 
-export const metadata = {
-  title: 'Winefeed – Pilot för importörer',
-  description: 'Från offert till leverans – med full kontroll på compliance och ansvar',
+export const metadata: Metadata = {
+  title: 'Winefeed – Importer Pilot',
+  description: 'Sluta jaga Excel-filer och mejltrådar. Winefeed ger dig och dina restaurangkunder ett gemensamt flöde från offert till leverans – med compliance-status i realtid.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+  openGraph: {
+    title: 'Winefeed – Från offert till leverans utan friktion',
+    description: 'En plattform för hela vinflödet. Restaurang, leverantör och importör ser samma status i realtid.',
+    url: 'https://winefeed.se/pitch',
+    siteName: 'Winefeed',
+    locale: 'sv_SE',
+    type: 'website',
+    images: [
+      {
+        url: '/og-pilot.png',
+        width: 1200,
+        height: 630,
+        alt: 'Winefeed – Från offert till leverans utan friktion',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Winefeed – Från offert till leverans utan friktion',
+    description: 'En plattform för hela vinflödet. Restaurang, leverantör och importör ser samma status i realtid.',
+    images: ['/og-pilot.png'],
+  },
 };
 
 export default function PitchPage() {
@@ -169,21 +196,39 @@ export default function PitchPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Vad piloten har visat</h2>
           <p className="text-gray-600 mb-8">Pilot Loop 2.0 – Live sedan januari 2025</p>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            {[
-              { icon: Clock, metric: 'Tid till första offert', result: 'Timmar istället för dagar' },
-              { icon: Shield, metric: 'Compliance-fel', result: 'Minimerade genom tidig varning' },
-              { icon: Mail, metric: 'Ad hoc-kommunikation', result: 'Färre mail och samtal' },
-            ].map((item, i) => (
-              <div key={i} className="bg-gray-50 rounded-xl p-6 text-center">
-                <div className="w-12 h-12 bg-[#7B1E1E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="h-6 w-6 text-[#7B1E1E]" />
-                </div>
-                <div className="text-sm text-gray-500 mb-1">{item.metric}</div>
-                <div className="font-semibold text-gray-900">{item.result}</div>
-              </div>
-            ))}
+          {/* Before/After Mini-Table */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-8">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">KPI</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-red-600 uppercase tracking-wider">Före</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-green-600 uppercase tracking-wider">Efter</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                <tr>
+                  <td className="px-6 py-4 font-medium text-gray-900">Tid till första offert</td>
+                  <td className="px-6 py-4 text-gray-600">2–5 arbetsdagar</td>
+                  <td className="px-6 py-4 text-green-700 font-medium">Samma dag</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 font-medium text-gray-900">Manuell dataöverföring</td>
+                  <td className="px-6 py-4 text-gray-600">4–6 steg per order</td>
+                  <td className="px-6 py-4 text-green-700 font-medium">0 steg (automatiskt)</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 font-medium text-gray-900">Compliance-synlighet</td>
+                  <td className="px-6 py-4 text-gray-600">Mejl/telefon</td>
+                  <td className="px-6 py-4 text-green-700 font-medium">Realtid i dashboard</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+
+          <p className="text-xs text-gray-500 text-center mb-8">
+            Baserat på 15+ offerter och 8 ordrar under piloten. Mätt via plattformens loggdata.
+          </p>
 
           <blockquote className="bg-[#7B1E1E]/5 border-l-4 border-[#7B1E1E] rounded-r-lg p-6">
             <p className="text-lg text-gray-700 italic">
