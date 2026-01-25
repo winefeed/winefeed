@@ -1,0 +1,179 @@
+/**
+ * SUPPLIER WINE DETAIL API
+ *
+ * GET /api/suppliers/[id]/wines/[wineId] - Get single wine
+ * PATCH /api/suppliers/[id]/wines/[wineId] - Update wine (inline editing)
+ * DELETE /api/suppliers/[id]/wines/[wineId] - Delete wine
+ *
+ * Pilot Loop 2.0: Fast inline editing for catalog management
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { actorService } from '@/lib/actor-service';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
+// Allowed fields for inline editing
+const EDITABLE_FIELDS = [
+  'name',
+  'producer',
+  'vintage',
+  'price_ex_vat_sek',
+  'stock_qty',
+  'status',
+  'min_order_qty',
+  'lead_time_days',
+  'region',
+  'country',
+  'grape',
+];
+
+type RouteParams = {
+  params: Promise<{ id: string; wineId: string }>;
+};
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id: supplierId, wineId } = await params;
+
+    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        (!actorService.hasRole(actor, 'SELLER') || actor.supplier_id !== supplierId)) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    const { data: wine, error } = await supabase
+      .from('supplier_wines')
+      .select('*')
+      .eq('id', wineId)
+      .eq('supplier_id', supplierId)
+      .single();
+
+    if (error || !wine) {
+      return NextResponse.json({ error: 'Wine not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ wine });
+
+  } catch (error: any) {
+    console.error('Error fetching wine:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id: supplierId, wineId } = await params;
+
+    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        (!actorService.hasRole(actor, 'SELLER') || actor.supplier_id !== supplierId)) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    const body = await request.json();
+
+    // Filter to only allowed fields
+    const updates: Record<string, any> = {};
+    for (const field of EDITABLE_FIELDS) {
+      if (body[field] !== undefined) {
+        updates[field] = body[field];
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+    }
+
+    // Validate status if provided
+    if (updates.status && !['ACTIVE', 'TEMPORARILY_UNAVAILABLE', 'END_OF_VINTAGE'].includes(updates.status)) {
+      return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
+    }
+
+    // Validate price if provided
+    if (updates.price_ex_vat_sek !== undefined && updates.price_ex_vat_sek < 0) {
+      return NextResponse.json({ error: 'Price must be positive' }, { status: 400 });
+    }
+
+    const { data: wine, error } = await supabase
+      .from('supplier_wines')
+      .update(updates)
+      .eq('id', wineId)
+      .eq('supplier_id', supplierId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating wine:', error);
+      return NextResponse.json({ error: 'Failed to update wine' }, { status: 500 });
+    }
+
+    if (!wine) {
+      return NextResponse.json({ error: 'Wine not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ wine, updated: Object.keys(updates) });
+
+  } catch (error: any) {
+    console.error('Error updating wine:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id: supplierId, wineId } = await params;
+
+    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    if (!actorService.hasRole(actor, 'ADMIN') &&
+        (!actorService.hasRole(actor, 'SELLER') || actor.supplier_id !== supplierId)) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    const { error } = await supabase
+      .from('supplier_wines')
+      .delete()
+      .eq('id', wineId)
+      .eq('supplier_id', supplierId);
+
+    if (error) {
+      console.error('Error deleting wine:', error);
+      return NextResponse.json({ error: 'Failed to delete wine' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+
+  } catch (error: any) {
+    console.error('Error deleting wine:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

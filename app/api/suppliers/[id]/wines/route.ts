@@ -63,6 +63,12 @@ export async function GET(
       query = query.or(`name.ilike.%${search}%,producer.ilike.%${search}%,article_number.ilike.%${search}%`);
     }
 
+    // Filter by status if provided
+    const status = searchParams.get('status');
+    if (status && ['ACTIVE', 'TEMPORARILY_UNAVAILABLE', 'END_OF_VINTAGE'].includes(status)) {
+      query = query.eq('status', status);
+    }
+
     // Add pagination
     query = query.range(offset, offset + limit - 1);
 
@@ -76,8 +82,32 @@ export async function GET(
       );
     }
 
+    // Get offer usage counts for these wines
+    // Count how many offer_lines reference each wine by name (since we don't have direct FK)
+    const wineNames = (wines || []).map(w => w.name);
+    let offerCounts: Record<string, number> = {};
+
+    if (wineNames.length > 0) {
+      const { data: offerLines } = await supabase
+        .from('offer_lines')
+        .select('name')
+        .in('name', wineNames);
+
+      if (offerLines) {
+        for (const line of offerLines) {
+          offerCounts[line.name] = (offerCounts[line.name] || 0) + 1;
+        }
+      }
+    }
+
+    // Enrich wines with offer count
+    const enrichedWines = (wines || []).map(wine => ({
+      ...wine,
+      offer_count: offerCounts[wine.name] || 0,
+    }));
+
     return NextResponse.json({
-      wines: wines || [],
+      wines: enrichedWines,
       total: count || 0,
       page,
       limit,

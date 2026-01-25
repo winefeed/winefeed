@@ -12,9 +12,80 @@
  * - Quick actions per request
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck } from 'lucide-react';
+import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck, Send, AlertTriangle } from 'lucide-react';
+
+// ============================================================================
+// URGENCY HELPERS
+// ============================================================================
+
+type UrgencyLevel = 'critical' | 'urgent' | 'normal' | 'expired';
+
+interface DeadlineInfo {
+  label: string;
+  urgency: UrgencyLevel;
+  hoursLeft: number;
+}
+
+function getDeadlineInfo(expiresAt: string | null, isExpired: boolean): DeadlineInfo {
+  if (isExpired || !expiresAt) {
+    return { label: 'Utgången', urgency: 'expired', hoursLeft: -1 };
+  }
+
+  const now = new Date();
+  const expires = new Date(expiresAt);
+  const diffMs = expires.getTime() - now.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMs < 0) {
+    return { label: 'Utgången', urgency: 'expired', hoursLeft: -1 };
+  }
+
+  if (diffHours < 4) {
+    return { label: `${diffHours}h kvar`, urgency: 'critical', hoursLeft: diffHours };
+  }
+
+  if (diffHours < 24) {
+    return { label: 'Utgår idag', urgency: 'critical', hoursLeft: diffHours };
+  }
+
+  if (diffDays === 1) {
+    return { label: 'Utgår imorgon', urgency: 'urgent', hoursLeft: diffHours };
+  }
+
+  if (diffDays <= 3) {
+    return { label: `${diffDays} dagar kvar`, urgency: 'urgent', hoursLeft: diffHours };
+  }
+
+  return { label: `${diffDays} dagar kvar`, urgency: 'normal', hoursLeft: diffHours };
+}
+
+function getUrgencyStyles(urgency: UrgencyLevel): { badge: string; dot: string } {
+  switch (urgency) {
+    case 'critical':
+      return {
+        badge: 'bg-red-100 text-red-800 border-red-200',
+        dot: 'bg-red-500 animate-pulse'
+      };
+    case 'urgent':
+      return {
+        badge: 'bg-amber-100 text-amber-800 border-amber-200',
+        dot: 'bg-amber-500'
+      };
+    case 'expired':
+      return {
+        badge: 'bg-gray-100 text-gray-500 border-gray-200',
+        dot: 'bg-gray-400'
+      };
+    default:
+      return {
+        badge: 'bg-green-100 text-green-800 border-green-200',
+        dot: 'bg-green-500'
+      };
+  }
+}
 
 interface QuoteRequest {
   id: string;
@@ -48,6 +119,13 @@ export default function SupplierRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'responded'>('pending');
   const [supplierId, setSupplierId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'urgency' | 'date'>('urgency');
+
+  // Quick respond modal state
+  const [quickRespondRequest, setQuickRespondRequest] = useState<QuoteRequest | null>(null);
+  const [quickRespondPrice, setQuickRespondPrice] = useState('');
+  const [quickRespondNote, setQuickRespondNote] = useState('');
+  const [quickRespondSubmitting, setQuickRespondSubmitting] = useState(false);
 
   // Bulk selection state
   const [selectedRequests, setSelectedRequests] = useState<Set<string>>(new Set());
@@ -112,6 +190,49 @@ export default function SupplierRequestsPage() {
     setSelectedRequests(new Set());
   };
 
+  // Quick respond handler
+  const submitQuickRespond = async () => {
+    if (!quickRespondRequest || !supplierId) return;
+
+    const price = quickRespondPrice ? parseInt(quickRespondPrice) : quickRespondRequest.budgetPerFlaska;
+    if (!price || price <= 0) {
+      alert('Ange ett giltigt pris');
+      return;
+    }
+
+    setQuickRespondSubmitting(true);
+    try {
+      const response = await fetch(`/api/quote-requests/${quickRespondRequest.id}/offers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+        },
+        body: JSON.stringify({
+          supplier_id: supplierId,
+          price_sek: price,
+          quantity: quickRespondRequest.antalFlaskor || 24,
+          lead_time_days: 14,
+          notes: quickRespondNote || `Offert: ${quickRespondRequest.fritext}`,
+        })
+      });
+
+      if (response.ok) {
+        setQuickRespondRequest(null);
+        setQuickRespondPrice('');
+        setQuickRespondNote('');
+        fetchRequests();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Kunde inte skicka offert');
+      }
+    } catch (error) {
+      alert('Ett fel uppstod');
+    } finally {
+      setQuickRespondSubmitting(false);
+    }
+  };
+
   // Submit bulk offers
   const submitBulkOffers = async () => {
     if (selectedRequests.size === 0 || !supplierId) return;
@@ -173,6 +294,53 @@ export default function SupplierRequestsPage() {
     }
   };
 
+  // Sorted and filtered requests
+  const sortedRequests = useMemo(() => {
+    let filtered = [...requests];
+
+    // Apply filter
+    if (filter === 'pending') {
+      filtered = filtered.filter(r => r.myOfferCount === 0);
+    } else if (filter === 'responded') {
+      filtered = filtered.filter(r => r.myOfferCount > 0);
+    }
+
+    // Sort by urgency (most urgent first) or date
+    if (sortBy === 'urgency') {
+      filtered.sort((a, b) => {
+        const aInfo = getDeadlineInfo(a.assignment.expiresAt, a.assignment.isExpired);
+        const bInfo = getDeadlineInfo(b.assignment.expiresAt, b.assignment.isExpired);
+        // Expired ones go to the end
+        if (aInfo.urgency === 'expired' && bInfo.urgency !== 'expired') return 1;
+        if (bInfo.urgency === 'expired' && aInfo.urgency !== 'expired') return -1;
+        // Sort by hours left (ascending = most urgent first)
+        return aInfo.hoursLeft - bInfo.hoursLeft;
+      });
+    } else {
+      // Sort by date (newest first)
+      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
+    return filtered;
+  }, [requests, filter, sortBy]);
+
+  // Count urgent requests that need attention today
+  const urgentCount = useMemo(() => {
+    return requests.filter(r => {
+      if (r.myOfferCount > 0) return false; // Already responded
+      const info = getDeadlineInfo(r.assignment.expiresAt, r.assignment.isExpired);
+      return info.urgency === 'critical' || info.urgency === 'urgent';
+    }).length;
+  }, [requests]);
+
+  const criticalCount = useMemo(() => {
+    return requests.filter(r => {
+      if (r.myOfferCount > 0) return false;
+      const info = getDeadlineInfo(r.assignment.expiresAt, r.assignment.isExpired);
+      return info.urgency === 'critical';
+    }).length;
+  }, [requests]);
+
   const pendingCount = requests.filter((r) => r.myOfferCount === 0).length;
   const respondedCount = requests.filter((r) => r.myOfferCount > 0).length;
 
@@ -194,6 +362,35 @@ export default function SupplierRequestsPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      {/* Urgent Notification Banner */}
+      {criticalCount > 0 && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-red-800">
+              {criticalCount} {criticalCount === 1 ? 'förfrågan kräver' : 'förfrågningar kräver'} svar idag!
+            </p>
+            <p className="text-sm text-red-700">Svara innan deadline för att inte missa affären.</p>
+          </div>
+        </div>
+      )}
+
+      {urgentCount > 0 && criticalCount === 0 && (
+        <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <Clock className="h-5 w-5 text-amber-600" />
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-amber-800">
+              {urgentCount} {urgentCount === 1 ? 'förfrågan' : 'förfrågningar'} med kort deadline
+            </p>
+            <p className="text-sm text-amber-700">Svara inom de närmaste dagarna.</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
@@ -253,49 +450,71 @@ export default function SupplierRequestsPage() {
         </div>
       )}
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setFilter('pending')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'pending'
-              ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Väntar på svar
-          {pendingCount > 0 && (
-            <span className="ml-2 px-1.5 py-0.5 rounded-full bg-white/20 text-xs">
-              {pendingCount}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setFilter('responded')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'responded'
-              ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Besvarade
-        </button>
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'all'
-              ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Alla
-        </button>
+      {/* Filter Tabs + Sort */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFilter('pending')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'pending'
+                ? 'bg-primary text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Väntar på svar
+            {pendingCount > 0 && (
+              <span className="ml-2 px-1.5 py-0.5 rounded-full bg-white/20 text-xs">
+                {pendingCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setFilter('responded')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'responded'
+                ? 'bg-primary text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Besvarade
+          </button>
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'all'
+                ? 'bg-primary text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Alla
+          </button>
+        </div>
+
+        {/* Sort Toggle */}
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-gray-500">Sortera:</span>
+          <button
+            onClick={() => setSortBy('urgency')}
+            className={`px-3 py-1 rounded ${sortBy === 'urgency' ? 'bg-gray-200 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            Brådskande först
+          </button>
+          <button
+            onClick={() => setSortBy('date')}
+            className={`px-3 py-1 rounded ${sortBy === 'date' ? 'bg-gray-200 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            Nyast först
+          </button>
+        </div>
       </div>
 
       {/* Request List */}
-      {requests.length > 0 ? (
+      {sortedRequests.length > 0 ? (
         <div className="space-y-3">
-          {requests.map((request) => (
+          {sortedRequests.map((request) => {
+            const deadlineInfo = getDeadlineInfo(request.assignment.expiresAt, request.assignment.isExpired);
+            const urgencyStyles = getUrgencyStyles(deadlineInfo.urgency);
+            return (
             <div
               key={request.id}
               className={`bg-white rounded-lg border p-4 transition-all ${
@@ -382,7 +601,7 @@ export default function SupplierRequestsPage() {
                         </p>
                       )}
 
-                      {/* Time */}
+                      {/* Time + Deadline */}
                       <div className="flex items-center gap-2 mt-3 text-xs text-gray-400">
                         <Clock className="h-3 w-3" />
                         <span>
@@ -396,24 +615,37 @@ export default function SupplierRequestsPage() {
                         {request.assignment.expiresAt && (
                           <>
                             <span>•</span>
-                            <span className={request.assignment.isExpired ? 'text-red-600' : 'text-amber-600'}>
-                              {request.assignment.isExpired ? 'Utgången' : `Svarstid: ${new Date(request.assignment.expiresAt).toLocaleDateString('sv-SE')}`}
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${urgencyStyles.badge}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${urgencyStyles.dot}`}></span>
+                              {deadlineInfo.label}
                             </span>
                           </>
                         )}
                       </div>
                     </div>
 
-                    {/* Status & Arrow */}
-                    <div className="flex items-center gap-3">
+                    {/* Status & Actions */}
+                    <div className="flex items-center gap-2">
                       {request.myOfferCount > 0 ? (
                         <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
                           Offert skickad
                         </span>
                       ) : (
-                        <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-medium">
-                          Väntar på svar
-                        </span>
+                        <>
+                          {/* Quick Respond Button */}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setQuickRespondRequest(request);
+                              setQuickRespondPrice(request.budgetPerFlaska?.toString() || '');
+                            }}
+                            className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1"
+                          >
+                            <Send className="h-3 w-3" />
+                            Svara
+                          </button>
+                        </>
                       )}
                       <ChevronRight className="h-5 w-5 text-gray-400" />
                     </div>
@@ -421,7 +653,8 @@ export default function SupplierRequestsPage() {
                 </a>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
@@ -441,6 +674,19 @@ export default function SupplierRequestsPage() {
         </div>
       )}
 
+      {/* Success indicator when all urgent are handled */}
+      {requests.length > 0 && pendingCount === 0 && filter === 'pending' && (
+        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+            <span className="text-lg">🎉</span>
+          </div>
+          <div>
+            <p className="font-medium text-green-800">Alla förfrågningar besvarade!</p>
+            <p className="text-sm text-green-700">Du har svarat på alla inkommande förfrågningar.</p>
+          </div>
+        </div>
+      )}
+
       {/* Help text */}
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <div className="flex items-start gap-3">
@@ -457,6 +703,113 @@ export default function SupplierRequestsPage() {
           </div>
         </div>
       </div>
+
+      {/* Quick Respond Modal */}
+      {quickRespondRequest && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-gray-900">Snabbsvar</h2>
+                <button
+                  onClick={() => {
+                    setQuickRespondRequest(null);
+                    setQuickRespondPrice('');
+                    setQuickRespondNote('');
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Request summary */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Building2 className="h-4 w-4 text-gray-500" />
+                  <span className="font-medium text-gray-900">{quickRespondRequest.restaurantName}</span>
+                </div>
+                <p className="text-sm text-gray-600 line-clamp-2">{quickRespondRequest.fritext}</p>
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                  {quickRespondRequest.antalFlaskor && <span>{quickRespondRequest.antalFlaskor} flaskor</span>}
+                  {quickRespondRequest.budgetPerFlaska && <span>Budget: {quickRespondRequest.budgetPerFlaska} kr/fl</span>}
+                </div>
+                {/* Deadline warning */}
+                {(() => {
+                  const info = getDeadlineInfo(quickRespondRequest.assignment.expiresAt, quickRespondRequest.assignment.isExpired);
+                  const styles = getUrgencyStyles(info.urgency);
+                  return info.urgency !== 'normal' && info.urgency !== 'expired' ? (
+                    <div className={`mt-3 px-3 py-2 rounded-lg border ${styles.badge}`}>
+                      <span className="text-sm font-medium">{info.label}</span>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+
+              {/* Price input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ditt pris per flaska (SEK) *
+                </label>
+                <input
+                  type="number"
+                  value={quickRespondPrice}
+                  onChange={(e) => setQuickRespondPrice(e.target.value)}
+                  placeholder={quickRespondRequest.budgetPerFlaska?.toString() || 'Ange pris'}
+                  className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  autoFocus
+                />
+              </div>
+
+              {/* Note input (optional) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kommentar (valfritt)
+                </label>
+                <input
+                  type="text"
+                  value={quickRespondNote}
+                  onChange={(e) => setQuickRespondNote(e.target.value)}
+                  placeholder="T.ex. Kan leverera inom 7 dagar"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex gap-3">
+              <button
+                onClick={() => {
+                  setQuickRespondRequest(null);
+                  setQuickRespondPrice('');
+                  setQuickRespondNote('');
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={submitQuickRespond}
+                disabled={quickRespondSubmitting || !quickRespondPrice}
+                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+              >
+                {quickRespondSubmitting ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    Skickar...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Skicka offert
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bulk Offer Modal */}
       {showBulkModal && (

@@ -21,6 +21,15 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
+import {
+  ComplianceCard,
+  ComplianceInline,
+  checkImportCaseCompliance,
+  checkOrderLineCompliance,
+  getImportCaseSteps,
+  type ComplianceStatus,
+  type MissingField,
+} from '@/components/compliance';
 
 // Tenant ID - single tenant for MVP
 // Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
@@ -66,6 +75,12 @@ interface OrderDetail {
     unit_price_sek: number;
     total_price_sek: number;
     line_number: number;
+    // Compliance fields
+    gtin?: string | null;
+    lwin?: string | null;
+    abv?: number | null;
+    volume_ml?: number | null;
+    packaging_type?: string | null;
   }>;
   events: Array<{
     id: string;
@@ -84,6 +99,167 @@ interface OrderDetail {
     file_path: string | null;
     file_size: number | null;
   }>;
+}
+
+/**
+ * Compliance Card Section for Import Case
+ * Uses the shared compliance components to show status, missing fields, and progress
+ */
+function ComplianceCardSection({
+  order,
+  lines,
+  documents,
+  formatDate,
+}: {
+  order: OrderDetail['order'];
+  lines: OrderDetail['lines'];
+  documents: OrderDetail['documents'];
+  formatDate: (date: string) => string;
+}) {
+  // Compute compliance status from import case data
+  const complianceResult = checkImportCaseCompliance({
+    status: order.compliance?.import_case_status || 'NOT_REGISTERED',
+    ddl_status: order.compliance?.ddl_status,
+    has_document: documents && documents.length > 0,
+    has_shipment: !!order.import_case?.delivery_location,
+    lines: lines.map(l => ({
+      gtin: l.gtin,
+      lwin: l.lwin,
+      abv: l.abv,
+      volume_ml: l.volume_ml,
+      country: l.country,
+    })),
+  });
+
+  // Get progress steps for the import case
+  const steps = getImportCaseSteps({
+    status: order.compliance?.import_case_status || 'NOT_REGISTERED',
+    has_identifiers: lines.some(l => l.gtin || l.lwin),
+    has_shipment: !!order.import_case?.delivery_location,
+    has_required_fields: lines.every(l => (l.gtin || l.lwin) && l.abv && l.volume_ml && l.country),
+    has_document: documents && documents.length > 0,
+  });
+
+  const isBlocked = complianceResult.status === 'BLOCKED';
+
+  return (
+    <div className="space-y-4">
+      {/* Main Compliance Card */}
+      <ComplianceCard
+        title="Import Case Compliance"
+        status={complianceResult.status}
+        missingFields={complianceResult.missingFields}
+        blockReason={complianceResult.blockReason}
+        steps={steps}
+        collapsible={true}
+        defaultExpanded={true}
+        onActionClick={() => window.location.href = `/imports/${order.import_case.id}`}
+        actionLabel="Åtgärda i Import Case"
+      />
+
+      {/* Import Case Details */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Import Case Detaljer</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Import Case Info */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Import Case</span>
+              <ImportStatusBadge status={order.compliance?.import_case_status || 'NOT_REGISTERED'} size="md" />
+            </div>
+            <p className="text-xs text-gray-600 mb-2">ID: {order.import_case.id.substring(0, 8)}...</p>
+            <a
+              href={`/imports/${order.import_case.id}`}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              → Visa import case
+            </a>
+          </div>
+
+          {/* DDL Status */}
+          {order.import_case.delivery_location && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">DDL Status</span>
+                <ImportStatusBadge status={order.compliance?.ddl_status || 'UNKNOWN'} size="md" />
+              </div>
+              <p className="text-sm text-gray-600">
+                {order.import_case.delivery_location.delivery_address_line1}
+              </p>
+              <p className="text-sm text-gray-500">
+                {order.import_case.delivery_location.postal_code} {order.import_case.delivery_location.city}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* 5369 Documents Section */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-medium text-gray-700">5369 Dokument</span>
+            <span className="text-sm text-gray-500">
+              {documents?.length || 0} version(er)
+            </span>
+          </div>
+
+          {documents && documents.length > 0 ? (
+            <div className="space-y-2">
+              {documents.slice(0, 3).map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Version {doc.version}</p>
+                    <p className="text-xs text-gray-500">
+                      Genererad: {formatDate(doc.generated_at)}
+                    </p>
+                  </div>
+                  {doc.file_path && (
+                    <a
+                      href={doc.file_path}
+                      download
+                      className="ml-4 px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition-colors"
+                    >
+                      ⬇ Ladda ner
+                    </a>
+                  )}
+                </div>
+              ))}
+
+              {documents.length > 3 && (
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  + {documents.length - 3} fler version(er)
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500 mb-3">Inget 5369-dokument genererat ännu</p>
+              <button
+                onClick={() => {
+                  if (isBlocked) return;
+                  alert('5369 generation: Coming soon! Use existing /api/imports/[id]/generate-5369 endpoint');
+                }}
+                disabled={isBlocked}
+                className={`px-4 py-2 text-sm rounded transition-colors ${
+                  isBlocked
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                }`}
+                title={isBlocked ? complianceResult.blockReason : undefined}
+              >
+                📄 Generera 5369
+              </button>
+              {isBlocked && (
+                <p className="text-xs text-red-600 mt-2">
+                  Blockerad: {complianceResult.blockReason}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function IOROrderDetailPage({ params }: { params: { id: string } }) {
@@ -454,98 +630,16 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
         </div>
 
         {/* Compliance Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Compliance & Import Case</h2>
-
-          {order.import_case ? (
-            <div className="space-y-4">
-              {/* Import Case Status */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Import Case Status</span>
-                  <ImportStatusBadge status={order.compliance?.import_case_status || 'NOT_REGISTERED'} size="md" />
-                </div>
-                <p className="text-xs text-gray-600 mb-2">Import ID: {order.import_case.id}</p>
-                <a
-                  href={`/imports/${order.import_case.id}`}
-                  className="text-sm text-blue-600 hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  → Visa import case detaljer
-                </a>
-              </div>
-
-              {/* DDL Status */}
-              {order.import_case.delivery_location && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Direct Delivery Location (DDL)</span>
-                    <ImportStatusBadge status={order.compliance?.ddl_status || 'UNKNOWN'} size="md" />
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {order.import_case.delivery_location.delivery_address_line1}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {order.import_case.delivery_location.postal_code} {order.import_case.delivery_location.city}
-                  </p>
-                </div>
-              )}
-
-              {/* 5369 Documents */}
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">5369 Documents</span>
-                  <span className="text-sm text-gray-600">
-                    {orderDetail?.documents?.length || 0} version(s)
-                  </span>
-                </div>
-
-                {orderDetail?.documents && orderDetail.documents.length > 0 ? (
-                  <div className="space-y-2">
-                    {orderDetail.documents.slice(0, 3).map((doc: any, index: number) => (
-                      <div key={doc.id} className="flex items-center justify-between bg-white p-2 rounded border border-purple-100">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">Version {doc.version}</p>
-                          <p className="text-xs text-gray-500">
-                            Generated: {formatDate(doc.generated_at)}
-                          </p>
-                        </div>
-                        {doc.file_path && (
-                          <a
-                            href={doc.file_path}
-                            download
-                            className="ml-4 px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition-colors"
-                          >
-                            ⬇ Download
-                          </a>
-                        )}
-                      </div>
-                    ))}
-
-                    {orderDetail.documents.length > 3 && (
-                      <p className="text-xs text-gray-500 text-center mt-2">
-                        + {orderDetail.documents.length - 3} fler version(er)
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-500 mb-3">No 5369 documents generated yet</p>
-                    <button
-                      onClick={() => {
-                        // TODO: Implement 5369 generation via existing endpoint
-                        alert('5369 generation: Coming soon! Use existing /api/imports/[id]/generate-5369 endpoint');
-                      }}
-                      className="px-4 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors"
-                    >
-                      📄 Generate 5369
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
+        {order.import_case ? (
+          <ComplianceCardSection
+            order={order}
+            lines={lines}
+            documents={orderDetail?.documents || []}
+            formatDate={formatDate}
+          />
+        ) : (
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Compliance & Import Case</h2>
             <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
               <span className="text-5xl mb-3 block">📦</span>
               <p className="text-gray-600 mb-4">No import case linked to this order</p>
@@ -565,8 +659,8 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                 </button>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Status Update Actions */}
         {nextStatusOptions.length > 0 && (
@@ -601,6 +695,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Producent</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Årg.</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Land</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Compliance</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Antal</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Enhet</th>
                   <th className="px-4 py-3 text-right font-medium text-gray-700">Á-pris</th>
@@ -608,23 +703,39 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {lines.map((line) => (
-                  <tr key={line.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-600">{line.line_number}</td>
-                    <td className="px-4 py-3 font-medium">{line.wine_name}</td>
-                    <td className="px-4 py-3 text-gray-600">{line.producer || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{line.vintage || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{line.country || '—'}</td>
-                    <td className="px-4 py-3 text-gray-800 font-medium">{line.quantity}</td>
-                    <td className="px-4 py-3 text-gray-600">{line.unit}</td>
-                    <td className="px-4 py-3 text-right text-gray-600">
-                      {line.unit_price_sek ? `${line.unit_price_sek.toFixed(2)} kr` : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium">
-                      {line.total_price_sek ? `${line.total_price_sek.toFixed(2)} kr` : '—'}
-                    </td>
-                  </tr>
-                ))}
+                {lines.map((line) => {
+                  const lineCompliance = checkOrderLineCompliance({
+                    gtin: line.gtin,
+                    lwin: line.lwin,
+                    abv: line.abv,
+                    volume_ml: line.volume_ml,
+                    country: line.country,
+                    packaging_type: line.packaging_type,
+                  });
+                  return (
+                    <tr key={line.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-gray-600">{line.line_number}</td>
+                      <td className="px-4 py-3 font-medium">{line.wine_name}</td>
+                      <td className="px-4 py-3 text-gray-600">{line.producer || '—'}</td>
+                      <td className="px-4 py-3 text-gray-600">{line.vintage || '—'}</td>
+                      <td className="px-4 py-3 text-gray-600">{line.country || '—'}</td>
+                      <td className="px-4 py-3">
+                        <ComplianceInline
+                          status={lineCompliance.status}
+                          missingCount={lineCompliance.missingFields.filter(f => f.severity === 'required').length}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-gray-800 font-medium">{line.quantity}</td>
+                      <td className="px-4 py-3 text-gray-600">{line.unit}</td>
+                      <td className="px-4 py-3 text-right text-gray-600">
+                        {line.unit_price_sek ? `${line.unit_price_sek.toFixed(2)} kr` : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium">
+                        {line.total_price_sek ? `${line.total_price_sek.toFixed(2)} kr` : '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
