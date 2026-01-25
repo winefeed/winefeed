@@ -161,12 +161,12 @@ export default function AdminCompliancePage() {
       });
 
       const response = await fetch(`/api/admin/compliance?${params}`);
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error('Failed to fetch report');
+        throw new Error(data.error || data.details || 'Failed to fetch report');
       }
 
-      const data = await response.json();
       setReport(data);
     } catch (err: any) {
       console.error('Failed to fetch compliance report:', err);
