@@ -49,6 +49,7 @@ interface SupplierWine {
   created_at?: string;
   updated_at?: string;
   offer_count?: number;
+  notes?: string | null;
 }
 
 // Helper to format relative time
@@ -147,17 +148,30 @@ export default function SupplierWinesPage() {
   }
 
   // Editable fields in order for Tab navigation
-  const EDITABLE_FIELDS = ['price_ex_vat_sek', 'stock_qty'];
+  const EDITABLE_FIELDS = ['price_ex_vat_sek', 'vintage', 'status', 'notes'];
+
+  // Toast state (separate from importResult for better UX)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  // Store original value for rollback
+  const [originalValue, setOriginalValue] = useState<any>(null);
 
   // Inline edit handlers
   const startEdit = (wineId: string, field: string, currentValue: any) => {
     setEditingCell({ wineId, field });
     setEditValue(String(currentValue ?? ''));
+    setOriginalValue(currentValue);
   };
 
   const cancelEdit = () => {
     setEditingCell(null);
     setEditValue('');
+    setOriginalValue(null);
   };
 
   // Navigate to next/prev editable cell
@@ -205,17 +219,48 @@ export default function SupplierWinesPage() {
     if (field === 'price_ex_vat_sek') {
       value = Math.round(parseFloat(editValue) * 100); // Convert to öre
       if (isNaN(value) || value < 0) {
-        setImportResult({ success: false, message: 'Ogiltigt pris' });
+        showToast('Ogiltigt pris', 'error');
         return false;
       }
       // Block price = 0
       if (value === 0) {
-        setImportResult({ success: false, message: 'Pris kan inte vara 0' });
+        showToast('Pris kan inte vara 0', 'error');
         return false;
       }
-    } else if (field === 'stock_qty' || field === 'vintage') {
-      value = parseInt(editValue) || null;
+    } else if (field === 'vintage') {
+      value = editValue ? parseInt(editValue) : null;
+      if (editValue && isNaN(parseInt(editValue))) {
+        showToast('Ogiltig årgång', 'error');
+        return false;
+      }
+    } else if (field === 'notes') {
+      value = editValue || null;
+      if (value && value.length > 140) {
+        showToast('Anteckning får max vara 140 tecken', 'error');
+        return false;
+      }
+    } else if (field === 'status') {
+      value = editValue;
     }
+
+    // Check if value actually changed
+    if (value === originalValue) {
+      if (navigateAfter) {
+        navigateToNextCell(navigateAfter.wineId, navigateAfter.field, navigateAfter.reverse);
+      } else {
+        cancelEdit();
+      }
+      return true;
+    }
+
+    // Optimistic update - save current state for rollback
+    const previousWines = [...wines];
+
+    // Apply optimistic update
+    setWines(prev => prev.map(w => {
+      if (w.id !== wineId) return w;
+      return { ...w, [field]: value, updated_at: new Date().toISOString() };
+    }));
 
     setSaving(wineId);
     try {
@@ -227,6 +272,7 @@ export default function SupplierWinesPage() {
 
       if (response.ok) {
         const { wine } = await response.json();
+        // Update with server response (authoritative)
         setWines(prev => prev.map(w => w.id === wineId ? { ...w, ...wine } : w));
 
         // Navigate to next cell if requested
@@ -235,23 +281,44 @@ export default function SupplierWinesPage() {
         } else {
           setEditingCell(null);
           setEditValue('');
+          setOriginalValue(null);
         }
+        showToast('Sparat', 'success');
         return true;
       } else {
+        // Rollback on error
+        setWines(previousWines);
         const error = await response.json();
-        setImportResult({ success: false, message: error.error || 'Kunde inte spara' });
+        showToast(error.error || 'Kunde inte spara', 'error');
         return false;
       }
     } catch (error) {
-      setImportResult({ success: false, message: 'Ändringar kunde inte sparas - kontrollera nätverket' });
+      // Rollback on network error
+      setWines(previousWines);
+      showToast('Ändringar kunde inte sparas - kontrollera nätverket', 'error');
       return false;
     } finally {
       setSaving(null);
     }
   };
 
+  // Handle blur - save if changed
+  const handleBlur = () => {
+    if (editingCell && editValue !== String(originalValue ?? '')) {
+      saveEdit();
+    } else {
+      cancelEdit();
+    }
+  };
+
   const updateStatus = async (wineId: string, newStatus: string) => {
     if (!supplierId) return;
+
+    // Optimistic update
+    const previousWines = [...wines];
+    setWines(prev => prev.map(w =>
+      w.id === wineId ? { ...w, status: newStatus as any, updated_at: new Date().toISOString() } : w
+    ));
 
     setSaving(wineId);
     try {
@@ -264,11 +331,14 @@ export default function SupplierWinesPage() {
       if (response.ok) {
         const { wine } = await response.json();
         setWines(prev => prev.map(w => w.id === wineId ? { ...w, ...wine } : w));
+        showToast('Status uppdaterad', 'success');
       } else {
-        setImportResult({ success: false, message: 'Kunde inte uppdatera status' });
+        setWines(previousWines);
+        showToast('Kunde inte uppdatera status', 'error');
       }
     } catch (error) {
-      setImportResult({ success: false, message: 'Ett fel uppstod' });
+      setWines(previousWines);
+      showToast('Ett fel uppstod', 'error');
     } finally {
       setSaving(null);
     }
@@ -277,6 +347,12 @@ export default function SupplierWinesPage() {
   // Bulk update handler
   const bulkUpdateStatus = async (newStatus: string) => {
     if (!supplierId || selectedWines.size === 0) return;
+
+    // Optimistic update
+    const previousWines = [...wines];
+    setWines(prev => prev.map(w =>
+      selectedWines.has(w.id) ? { ...w, status: newStatus as any, updated_at: new Date().toISOString() } : w
+    ));
 
     setBulkUpdating(true);
     try {
@@ -291,17 +367,16 @@ export default function SupplierWinesPage() {
 
       if (response.ok) {
         const { updated_count } = await response.json();
-        setWines(prev => prev.map(w =>
-          selectedWines.has(w.id) ? { ...w, status: newStatus as any } : w
-        ));
         setSelectedWines(new Set());
-        setImportResult({ success: true, message: `${updated_count} viner uppdaterade` });
+        showToast(`${updated_count} viner uppdaterade`, 'success');
       } else {
+        setWines(previousWines);
         const error = await response.json();
-        setImportResult({ success: false, message: error.error || 'Bulk-uppdatering misslyckades' });
+        showToast(error.error || 'Bulk-uppdatering misslyckades', 'error');
       }
     } catch (error) {
-      setImportResult({ success: false, message: 'Ett fel uppstod' });
+      setWines(previousWines);
+      showToast('Ett fel uppstod', 'error');
     } finally {
       setBulkUpdating(false);
     }
@@ -578,16 +653,21 @@ export default function SupplierWinesPage() {
                   />
                 </th>
                 <SortableHeader label="Vin" field="name" currentField={sortField} direction={sortDirection} onSort={handleSort} />
-                <SortableHeader label="Producent" field="producer" currentField={sortField} direction={sortDirection} onSort={handleSort} />
                 <SortableHeader label="Pris (ex moms)" field="price_ex_vat_sek" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" />
-                <SortableHeader label="Lager" field="stock_qty" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" />
+                <th className="p-4 font-medium text-gray-600 text-sm text-right">Årgång</th>
                 <SortableHeader label="Status" field="status" currentField={sortField} direction={sortDirection} onSort={handleSort} />
+                <th className="p-4 font-medium text-gray-600 text-sm">Anteckning</th>
                 <SortableHeader label="I offerter" field="offer_count" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" />
               </tr>
             </thead>
             <tbody>
-              {filteredAndSortedWines.map((wine) => (
-                <tr key={wine.id} className="border-b border-gray-100 hover:bg-gray-50 group">
+              {filteredAndSortedWines.map((wine) => {
+                const isEndOfVintage = wine.status === 'END_OF_VINTAGE';
+                return (
+                <tr
+                  key={wine.id}
+                  className={`border-b border-gray-100 hover:bg-gray-50 group ${isEndOfVintage ? 'opacity-60' : ''}`}
+                >
                   <td className="p-4">
                     <input
                       type="checkbox"
@@ -599,16 +679,12 @@ export default function SupplierWinesPage() {
                   <td className="p-4">
                     <div className="font-medium text-gray-900">
                       {wine.name}
-                      {wine.vintage && wine.vintage !== 'NV' && (
-                        <span className="text-gray-500 ml-1">{wine.vintage}</span>
-                      )}
                     </div>
-                    <div className="text-sm text-gray-500">{wine.grape} &middot; {wine.region}, {wine.country}</div>
+                    <div className="text-sm text-gray-500">{wine.producer} &middot; {wine.region}, {wine.country}</div>
                     {wine.updated_at && formatTimeAgo(wine.updated_at) && (
-                      <div className="text-xs text-gray-400 mt-0.5">Redigerad {formatTimeAgo(wine.updated_at)}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">Uppdaterad {formatTimeAgo(wine.updated_at)}</div>
                     )}
                   </td>
-                  <td className="p-4 text-gray-600">{wine.producer}</td>
 
                   {/* Editable Price */}
                   <td className="p-4 text-right">
@@ -626,13 +702,11 @@ export default function SupplierWinesPage() {
                               saveEdit({ wineId: wine.id, field: 'price_ex_vat_sek', reverse: e.shiftKey });
                             }
                           }}
+                          onBlur={handleBlur}
                           className="w-24 px-2 py-1 text-right border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#7B1E1E]"
                           autoFocus
                         />
-                        <button onClick={() => saveEdit()} disabled={saving === wine.id} className="p-1 text-green-600 hover:bg-green-50 rounded">
-                          {saving === wine.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                        </button>
-                        <button onClick={cancelEdit} className="p-1 text-gray-400 hover:bg-gray-100 rounded"><X className="h-4 w-4" /></button>
+                        {saving === wine.id && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
                       </div>
                     ) : (
                       <span
@@ -645,9 +719,9 @@ export default function SupplierWinesPage() {
                     )}
                   </td>
 
-                  {/* Editable Stock */}
+                  {/* Editable Vintage */}
                   <td className="p-4 text-right">
-                    {editingCell?.wineId === wine.id && editingCell?.field === 'stock_qty' ? (
+                    {editingCell?.wineId === wine.id && editingCell?.field === 'vintage' ? (
                       <div className="flex items-center justify-end gap-1">
                         <input
                           type="number"
@@ -658,42 +732,80 @@ export default function SupplierWinesPage() {
                             if (e.key === 'Escape') cancelEdit();
                             if (e.key === 'Tab') {
                               e.preventDefault();
-                              saveEdit({ wineId: wine.id, field: 'stock_qty', reverse: e.shiftKey });
+                              saveEdit({ wineId: wine.id, field: 'vintage', reverse: e.shiftKey });
                             }
                           }}
+                          onBlur={handleBlur}
+                          placeholder="NV"
                           className="w-20 px-2 py-1 text-right border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#7B1E1E]"
                           autoFocus
                         />
-                        <button onClick={() => saveEdit()} disabled={saving === wine.id} className="p-1 text-green-600 hover:bg-green-50 rounded">
-                          {saving === wine.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                        </button>
-                        <button onClick={cancelEdit} className="p-1 text-gray-400 hover:bg-gray-100 rounded"><X className="h-4 w-4" /></button>
+                        {saving === wine.id && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
                       </div>
                     ) : (
                       <span
-                        onClick={() => startEdit(wine.id, 'stock_qty', wine.stock_qty ?? '')}
+                        onClick={() => startEdit(wine.id, 'vintage', wine.vintage ?? '')}
                         className="cursor-pointer hover:bg-yellow-50 px-2 py-1 rounded text-gray-600"
                         title="Klicka för att redigera"
                       >
-                        {wine.stock_qty ?? '—'}
+                        {wine.vintage || 'NV'}
                       </span>
                     )}
                   </td>
 
-                  {/* Status Dropdown */}
+                  {/* Status Badge + Dropdown */}
                   <td className="p-4">
                     {saving === wine.id ? (
                       <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                     ) : (
-                      <select
-                        value={wine.status}
-                        onChange={(e) => updateStatus(wine.id, e.target.value)}
-                        className="text-xs border-0 bg-transparent cursor-pointer focus:ring-0 p-0"
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(wine.status)}
+                        <select
+                          value={wine.status}
+                          onChange={(e) => updateStatus(wine.id, e.target.value)}
+                          className="text-xs border border-gray-200 rounded px-1 py-0.5 bg-white cursor-pointer focus:ring-1 focus:ring-[#7B1E1E] focus:border-[#7B1E1E]"
+                        >
+                          {STATUS_OPTIONS.map(option => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </td>
+
+                  {/* Editable Notes */}
+                  <td className="p-4">
+                    {editingCell?.wineId === wine.id && editingCell?.field === 'notes' ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEdit();
+                            if (e.key === 'Escape') cancelEdit();
+                            if (e.key === 'Tab') {
+                              e.preventDefault();
+                              saveEdit({ wineId: wine.id, field: 'notes', reverse: e.shiftKey });
+                            }
+                          }}
+                          onBlur={handleBlur}
+                          maxLength={140}
+                          placeholder="Anteckning (max 140 tecken)"
+                          className="w-48 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#7B1E1E]"
+                          autoFocus
+                        />
+                        <span className="text-xs text-gray-400">{editValue.length}/140</span>
+                        {saving === wine.id && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                      </div>
+                    ) : (
+                      <span
+                        onClick={() => startEdit(wine.id, 'notes', wine.notes ?? '')}
+                        className="cursor-pointer hover:bg-yellow-50 px-2 py-1 rounded text-gray-600 text-sm truncate max-w-[200px] inline-block"
+                        title={wine.notes || 'Klicka för att lägga till anteckning'}
                       >
-                        {STATUS_OPTIONS.map(option => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </select>
+                        {wine.notes || <span className="text-gray-300 italic">Lägg till...</span>}
+                      </span>
                     )}
                   </td>
 
@@ -712,7 +824,8 @@ export default function SupplierWinesPage() {
                     )}
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
@@ -807,6 +920,30 @@ export default function SupplierWinesPage() {
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${
+            toast.type === 'success'
+              ? 'bg-green-600 text-white'
+              : 'bg-red-600 text-white'
+          }`}>
+            {toast.type === 'success' ? (
+              <CheckCircle className="h-5 w-5" />
+            ) : (
+              <AlertCircle className="h-5 w-5" />
+            )}
+            <span className="font-medium">{toast.message}</span>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-2 p-1 hover:bg-white/20 rounded transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}

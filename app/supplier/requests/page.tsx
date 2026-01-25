@@ -14,7 +14,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck, Send, AlertTriangle } from 'lucide-react';
+import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck, Send, AlertTriangle, CheckCircle } from 'lucide-react';
 
 // ============================================================================
 // URGENCY HELPERS
@@ -87,6 +87,43 @@ function getUrgencyStyles(urgency: UrgencyLevel): { badge: string; dot: string }
   }
 }
 
+function getLastActivityInfo(request: QuoteRequest): { label: string; isNew: boolean } {
+  const now = new Date();
+
+  // Check various activity timestamps
+  const respondedAt = request.assignment.respondedAt ? new Date(request.assignment.respondedAt) : null;
+  const viewedAt = request.assignment.viewedAt ? new Date(request.assignment.viewedAt) : null;
+  const sentAt = request.assignment.sentAt ? new Date(request.assignment.sentAt) : null;
+  const createdAt = new Date(request.createdAt);
+
+  // Use the most recent activity
+  const lastActivity = respondedAt || viewedAt || sentAt || createdAt;
+  const diffMs = now.getTime() - lastActivity.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  // Mark as "new" if less than 2 hours old and not viewed/responded
+  const isNew = !viewedAt && !respondedAt && diffHours < 2;
+
+  if (isNew) {
+    return { label: 'Ny', isNew: true };
+  }
+
+  if (diffHours < 1) {
+    return { label: 'Uppdaterad nyss', isNew: false };
+  }
+
+  if (diffHours < 24) {
+    return { label: `Uppdaterad ${diffHours}h sedan`, isNew: false };
+  }
+
+  if (diffDays === 1) {
+    return { label: 'Uppdaterad igår', isNew: false };
+  }
+
+  return { label: `Uppdaterad ${diffDays}d sedan`, isNew: false };
+}
+
 interface QuoteRequest {
   id: string;
   restaurantId: string;
@@ -118,8 +155,12 @@ export default function SupplierRequestsPage() {
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'responded'>('pending');
+  const [urgencyFilter, setUrgencyFilter] = useState<'all' | 'critical' | 'urgent'>('all');
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'urgency' | 'date'>('urgency');
+
+  // Toast state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Quick respond modal state
   const [quickRespondRequest, setQuickRespondRequest] = useState<QuoteRequest | null>(null);
@@ -190,13 +231,19 @@ export default function SupplierRequestsPage() {
     setSelectedRequests(new Set());
   };
 
+  // Show toast notification
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
   // Quick respond handler
   const submitQuickRespond = async () => {
     if (!quickRespondRequest || !supplierId) return;
 
     const price = quickRespondPrice ? parseInt(quickRespondPrice) : quickRespondRequest.budgetPerFlaska;
     if (!price || price <= 0) {
-      alert('Ange ett giltigt pris');
+      showToast('Ange ett giltigt pris', 'error');
       return;
     }
 
@@ -218,16 +265,18 @@ export default function SupplierRequestsPage() {
       });
 
       if (response.ok) {
+        const restaurantName = quickRespondRequest.restaurantName;
         setQuickRespondRequest(null);
         setQuickRespondPrice('');
         setQuickRespondNote('');
+        showToast(`Offert skickad till ${restaurantName}!`, 'success');
         fetchRequests();
       } else {
         const error = await response.json();
-        alert(error.error || 'Kunde inte skicka offert');
+        showToast(error.error || 'Kunde inte skicka offert', 'error');
       }
     } catch (error) {
-      alert('Ett fel uppstod');
+      showToast('Ett fel uppstod - kontrollera nätverket', 'error');
     } finally {
       setQuickRespondSubmitting(false);
     }
@@ -279,16 +328,20 @@ export default function SupplierRequestsPage() {
       const successful = results.filter(r => r.status === 'fulfilled').length;
       const failed = results.filter(r => r.status === 'rejected').length;
 
-      alert(`Klart! ${successful} offerter skapade${failed > 0 ? `, ${failed} misslyckades` : ''}.`);
-
       // Refresh and reset
       setShowBulkModal(false);
       setSelectedRequests(new Set());
       setBulkMode(false);
       fetchRequests();
+
+      if (failed > 0) {
+        showToast(`${successful} offerter skickade, ${failed} misslyckades`, 'error');
+      } else {
+        showToast(`${successful} offerter skickade!`, 'success');
+      }
     } catch (error) {
       console.error('Bulk offer error:', error);
-      alert('Kunde inte skapa offerter. Försök igen.');
+      showToast('Kunde inte skapa offerter - försök igen', 'error');
     } finally {
       setBulkSubmitting(false);
     }
@@ -298,11 +351,21 @@ export default function SupplierRequestsPage() {
   const sortedRequests = useMemo(() => {
     let filtered = [...requests];
 
-    // Apply filter
+    // Apply status filter
     if (filter === 'pending') {
       filtered = filtered.filter(r => r.myOfferCount === 0);
     } else if (filter === 'responded') {
       filtered = filtered.filter(r => r.myOfferCount > 0);
+    }
+
+    // Apply urgency filter
+    if (urgencyFilter !== 'all') {
+      filtered = filtered.filter(r => {
+        const info = getDeadlineInfo(r.assignment.expiresAt, r.assignment.isExpired);
+        if (urgencyFilter === 'critical') return info.urgency === 'critical';
+        if (urgencyFilter === 'urgent') return info.urgency === 'critical' || info.urgency === 'urgent';
+        return true;
+      });
     }
 
     // Sort by urgency (most urgent first) or date
@@ -310,11 +373,25 @@ export default function SupplierRequestsPage() {
       filtered.sort((a, b) => {
         const aInfo = getDeadlineInfo(a.assignment.expiresAt, a.assignment.isExpired);
         const bInfo = getDeadlineInfo(b.assignment.expiresAt, b.assignment.isExpired);
-        // Expired ones go to the end
+
+        // 1. Expired ones go to the end
         if (aInfo.urgency === 'expired' && bInfo.urgency !== 'expired') return 1;
         if (bInfo.urgency === 'expired' && aInfo.urgency !== 'expired') return -1;
-        // Sort by hours left (ascending = most urgent first)
-        return aInfo.hoursLeft - bInfo.hoursLeft;
+
+        // 2. Primary: sort by hours left (ascending = most urgent first)
+        if (aInfo.hoursLeft !== bInfo.hoursLeft) {
+          return aInfo.hoursLeft - bInfo.hoursLeft;
+        }
+
+        // 3. Secondary: deadline closest first (for same hoursLeft bucket)
+        const aExpires = new Date(a.assignment.expiresAt || 0).getTime();
+        const bExpires = new Date(b.assignment.expiresAt || 0).getTime();
+        if (aExpires !== bExpires) {
+          return aExpires - bExpires;
+        }
+
+        // 4. Tertiary: newest created first (for deterministic order)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
     } else {
       // Sort by date (newest first)
@@ -322,7 +399,7 @@ export default function SupplierRequestsPage() {
     }
 
     return filtered;
-  }, [requests, filter, sortBy]);
+  }, [requests, filter, urgencyFilter, sortBy]);
 
   // Count urgent requests that need attention today
   const urgentCount = useMemo(() => {
@@ -362,9 +439,15 @@ export default function SupplierRequestsPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      {/* Urgent Notification Banner */}
+      {/* Urgent Notification Banner - Clickable to filter */}
       {criticalCount > 0 && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+        <button
+          onClick={() => {
+            setFilter('pending');
+            setUrgencyFilter('critical');
+          }}
+          className="w-full mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 hover:bg-red-100 transition-colors text-left"
+        >
           <div className="flex-shrink-0">
             <AlertTriangle className="h-5 w-5 text-red-600" />
           </div>
@@ -372,13 +455,20 @@ export default function SupplierRequestsPage() {
             <p className="font-medium text-red-800">
               {criticalCount} {criticalCount === 1 ? 'förfrågan kräver' : 'förfrågningar kräver'} svar idag!
             </p>
-            <p className="text-sm text-red-700">Svara innan deadline för att inte missa affären.</p>
+            <p className="text-sm text-red-700">Klicka för att visa endast brådskande</p>
           </div>
-        </div>
+          <ChevronRight className="h-5 w-5 text-red-400" />
+        </button>
       )}
 
       {urgentCount > 0 && criticalCount === 0 && (
-        <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3">
+        <button
+          onClick={() => {
+            setFilter('pending');
+            setUrgencyFilter('urgent');
+          }}
+          className="w-full mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3 hover:bg-amber-100 transition-colors text-left"
+        >
           <div className="flex-shrink-0">
             <Clock className="h-5 w-5 text-amber-600" />
           </div>
@@ -386,9 +476,10 @@ export default function SupplierRequestsPage() {
             <p className="font-medium text-amber-800">
               {urgentCount} {urgentCount === 1 ? 'förfrågan' : 'förfrågningar'} med kort deadline
             </p>
-            <p className="text-sm text-amber-700">Svara inom de närmaste dagarna.</p>
+            <p className="text-sm text-amber-700">Klicka för att visa endast brådskande</p>
           </div>
-        </div>
+          <ChevronRight className="h-5 w-5 text-amber-400" />
+        </button>
       )}
 
       {/* Header */}
@@ -452,11 +543,11 @@ export default function SupplierRequestsPage() {
 
       {/* Filter Tabs + Sort */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
-            onClick={() => setFilter('pending')}
+            onClick={() => { setFilter('pending'); setUrgencyFilter('all'); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'pending'
+              filter === 'pending' && urgencyFilter === 'all'
                 ? 'bg-primary text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
@@ -469,7 +560,7 @@ export default function SupplierRequestsPage() {
             )}
           </button>
           <button
-            onClick={() => setFilter('responded')}
+            onClick={() => { setFilter('responded'); setUrgencyFilter('all'); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === 'responded'
                 ? 'bg-primary text-white'
@@ -479,15 +570,26 @@ export default function SupplierRequestsPage() {
             Besvarade
           </button>
           <button
-            onClick={() => setFilter('all')}
+            onClick={() => { setFilter('all'); setUrgencyFilter('all'); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'all'
+              filter === 'all' && urgencyFilter === 'all'
                 ? 'bg-primary text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             Alla
           </button>
+
+          {/* Active urgency filter indicator */}
+          {urgencyFilter !== 'all' && (
+            <button
+              onClick={() => setUrgencyFilter('all')}
+              className="px-3 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-colors flex items-center gap-1"
+            >
+              {urgencyFilter === 'critical' ? 'Endast kritiska' : 'Brådskande'}
+              <X className="h-3 w-3" />
+            </button>
+          )}
         </div>
 
         {/* Sort Toggle */}
@@ -514,6 +616,7 @@ export default function SupplierRequestsPage() {
           {sortedRequests.map((request) => {
             const deadlineInfo = getDeadlineInfo(request.assignment.expiresAt, request.assignment.isExpired);
             const urgencyStyles = getUrgencyStyles(deadlineInfo.urgency);
+            const activityInfo = getLastActivityInfo(request);
             return (
             <div
               key={request.id}
@@ -557,9 +660,14 @@ export default function SupplierRequestsPage() {
                         <span className="font-medium text-gray-900">
                           {request.restaurantName}
                         </span>
-                        {request.myOfferCount === 0 && (
+                        {request.myOfferCount === 0 && activityInfo.isNew && (
                           <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium">
                             Ny
+                          </span>
+                        )}
+                        {request.myOfferCount === 0 && !activityInfo.isNew && (
+                          <span className="text-xs text-gray-400">
+                            {activityInfo.label}
                           </span>
                         )}
                       </div>
@@ -706,7 +814,16 @@ export default function SupplierRequestsPage() {
 
       {/* Quick Respond Modal */}
       {quickRespondRequest && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setQuickRespondRequest(null);
+              setQuickRespondPrice('');
+              setQuickRespondNote('');
+            }
+          }}
+        >
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
@@ -724,7 +841,15 @@ export default function SupplierRequestsPage() {
               </div>
             </div>
 
-            <div className="p-6 space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (quickRespondPrice && !quickRespondSubmitting) {
+                  submitQuickRespond();
+                }
+              }}
+              className="p-6 space-y-4"
+            >
               {/* Request summary */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -776,24 +901,24 @@ export default function SupplierRequestsPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 />
               </div>
-            </div>
 
-            <div className="p-6 border-t border-gray-200 flex gap-3">
-              <button
-                onClick={() => {
-                  setQuickRespondRequest(null);
-                  setQuickRespondPrice('');
-                  setQuickRespondNote('');
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
-              >
-                Avbryt
-              </button>
-              <button
-                onClick={submitQuickRespond}
-                disabled={quickRespondSubmitting || !quickRespondPrice}
-                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
-              >
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuickRespondRequest(null);
+                    setQuickRespondPrice('');
+                    setQuickRespondNote('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                >
+                  Avbryt
+                </button>
+                <button
+                  type="submit"
+                  disabled={quickRespondSubmitting || !quickRespondPrice}
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+                >
                 {quickRespondSubmitting ? (
                   <>
                     <span className="animate-spin">⏳</span>
@@ -806,7 +931,8 @@ export default function SupplierRequestsPage() {
                   </>
                 )}
               </button>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -981,6 +1107,30 @@ export default function SupplierRequestsPage() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${
+            toast.type === 'success'
+              ? 'bg-green-600 text-white'
+              : 'bg-red-600 text-white'
+          }`}>
+            {toast.type === 'success' ? (
+              <CheckCircle className="h-5 w-5" />
+            ) : (
+              <AlertCircle className="h-5 w-5" />
+            )}
+            <span className="font-medium">{toast.message}</span>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-2 p-1 hover:bg-white/20 rounded transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}

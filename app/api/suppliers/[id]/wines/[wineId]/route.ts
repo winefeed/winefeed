@@ -31,6 +31,7 @@ const EDITABLE_FIELDS = [
   'region',
   'country',
   'grape',
+  'notes',
 ];
 
 type RouteParams = {
@@ -111,9 +112,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
     }
 
-    // Validate price if provided
-    if (updates.price_ex_vat_sek !== undefined && updates.price_ex_vat_sek < 0) {
-      return NextResponse.json({ error: 'Price must be positive' }, { status: 400 });
+    // Validate price if provided (must be > 0)
+    if (updates.price_ex_vat_sek !== undefined) {
+      if (typeof updates.price_ex_vat_sek !== 'number' || updates.price_ex_vat_sek <= 0) {
+        return NextResponse.json({ error: 'Pris måste vara större än 0' }, { status: 400 });
+      }
+    }
+
+    // Validate notes max length
+    if (updates.notes !== undefined && updates.notes !== null) {
+      if (typeof updates.notes === 'string' && updates.notes.length > 140) {
+        return NextResponse.json({ error: 'Anteckning får max vara 140 tecken' }, { status: 400 });
+      }
     }
 
     const { data: wine, error } = await supabase
