@@ -158,8 +158,11 @@ export default function SupplierWinesPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Store original value for rollback
+  // Store original value for rollback (per-cell snapshot, not whole array)
   const [originalValue, setOriginalValue] = useState<any>(null);
+
+  // Track in-flight saves to prevent rollback conflicts
+  const [inFlightSaves, setInFlightSaves] = useState<Map<string, { field: string; oldValue: any }>>(new Map());
 
   // Inline edit handlers
   const startEdit = (wineId: string, field: string, currentValue: any) => {
@@ -253,8 +256,13 @@ export default function SupplierWinesPage() {
       return true;
     }
 
-    // Optimistic update - save current state for rollback
-    const previousWines = [...wines];
+    // Per-cell snapshot for rollback (avoids concurrency issues with rapid edits)
+    const saveKey = `${wineId}:${field}`;
+    const currentWine = wines.find(w => w.id === wineId);
+    const oldValue = currentWine ? (currentWine as any)[field] : null;
+
+    // Track this in-flight save
+    setInFlightSaves(prev => new Map(prev).set(saveKey, { field, oldValue }));
 
     // Apply optimistic update
     setWines(prev => prev.map(w => {
@@ -272,8 +280,15 @@ export default function SupplierWinesPage() {
 
       if (response.ok) {
         const { wine } = await response.json();
-        // Update with server response (authoritative)
+        // Update with server response (authoritative) - this is the canonical state
         setWines(prev => prev.map(w => w.id === wineId ? { ...w, ...wine } : w));
+
+        // Clear in-flight tracker
+        setInFlightSaves(prev => {
+          const next = new Map(prev);
+          next.delete(saveKey);
+          return next;
+        });
 
         // Navigate to next cell if requested
         if (navigateAfter) {
@@ -286,15 +301,37 @@ export default function SupplierWinesPage() {
         showToast('Sparat', 'success');
         return true;
       } else {
-        // Rollback on error
-        setWines(previousWines);
+        // Rollback only this specific field (not whole array)
+        setWines(prev => prev.map(w => {
+          if (w.id !== wineId) return w;
+          return { ...w, [field]: oldValue };
+        }));
+
+        // Clear in-flight tracker
+        setInFlightSaves(prev => {
+          const next = new Map(prev);
+          next.delete(saveKey);
+          return next;
+        });
+
         const error = await response.json();
         showToast(error.error || 'Kunde inte spara', 'error');
         return false;
       }
     } catch (error) {
-      // Rollback on network error
-      setWines(previousWines);
+      // Rollback only this specific field
+      setWines(prev => prev.map(w => {
+        if (w.id !== wineId) return w;
+        return { ...w, [field]: oldValue };
+      }));
+
+      // Clear in-flight tracker
+      setInFlightSaves(prev => {
+        const next = new Map(prev);
+        next.delete(saveKey);
+        return next;
+      });
+
       showToast('Ändringar kunde inte sparas - kontrollera nätverket', 'error');
       return false;
     } finally {
@@ -314,8 +351,11 @@ export default function SupplierWinesPage() {
   const updateStatus = async (wineId: string, newStatus: string) => {
     if (!supplierId) return;
 
+    // Per-cell snapshot for rollback
+    const currentWine = wines.find(w => w.id === wineId);
+    const oldStatus = currentWine?.status;
+
     // Optimistic update
-    const previousWines = [...wines];
     setWines(prev => prev.map(w =>
       w.id === wineId ? { ...w, status: newStatus as any, updated_at: new Date().toISOString() } : w
     ));
@@ -330,14 +370,21 @@ export default function SupplierWinesPage() {
 
       if (response.ok) {
         const { wine } = await response.json();
+        // Use server response as canonical state
         setWines(prev => prev.map(w => w.id === wineId ? { ...w, ...wine } : w));
         showToast('Status uppdaterad', 'success');
       } else {
-        setWines(previousWines);
+        // Rollback only this field
+        setWines(prev => prev.map(w =>
+          w.id === wineId ? { ...w, status: oldStatus as any } : w
+        ));
         showToast('Kunde inte uppdatera status', 'error');
       }
     } catch (error) {
-      setWines(previousWines);
+      // Rollback only this field
+      setWines(prev => prev.map(w =>
+        w.id === wineId ? { ...w, status: oldStatus as any } : w
+      ));
       showToast('Ett fel uppstod', 'error');
     } finally {
       setSaving(null);
