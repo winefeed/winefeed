@@ -67,6 +67,12 @@ export const MAIN_NAVIGATION: NavSection[] = [
         icon: Package,
       },
       {
+        label: 'Statistik',
+        href: '/dashboard/analytics',
+        icon: BarChart3,
+        roles: ['RESTAURANT'],
+      },
+      {
         label: 'Inställningar',
         href: '/dashboard/settings',
         icon: Settings,
