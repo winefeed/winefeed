@@ -196,34 +196,27 @@ export default function PitchPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Vad piloten har visat</h2>
           <p className="text-gray-600 mb-8">Pilot Loop 2.0 – Live sedan januari 2025</p>
 
-          {/* Before/After Mini-Table */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-8">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">KPI</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-red-600 uppercase tracking-wider">Före</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-green-600 uppercase tracking-wider">Efter</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                <tr>
-                  <td className="px-6 py-4 font-medium text-gray-900">Tid till första offert</td>
-                  <td className="px-6 py-4 text-gray-600">2–5 arbetsdagar</td>
-                  <td className="px-6 py-4 text-green-700 font-medium">Samma dag</td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 font-medium text-gray-900">Manuell dataöverföring</td>
-                  <td className="px-6 py-4 text-gray-600">4–6 steg per order</td>
-                  <td className="px-6 py-4 text-green-700 font-medium">0 steg (automatiskt)</td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 font-medium text-gray-900">Compliance-synlighet</td>
-                  <td className="px-6 py-4 text-gray-600">Mejl/telefon</td>
-                  <td className="px-6 py-4 text-green-700 font-medium">Realtid i dashboard</td>
-                </tr>
-              </tbody>
-            </table>
+          {/* Before/After KPI Cards (mobile-friendly) */}
+          <div className="grid gap-4 mb-8">
+            {[
+              { kpi: 'Tid till första offert', before: '2–5 arbetsdagar', after: 'Samma dag' },
+              { kpi: 'Manuell dataöverföring', before: '4–6 steg per order', after: '0 steg (automatiskt)' },
+              { kpi: 'Compliance-synlighet', before: 'Mejl/telefon', after: 'Realtid i dashboard' },
+            ].map((item, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
+                <div className="font-medium text-gray-900 mb-3">{item.kpi}</div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs font-medium text-red-600 uppercase tracking-wide mb-1">Före</div>
+                    <div className="text-gray-600 text-sm">{item.before}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-green-600 uppercase tracking-wide mb-1">Efter</div>
+                    <div className="text-green-700 font-medium text-sm">{item.after}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           <p className="text-xs text-gray-500 text-center mb-8">
@@ -396,14 +389,14 @@ export default function PitchPage() {
             <div className="border-t border-gray-200 pt-8">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
                 <a
-                  href="mailto:markus@winefeed.se?subject=Intresserad%20av%20Winefeed-pilot"
+                  href="mailto:markus@winefeed.se?subject=Intresserad%20av%20Winefeed-pilot&body=Hej%20Markus%2C%0A%0AJag%20%C3%A4r%20intresserad%20av%20Winefeed-piloten.%0A%0A"
                   className="inline-flex items-center gap-2 px-8 py-4 bg-[#7B1E1E] hover:bg-[#6B1818] text-white rounded-xl transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
                 >
                   <Mail className="h-5 w-5" />
                   Kontakta oss
                 </a>
                 <a
-                  href="https://calendly.com/winefeed/pilot-demo"
+                  href="https://calendly.com/winefeed/pilot-demo?utm_source=pitch&utm_campaign=importer_pilot"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-[#7B1E1E] border-2 border-[#7B1E1E] rounded-xl transition-colors font-semibold text-lg"
@@ -413,10 +406,52 @@ export default function PitchPage() {
                 </a>
               </div>
 
-              <p className="text-center text-sm text-gray-500">
+              <p className="text-center text-sm text-gray-500 mb-8">
                 Pilotplatser: 2–3 st &bull; Start: inom 2 veckor &bull; Ingen IT-integration första steget
               </p>
+
+              {/* Next Steps */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 text-center">Så kommer du igång</h3>
+                <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+                  {[
+                    { step: '1', text: '20 min demo', desc: 'Vi visar plattformen' },
+                    { step: '2', text: 'Flödesmappning', desc: '30 min – vi förstår era behov' },
+                    { step: '3', text: 'Pilotstart', desc: 'Igång inom 2 veckor' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <div className="flex flex-col items-center text-center">
+                        <div className="w-10 h-10 bg-[#7B1E1E] text-white rounded-full flex items-center justify-center font-bold mb-2">
+                          {item.step}
+                        </div>
+                        <div className="font-medium text-gray-900">{item.text}</div>
+                        <div className="text-xs text-gray-500">{item.desc}</div>
+                      </div>
+                      {i < 2 && <ArrowRight className="h-5 w-5 text-gray-300 hidden md:block" />}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mini FAQ */}
+      <section className="py-12 px-6 bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Vanliga frågor</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { q: 'Vad krävs av oss?', a: '1–2 timmar för uppsättning, sedan ärlig feedback. Vi sköter resten.' },
+              { q: 'Hur snabbt kan vi vara igång?', a: 'Inom 2 veckor från första möte. Ingen IT-integration krävs i steg 1.' },
+              { q: 'Vad kostar piloten?', a: 'Gratis. Vi vill validera värdet innan vi sätter pris.' },
+            ].map((faq, i) => (
+              <div key={i} className="bg-white rounded-lg border border-gray-200 p-5">
+                <h3 className="font-semibold text-gray-900 mb-2">{faq.q}</h3>
+                <p className="text-sm text-gray-600">{faq.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
