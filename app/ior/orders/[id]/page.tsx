@@ -116,7 +116,9 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
       setError(null);
 
       // Middleware sets x-user-id from Supabase auth session
-      const response = await fetch('/api/me/actor');
+      const response = await fetch('/api/me/actor', {
+        credentials: 'include'
+      });
 
       if (!response.ok) {
         throw new Error('Failed to fetch actor context');
@@ -144,7 +146,9 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
       setError(null);
 
       // Middleware sets x-user-id and x-tenant-id from Supabase auth session
-      const response = await fetch(`/api/ior/orders/${orderId}`);
+      const response = await fetch(`/api/ior/orders/${orderId}`, {
+        credentials: 'include'
+      });
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -180,6 +184,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ to_status: toStatus })
       });
 
@@ -214,7 +219,8 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
 
       if (!response.ok) {

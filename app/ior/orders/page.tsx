@@ -77,7 +77,9 @@ export default function IOROrdersPage() {
       setError(null);
 
       // Middleware sets x-user-id from Supabase auth session
-      const response = await fetch('/api/me/actor');
+      const response = await fetch('/api/me/actor', {
+        credentials: 'include'
+      });
 
       if (!response.ok) {
         throw new Error('Failed to fetch actor context');
@@ -113,7 +115,9 @@ export default function IOROrdersPage() {
       const url = `/api/ior/orders${params.toString() ? `?${params.toString()}` : ''}`;
 
       // Middleware sets x-user-id and x-tenant-id from Supabase auth session
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        credentials: 'include'  // Ensure cookies are sent
+      });
 
       if (!response.ok) {
         if (response.status === 401) {
