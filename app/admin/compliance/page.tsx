@@ -164,7 +164,8 @@ export default function AdminCompliancePage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || data.details || 'Failed to fetch report');
+        // Show details first (more specific), then error message
+        throw new Error(data.details || data.error || 'Failed to fetch report');
       }
 
       setReport(data);
