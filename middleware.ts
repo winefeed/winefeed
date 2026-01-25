@@ -31,6 +31,9 @@ export async function middleware(request: NextRequest) {
     '/api/invites/verify',
     '/api/invites/accept',
     '/api/suggest',      // Wine suggestion API (public for demo)
+    '/signup',           // Public restaurant registration
+    '/api/org-lookup',   // Org number lookup (public)
+    '/api/restaurants/onboard',  // Restaurant registration (public)
     '/supplier/login',
     '/supplier/forgot-password',
     '/supplier/reset-password',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -95,6 +95,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingData, setPendingData] = useState<RequestFormData | null>(null);
   const [supplierMessage, setSupplierMessage] = useState('');
+  const [prefillLoaded, setPrefillLoaded] = useState(false);
 
   const {
     register,
@@ -116,6 +117,29 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
   });
 
   const selectedColor = watch('color');
+
+  // Prefill delivery city from restaurant profile
+  useEffect(() => {
+    if (prefillLoaded) return;
+
+    async function fetchRestaurantCity() {
+      try {
+        const res = await fetch('/api/me/restaurant');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.city && !watch('leverans_ort')) {
+            setValue('leverans_ort', data.city);
+          }
+        }
+      } catch (err) {
+        // Silently fail - user can enter manually
+      } finally {
+        setPrefillLoaded(true);
+      }
+    }
+
+    fetchRestaurantCity();
+  }, [prefillLoaded, setValue, watch]);
 
   const toggleCertification = (certId: string) => {
     setSelectedCertifications((prev) =>

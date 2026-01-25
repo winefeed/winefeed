@@ -22,13 +22,11 @@
 - [x] Visa all vininfo i modal/detaljvy (druva, region, årgång, lager, etc.)
 - [x] Möjlighet att redigera vininfo direkt
 
-### Förifylla leveransort från restaurangprofil
-- [ ] Publik registrering med orgnummer-lookup (Roaring.io)
-- [ ] Hämta restaurangens adress/stad från `restaurants`-tabellen
-- [ ] Förifylla "Leveransort" i förfrågningsformuläret
-- [ ] Spara ev. alternativa leveransadresser på restaurangen
-
-**Plan sparad:** `~/.claude/plans/valiant-imagining-rainbow.md`
+### ~~Förifylla leveransort från restaurangprofil~~ ✅ FIXAT
+- [x] Publik registrering med orgnummer-lookup (Roaring.io)
+- [x] Hämta restaurangens stad från `restaurants`-tabellen
+- [x] Förifylla "Leveransort" i förfrågningsformuläret
+- [ ] Spara ev. alternativa leveransadresser (framtida)
 
 ---
 
@@ -66,7 +64,7 @@ Se fullständig rapport: `SECURITY_AUDIT.md`
 
 ### Medelprioritet
 - [x] Dokumentera tenant-isolation strategi → `docs/TENANT_ISOLATION.md`
-- [ ] Förbered för multi-tenant (hårdkodad tenant_id i middleware)
+- [~] Förbered för multi-tenant → **EJ AKUT** (endast svensk marknad just nu, grunden finns)
 
 ---
 
