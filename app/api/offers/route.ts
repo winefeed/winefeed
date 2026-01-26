@@ -15,6 +15,8 @@ import { sendEmail, getRestaurantEmail, logEmailEvent } from '@/lib/email-servic
 import { offerCreatedEmail } from '@/lib/email-templates';
 import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
+import { checkActionGate, createGatedResponse } from '@/lib/feature-gates';
+import { incrementUsage } from '@/lib/subscription-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,6 +39,14 @@ export async function POST(request: NextRequest) {
     // Only SELLER or ADMIN can create offers
     if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'SELLER')) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    // Check subscription limit for sending offers (only for SELLER, not ADMIN)
+    if (actorService.hasRole(actor, 'SELLER') && actor.supplier_id) {
+      const gateCheck = await checkActionGate(actor.supplier_id, 'send_offer');
+      if (!gateCheck.allowed) {
+        return createGatedResponse(gateCheck);
+      }
     }
 
     // Parse request body
@@ -100,6 +110,11 @@ export async function POST(request: NextRequest) {
     };
 
     const result = await offerService.createOffer(input);
+
+    // Increment usage counter for sellers
+    if (actorService.hasRole(actor, 'SELLER') && actor.supplier_id) {
+      await incrementUsage(actor.supplier_id, 'offers_sent');
+    }
 
     // PILOT LOOP 1.0: Send email notification if offer is linked to a request
     // Fail-safe: Email failure doesn't block offer creation

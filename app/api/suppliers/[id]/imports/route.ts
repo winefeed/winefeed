@@ -11,6 +11,33 @@ import { createClient } from '@supabase/supabase-js';
 import { parse } from 'csv-parse/sync';
 import { actorService } from '@/lib/actor-service';
 
+/**
+ * Decode CSV buffer handling multiple encodings (UTF-8, Windows-1252, ISO-8859-1)
+ */
+function decodeCSVBuffer(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+
+  // Check for UTF-8 BOM
+  const hasUTF8BOM = bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf;
+  if (hasUTF8BOM) {
+    return new TextDecoder('utf-8').decode(bytes.slice(3));
+  }
+
+  // Try UTF-8 first
+  const utf8Text = new TextDecoder('utf-8').decode(bytes);
+
+  // Check for garbled patterns indicating wrong encoding
+  if (utf8Text.includes('Ã©') || utf8Text.includes('Ã¨') || utf8Text.includes('Ã¶') ||
+      utf8Text.includes('Ã¤') || utf8Text.includes('Ã¥') || utf8Text.includes('Ã') ||
+      utf8Text.includes('â€')) {
+    // Fall back to Windows-1252/Latin-1
+    console.log('[CSV Import] Detected non-UTF-8 encoding, converting from Windows-1252');
+    return new TextDecoder('windows-1252').decode(bytes);
+  }
+
+  return utf8Text;
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -76,7 +103,9 @@ export async function POST(
       }
 
       filename = file.name;
-      csvText = await file.text();
+      // Use proper encoding detection instead of file.text()
+      const buffer = await file.arrayBuffer();
+      csvText = decodeCSVBuffer(buffer);
     } else {
       const body = await request.json();
       csvText = body.csvText;
