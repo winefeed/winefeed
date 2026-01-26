@@ -42,7 +42,25 @@ export async function middleware(request: NextRequest) {
     '/portal-select',    // Portal selector for multi-role users
     '/forgot-password',  // Forgot password page
     '/pitch',            // Public pitch page
+    '/api/health',       // Health check (monitoring + smoke tests)
   ];
+
+  // Development/Test: Allow header-based auth for smoke tests
+  // SECURITY: Requires BOTH non-production AND explicit env flag
+  const allowTestBypass =
+    process.env.NODE_ENV !== 'production' &&
+    process.env.ALLOW_TEST_BYPASS === 'true';
+
+  if (allowTestBypass && pathname.startsWith('/api/')) {
+    const testUserId = request.headers.get('x-user-id');
+    const testTenantId = request.headers.get('x-tenant-id');
+    if (testUserId && testTenantId) {
+      // Pass through with headers intact for testing
+      return NextResponse.next({
+        request: { headers: request.headers },
+      });
+    }
+  }
 
   // Static assets - skip auth
   if (

@@ -1,0 +1,256 @@
+<!-- Spara som: /og/og-pilot.html (eller valfri plats) -->
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Winefeed OG – Importer Pilot</title>
+  <style>
+    :root {
+      --bg1: #0b0f14;
+      --bg2: #101826;
+      --card: rgba(255,255,255,0.06);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.68);
+      --hair: rgba(255,255,255,0.12);
+      --accent: #7dd3fc; /* ljusblå accent */
+      --accent2:#a78bfa; /* lila accent */
+    }
+
+    /* Canvas 1200x630 */
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: grid;
+      place-items: center;
+      background: #000;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    .frame {
+      width: 1200px;
+      height: 630px;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(1200px 600px at 20% 20%, rgba(125,211,252,0.22), transparent 55%),
+        radial-gradient(900px 500px at 85% 40%, rgba(167,139,250,0.18), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+    }
+
+    .grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(var(--hair) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--hair) 1px, transparent 1px);
+      background-size: 80px 80px;
+      opacity: 0.18;
+      transform: translateZ(0);
+    }
+
+    .content {
+      position: relative;
+      height: 100%;
+      padding: 64px 72px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 26px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: 0.2px;
+      font-weight: 650;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .dot {
+      width: 14px; height: 14px; border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,0.2));
+      box-shadow: 0 0 0 6px rgba(125,211,252,0.12), 0 0 0 12px rgba(167,139,250,0.08);
+    }
+
+    .badge {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.82);
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 62px;
+      line-height: 1.02;
+      letter-spacing: -0.9px;
+      font-weight: 760;
+      max-width: 980px;
+    }
+
+    .sub {
+      margin-top: 14px;
+      font-size: 24px;
+      line-height: 1.35;
+      color: var(--muted);
+      max-width: 940px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+      align-items: end;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 22px 24px;
+      backdrop-filter: blur(6px);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .kpi {
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 16px 16px 14px;
+      min-height: 92px;
+    }
+
+    .kpi .label { font-size: 14px; color: rgba(255,255,255,0.70); font-weight: 650; }
+    .kpi .value { margin-top: 8px; font-size: 26px; font-weight: 780; letter-spacing: -0.3px; }
+    .kpi .hint  { margin-top: 4px; font-size: 13px; color: rgba(255,255,255,0.62); }
+
+    .right .bullets {
+      display: grid;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .bullet {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: rgba(255,255,255,0.86);
+      font-size: 18px;
+      line-height: 1.28;
+    }
+    .tick {
+      width: 18px; height: 18px; border-radius: 6px;
+      background: linear-gradient(135deg, rgba(125,211,252,0.9), rgba(167,139,250,0.9));
+      flex: 0 0 auto;
+      margin-top: 3px;
+      box-shadow: 0 10px 30px rgba(125,211,252,0.12);
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      color: rgba(255,255,255,0.62);
+      font-size: 16px;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: rgba(125,211,252,0.12);
+      border: 1px solid rgba(125,211,252,0.28);
+      color: rgba(255,255,255,0.88);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .cta span {
+      color: rgba(255,255,255,0.75);
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <div class="grid"></div>
+
+    <div class="content">
+      <div class="topline">
+        <div class="brand">
+          <div class="dot"></div>
+          <div>Winefeed</div>
+        </div>
+        <div class="badge">Importer Pilot</div>
+      </div>
+
+      <div>
+        <h1>Från offert till leverans<br/>— utan friktion.</h1>
+        <div class="sub">
+          Standardiserar flödet REQUEST → OFFER → ORDER → IMPORT CASE,
+          så ni minskar mail, fel och administration.
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div style="font-weight:750; font-size:18px; color:rgba(255,255,255,0.86); margin-bottom:12px;">
+            Pilotresultat
+            <span style="color:rgba(255,255,255,0.62); font-weight:650;">(n=15 offerter, 8 ordrar)</span>
+          </div>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">Mailtrådar</div>
+              <div class="value">↓</div>
+              <div class="hint">Färre vändor</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Orderfel</div>
+              <div class="value">↓</div>
+              <div class="hint">Mindre kopiera/klistra</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Time-to-offer</div>
+              <div class="value">↓</div>
+              <div class="hint">Snabbare svar till kund</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card right">
+          <div style="font-weight:750; font-size:18px; color:rgba(255,255,255,0.86); margin-bottom:12px;">
+            För importörer som…
+          </div>
+          <div class="bullets">
+            <div class="bullet"><div class="tick"></div><div>hanterar många SKU:er och specialorder</div></div>
+            <div class="bullet"><div class="tick"></div><div>vill minska admin utan att tumma på compliance</div></div>
+            <div class="bullet"><div class="tick"></div><div>vill skala "kundservice + order" som en kanal</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div>winefeed • pilot 2026</div>
+        <div class="cta">Boka 20 min <span>•</span> winefeed.se/pitch</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
