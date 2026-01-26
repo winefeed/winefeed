@@ -71,6 +71,7 @@ interface WineImportRow {
   alcohol?: number | string; // alcohol percentage
   labels?: string;           // certifications (organic, biodynamic, etc.)
   description?: string;
+  location?: string;         // warehouse location (domestic, eu, non_eu)
 }
 
 export async function POST(
@@ -264,6 +265,7 @@ export async function POST(
         biodynamic,
         description: wine.description?.trim() || null,
         is_active: true,
+        location: (wine.location as 'domestic' | 'eu' | 'non_eu') || 'domestic',
       };
 
       // Check for existing wine by sku (reference)
