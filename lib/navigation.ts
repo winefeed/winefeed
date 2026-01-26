@@ -206,6 +206,16 @@ export const ADMIN_NAVIGATION: NavSection[] = [
       },
     ],
   },
+  {
+    title: 'Monetarisering',
+    items: [
+      {
+        label: 'Sponsrade kategorier',
+        href: '/admin/sponsored-categories',
+        icon: Sparkles,
+      },
+    ],
+  },
 ];
 
 /**
