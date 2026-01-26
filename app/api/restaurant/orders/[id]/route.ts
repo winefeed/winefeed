@@ -1,14 +1,14 @@
 /**
- * RESTAURANT ORDER DETAIL API
+ * ORDER DETAIL API
  *
  * GET /api/restaurant/orders/[id]
  *
- * Get order details for restaurant (read-only tracking)
+ * Get order details (read-only tracking)
  *
  * Security:
  * - Tenant isolation
- * - Restaurant can only see orders where restaurant_id matches their restaurant
- * - Requires RESTAURANT role (verified via actor service)
+ * - RESTAURANT: Can only see orders where restaurant_id matches their restaurant
+ * - ADMIN: Can view any order (cross-restaurant access)
  *
  * Returns:
  * - Order details with lines, events timeline, and compliance summary
@@ -51,15 +51,16 @@ export async function GET(
       tenant_id: tenantId
     });
 
-    // Verify RESTAURANT access
-    if (!actorService.hasRole(actor, 'RESTAURANT') || !actor.restaurant_id) {
+    // Verify RESTAURANT or ADMIN access
+    const isAdmin = actorService.hasRole(actor, 'ADMIN');
+    const isRestaurant = actorService.hasRole(actor, 'RESTAURANT') && actor.restaurant_id;
+
+    if (!isAdmin && !isRestaurant) {
       return NextResponse.json(
-        { error: 'Access denied: RESTAURANT role required' },
+        { error: 'Access denied: RESTAURANT or ADMIN role required' },
         { status: 403 }
       );
     }
-
-    const restaurantId = actor.restaurant_id;
 
     // Fetch order with details
     const result = await orderService.getOrder(orderId, tenantId);
@@ -70,8 +71,8 @@ export async function GET(
 
     const { order, lines, events } = result;
 
-    // Verify restaurant ownership
-    if (order.restaurant_id !== restaurantId) {
+    // Verify restaurant ownership (skip for ADMIN)
+    if (!isAdmin && order.restaurant_id !== actor.restaurant_id) {
       return NextResponse.json(
         { error: 'Access denied: Order does not belong to your restaurant' },
         { status: 403 }

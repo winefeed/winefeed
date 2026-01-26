@@ -146,6 +146,20 @@ export function UserMenu({ email, roles, collapsed = false }: UserMenuProps) {
                   <span className="text-xs opacity-70">→</span>
                 </button>
               ))}
+              {/* Admin can always access IOR view even without explicit IOR role */}
+              {roles.includes('ADMIN') && !roles.includes('IOR') && (
+                <button
+                  onClick={() => router.push(ROLE_LINKS['IOR'])}
+                  className={cn(
+                    'flex items-center gap-2 px-3 py-2 rounded text-sm font-medium border',
+                    'transition-colors cursor-pointer text-left w-full',
+                    ROLE_COLORS['IOR']
+                  )}
+                >
+                  {ROLE_LABELS['IOR']}
+                  <span className="text-xs opacity-70">→</span>
+                </button>
+              )}
             </div>
           </div>
         )}

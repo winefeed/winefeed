@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { RefreshCw, ChevronRight, Clock, CheckCircle2, AlertCircle, Inbox, FileText, ArrowRight } from 'lucide-react';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+const USER_ID = '00000000-0000-0000-0000-000000000001'; // MVP: Simulated auth
 
 interface RequestWithOffers {
   id: string;
@@ -64,7 +65,8 @@ export default function RestaurantOffersPage() {
       // Fetch all requests with offer counts
       const response = await fetch('/api/requests?include_offers=true', {
         headers: {
-          'x-tenant-id': TENANT_ID
+          'x-tenant-id': TENANT_ID,
+          'x-user-id': USER_ID
         }
       });
 

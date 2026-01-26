@@ -1,9 +1,9 @@
 /**
- * RESTAURANT ORDER TRACKING - DETAIL PAGE
+ * ORDER TRACKING - DETAIL PAGE
  *
  * /orders/[id]
  *
- * Restaurant view for order details (read-only)
+ * Order details view (read-only)
  *
  * Features:
  * - Visual order progress tracker (stepper)
@@ -15,8 +15,8 @@
  *
  * Actor Resolution:
  * - Fetches current user's actor context from /api/me/actor
- * - Verifies user has RESTAURANT role and restaurant_id
- * - Verifies order belongs to user's restaurant
+ * - RESTAURANT: Can view orders for their restaurant
+ * - ADMIN: Can view any order (cross-restaurant access)
  */
 
 'use client';
@@ -30,6 +30,12 @@ import { Package, Truck, CheckCircle2, Clock, MapPin, ExternalLink } from 'lucid
 // MVP: Hardcoded tenant for testing
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 const USER_ID = '00000000-0000-0000-0000-000000000001'; // MVP: Simulated auth
+
+const SUPPLIER_TYPE_LABELS: Record<string, string> = {
+  'SWEDISH_IMPORTER': 'Svensk importör',
+  'EU_PRODUCER': 'EU-producent',
+  'EU_IMPORTER': 'EU-importör',
+};
 
 interface ActorContext {
   tenant_id: string;
@@ -121,9 +127,12 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
       const actorData = await response.json();
       setActor(actorData);
 
-      // Verify RESTAURANT access
-      if (!actorData.roles.includes('RESTAURANT') || !actorData.restaurant_id) {
-        throw new Error('Du saknar RESTAURANT-behörighet. Kontakta admin för att få åtkomst.');
+      // Verify RESTAURANT or ADMIN access
+      const hasRestaurantAccess = actorData.roles.includes('RESTAURANT') && actorData.restaurant_id;
+      const hasAdminAccess = actorData.roles.includes('ADMIN');
+
+      if (!hasRestaurantAccess && !hasAdminAccess) {
+        throw new Error('Du saknar RESTAURANT- eller ADMIN-behörighet. Kontakta admin för att få åtkomst.');
       }
     } catch (err: any) {
       console.error('Failed to fetch actor:', err);
@@ -133,12 +142,17 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
   }, []);
 
   const fetchOrderDetail = useCallback(async () => {
-    if (!actor || !actor.restaurant_id) return;
+    if (!actor) return;
+
+    // ADMIN can access without restaurant_id
+    const isAdmin = actor.roles.includes('ADMIN');
+    if (!isAdmin && !actor.restaurant_id) return;
 
     try {
       setLoading(true);
       setError(null);
 
+      // API now supports both ADMIN and RESTAURANT access
       const response = await fetch(`/api/restaurant/orders/${orderId}`, {
         headers: {
           'x-tenant-id': TENANT_ID,
@@ -173,8 +187,11 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
 
   // Fetch order when actor is ready
   useEffect(() => {
-    if (actor && actor.restaurant_id) {
-      fetchOrderDetail();
+    if (actor) {
+      const isAdmin = actor.roles.includes('ADMIN');
+      if (isAdmin || actor.restaurant_id) {
+        fetchOrderDetail();
+      }
     }
   }, [actor, fetchOrderDetail]);
 
@@ -459,7 +476,7 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
               <h3 className="text-sm font-medium text-gray-500 mb-2">Leverantör</h3>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="font-bold text-lg">{order.supplier?.namn || 'Unknown'}</p>
-                <p className="text-xs text-gray-500">{order.supplier?.type}</p>
+                <p className="text-xs text-gray-500">{SUPPLIER_TYPE_LABELS[order.supplier?.type || ''] || order.supplier?.type}</p>
                 <p className="text-sm text-gray-600">{order.supplier?.kontakt_email}</p>
               </div>
             </div>
