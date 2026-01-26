@@ -438,7 +438,7 @@ export function normalizeColumnHeaders(headers: string[]): Record<string, string
     wine_name: ['wine_name', 'wine name', 'winename', 'name', 'vinnamn', 'vin', 'produkt', 'product'],
     producer: ['producer', 'producent', 'winery', 'vingård', 'chateau', 'domaine'],
     region: ['region', 'område', 'area'],
-    color: ['color', 'colour', 'färg', 'typ', 'type', 'wine_type'],
+    color: ['color', 'colour', 'färg', 'wine_type', 'vintyp'],
     vintage: ['vintage', 'årgång', 'year', 'år'],
     grape: ['grape', 'grapes', 'druva', 'druvor', 'variety', 'varieties', 'cepage'],
     price: ['price', 'pris', 'price_per_bottle', 'bottle_price', 'flaskpris', 'sek'],
