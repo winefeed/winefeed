@@ -30,6 +30,7 @@ import {
   Package,
   Clock,
   Archive,
+  Trash2,
 } from 'lucide-react';
 
 interface SupplierWine {
@@ -129,6 +130,10 @@ export default function SupplierWinesPage() {
 
   // Status filter
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  // Delete confirmation
+  const [deleteConfirm, setDeleteConfirm] = useState<SupplierWine | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchSupplierAndWines();
@@ -457,6 +462,31 @@ export default function SupplierWinesPage() {
     setSelectedWines(newSelected);
   };
 
+  // Delete wine
+  const deleteWine = async (wine: SupplierWine) => {
+    if (!supplierId) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/suppliers/${supplierId}/wines/${wine.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setWines(prev => prev.filter(w => w.id !== wine.id));
+        showToast(`"${wine.name}" raderades`, 'success');
+        setDeleteConfirm(null);
+      } else {
+        const error = await response.json();
+        showToast(error.error || 'Kunde inte radera vinet', 'error');
+      }
+    } catch (error) {
+      showToast('Ett fel uppstod', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Dropzone for import
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -752,6 +782,7 @@ export default function SupplierWinesPage() {
                 <SortableHeader label="Status" field="status" currentField={sortField} direction={sortDirection} onSort={handleSort} />
                 <th className="p-4 font-medium text-gray-600 text-sm">Anteckning</th>
                 <SortableHeader label="I offerter" field="offer_count" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" />
+                <th className="p-4 font-medium text-gray-600 text-sm w-12"></th>
               </tr>
             </thead>
             <tbody>
@@ -916,6 +947,17 @@ export default function SupplierWinesPage() {
                     ) : (
                       <span className="text-gray-300" title="Inte använd i några offerter">—</span>
                     )}
+                  </td>
+
+                  {/* Delete Button */}
+                  <td className="p-4">
+                    <button
+                      onClick={() => setDeleteConfirm(wine)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                      title="Radera vin"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </td>
                 </tr>
               );
@@ -1113,6 +1155,64 @@ export default function SupplierWinesPage() {
             >
               <X className="h-4 w-4" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-red-100 rounded-full">
+                  <Trash2 className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Radera vin?</h2>
+                  <p className="text-sm text-gray-500">Detta går inte att ångra</p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <p className="font-medium text-gray-900">{deleteConfirm.name}</p>
+                <p className="text-sm text-gray-500">
+                  {deleteConfirm.producer} &middot; {deleteConfirm.vintage || 'NV'}
+                </p>
+                {deleteConfirm.offer_count && deleteConfirm.offer_count > 0 && (
+                  <p className="text-sm text-amber-600 mt-2">
+                    ⚠️ Används i {deleteConfirm.offer_count} {deleteConfirm.offer_count === 1 ? 'offert' : 'offerter'}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  disabled={deleting}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Avbryt
+                </button>
+                <button
+                  onClick={() => deleteWine(deleteConfirm)}
+                  disabled={deleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 inline-flex items-center gap-2"
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Raderar...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      Radera
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
