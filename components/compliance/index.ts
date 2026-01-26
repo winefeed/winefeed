@@ -26,3 +26,8 @@ export {
 } from './ComplianceProgressIndicator';
 
 export { ComplianceCard, ComplianceInline } from './ComplianceCard';
+
+export {
+  ComplianceEditPanel,
+  type OrderLineComplianceData,
+} from './ComplianceEditPanel';

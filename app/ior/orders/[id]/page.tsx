@@ -17,7 +17,7 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
@@ -27,9 +27,13 @@ import {
   checkImportCaseCompliance,
   checkOrderLineCompliance,
   getImportCaseSteps,
+  ComplianceEditPanel,
+  InlineMissingFields,
   type ComplianceStatus,
   type MissingField,
+  type OrderLineComplianceData,
 } from '@/components/compliance';
+import { ChevronDown, ChevronUp, Edit3, AlertTriangle } from 'lucide-react';
 
 // Tenant ID - single tenant for MVP
 // Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
@@ -274,6 +278,10 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
   const [creatingImport, setCreatingImport] = useState(false);
 
+  // Compliance editing state
+  const [expandedLines, setExpandedLines] = useState<Set<string>>(new Set());
+  const [compliancePanelOpen, setCompliancePanelOpen] = useState(false);
+
   const fetchActor = useCallback(async () => {
     try {
       setLoading(true);
@@ -447,6 +455,56 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
       'CANCELLED': []
     };
     return transitions[currentStatus] || [];
+  };
+
+  // Toggle line expansion
+  const toggleLineExpand = (lineId: string) => {
+    setExpandedLines(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(lineId)) {
+        newSet.delete(lineId);
+      } else {
+        newSet.add(lineId);
+      }
+      return newSet;
+    });
+  };
+
+  // Save compliance updates
+  const saveComplianceUpdates = async (updates: Array<{ lineId: string; data: Partial<OrderLineComplianceData> }>) => {
+    const response = await fetch(`/api/ior/orders/${orderId}/lines`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ updates }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to save changes');
+    }
+
+    // Refresh order data
+    await fetchOrderDetail();
+    setUpdateSuccess('Compliance-data uppdaterad');
+  };
+
+  // Count lines needing action
+  const getLinesNeedingAction = () => {
+    if (!orderDetail) return [];
+    return orderDetail.lines.filter(line => {
+      const compliance = checkOrderLineCompliance({
+        gtin: line.gtin,
+        lwin: line.lwin,
+        abv: line.abv,
+        volume_ml: line.volume_ml,
+        country: line.country,
+        packaging_type: line.packaging_type,
+      });
+      return compliance.status !== 'OK';
+    });
   };
 
   if (loading) {
@@ -683,8 +741,17 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
 
         {/* Order Lines */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">Order Rader ({lines.length})</h2>
+            {getLinesNeedingAction().length > 0 && (
+              <button
+                onClick={() => setCompliancePanelOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+              >
+                <Edit3 className="h-4 w-4" />
+                Åtgärda alla ({getLinesNeedingAction().length})
+              </button>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -712,34 +779,124 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                     country: line.country,
                     packaging_type: line.packaging_type,
                   });
+                  const isExpanded = expandedLines.has(line.id);
+                  const needsAction = lineCompliance.status !== 'OK';
+
                   return (
-                    <tr key={line.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-600">{line.line_number}</td>
-                      <td className="px-4 py-3 font-medium">{line.wine_name}</td>
-                      <td className="px-4 py-3 text-gray-600">{line.producer || '—'}</td>
-                      <td className="px-4 py-3 text-gray-600">{line.vintage || '—'}</td>
-                      <td className="px-4 py-3 text-gray-600">{line.country || '—'}</td>
-                      <td className="px-4 py-3">
-                        <ComplianceInline
-                          status={lineCompliance.status}
-                          missingCount={lineCompliance.missingFields.filter(f => f.severity === 'required').length}
-                        />
-                      </td>
-                      <td className="px-4 py-3 text-gray-800 font-medium">{line.quantity}</td>
-                      <td className="px-4 py-3 text-gray-600">{line.unit}</td>
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        {line.unit_price_sek ? `${line.unit_price_sek.toFixed(2)} kr` : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right font-medium">
-                        {line.total_price_sek ? `${line.total_price_sek.toFixed(2)} kr` : '—'}
-                      </td>
-                    </tr>
+                    <React.Fragment key={line.id}>
+                      <tr className={`hover:bg-gray-50 ${isExpanded ? 'bg-amber-50' : ''}`}>
+                        <td className="px-4 py-3 text-gray-600">{line.line_number}</td>
+                        <td className="px-4 py-3 font-medium">{line.wine_name}</td>
+                        <td className="px-4 py-3 text-gray-600">{line.producer || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{line.vintage || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{line.country || '—'}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => needsAction && toggleLineExpand(line.id)}
+                            className={`inline-flex items-center gap-1 ${needsAction ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                            title={needsAction ? 'Klicka för att visa/redigera saknade fält' : 'Alla fält ifyllda'}
+                          >
+                            <ComplianceInline
+                              status={lineCompliance.status}
+                              missingCount={lineCompliance.missingFields.filter(f => f.severity === 'required').length}
+                            />
+                            {needsAction && (
+                              isExpanded ? (
+                                <ChevronUp className="h-3 w-3 text-gray-400" />
+                              ) : (
+                                <ChevronDown className="h-3 w-3 text-gray-400" />
+                              )
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-gray-800 font-medium">{line.quantity}</td>
+                        <td className="px-4 py-3 text-gray-600">{line.unit}</td>
+                        <td className="px-4 py-3 text-right text-gray-600">
+                          {line.unit_price_sek ? `${line.unit_price_sek.toFixed(2)} kr` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right font-medium">
+                          {line.total_price_sek ? `${line.total_price_sek.toFixed(2)} kr` : '—'}
+                        </td>
+                      </tr>
+
+                      {/* Expanded row showing missing fields */}
+                      {isExpanded && (
+                        <tr className="bg-amber-50 border-l-4 border-amber-400">
+                          <td colSpan={10} className="px-4 py-4">
+                            <div className="flex items-start gap-4">
+                              <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="font-medium text-amber-800 mb-2">
+                                  Saknade fält för compliance:
+                                </p>
+                                <InlineMissingFields fields={lineCompliance.missingFields} maxShow={10} />
+
+                                <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                  <div className="bg-white p-2 rounded border">
+                                    <span className="text-gray-500 text-xs">GTIN:</span>
+                                    <p className={`font-medium ${line.gtin ? 'text-gray-900' : 'text-red-500'}`}>
+                                      {line.gtin || 'Saknas'}
+                                    </p>
+                                  </div>
+                                  <div className="bg-white p-2 rounded border">
+                                    <span className="text-gray-500 text-xs">LWIN:</span>
+                                    <p className={`font-medium ${line.lwin ? 'text-gray-900' : 'text-red-500'}`}>
+                                      {line.lwin || 'Saknas'}
+                                    </p>
+                                  </div>
+                                  <div className="bg-white p-2 rounded border">
+                                    <span className="text-gray-500 text-xs">ABV:</span>
+                                    <p className={`font-medium ${line.abv ? 'text-gray-900' : 'text-red-500'}`}>
+                                      {line.abv ? `${line.abv}%` : 'Saknas'}
+                                    </p>
+                                  </div>
+                                  <div className="bg-white p-2 rounded border">
+                                    <span className="text-gray-500 text-xs">Volym:</span>
+                                    <p className={`font-medium ${line.volume_ml ? 'text-gray-900' : 'text-red-500'}`}>
+                                      {line.volume_ml ? `${line.volume_ml} ml` : 'Saknas'}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={() => setCompliancePanelOpen(true)}
+                                  className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors text-sm"
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                  Redigera
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
             </table>
           </div>
         </div>
+
+        {/* Compliance Edit Panel */}
+        <ComplianceEditPanel
+          isOpen={compliancePanelOpen}
+          onClose={() => setCompliancePanelOpen(false)}
+          lines={lines.map(line => ({
+            id: line.id,
+            wine_name: line.wine_name,
+            producer: line.producer,
+            vintage: line.vintage,
+            country: line.country,
+            gtin: line.gtin,
+            lwin: line.lwin,
+            abv: line.abv,
+            volume_ml: line.volume_ml,
+            packaging_type: line.packaging_type,
+          }))}
+          onSave={saveComplianceUpdates}
+          title="Redigera compliance-data"
+        />
 
         {/* Events Timeline */}
         <div className="bg-white rounded-lg shadow-lg p-6">
