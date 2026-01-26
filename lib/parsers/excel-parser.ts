@@ -211,6 +211,7 @@ export function generateExampleCSV(): string {
     'case_size',
     'appellation',
     'country',
+    'packaging_type',
   ];
 
   const exampleRows = [
@@ -231,6 +232,7 @@ export function generateExampleCSV(): string {
       '6',
       'Côtes de Bordeaux',
       'France',
+      'bottle',
     ],
     [
       'Krug Grande Cuvée',
@@ -249,24 +251,26 @@ export function generateExampleCSV(): string {
       '6',
       'Champagne',
       'France',
+      'bottle',
     ],
     [
-      'Tio Pepe Fino',
-      'González Byass',
-      'Jerez',
-      'fortified',
+      'House Red Draft',
+      'Banjo Vino',
+      'Languedoc',
+      'red',
       'NV',
-      'Palomino',
-      '149',
-      '12',
-      '15',
-      '750',
+      'Grenache, Syrah',
+      '850',
+      '1',
+      '13',
+      '20000',
       'false',
-      'Klassisk fino sherry, torr och frisk',
-      'TP-FINO-NV',
-      '6',
-      'Jerez-Xérès-Sherry',
-      'Spain',
+      'Fruktigt rödvin på fat',
+      'BV-DRAFT-20L',
+      '1',
+      '',
+      'France',
+      'keg',
     ],
   ];
 
@@ -299,6 +303,7 @@ export function generateExcelTemplate(): Buffer {
     'case_size',
     'appellation',
     'country',
+    'packaging_type',
   ];
 
   const exampleData = [
@@ -319,6 +324,7 @@ export function generateExcelTemplate(): Buffer {
       case_size: 6,
       appellation: 'Côtes de Bordeaux',
       country: 'France',
+      packaging_type: 'bottle',
     },
     {
       wine_name: 'Krug Grande Cuvée',
@@ -337,6 +343,26 @@ export function generateExcelTemplate(): Buffer {
       case_size: 6,
       appellation: 'Champagne',
       country: 'France',
+      packaging_type: 'bottle',
+    },
+    {
+      wine_name: 'House Red Draft',
+      producer: 'Banjo Vino',
+      region: 'Languedoc',
+      color: 'red',
+      vintage: 'NV',
+      grape: 'Grenache, Syrah',
+      price: 850,
+      moq: 1,
+      alcohol_pct: 13,
+      bottle_size_ml: 20000,
+      organic: 'false',
+      description: 'Fruktigt rödvin på fat',
+      sku: 'BV-DRAFT-20L',
+      case_size: 1,
+      appellation: '',
+      country: 'France',
+      packaging_type: 'keg',
     },
   ];
 
