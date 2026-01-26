@@ -436,7 +436,7 @@ export function normalizeColumnHeaders(headers: string[]): Record<string, string
   const mapping: Record<string, string> = {};
 
   const aliases: Record<string, string[]> = {
-    wine_name: ['wine_name', 'wine name', 'winename', 'name', 'vinnamn', 'vin', 'produkt', 'product'],
+    wine_name: ['wine_name', 'wine name', 'winename', 'name', 'vinnamn', 'produkt', 'product'],
     producer: ['producer', 'producent', 'winery', 'vingård', 'chateau', 'domaine'],
     region: ['region', 'område', 'area'],
     color: ['color', 'colour', 'färg', 'wine_type', 'vintyp'],
