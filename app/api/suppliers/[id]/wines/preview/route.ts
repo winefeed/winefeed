@@ -141,6 +141,7 @@ export async function POST(
         organic: row.data?.organic,
         biodynamic: row.data?.biodynamic,
         packaging_type: row.data?.packaging_type,
+        location: row.data?.location,
       })),
       invalid: preview.invalidRows.map(row => ({
         row: row.rowNumber,

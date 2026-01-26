@@ -11,6 +11,7 @@
 
 export type WineColor = 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange';
 export type PackagingType = 'bottle' | 'keg' | 'bag_in_box' | 'can' | 'tetra' | 'other';
+export type WineLocation = 'domestic' | 'eu' | 'non_eu';
 
 export interface RawWineRow {
   wine_name?: string;
@@ -31,6 +32,7 @@ export interface RawWineRow {
   appellation?: string;
   country?: string;
   packaging_type?: string;
+  location?: string;
 }
 
 export interface ValidatedWine {
@@ -52,6 +54,7 @@ export interface ValidatedWine {
   appellation: string | null;
   country: string | null;
   packaging_type: PackagingType;
+  location: WineLocation;
 }
 
 export interface ValidationResult {
@@ -161,6 +164,32 @@ const PACKAGING_ALIASES: Record<string, PackagingType> = {
   'övrigt': 'other',
 };
 
+const VALID_LOCATIONS: WineLocation[] = ['domestic', 'eu', 'non_eu'];
+
+// Location aliases for fuzzy matching
+const LOCATION_ALIASES: Record<string, WineLocation> = {
+  'domestic': 'domestic',
+  'sweden': 'domestic',
+  'sverige': 'domestic',
+  'swedish': 'domestic',
+  'svenskt': 'domestic',
+  'inrikes': 'domestic',
+
+  'eu': 'eu',
+  'europe': 'eu',
+  'europa': 'eu',
+  'european': 'eu',
+  'europeiskt': 'eu',
+
+  'non_eu': 'non_eu',
+  'non-eu': 'non_eu',
+  'noneu': 'non_eu',
+  'outside_eu': 'non_eu',
+  'utanför_eu': 'non_eu',
+  'third_country': 'non_eu',
+  'tredjeland': 'non_eu',
+};
+
 // ============================================================================
 // Validation Functions
 // ============================================================================
@@ -205,6 +234,28 @@ function normalizePackagingType(input: string | undefined): PackagingType {
   }
 
   return 'bottle'; // Default to bottle if unknown
+}
+
+/**
+ * Normalize location input
+ * Defaults to 'domestic' if not specified
+ */
+function normalizeLocation(input: string | undefined): WineLocation {
+  if (!input) return 'domestic'; // Default to domestic
+
+  const normalized = input.toLowerCase().trim().replace(/[-\s]/g, '_');
+
+  // Direct match
+  if (VALID_LOCATIONS.includes(normalized as WineLocation)) {
+    return normalized as WineLocation;
+  }
+
+  // Alias match
+  if (LOCATION_ALIASES[normalized]) {
+    return LOCATION_ALIASES[normalized];
+  }
+
+  return 'domestic'; // Default to domestic if unknown
 }
 
 /**
@@ -389,6 +440,7 @@ export function validateWineRow(row: RawWineRow, rowNumber: number): ValidationR
       appellation: row.appellation?.trim() || null,
       country: row.country?.trim() || null,
       packaging_type: normalizePackagingType(row.packaging_type),
+      location: normalizeLocation(row.location),
     },
   };
 }
@@ -454,6 +506,7 @@ export function normalizeColumnHeaders(headers: string[]): Record<string, string
     appellation: ['appellation', 'aoc', 'doc', 'docg', 'igt'],
     country: ['country', 'land'],
     packaging_type: ['packaging_type', 'packaging', 'format', 'förpackning', 'typ_förpackning'],
+    location: ['location', 'warehouse', 'lager', 'lagerplats', 'origin', 'ursprung'],
   };
 
   for (const header of headers) {
