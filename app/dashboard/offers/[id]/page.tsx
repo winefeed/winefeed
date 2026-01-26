@@ -48,6 +48,10 @@ interface Offer {
   assignmentStatus: 'SENT' | 'VIEWED' | 'RESPONDED' | 'EXPIRED';
   isExpired: boolean;
 
+  // Sponsored info
+  isSponsored: boolean;
+  sponsoredCategories: string[];
+
   // Metadata
   notes?: string;
   status: string;
@@ -613,7 +617,15 @@ export default function OffersPage() {
                         <span>🏢</span>
                         Leverantör
                       </h4>
-                      <p className="font-medium text-foreground">{offer.supplierName}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-foreground">{offer.supplierName}</p>
+                        {offer.isSponsored && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                            <span>✨</span>
+                            Sponsrad
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">{offer.supplierEmail}</p>
                     </div>
 

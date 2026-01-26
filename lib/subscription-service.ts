@@ -37,6 +37,7 @@ export interface TierLimits {
   max_leads_per_month: number | null;
   max_offers_per_month: number | null;
   priority_in_search: number;
+  included_sponsored_slots: number;
   features: {
     analytics?: boolean;
     analytics_competitors?: boolean;
@@ -71,6 +72,7 @@ const DEFAULT_LIMITS: Record<SubscriptionTier, TierLimits> = {
     max_leads_per_month: 5,
     max_offers_per_month: 10,
     priority_in_search: 0,
+    included_sponsored_slots: 0,
     features: { analytics: false, extended_profile: false, support: 'self-service' },
   },
   pro: {
@@ -79,6 +81,7 @@ const DEFAULT_LIMITS: Record<SubscriptionTier, TierLimits> = {
     max_leads_per_month: null,
     max_offers_per_month: null,
     priority_in_search: 10,
+    included_sponsored_slots: 0,
     features: { analytics: true, extended_profile: true, support: 'email' },
   },
   premium: {
@@ -87,6 +90,7 @@ const DEFAULT_LIMITS: Record<SubscriptionTier, TierLimits> = {
     max_leads_per_month: null,
     max_offers_per_month: null,
     priority_in_search: 20,
+    included_sponsored_slots: 1,
     features: { analytics: true, analytics_competitors: true, extended_profile: true, video_profile: true, support: 'dedicated' },
   },
 };
@@ -283,3 +287,15 @@ export async function hasFeature(
   const sub = await getSubscriptionWithLimits(supplierId);
   return !!sub.limits.features[feature];
 }
+
+// Export service object for convenience
+export const subscriptionService = {
+  getSubscription,
+  getTierLimits,
+  getSupplierUsage,
+  getSubscriptionWithLimits,
+  upsertSubscription,
+  incrementUsage,
+  canPerformAction,
+  hasFeature,
+};

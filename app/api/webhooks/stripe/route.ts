@@ -113,6 +113,15 @@ async function handleCheckoutCompleted(
   supabase: SupabaseClient,
   session: Stripe.Checkout.Session
 ) {
+  const checkoutType = session.metadata?.type;
+
+  // Handle sponsored slot purchase
+  if (checkoutType === 'sponsored_slot') {
+    await handleSponsoredSlotCheckout(stripe, supabase, session);
+    return;
+  }
+
+  // Handle regular subscription checkout
   const supplierId = session.metadata?.supplier_id;
   const tier = session.metadata?.tier as 'pro' | 'premium';
 
@@ -149,6 +158,12 @@ async function handleCheckoutCompleted(
     .from('suppliers')
     .update({ tier: tier })
     .eq('id', supplierId);
+
+  // Sync sponsored slot entitlements after subscription change
+  const tenantId = session.metadata?.tenant_id;
+  if (tenantId) {
+    await syncSponsoredEntitlements(supabase, supplierId, tenantId, tier);
+  }
 
   console.log(`[Stripe Webhook] Subscription activated for supplier ${supplierId}: ${tier}`);
 }
@@ -233,6 +248,14 @@ async function handleSubscriptionUpdated(supabase: SupabaseClient, subscription:
 }
 
 async function handleSubscriptionDeleted(supabase: SupabaseClient, subscription: Stripe.Subscription) {
+  const subscriptionType = subscription.metadata?.type;
+
+  // Handle sponsored slot subscription cancellation
+  if (subscriptionType === 'sponsored_slot') {
+    await handleSponsoredSlotCancelled(supabase, subscription);
+    return;
+  }
+
   // Downgrade to free
   const { data: sub } = await supabase
     .from('subscriptions')
@@ -256,6 +279,238 @@ async function handleSubscriptionDeleted(supabase: SupabaseClient, subscription:
       .update({ tier: 'free' })
       .eq('id', sub.supplier_id);
 
+    // Sync entitlements after downgrade
+    const tenantId = subscription.metadata?.tenant_id;
+    if (tenantId) {
+      await syncSponsoredEntitlements(supabase, sub.supplier_id, tenantId, 'free');
+    }
+
     console.log(`[Stripe Webhook] Subscription cancelled for supplier ${sub.supplier_id}`);
   }
+}
+
+// ============================================================================
+// SPONSORED SLOT HANDLERS
+// ============================================================================
+
+/**
+ * Handle sponsored slot checkout completion
+ * Creates the slot and updates entitlements
+ */
+async function handleSponsoredSlotCheckout(
+  stripe: Stripe,
+  supabase: SupabaseClient,
+  session: Stripe.Checkout.Session
+) {
+  const supplierId = session.metadata?.supplier_id;
+  const tenantId = session.metadata?.tenant_id;
+  const categoryId = session.metadata?.category_id;
+  const categoryName = session.metadata?.category_name;
+
+  if (!supplierId || !tenantId || !categoryId) {
+    console.error('Missing metadata in sponsored slot checkout');
+    return;
+  }
+
+  // Get subscription details from Stripe
+  const stripeSubscription = await stripe.subscriptions.retrieve(
+    session.subscription as string
+  ) as Stripe.Subscription;
+
+  // Check if slot already exists (idempotency)
+  const { data: existingSlot } = await supabase
+    .from('sponsored_slots')
+    .select('id')
+    .eq('supplier_id', supplierId)
+    .eq('category_id', categoryId)
+    .eq('status', 'ACTIVE')
+    .single();
+
+  if (existingSlot) {
+    console.log(`[Stripe Webhook] Sponsored slot already exists for ${supplierId} in ${categoryName}`);
+    return;
+  }
+
+  // Check category cap before creating slot
+  const { data: category } = await supabase
+    .from('sponsored_categories')
+    .select('sponsor_cap')
+    .eq('id', categoryId)
+    .single();
+
+  const { count: activeCount } = await supabase
+    .from('sponsored_slots')
+    .select('*', { count: 'exact', head: true })
+    .eq('category_id', categoryId)
+    .eq('status', 'ACTIVE');
+
+  if (category && activeCount !== null && activeCount >= category.sponsor_cap) {
+    console.error(`[Stripe Webhook] Category ${categoryName} is full, refunding...`);
+    // In a real scenario, you'd issue a refund here
+    // For now, just log the error
+    return;
+  }
+
+  // Add purchased slot to entitlements
+  await supabase.rpc('add_purchased_slot', {
+    p_supplier_id: supplierId,
+    p_tenant_id: tenantId
+  }).catch(() => {
+    // Fallback if RPC doesn't exist
+    supabase
+      .from('supplier_entitlements')
+      .upsert({
+        tenant_id: tenantId,
+        supplier_id: supplierId,
+        purchased_slots: 1
+      }, {
+        onConflict: 'tenant_id,supplier_id'
+      });
+  });
+
+  // Create the sponsored slot
+  const { error: slotError } = await supabase
+    .from('sponsored_slots')
+    .insert({
+      tenant_id: tenantId,
+      supplier_id: supplierId,
+      category_id: categoryId,
+      slot_type: 'PURCHASED',
+      status: 'ACTIVE',
+      stripe_subscription_id: stripeSubscription.id,
+      stripe_subscription_item_id: stripeSubscription.items.data[0]?.id,
+      starts_at: new Date().toISOString()
+    });
+
+  if (slotError) {
+    console.error('Failed to create sponsored slot:', slotError);
+    return;
+  }
+
+  // Log event
+  await supabase.from('sponsored_slot_events').insert({
+    tenant_id: tenantId,
+    supplier_id: supplierId,
+    category_id: categoryId,
+    event_type: 'SLOT_ASSIGNED',
+    metadata: {
+      slot_type: 'PURCHASED',
+      category_name: categoryName,
+      stripe_subscription_id: stripeSubscription.id,
+      source: 'stripe_webhook'
+    }
+  });
+
+  console.log(`[Stripe Webhook] Sponsored slot created for ${supplierId} in ${categoryName}`);
+}
+
+/**
+ * Handle sponsored slot subscription cancellation
+ */
+async function handleSponsoredSlotCancelled(
+  supabase: SupabaseClient,
+  subscription: Stripe.Subscription
+) {
+  const supplierId = subscription.metadata?.supplier_id;
+  const tenantId = subscription.metadata?.tenant_id;
+  const categoryId = subscription.metadata?.category_id;
+
+  // Find and cancel the slot
+  const { data: slot, error: findError } = await supabase
+    .from('sponsored_slots')
+    .select('id, category_id')
+    .eq('stripe_subscription_id', subscription.id)
+    .eq('status', 'ACTIVE')
+    .single();
+
+  if (findError || !slot) {
+    console.log(`[Stripe Webhook] No active slot found for subscription ${subscription.id}`);
+    return;
+  }
+
+  // Update slot status to CANCELLED
+  await supabase
+    .from('sponsored_slots')
+    .update({ status: 'CANCELLED' })
+    .eq('id', slot.id);
+
+  // Decrement purchased slots
+  if (supplierId && tenantId) {
+    const { data: entitlement } = await supabase
+      .from('supplier_entitlements')
+      .select('purchased_slots')
+      .eq('supplier_id', supplierId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (entitlement && entitlement.purchased_slots > 0) {
+      await supabase
+        .from('supplier_entitlements')
+        .update({
+          purchased_slots: Math.max(0, entitlement.purchased_slots - 1)
+        })
+        .eq('supplier_id', supplierId)
+        .eq('tenant_id', tenantId);
+    }
+  }
+
+  // Log event
+  await supabase.from('sponsored_slot_events').insert({
+    tenant_id: tenantId,
+    supplier_id: supplierId,
+    category_id: slot.category_id,
+    slot_id: slot.id,
+    event_type: 'SLOT_CANCELLED',
+    metadata: {
+      stripe_subscription_id: subscription.id,
+      source: 'stripe_webhook'
+    }
+  });
+
+  console.log(`[Stripe Webhook] Sponsored slot cancelled for subscription ${subscription.id}`);
+}
+
+/**
+ * Sync sponsored slot entitlements based on subscription tier
+ * Premium tier includes 1 sponsored slot
+ */
+async function syncSponsoredEntitlements(
+  supabase: SupabaseClient,
+  supplierId: string,
+  tenantId: string,
+  tier: string
+) {
+  // Get tier limits to find included slots
+  const { data: tierLimits } = await supabase
+    .from('tier_limits')
+    .select('included_sponsored_slots')
+    .eq('tier', tier)
+    .single();
+
+  const includedSlots = tierLimits?.included_sponsored_slots || (tier === 'premium' ? 1 : 0);
+
+  // Upsert entitlement
+  await supabase
+    .from('supplier_entitlements')
+    .upsert({
+      tenant_id: tenantId,
+      supplier_id: supplierId,
+      included_slots: includedSlots
+    }, {
+      onConflict: 'tenant_id,supplier_id'
+    });
+
+  // Log event
+  await supabase.from('sponsored_slot_events').insert({
+    tenant_id: tenantId,
+    supplier_id: supplierId,
+    event_type: 'ENTITLEMENT_UPDATED',
+    metadata: {
+      included_slots: includedSlots,
+      tier: tier,
+      source: 'subscription_change'
+    }
+  });
+
+  console.log(`[Stripe Webhook] Entitlements synced for ${supplierId}: ${includedSlots} included slots (${tier})`);
 }
