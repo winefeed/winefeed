@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch orders for IOR (or all IOR orders for ADMIN)
-    let orders;
+    let orders: any[] = [];
     if (importerId && !isAdmin) {
       // IOR user (non-admin) - fetch orders for their specific importer only
       orders = await orderService.listOrdersForIOR({
