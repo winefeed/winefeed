@@ -9,7 +9,15 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-dm-sans)", "system-ui", "sans-serif"],
+        serif: ["var(--font-cormorant)", "Georgia", "serif"],
+      },
       colors: {
+        cream: {
+          DEFAULT: "#FAF8F5",
+          dark: "#F0EDE8",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -42,6 +50,9 @@ const config: Config = {
         // Vinogram färgpalett (direktåtkomst)
         wine: {
           bordeaux: "#93092b",
+          dark: "#722F37",
+          medium: "#8B3A42",
+          light: "#A94A54",
           rose: "#f1b4b0",
           riesling: "#f2e2b6",
           white: "#ffffff",
@@ -50,6 +61,10 @@ const config: Config = {
             2: "#828181",
             3: "#d8d4d3",
           },
+        },
+        gold: {
+          DEFAULT: "#C9A962",
+          light: "#E8D9A0",
         },
       },
       borderRadius: {
