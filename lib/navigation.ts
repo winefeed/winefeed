@@ -26,6 +26,8 @@ import {
   HelpCircle,
   BarChart3,
   Shield,
+  Sparkles,
+  CreditCard,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -293,6 +295,21 @@ export const SUPPLIER_NAVIGATION: NavSection[] = [
         label: 'Ordrar',
         href: '/supplier/orders',
         icon: Package,
+      },
+    ],
+  },
+  {
+    title: 'Synlighet',
+    items: [
+      {
+        label: 'Sponsrade platser',
+        href: '/supplier/promotions',
+        icon: Sparkles,
+      },
+      {
+        label: 'Prenumerationer',
+        href: '/supplier/pricing',
+        icon: CreditCard,
       },
     ],
   },

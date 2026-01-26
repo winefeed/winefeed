@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
+import { sponsoredSlotsService } from '@/lib/sponsored-slots-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -461,6 +462,17 @@ export async function GET(
       (assignments || []).map(a => [a.supplier_id, a])
     );
 
+    // NEW: Get sponsored categories for each supplier
+    const sponsoredCategoriesMap = new Map<string, string[]>();
+    for (const supplierId of supplierIds) {
+      try {
+        const categories = await sponsoredSlotsService.getSupplierSponsoredCategories(supplierId);
+        sponsoredCategoriesMap.set(supplierId, categories);
+      } catch {
+        sponsoredCategoriesMap.set(supplierId, []);
+      }
+    }
+
     // NEW: Transform data with comparison fields
     const transformedOffers = (offers || []).map(offer => {
       const assignment = assignmentMap.get(offer.supplier_id);
@@ -483,6 +495,10 @@ export async function GET(
       const isExpired = assignment
         ? new Date(assignment.expires_at) < new Date() || assignment.status === 'EXPIRED'
         : false;
+
+      // Get sponsored categories for this supplier
+      const sponsoredCategories = sponsoredCategoriesMap.get(offer.supplier_id) || [];
+      const isSponsored = sponsoredCategories.length > 0;
 
       return {
         id: offer.id,
@@ -520,6 +536,9 @@ export async function GET(
         matchReasons: assignment?.match_reasons || [],
         assignmentStatus: assignment?.status || 'unknown',
         isExpired,
+        // Sponsored info
+        isSponsored,
+        sponsoredCategories,
         // Other
         notes: offer.notes,
         status: offer.status,
