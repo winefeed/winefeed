@@ -64,11 +64,11 @@ export default function SupplierError({
             Kontakta vår support om du har problem med din leverantörsportal.
           </p>
           <a
-            href="mailto:support@winefeed.se"
+            href="mailto:markus@esima.se"
             className="inline-flex items-center gap-2 text-sm text-[#7B1E1E] hover:underline"
           >
             <Phone className="w-4 h-4" />
-            support@winefeed.se
+            markus@esima.se
           </a>
         </div>
       </div>

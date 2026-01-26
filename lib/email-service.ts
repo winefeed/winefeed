@@ -28,7 +28,7 @@ function getResendClient(): Resend | null {
 
 // Email configuration
 const EMAIL_ENABLED = process.env.EMAIL_NOTIFICATIONS_ENABLED === 'true';
-const FROM_EMAIL = process.env.EMAIL_FROM || 'noreply@winefeed.se';
+const FROM_EMAIL = process.env.EMAIL_FROM || 'markus@esima.se';
 const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export interface SendEmailParams {

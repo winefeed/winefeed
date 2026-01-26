@@ -109,11 +109,11 @@ export default function HelpPage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <a
-                href="mailto:support@winefeed.se"
+                href="mailto:markus@esima.se"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#7B1E1E] rounded-lg text-sm font-medium hover:bg-white/90 transition-colors"
               >
                 <Mail className="h-4 w-4" />
-                support@winefeed.se
+                markus@esima.se
               </a>
             </div>
           </div>
