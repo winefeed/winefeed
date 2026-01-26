@@ -23,6 +23,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
+import { checkActionGate, createGatedResponse } from '@/lib/feature-gates';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -127,6 +128,12 @@ export async function POST(
         { error: 'Supplier not found' },
         { status: 404 }
       );
+    }
+
+    // Check subscription limit for adding wines
+    const gateCheck = await checkActionGate(supplierId, 'add_wine');
+    if (!gateCheck.allowed) {
+      return createGatedResponse(gateCheck);
     }
 
     let importedCount = 0;

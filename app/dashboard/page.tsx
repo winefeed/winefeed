@@ -38,7 +38,7 @@ export default function DashboardPage() {
         } else if (roles.includes('SELLER')) {
           router.replace('/supplier');
         } else if (roles.includes('RESTAURANT')) {
-          router.replace('/dashboard/new-request');
+          router.replace('/dashboard/overview');
         } else {
           // No recognized role - show error
           setError('Ditt konto har ingen behörighet. Kontakta administratören.');
@@ -47,7 +47,7 @@ export default function DashboardPage() {
       } catch (err) {
         console.error('Error resolving role:', err);
         // Fallback to restaurant dashboard
-        router.replace('/dashboard/new-request');
+        router.replace('/dashboard/overview');
       }
     }
 

@@ -104,7 +104,16 @@ export default function SupplierWinesPage() {
   const [showUpload, setShowUpload] = useState(false);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [importProgress, setImportProgress] = useState<{ current: number; total: number } | null>(null);
+  const [importResult, setImportResult] = useState<{
+    success: boolean;
+    message: string;
+    details?: {
+      imported: number;
+      updated: number;
+      errors: number;
+    };
+  } | null>(null);
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>('producer');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -492,25 +501,61 @@ export default function SupplierWinesPage() {
     if (!preview || !supplierId) return;
 
     setImporting(true);
+    setImportProgress({ current: 0, total: preview.valid.length });
+
     try {
+      // Simulate progress for better UX (actual import is one API call)
+      const progressInterval = setInterval(() => {
+        setImportProgress(prev => {
+          if (!prev) return null;
+          const next = Math.min(prev.current + Math.ceil(prev.total / 10), prev.total - 1);
+          return { ...prev, current: next };
+        });
+      }, 200);
+
       const response = await fetch(`/api/suppliers/${supplierId}/wines/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ wines: preview.valid }),
       });
 
+      clearInterval(progressInterval);
+      setImportProgress({ current: preview.valid.length, total: preview.valid.length });
+
       if (response.ok) {
         const data = await response.json();
-        setImportResult({ success: true, message: `${data.imported} viner importerade!` });
-        setPreview(null);
-        setShowUpload(false);
-        fetchSupplierAndWines();
+        const summary = data.summary || { imported: data.imported || 0, updated: 0, errors: 0 };
+
+        // Show detailed result
+        setImportResult({
+          success: true,
+          message: summary.imported > 0 && summary.updated > 0
+            ? `${summary.imported} nya viner importerade, ${summary.updated} uppdaterade`
+            : summary.imported > 0
+            ? `${summary.imported} viner importerade`
+            : `${summary.updated} viner uppdaterade`,
+          details: {
+            imported: summary.imported,
+            updated: summary.updated,
+            errors: summary.errors || 0,
+          },
+        });
+
+        // Delay closing modal to show result
+        setTimeout(() => {
+          setPreview(null);
+          setShowUpload(false);
+          setImportProgress(null);
+          fetchSupplierAndWines();
+        }, 1500);
       } else {
         const error = await response.json();
         setImportResult({ success: false, message: error.error || 'Import misslyckades' });
+        setImportProgress(null);
       }
     } catch (error) {
       setImportResult({ success: false, message: 'Ett fel uppstod vid import' });
+      setImportProgress(null);
     } finally {
       setImporting(false);
     }
@@ -962,10 +1007,83 @@ export default function SupplierWinesPage() {
                     </div>
                   )}
 
+                  {/* Progress Bar */}
+                  {importProgress && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="text-gray-600">Importerar viner...</span>
+                        <span className="font-medium text-gray-900">
+                          {importProgress.current} / {importProgress.total}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#7B1E1E] transition-all duration-200"
+                          style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Import Result in Modal */}
+                  {importResult && importing === false && importProgress?.current === importProgress?.total && (
+                    <div className={`mb-4 p-4 rounded-lg ${
+                      importResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        {importResult.success ? (
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <AlertCircle className="h-5 w-5 text-red-600" />
+                        )}
+                        <span className={`font-medium ${importResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                          {importResult.message}
+                        </span>
+                      </div>
+                      {importResult.details && (
+                        <div className="mt-2 flex gap-4 text-sm">
+                          {importResult.details.imported > 0 && (
+                            <span className="text-green-700">
+                              <Plus className="h-3 w-3 inline mr-1" />
+                              {importResult.details.imported} nya
+                            </span>
+                          )}
+                          {importResult.details.updated > 0 && (
+                            <span className="text-blue-700">
+                              ↻ {importResult.details.updated} uppdaterade
+                            </span>
+                          )}
+                          {importResult.details.errors > 0 && (
+                            <span className="text-red-700">
+                              ✕ {importResult.details.errors} fel
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex gap-3 justify-end">
-                    <button onClick={() => setPreview(null)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Välj annan fil</button>
-                    <button onClick={handleImport} disabled={importing || preview.valid.length === 0} className="px-4 py-2 bg-[#7B1E1E] text-white rounded-lg text-sm font-medium hover:bg-[#6B1818] disabled:opacity-50 disabled:cursor-not-allowed">
-                      {importing ? 'Importerar...' : `Importera ${preview.valid.length} viner`}
+                    <button
+                      onClick={() => setPreview(null)}
+                      disabled={importing}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      Välj annan fil
+                    </button>
+                    <button
+                      onClick={handleImport}
+                      disabled={importing || preview.valid.length === 0}
+                      className="px-4 py-2 bg-[#7B1E1E] text-white rounded-lg text-sm font-medium hover:bg-[#6B1818] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                    >
+                      {importing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Importerar...
+                        </>
+                      ) : (
+                        `Importera ${preview.valid.length} viner`
+                      )}
                     </button>
                   </div>
                 </>

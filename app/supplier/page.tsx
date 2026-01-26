@@ -4,13 +4,31 @@
  * SUPPLIER DASHBOARD
  *
  * Main overview page for suppliers
- * Shows key metrics and recent activity
+ * Shows key metrics, notifications, matching suggestions, and activity
  */
 
 import { useEffect, useState } from 'react';
-import { Wine, Inbox, FileText, Package, TrendingUp, AlertCircle, HelpCircle, Building2, ArrowRight } from 'lucide-react';
+import {
+  Wine,
+  Inbox,
+  FileText,
+  Package,
+  TrendingUp,
+  AlertCircle,
+  HelpCircle,
+  Building2,
+  ArrowRight,
+  Zap,
+  Target,
+  Clock,
+} from 'lucide-react';
 import { WineCard, type SupplierWine } from '@/components/supplier/WineCard';
 import { WineDetailModal } from '@/components/supplier/WineDetailModal';
+import { MatchingSuggestions } from '@/components/supplier/MatchingSuggestions';
+import { LowStockAlert } from '@/components/supplier/LowStockAlert';
+import { ActivityFeed } from '@/components/supplier/ActivityFeed';
+import { UnansweredRequestsWidget } from '@/components/supplier/UnansweredRequestsWidget';
+import { ExpiringOffersAlert } from '@/components/supplier/ExpiringOffersAlert';
 
 interface DashboardStats {
   totalWines: number;
@@ -18,15 +36,8 @@ interface DashboardStats {
   pendingRequests: number;
   activeOffers: number;
   pendingOrders: number;
-  recentActivity: Activity[];
-}
-
-interface Activity {
-  id: string;
-  type: 'request' | 'offer' | 'order';
-  title: string;
-  timestamp: string;
-  status?: string;
+  acceptedOffers: number;
+  winRate: number;
 }
 
 export default function SupplierDashboard() {
@@ -52,7 +63,6 @@ export default function SupplierDashboard() {
             const winesRes = await fetch(`/api/suppliers/${supplierData.supplierId}/wines?limit=6`);
             if (winesRes.ok) {
               const winesData = await winesRes.json();
-              // Sort by created_at descending and take first 6
               const sorted = (winesData.wines || [])
                 .sort((a: SupplierWine, b: SupplierWine) =>
                   new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
@@ -69,14 +79,14 @@ export default function SupplierDashboard() {
           const statsData = await statsRes.json();
           setStats(statsData);
         } else {
-          // Mock data for now
           setStats({
             totalWines: 0,
             activeWines: 0,
             pendingRequests: 0,
             activeOffers: 0,
             pendingOrders: 0,
-            recentActivity: [],
+            acceptedOffers: 0,
+            winRate: 0,
           });
         }
       } catch (error) {
@@ -87,7 +97,8 @@ export default function SupplierDashboard() {
           pendingRequests: 0,
           activeOffers: 0,
           pendingOrders: 0,
-          recentActivity: [],
+          acceptedOffers: 0,
+          winRate: 0,
         });
       } finally {
         setLoading(false);
@@ -112,26 +123,55 @@ export default function SupplierDashboard() {
     );
   }
 
+  const hasActivity = stats && (stats.totalWines > 0 || stats.pendingRequests > 0 || stats.activeOffers > 0);
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {/* Header with Quick Stats */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Välkommen{supplierName ? `, ${supplierName}` : ''}
-        </h1>
-        <p className="text-gray-500 mt-1">
-          Här ser du en översikt av din verksamhet
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Välkommen{supplierName ? `, ${supplierName}` : ''}
+            </h1>
+            <p className="text-gray-500 mt-1">
+              Här ser du en översikt av din verksamhet
+            </p>
+          </div>
+
+          {/* Quick action buttons */}
+          <div className="flex gap-2">
+            <a
+              href="/supplier/wines"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-sm font-medium"
+            >
+              <Wine className="h-4 w-4" />
+              Vinkatalog
+            </a>
+            <a
+              href="/supplier/requests"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+            >
+              <Inbox className="h-4 w-4" />
+              Förfrågningar
+              {stats?.pendingRequests ? (
+                <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full font-bold">
+                  {stats.pendingRequests}
+                </span>
+              ) : null}
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="Viner i katalog"
           value={stats?.totalWines || 0}
           subtitle={`${stats?.activeWines || 0} aktiva`}
           icon={Wine}
-          color="blue"
+          color="wine"
           href="/supplier/wines"
         />
         <StatCard
@@ -141,13 +181,14 @@ export default function SupplierDashboard() {
           icon={Inbox}
           color="amber"
           href="/supplier/requests"
+          highlight={stats?.pendingRequests ? stats.pendingRequests > 0 : false}
         />
         <StatCard
           title="Aktiva offerter"
           value={stats?.activeOffers || 0}
-          subtitle="Skickade"
+          subtitle={`${stats?.acceptedOffers || 0} accepterade`}
           icon={FileText}
-          color="green"
+          color="blue"
           href="/supplier/offers"
         />
         <StatCard
@@ -157,106 +198,185 @@ export default function SupplierDashboard() {
           icon={Package}
           color="purple"
           href="/supplier/orders"
+          highlight={stats?.pendingOrders ? stats.pendingOrders > 0 : false}
         />
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Getting Started */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Kom igång
-          </h2>
-          <div className="space-y-3">
-            <QuickAction
-              title="Ladda upp vinkatalog"
-              description="Importera dina viner via Excel eller CSV"
-              href="/supplier/wines"
-              icon={Wine}
-              done={stats?.totalWines ? stats.totalWines > 0 : false}
-            />
-            <QuickAction
-              title="Svara på förfrågningar"
-              description="Se och besvara restaurangers förfrågningar"
-              href="/supplier/requests"
-              icon={Inbox}
-              done={false}
-            />
-            <QuickAction
-              title="Skapa offert"
-              description="Skicka prisförslag till restauranger"
-              href="/supplier/offers"
-              icon={FileText}
-              done={false}
-            />
-          </div>
-        </div>
+      {/* Alerts Section */}
+      <div className="space-y-4 mb-8">
+        {/* Expiring Offers Alert */}
+        <ExpiringOffersAlert />
 
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Senaste aktivitet
-          </h2>
-          {stats?.recentActivity && stats.recentActivity.length > 0 ? (
-            <div className="space-y-3">
-              {stats.recentActivity.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0"
-                >
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {activity.title}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(activity.timestamp).toLocaleDateString('sv-SE')}
-                    </p>
-                  </div>
-                  {activity.status && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
-                      {activity.status}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <TrendingUp className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">
-                Ingen aktivitet ännu. Börja med att ladda upp din vinkatalog!
+        {/* Low Stock Alert */}
+        <LowStockAlert />
+
+        {/* Empty catalog warning */}
+        {stats?.totalWines === 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-amber-800">Din vinkatalog är tom</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                Ladda upp dina viner för att börja ta emot förfrågningar från restauranger.
               </p>
+              <a
+                href="/supplier/wines"
+                className="inline-flex items-center gap-1 text-sm font-medium text-amber-800 hover:text-amber-900 mt-2"
+              >
+                Gå till vinkatalog →
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Left Column - 2/3 width */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Unanswered Requests with Quick Filter */}
+          <UnansweredRequestsWidget />
+
+          {/* Matching Suggestions */}
+          <MatchingSuggestions limit={3} />
+
+          {/* Quick Actions for new users */}
+          {!hasActivity && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Zap className="h-5 w-5 text-amber-500" />
+                Kom igång
+              </h2>
+              <div className="space-y-3">
+                <QuickAction
+                  title="Ladda upp vinkatalog"
+                  description="Importera dina viner via Excel eller CSV"
+                  href="/supplier/wines"
+                  icon={Wine}
+                  done={stats?.totalWines ? stats.totalWines > 0 : false}
+                />
+                <QuickAction
+                  title="Svara på förfrågningar"
+                  description="Se och besvara restaurangers förfrågningar"
+                  href="/supplier/requests"
+                  icon={Inbox}
+                  done={false}
+                />
+                <QuickAction
+                  title="Skapa offert"
+                  description="Skicka prisförslag till restauranger"
+                  href="/supplier/offers"
+                  icon={FileText}
+                  done={false}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Recent Wines */}
+          {recentWines.length > 0 && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Senast tillagda viner
+                </h2>
+                <a
+                  href="/supplier/wines"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:text-[#7B1E1E]/80"
+                >
+                  Visa alla
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {recentWines.slice(0, 4).map((wine) => (
+                  <WineCard
+                    key={wine.id}
+                    wine={wine}
+                    onClick={() => setSelectedWine(wine)}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
-      </div>
 
-      {/* Recent Wines */}
-      {recentWines.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Senast tillagda viner
+        {/* Right Column - 1/3 width */}
+        <div className="space-y-6">
+          {/* Activity Feed */}
+          <ActivityFeed limit={6} />
+
+          {/* Performance Summary */}
+          {hasActivity && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Target className="h-5 w-5 text-green-500" />
+                Din prestation
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm text-gray-600">Win rate</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {stats?.winRate || 0}%
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        (stats?.winRate || 0) >= 50 ? 'bg-green-500' : 'bg-amber-500'
+                      }`}
+                      style={{ width: `${Math.min(stats?.winRate || 0, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-gray-100">
+                  <a
+                    href="/supplier/analytics"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:text-[#7B1E1E]/80"
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                    Se detaljerad analys
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Help Widget */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Behöver du hjälp?
             </h2>
-            <a
-              href="/supplier/wines"
-              className="inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:text-[#7B1E1E]/80"
-            >
-              Visa alla
-              <ArrowRight className="h-4 w-4" />
-            </a>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recentWines.map((wine) => (
-              <WineCard
-                key={wine.id}
-                wine={wine}
-                onClick={() => setSelectedWine(wine)}
-              />
-            ))}
+            <div className="space-y-3">
+              <a
+                href="/supplier/contact"
+                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
+              >
+                <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
+                  <HelpCircle className="h-4 w-4 text-[#7B1E1E]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Kontakta support</p>
+                  <p className="text-xs text-gray-500">Frågor eller teknisk hjälp</p>
+                </div>
+              </a>
+              <a
+                href="/supplier/profile"
+                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
+              >
+                <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
+                  <Building2 className="h-4 w-4 text-[#7B1E1E]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Företagsprofil</p>
+                  <p className="text-xs text-gray-500">Se dina företagsuppgifter</p>
+                </div>
+              </a>
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Wine Detail Modal */}
       {selectedWine && (
@@ -270,58 +390,6 @@ export default function SupplierDashboard() {
           }}
         />
       )}
-
-      {/* Help & Profile Widget */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Behöver du hjälp?
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <a
-            href="/supplier/contact"
-            className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
-          >
-            <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
-              <HelpCircle className="h-5 w-5 text-[#7B1E1E]" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">Kontakta support</p>
-              <p className="text-sm text-gray-500">Frågor eller teknisk hjälp</p>
-            </div>
-          </a>
-          <a
-            href="/supplier/profile"
-            className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
-          >
-            <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
-              <Building2 className="h-5 w-5 text-[#7B1E1E]" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">Företagsprofil</p>
-              <p className="text-sm text-gray-500">Se dina företagsuppgifter</p>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      {/* Alert for empty catalog */}
-      {stats?.totalWines === 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-medium text-amber-800">Din vinkatalog är tom</h3>
-            <p className="text-sm text-amber-700 mt-1">
-              Ladda upp dina viner för att börja ta emot förfrågningar från restauranger.
-            </p>
-            <a
-              href="/supplier/wines"
-              className="inline-flex items-center gap-1 text-sm font-medium text-amber-800 hover:text-amber-900 mt-2"
-            >
-              Gå till vinkatalog →
-            </a>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -331,12 +399,14 @@ interface StatCardProps {
   value: number;
   subtitle: string;
   icon: React.ElementType;
-  color: 'blue' | 'amber' | 'green' | 'purple';
+  color: 'wine' | 'blue' | 'amber' | 'green' | 'purple';
   href: string;
+  highlight?: boolean;
 }
 
-function StatCard({ title, value, subtitle, icon: Icon, color, href }: StatCardProps) {
+function StatCard({ title, value, subtitle, icon: Icon, color, href, highlight }: StatCardProps) {
   const colorClasses = {
+    wine: 'bg-[#7B1E1E]/10 text-[#7B1E1E]',
     blue: 'bg-blue-50 text-blue-600',
     amber: 'bg-amber-50 text-amber-600',
     green: 'bg-green-50 text-green-600',
@@ -346,7 +416,9 @@ function StatCard({ title, value, subtitle, icon: Icon, color, href }: StatCardP
   return (
     <a
       href={href}
-      className="block bg-white rounded-lg border border-gray-200 p-5 hover:border-gray-300 hover:shadow-sm transition-all"
+      className={`block bg-white rounded-lg border p-5 transition-all hover:shadow-md ${
+        highlight ? 'border-amber-300 ring-2 ring-amber-100' : 'border-gray-200 hover:border-gray-300'
+      }`}
     >
       <div className="flex items-center gap-3 mb-3">
         <div className={`p-2 rounded-lg ${colorClasses[color]}`}>

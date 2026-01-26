@@ -50,6 +50,8 @@ export async function GET(request: NextRequest) {
       activeWinesResult,
       pendingRequestsResult,
       activeOffersResult,
+      acceptedOffersResult,
+      totalOffersResult,
       pendingOrdersResult,
       recentActivityResult,
     ] = await Promise.all([
@@ -73,19 +75,33 @@ export async function GET(request: NextRequest) {
         .eq('status', 'open')
         .not('id', 'in', `(select quote_request_id from offers where supplier_id = '${supplierId}')`),
 
-      // Active offers
+      // Active offers (pending/sent)
       supabase
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
-        .eq('status', 'pending'),
+        .in('status', ['DRAFT', 'SENT', 'pending']),
+
+      // Accepted offers
+      supabase
+        .from('offers')
+        .select('id', { count: 'exact', head: true })
+        .eq('supplier_id', supplierId)
+        .in('status', ['ACCEPTED', 'accepted']),
+
+      // Total offers (for win rate calculation)
+      supabase
+        .from('offers')
+        .select('id', { count: 'exact', head: true })
+        .eq('supplier_id', supplierId)
+        .in('status', ['ACCEPTED', 'accepted', 'REJECTED', 'rejected']),
 
       // Pending orders
       supabase
         .from('orders')
-        .select('id, offer:offers!inner(supplier_id)', { count: 'exact', head: true })
-        .eq('offer.supplier_id', supplierId)
-        .eq('status', 'pending'),
+        .select('id', { count: 'exact', head: true })
+        .eq('supplier_id', supplierId)
+        .in('status', ['PENDING', 'pending']),
 
       // Recent activity (last 10 actions)
       supabase
@@ -115,12 +131,19 @@ export async function GET(request: NextRequest) {
               offer.status === 'rejected' ? 'Avböjd' : offer.status,
     }));
 
+    // Calculate win rate
+    const acceptedCount = acceptedOffersResult.count || 0;
+    const totalDecided = totalOffersResult.count || 0;
+    const winRate = totalDecided > 0 ? Math.round((acceptedCount / totalDecided) * 100) : 0;
+
     return NextResponse.json({
       totalWines: winesResult.count || 0,
       activeWines: activeWinesResult.count || 0,
       pendingRequests: pendingRequestsResult.count || 0,
       activeOffers: activeOffersResult.count || 0,
+      acceptedOffers: acceptedCount,
       pendingOrders: pendingOrdersResult.count || 0,
+      winRate,
       recentActivity,
     });
 

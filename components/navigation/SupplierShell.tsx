@@ -12,6 +12,8 @@ import { Sidebar } from './Sidebar';
 import { SUPPLIER_NAVIGATION } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import type { ActorRole } from '@/lib/actor-service';
+import { NotificationBell } from '@/components/supplier/NotificationBell';
+import { Menu, User } from 'lucide-react';
 
 interface SupplierShellProps {
   children: React.ReactNode;
@@ -115,15 +117,59 @@ export function SupplierShell({ children }: SupplierShellProps) {
         isAdmin={false}
       />
 
-      <main
+      <div
         className={cn(
-          'flex-1 transition-all duration-300',
+          'flex-1 flex flex-col transition-all duration-300',
           'lg:ml-64',
           collapsed && 'lg:ml-16'
         )}
       >
-        {children}
-      </main>
+        {/* Top Header Bar */}
+        <header className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            {/* Left side - mobile menu toggle or breadcrumb area */}
+            <div className="flex items-center gap-3">
+              <button
+                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+                onClick={() => {
+                  // Toggle mobile menu
+                  const newState = !collapsed;
+                  localStorage.setItem(STORAGE_KEY, String(newState));
+                  setCollapsed(newState);
+                }}
+              >
+                <Menu className="h-5 w-5 text-gray-600" />
+              </button>
+              <span className="text-sm text-gray-500 hidden sm:block">
+                {supplier?.supplierName || 'Leverantörsportal'}
+              </span>
+            </div>
+
+            {/* Right side - notifications and user */}
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+
+              {/* User dropdown placeholder */}
+              <a
+                href="/supplier/profile"
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-8 h-8 bg-[#7B1E1E]/10 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-[#7B1E1E]" />
+                </div>
+                <span className="text-sm font-medium text-gray-700 hidden md:block max-w-[150px] truncate">
+                  {supplier?.userEmail || 'Profil'}
+                </span>
+              </a>
+            </div>
+          </div>
+        </header>
+
+        {/* Main content */}
+        <main className="flex-1">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

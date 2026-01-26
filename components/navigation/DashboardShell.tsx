@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
-import { getMainNavigation } from '@/lib/navigation';
+import { RESTAURANT_NAVIGATION } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import type { ActorContext } from '@/lib/actor-service';
 
@@ -81,8 +81,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
     );
   }
 
-  // Get navigation based on user's roles
-  const navigationSections = actor ? getMainNavigation(actor.roles) : [];
+  // Use restaurant navigation for dashboard
+  const navigationSections = RESTAURANT_NAVIGATION;
 
   return (
     <div className="flex min-h-screen bg-background">

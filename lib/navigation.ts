@@ -207,6 +207,62 @@ export const ADMIN_NAVIGATION: NavSection[] = [
 ];
 
 /**
+ * Restaurant navigation
+ * Shown in restaurant dashboard (/dashboard/* pages)
+ */
+export const RESTAURANT_NAVIGATION: NavSection[] = [
+  {
+    items: [
+      {
+        label: 'Översikt',
+        href: '/dashboard/overview',
+        icon: LayoutDashboard,
+      },
+      {
+        label: 'Ny förfrågan',
+        href: '/dashboard/new-request',
+        icon: FileText,
+      },
+      {
+        label: 'Mina förfrågningar',
+        href: '/dashboard/my-requests',
+        icon: Inbox,
+      },
+      {
+        label: 'Inkomna offerter',
+        href: '/dashboard/offers',
+        icon: Mail,
+      },
+      {
+        label: 'Ordrar',
+        href: '/dashboard/orders',
+        icon: Package,
+      },
+    ],
+  },
+  {
+    title: 'Konto',
+    items: [
+      {
+        label: 'Statistik',
+        href: '/dashboard/analytics',
+        icon: BarChart3,
+      },
+      {
+        label: 'Inställningar',
+        href: '/dashboard/settings',
+        icon: Settings,
+      },
+      {
+        label: 'Hjälp',
+        href: '/dashboard/help',
+        icon: HelpCircle,
+      },
+    ],
+  },
+];
+
+/**
  * Supplier navigation
  * Shown in supplier portal (/supplier/* pages)
  */
