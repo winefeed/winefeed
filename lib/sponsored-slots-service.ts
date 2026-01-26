@@ -350,7 +350,7 @@ export async function assignSlot(
 ): Promise<SlotAssignmentResult> {
   // 1. Check supplier has remaining slots
   const entitlement = await getSupplierEntitlement(supplierId, tenantId);
-  if (entitlement.remaining_slots <= 0) {
+  if ((entitlement.remaining_slots ?? 0) <= 0) {
     return {
       success: false,
       error: 'No remaining slot entitlement. Purchase more slots or upgrade your plan.'
