@@ -105,27 +105,41 @@ export async function POST(
     // Validate rows
     const preview = validateWineRows(parseResult.rows);
 
-    // Format response to match frontend expectations
+    // Format response to match IMPORT endpoint expectations
+    // Import expects: reference, producer, name, vintage, country, type, volume, price, quantity, q_per_box
     const response = {
       success: true,
       valid: preview.validRows.map(row => ({
-        wine_name: row.data?.wine_name,
+        // Required fields for import
+        reference: row.data?.sku || `${row.data?.producer}-${row.data?.wine_name}`.slice(0, 50),
         producer: row.data?.producer,
-        vintage: row.data?.vintage,
-        region: row.data?.region,
-        country: row.data?.country,
-        grape: row.data?.grape,
-        color: row.data?.color,
+        name: row.data?.wine_name, // import expects 'name' not 'wine_name'
+        vintage: row.data?.vintage === 'NV' ? 0 : parseInt(row.data?.vintage || '0'), // import expects number, 0 = NV
+        country: row.data?.country || 'Unknown',
+        type: row.data?.color, // import expects 'type' not 'color'
+        volume: row.data?.bottle_size_ml, // import expects 'volume' not 'bottle_size_ml'
         price: row.data?.price,
-        stock: row.data?.moq, // MOQ as initial stock
+        quantity: row.data?.moq, // import expects 'quantity' as stock
+        q_per_box: row.data?.case_size, // import expects 'q_per_box' not 'case_size'
+        // Optional fields
+        region: row.data?.region,
+        grapes: row.data?.grape, // import expects 'grapes' not 'grape'
+        alcohol: row.data?.alcohol_pct, // import expects 'alcohol' not 'alcohol_pct'
+        labels: [
+          row.data?.organic ? 'organic' : null,
+          row.data?.biodynamic ? 'biodynamic' : null,
+        ].filter(Boolean).join(', ') || undefined,
+        description: row.data?.description,
+        // Also include original fields for frontend display
+        wine_name: row.data?.wine_name,
+        color: row.data?.color,
+        grape: row.data?.grape,
         moq: row.data?.moq,
+        sku: row.data?.sku,
         bottle_size_ml: row.data?.bottle_size_ml,
         case_size: row.data?.case_size,
-        alcohol_pct: row.data?.alcohol_pct,
         organic: row.data?.organic,
         biodynamic: row.data?.biodynamic,
-        description: row.data?.description,
-        sku: row.data?.sku,
         packaging_type: row.data?.packaging_type,
       })),
       invalid: preview.invalidRows.map(row => ({
