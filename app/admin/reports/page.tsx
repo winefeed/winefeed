@@ -20,7 +20,9 @@ import {
   Truck,
   Building2,
   Store,
+  ExternalLink,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface ReportTotals {
   order_count: number;
@@ -77,6 +79,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function AdminReportsPage() {
+  const router = useRouter();
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -419,6 +422,7 @@ export default function AdminReportsPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-muted/50">
+                      <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Ref</th>
                       <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Datum</th>
                       <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Status</th>
                       <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Restaurang</th>
@@ -426,6 +430,7 @@ export default function AdminReportsPage() {
                       <th className="text-right px-6 py-3 text-sm font-medium text-muted-foreground">Varor</th>
                       <th className="text-right px-6 py-3 text-sm font-medium text-muted-foreground">Frakt</th>
                       <th className="text-right px-6 py-3 text-sm font-medium text-muted-foreground">Totalt</th>
+                      <th className="w-10"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -434,8 +439,18 @@ export default function AdminReportsPage() {
                         label: order.status,
                         color: 'bg-gray-100 text-gray-800',
                       };
+                      const shortRef = order.id.slice(0, 8).toUpperCase();
                       return (
-                        <tr key={order.id} className="hover:bg-accent transition-colors">
+                        <tr
+                          key={order.id}
+                          className="hover:bg-accent transition-colors cursor-pointer group"
+                          onClick={() => router.push(`/orders/${order.id}`)}
+                        >
+                          <td className="px-6 py-4 text-sm">
+                            <code className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded text-primary">
+                              {shortRef}
+                            </code>
+                          </td>
                           <td className="px-6 py-4 text-sm text-muted-foreground">
                             {new Date(order.created_at).toLocaleDateString('sv-SE')}
                           </td>
@@ -454,6 +469,9 @@ export default function AdminReportsPage() {
                           </td>
                           <td className="px-6 py-4 text-sm text-right font-semibold text-foreground">
                             {formatSEK((order.total_order_value_ore || 0) / 100)}
+                          </td>
+                          <td className="px-6 py-4">
+                            <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                           </td>
                         </tr>
                       );
