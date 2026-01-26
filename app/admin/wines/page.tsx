@@ -48,6 +48,13 @@ interface Supplier {
   type: string;
 }
 
+const SUPPLIER_TYPE_LABELS: Record<string, string> = {
+  'SWEDISH_IMPORTER': 'Svensk importör',
+  'EU_PRODUCER': 'EU-producent',
+  'EU_IMPORTER': 'EU-importör',
+  'IOR': 'Importör',
+};
+
 const COLOR_LABELS: Record<string, { label: string; color: string }> = {
   red: { label: 'Rött', color: 'bg-red-500' },
   white: { label: 'Vitt', color: 'bg-amber-200' },
@@ -428,7 +435,7 @@ function AdminWinesPageContent() {
               <div className="pt-4 border-t border-border">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Leverantör</h3>
                 <p className="text-foreground font-medium">{selectedWine.supplierName}</p>
-                <p className="text-xs text-muted-foreground">{selectedWine.supplierType === 'IOR' ? 'Importör' : selectedWine.supplierType}</p>
+                <p className="text-xs text-muted-foreground">{SUPPLIER_TYPE_LABELS[selectedWine.supplierType] || selectedWine.supplierType}</p>
               </div>
 
               {/* Description */}

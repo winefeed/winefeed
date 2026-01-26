@@ -76,8 +76,11 @@ export default function IOROrdersPage() {
       const actorData = await response.json();
       setActor(actorData);
 
-      // Verify IOR access
-      if (!actorData.roles.includes('IOR') || !actorData.importer_id) {
+      // Verify IOR access - ADMIN can always access IOR view
+      const hasIORAccess = actorData.roles.includes('IOR') && actorData.importer_id;
+      const isAdmin = actorData.roles.includes('ADMIN');
+
+      if (!hasIORAccess && !isAdmin) {
         throw new Error('Du saknar IOR-behörighet. Kontakta admin för att få åtkomst.');
       }
     } catch (err: any) {
@@ -88,7 +91,9 @@ export default function IOROrdersPage() {
   }, []);
 
   const fetchOrders = useCallback(async () => {
-    if (!actor || !actor.importer_id) return;
+    // Allow ADMIN without importer_id to view all IOR orders
+    const isAdmin = actor?.roles.includes('ADMIN');
+    if (!actor || (!actor.importer_id && !isAdmin)) return;
 
     try {
       setLoading(true);
@@ -134,7 +139,8 @@ export default function IOROrdersPage() {
 
   // Fetch orders when actor or filter changes
   useEffect(() => {
-    if (actor && actor.importer_id) {
+    const isAdmin = actor?.roles.includes('ADMIN');
+    if (actor && (actor.importer_id || isAdmin)) {
       fetchOrders();
     }
   }, [actor, fetchOrders]);

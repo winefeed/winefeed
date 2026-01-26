@@ -52,15 +52,18 @@ export async function GET(
       tenant_id: tenantId
     });
 
-    // Verify IOR access
-    if (!actorService.hasIORAccess(actor)) {
+    // Verify IOR or ADMIN access
+    const hasIORAccess = actorService.hasIORAccess(actor);
+    const isAdmin = actorService.hasRole(actor, 'ADMIN');
+
+    if (!hasIORAccess && !isAdmin) {
       return NextResponse.json(
         { error: 'Access denied: IOR role required' },
         { status: 403 }
       );
     }
 
-    const importerId = actor.importer_id!;
+    const importerId = actor.importer_id;
 
     // Fetch order with details
     const result = await orderService.getOrder(orderId, tenantId);
@@ -71,8 +74,8 @@ export async function GET(
 
     const { order, lines, events } = result;
 
-    // Verify IOR access (order must belong to this importer)
-    if (order.importer_of_record_id !== importerId) {
+    // Verify IOR access (order must belong to this importer) - ADMIN bypasses this check
+    if (!isAdmin && order.importer_of_record_id !== importerId) {
       return NextResponse.json(
         { error: 'Access denied: You are not the IOR for this order' },
         { status: 403 }

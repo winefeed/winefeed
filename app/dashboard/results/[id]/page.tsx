@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle } from 'lucide-react';
 
 interface Wine {
   id: string;
@@ -73,6 +73,7 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [offersCount, setOffersCount] = useState(0);
   const [newOffersCount, setNewOffersCount] = useState(0);
 
@@ -219,15 +220,19 @@ export default function ResultsPage() {
     });
   };
 
-  const handleSendRequest = async () => {
+  const handleRequestConfirmation = () => {
     if (selectedWines.size === 0) {
       alert('Välj minst ett vin att skicka till leverantörer');
       return;
     }
+    setShowConfirmModal(true);
+  };
 
+  const handleConfirmAndSend = async () => {
     setSending(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
+      setShowConfirmModal(false);
       setSent(true);
     } catch (error) {
       console.error('Failed to send request:', error);
@@ -236,6 +241,15 @@ export default function ResultsPage() {
       setSending(false);
     }
   };
+
+  // Get selected wine details for confirmation modal
+  const selectedWineDetails = useMemo(() => {
+    return suggestions.filter(s => selectedWines.has(s.wine.id));
+  }, [suggestions, selectedWines]);
+
+  const totalEstimatedValue = useMemo(() => {
+    return selectedWineDetails.reduce((sum, s) => sum + s.wine.pris_sek, 0);
+  }, [selectedWineDetails]);
 
   if (loading) {
     return (
@@ -775,11 +789,11 @@ export default function ResultsPage() {
               </p>
               <div className="flex gap-4 justify-center">
                 <button
-                  onClick={handleSendRequest}
-                  disabled={sending || selectedWines.size === 0}
+                  onClick={handleRequestConfirmation}
+                  disabled={selectedWines.size === 0}
                   className="px-8 py-3 bg-primary-foreground text-primary rounded-xl hover:bg-primary-foreground/90 transition-colors font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {sending ? 'Skickar...' : `📧 Skicka förfrågan (${selectedWines.size} viner)`}
+                  📧 Granska och skicka ({selectedWines.size} viner)
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/new-request')}
@@ -792,6 +806,136 @@ export default function ResultsPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => !sending && setShowConfirmModal(false)}
+          />
+
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary/5 to-accent/5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Bekräfta din förfrågan</h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Granska ditt val innan du skickar till leverantörer
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => !sending && setShowConfirmModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    disabled={sending}
+                  >
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="px-6 py-4 overflow-y-auto max-h-[50vh]">
+                {/* Summary */}
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-blue-900">
+                        {selectedWineDetails.length} vin{selectedWineDetails.length > 1 ? 'er' : ''} valda
+                      </p>
+                      <p className="text-sm text-blue-700">
+                        Uppskattat värde: {formatPrice(totalEstimatedValue)} (per flaska)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Wine List */}
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-700">Viner som ingår:</p>
+                  {selectedWineDetails.map((suggestion, index) => (
+                    <div
+                      key={suggestion.wine.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                          {index + 1}
+                        </span>
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {suggestion.wine.namn}
+                            {suggestion.wine.argang && (
+                              <span className="text-gray-500 ml-1">{suggestion.wine.argang}</span>
+                            )}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {suggestion.wine.producent} · {suggestion.supplier.namn}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-gray-900">{formatPrice(suggestion.wine.pris_sek)}</p>
+                        <p className="text-xs text-gray-500">per flaska</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Info Box */}
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-800">
+                      <p className="font-medium mb-1">Vad händer nu?</p>
+                      <ul className="space-y-1 text-amber-700">
+                        <li>• Din förfrågan skickas till relevanta leverantörer</li>
+                        <li>• Du får offerter inom 24-48 timmar</li>
+                        <li>• Du kan jämföra och välja den bästa offerten</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  disabled={sending}
+                  className="px-6 py-2.5 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors font-medium disabled:opacity-50"
+                >
+                  Tillbaka
+                </button>
+                <button
+                  onClick={handleConfirmAndSend}
+                  disabled={sending}
+                  className="px-8 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-lg disabled:opacity-50 flex items-center gap-2"
+                >
+                  {sending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Skickar...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Bekräfta och skicka
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

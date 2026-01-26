@@ -49,15 +49,19 @@ export async function GET(request: NextRequest) {
       tenant_id: tenantId
     });
 
-    // Verify IOR access
-    if (!actorService.hasIORAccess(actor)) {
+    // Verify IOR or ADMIN access
+    const hasIORAccess = actorService.hasIORAccess(actor);
+    const isAdmin = actorService.hasRole(actor, 'ADMIN');
+
+    if (!hasIORAccess && !isAdmin) {
       return NextResponse.json(
         { error: 'Access denied: IOR role required' },
         { status: 403 }
       );
     }
 
-    const importerId = actor.importer_id!;
+    // For IOR users, use their importer_id; for ADMIN, show all IOR orders
+    const importerId = actor.importer_id;
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -74,14 +78,54 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch orders for IOR
-    const orders = await orderService.listOrdersForIOR({
-      importer_id: importerId,
-      tenant_id: tenantId,
-      status: status as any,
-      limit,
-      offset
-    });
+    // Fetch orders for IOR (or all IOR orders for ADMIN)
+    let orders;
+    if (importerId && !isAdmin) {
+      // IOR user (non-admin) - fetch orders for their specific importer only
+      orders = await orderService.listOrdersForIOR({
+        importer_id: importerId,
+        tenant_id: tenantId,
+        status: status as any,
+        limit,
+        offset
+      });
+    } else if (isAdmin) {
+      // ADMIN without specific importer - fetch all orders with IOR assigned
+      let query = supabase
+        .from('orders')
+        .select(`
+          id,
+          tenant_id,
+          restaurant_id,
+          offer_id,
+          request_id,
+          seller_supplier_id,
+          importer_of_record_id,
+          delivery_location_id,
+          import_case_id,
+          status,
+          total_lines,
+          total_quantity,
+          currency,
+          created_by,
+          created_at,
+          updated_at
+        `)
+        .eq('tenant_id', tenantId)
+        .not('importer_of_record_id', 'is', null)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      const { data, error: queryError } = await query;
+      if (queryError) {
+        throw new Error(`Failed to list IOR orders: ${queryError.message}`);
+      }
+      orders = data || [];
+    }
 
     // Enrich orders with restaurant and supplier names
     const enrichedOrders = await Promise.all(

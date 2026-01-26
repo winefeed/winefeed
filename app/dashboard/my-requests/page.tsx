@@ -17,6 +17,7 @@ import { FileText, RefreshCw, Plus, ChevronRight, Clock, CheckCircle2, AlertCirc
 import { RequestStatusBadge, ExpectationText } from '@/components/dashboard/RequestTimeline';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+const USER_ID = '00000000-0000-0000-0000-000000000001'; // MVP: Simulated auth
 
 interface RequestTracking {
   dispatched_to: number;
@@ -63,7 +64,8 @@ export default function MyRequestsPage() {
       // Fetch all requests (not just OPEN) for the restaurant
       const response = await fetch('/api/requests?status=', {
         headers: {
-          'x-tenant-id': TENANT_ID
+          'x-tenant-id': TENANT_ID,
+          'x-user-id': USER_ID
         }
       });
 

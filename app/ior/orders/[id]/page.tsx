@@ -39,6 +39,12 @@ import { ChevronDown, ChevronUp, Edit3, AlertTriangle } from 'lucide-react';
 // Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
+const SUPPLIER_TYPE_LABELS: Record<string, string> = {
+  'SWEDISH_IMPORTER': 'Svensk importör',
+  'EU_PRODUCER': 'EU-producent',
+  'EU_IMPORTER': 'EU-importör',
+};
+
 interface ActorContext {
   tenant_id: string;
   user_id: string;
@@ -299,8 +305,11 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
       const actorData = await response.json();
       setActor(actorData);
 
-      // Verify IOR access
-      if (!actorData.roles.includes('IOR') || !actorData.importer_id) {
+      // Verify IOR access - ADMIN can always access IOR view
+      const hasIORAccess = actorData.roles.includes('IOR') && actorData.importer_id;
+      const isAdmin = actorData.roles.includes('ADMIN');
+
+      if (!hasIORAccess && !isAdmin) {
         throw new Error('Du saknar IOR-behörighet. Kontakta admin för att få åtkomst.');
       }
     } catch (err: any) {
@@ -311,7 +320,9 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
   }, []);
 
   const fetchOrderDetail = useCallback(async () => {
-    if (!actor || !actor.importer_id) return;
+    // Allow ADMIN without importer_id to view IOR orders
+    const isAdmin = actor?.roles.includes('ADMIN');
+    if (!actor || (!actor.importer_id && !isAdmin)) return;
 
     try {
       setLoading(true);
@@ -349,7 +360,8 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
 
   // Fetch order when actor is ready
   useEffect(() => {
-    if (actor && actor.importer_id) {
+    const isAdmin = actor?.roles.includes('ADMIN');
+    if (actor && (actor.importer_id || isAdmin)) {
       fetchOrderDetail();
     }
   }, [actor, fetchOrderDetail]);
@@ -645,7 +657,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
               <h3 className="text-sm font-medium text-gray-500 mb-2">Leverantör</h3>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="font-bold text-lg">{order.supplier?.namn || 'Unknown'}</p>
-                <p className="text-xs text-gray-500">{order.supplier?.type}</p>
+                <p className="text-xs text-gray-500">{SUPPLIER_TYPE_LABELS[order.supplier?.type || ''] || order.supplier?.type}</p>
                 <p className="text-sm text-gray-600">{order.supplier?.kontakt_email}</p>
                 <p className="text-sm text-gray-600">{order.supplier?.kontakt_telefon}</p>
               </div>
