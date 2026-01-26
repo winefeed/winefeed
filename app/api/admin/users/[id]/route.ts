@@ -202,15 +202,8 @@ export async function GET(
       );
     }
 
-    // Verify user belongs to this tenant (via any role table)
+    // Resolve user roles (may be empty for users without assignments)
     const { roles, linked_entities } = await resolveUserRoles(targetUserId, tenantId);
-
-    if (roles.length === 0) {
-      return NextResponse.json(
-        { error: 'User not found in this tenant' },
-        { status: 404 }
-      );
-    }
 
     // Fetch recent activity
     const recentActivity = await fetchRecentActivity(targetUserId, tenantId);
@@ -222,7 +215,7 @@ export async function GET(
         created_at: authUser.user.created_at,
         roles,
         linked_entities,
-        status: 'active',
+        status: roles.length > 0 ? 'active' : 'unassigned',
         recent_activity: recentActivity,
         timestamp: new Date().toISOString()
       },
