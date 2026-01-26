@@ -606,13 +606,15 @@ export default function SupplierWinesPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <a
-            href="/api/admin/wines/template?format=xlsx"
-            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            <Download className="h-4 w-4" />
-            Mall
-          </a>
+          {supplierId && (
+            <a
+              href={`/api/suppliers/${supplierId}/wines/template?format=xlsx`}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <Download className="h-4 w-4" />
+              Mall
+            </a>
+          )}
           <button
             onClick={() => setShowUpload(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg text-sm font-medium hover:bg-[#6B1818]"
@@ -920,7 +922,9 @@ export default function SupplierWinesPage() {
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <h3 className="font-medium text-gray-900 mb-2">Kolumner som krävs:</h3>
                     <p className="text-sm text-gray-600">wine_name, producer, vintage, region, country, grape, color, price, moq</p>
-                    <a href="/api/admin/wines/template?format=xlsx" className="text-sm text-[#7B1E1E] hover:underline mt-2 inline-block">Ladda ner mall &rarr;</a>
+                    {supplierId && (
+                      <a href={`/api/suppliers/${supplierId}/wines/template?format=xlsx`} className="text-sm text-[#7B1E1E] hover:underline mt-2 inline-block">Ladda ner mall &rarr;</a>
+                    )}
                   </div>
                 </>
               ) : (

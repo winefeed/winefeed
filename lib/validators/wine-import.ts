@@ -10,6 +10,7 @@
 // ============================================================================
 
 export type WineColor = 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange';
+export type PackagingType = 'bottle' | 'keg' | 'bag_in_box' | 'can' | 'tetra' | 'other';
 
 export interface RawWineRow {
   wine_name?: string;
@@ -29,6 +30,7 @@ export interface RawWineRow {
   case_size?: string | number;
   appellation?: string;
   country?: string;
+  packaging_type?: string;
 }
 
 export interface ValidatedWine {
@@ -49,6 +51,7 @@ export interface ValidatedWine {
   case_size: number;
   appellation: string | null;
   country: string | null;
+  packaging_type: PackagingType;
 }
 
 export interface ValidationResult {
@@ -120,6 +123,39 @@ const COLOR_ALIASES: Record<string, WineColor> = {
   'orange': 'orange',
 };
 
+const VALID_PACKAGING_TYPES: PackagingType[] = ['bottle', 'keg', 'bag_in_box', 'can', 'tetra', 'other'];
+
+// Packaging type aliases for fuzzy matching
+const PACKAGING_ALIASES: Record<string, PackagingType> = {
+  'bottle': 'bottle',
+  'flaska': 'bottle',
+  'bottles': 'bottle',
+  'flask': 'bottle',
+
+  'keg': 'keg',
+  'fat': 'keg',
+  'draft': 'keg',
+  'draught': 'keg',
+  'kegs': 'keg',
+
+  'bag_in_box': 'bag_in_box',
+  'bag-in-box': 'bag_in_box',
+  'bib': 'bag_in_box',
+  'box': 'bag_in_box',
+
+  'can': 'can',
+  'cans': 'can',
+  'burk': 'can',
+
+  'tetra': 'tetra',
+  'tetra_pak': 'tetra',
+  'tetrapak': 'tetra',
+
+  'other': 'other',
+  'annat': 'other',
+  'övrigt': 'other',
+};
+
 // ============================================================================
 // Validation Functions
 // ============================================================================
@@ -143,6 +179,27 @@ function normalizeColor(input: string | undefined): WineColor | null {
   }
 
   return null;
+}
+
+/**
+ * Normalize packaging type input
+ */
+function normalizePackagingType(input: string | undefined): PackagingType {
+  if (!input) return 'bottle'; // Default to bottle
+
+  const normalized = input.toLowerCase().trim().replace(/[-\s]/g, '_');
+
+  // Direct match
+  if (VALID_PACKAGING_TYPES.includes(normalized as PackagingType)) {
+    return normalized as PackagingType;
+  }
+
+  // Alias match
+  if (PACKAGING_ALIASES[normalized]) {
+    return PACKAGING_ALIASES[normalized];
+  }
+
+  return 'bottle'; // Default to bottle if unknown
 }
 
 /**
@@ -184,11 +241,20 @@ function normalizeBoolean(input: string | boolean | undefined): boolean {
 
 /**
  * Normalize numeric input
+ * Handles units like "750 ml", "75 cl", "0.75 l"
  */
 function normalizeNumber(input: string | number | undefined): number | null {
   if (input === undefined || input === null || input === '') return null;
 
-  const num = typeof input === 'number' ? input : parseFloat(String(input).replace(',', '.').trim());
+  if (typeof input === 'number') return input;
+
+  // Remove units and extra whitespace
+  let cleaned = String(input)
+    .replace(/\s*(ml|cl|l|liter|litre|%|kr|sek)\s*/gi, '')
+    .replace(',', '.')
+    .trim();
+
+  const num = parseFloat(cleaned);
 
   return isNaN(num) ? null : num;
 }
@@ -319,6 +385,7 @@ export function validateWineRow(row: RawWineRow, rowNumber: number): ValidationR
       case_size: Math.round(case_size),
       appellation: row.appellation?.trim() || null,
       country: row.country?.trim() || null,
+      packaging_type: normalizePackagingType(row.packaging_type),
     },
   };
 }
@@ -375,7 +442,7 @@ export function normalizeColumnHeaders(headers: string[]): Record<string, string
     price: ['price', 'pris', 'price_per_bottle', 'bottle_price', 'flaskpris', 'sek'],
     moq: ['moq', 'min_order', 'min_qty', 'minimum', 'minimum_order', 'minsta_order'],
     alcohol_pct: ['alcohol_pct', 'alcohol', 'abv', 'alk', 'alkohol', 'alcohol_%', 'vol'],
-    bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'size', 'ml', 'storlek', 'flaskstorlek'],
+    bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'size', 'ml', 'storlek', 'flaskstorlek', 'volume', 'volym'],
     organic: ['organic', 'ekologisk', 'eko', 'bio'],
     biodynamic: ['biodynamic', 'biodynamisk'],
     description: ['description', 'beskrivning', 'notes', 'smakbeskrivning', 'tasting_notes'],
@@ -383,6 +450,7 @@ export function normalizeColumnHeaders(headers: string[]): Record<string, string
     case_size: ['case_size', 'kartong', 'case', 'per_case', 'bottles_per_case'],
     appellation: ['appellation', 'aoc', 'doc', 'docg', 'igt'],
     country: ['country', 'land'],
+    packaging_type: ['packaging_type', 'packaging', 'format', 'förpackning', 'typ_förpackning'],
   };
 
   for (const header of headers) {
