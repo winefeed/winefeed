@@ -100,8 +100,10 @@ const COLOR_ALIASES: Record<string, WineColor> = {
 
   'rose': 'rose',
   'rosé': 'rose',
+  'ros\u00e9': 'rose',  // explicit unicode for rosé
   'rosa': 'rose',
   'ros': 'rose',
+  'rosado': 'rose',
 
   'sparkling': 'sparkling',
   'mousserande': 'sparkling',
