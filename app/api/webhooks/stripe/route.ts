@@ -352,21 +352,26 @@ async function handleSponsoredSlotCheckout(
   }
 
   // Add purchased slot to entitlements
-  await supabase.rpc('add_purchased_slot', {
-    p_supplier_id: supplierId,
-    p_tenant_id: tenantId
-  }).catch(() => {
-    // Fallback if RPC doesn't exist
-    supabase
-      .from('supplier_entitlements')
-      .upsert({
-        tenant_id: tenantId,
-        supplier_id: supplierId,
-        purchased_slots: 1
-      }, {
-        onConflict: 'tenant_id,supplier_id'
-      });
-  });
+  // First try to get existing entitlement
+  const { data: existingEntitlement } = await supabase
+    .from('supplier_entitlements')
+    .select('purchased_slots')
+    .eq('supplier_id', supplierId)
+    .eq('tenant_id', tenantId)
+    .single();
+
+  const currentPurchased = existingEntitlement?.purchased_slots || 0;
+
+  await supabase
+    .from('supplier_entitlements')
+    .upsert({
+      tenant_id: tenantId,
+      supplier_id: supplierId,
+      included_slots: 0,
+      purchased_slots: currentPurchased + 1
+    }, {
+      onConflict: 'tenant_id,supplier_id'
+    });
 
   // Create the sponsored slot
   const { error: slotError } = await supabase
