@@ -45,6 +45,11 @@ export async function middleware(request: NextRequest) {
     '/api/health',       // Health check (monitoring + smoke tests)
   ];
 
+  // Exact match for root landing page
+  if (pathname === '/') {
+    return NextResponse.next();
+  }
+
   // Development/Test: Allow header-based auth for smoke tests
   // SECURITY: Requires BOTH non-production AND explicit env flag
   const allowTestBypass =
