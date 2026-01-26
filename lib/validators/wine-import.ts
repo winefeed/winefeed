@@ -101,6 +101,7 @@ const COLOR_ALIASES: Record<string, WineColor> = {
   'rose': 'rose',
   'rosé': 'rose',
   'rosa': 'rose',
+  'ros': 'rose',
 
   'sparkling': 'sparkling',
   'mousserande': 'sparkling',
@@ -111,6 +112,9 @@ const COLOR_ALIASES: Record<string, WineColor> = {
   'sekt': 'sparkling',
   'cremant': 'sparkling',
   'crémant': 'sparkling',
+  'pet-nat': 'sparkling',
+  'petnat': 'sparkling',
+  'pet nat': 'sparkling',
 
   'fortified': 'fortified',
   'starkvin': 'fortified',
@@ -316,11 +320,9 @@ export function validateWineRow(row: RawWineRow, rowNumber: number): ValidationR
     errors.push(`Ogiltig color: "${colorInput}". Giltiga: ${VALID_COLORS.join(', ')}`);
   }
 
-  // Validate and normalize vintage
-  const vintage = normalizeVintage(vintageInput);
-  if (vintageInput === undefined || vintageInput === null || vintageInput === '') {
-    errors.push('Saknar vintage');
-  } else if (!vintage) {
+  // Validate and normalize vintage (empty = NV)
+  const vintage = normalizeVintage(vintageInput) || 'NV';
+  if (vintageInput !== undefined && vintageInput !== null && vintageInput !== '' && !normalizeVintage(vintageInput)) {
     errors.push(`Ogiltig vintage: "${vintageInput}". Förväntat: årtal (t.ex. 2022) eller NV`);
   }
 
