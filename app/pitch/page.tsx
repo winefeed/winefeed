@@ -389,7 +389,7 @@ export default function PitchPage() {
             <div className="border-t border-gray-200 pt-8">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
                 <a
-                  href="mailto:markus@winefeed.se?subject=Intresserad%20av%20Winefeed-pilot&body=Hej%20Markus%2C%0A%0AJag%20%C3%A4r%20intresserad%20av%20Winefeed-piloten.%0A%0A"
+                  href="mailto:markus@esima.se?subject=Intresserad%20av%20Winefeed-pilot&body=Hej%20Markus%2C%0A%0AJag%20%C3%A4r%20intresserad%20av%20Winefeed-piloten.%0A%0A"
                   className="inline-flex items-center gap-2 px-8 py-4 bg-[#7B1E1E] hover:bg-[#6B1818] text-white rounded-xl transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
                 >
                   <Mail className="h-5 w-5" />
@@ -469,11 +469,11 @@ export default function PitchPage() {
 
           <div className="mb-6">
             <a
-              href="mailto:markus@winefeed.se"
+              href="mailto:markus@esima.se"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#7B1E1E] hover:bg-[#6B1818] rounded-lg transition-colors font-medium"
             >
               <Mail className="h-5 w-5" />
-              markus@winefeed.se
+              markus@esima.se
             </a>
           </div>
 
