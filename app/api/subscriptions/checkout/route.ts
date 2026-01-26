@@ -9,24 +9,38 @@ import { actorService } from '@/lib/actor-service';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-});
+// Lazy initialization to avoid build-time errors
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-12-15.clover',
+  });
+}
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
 
 // Price IDs from Stripe (configure these in env)
-const PRICE_IDS: Record<string, string> = {
-  pro: process.env.STRIPE_PRICE_PRO || '',
-  premium: process.env.STRIPE_PRICE_PREMIUM || '',
-};
+function getPriceIds(): Record<string, string> {
+  return {
+    pro: process.env.STRIPE_PRICE_PRO || '',
+    premium: process.env.STRIPE_PRICE_PREMIUM || '',
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const stripe = getStripe();
+    const supabase = getSupabase();
+    const PRICE_IDS = getPriceIds();
+
     const userId = request.headers.get('x-user-id');
     const tenantId = request.headers.get('x-tenant-id');
 
