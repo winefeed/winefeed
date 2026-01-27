@@ -37,9 +37,6 @@ interface WineCheckPanelProps {
   description?: string;
   compact?: boolean;
   hideVintage?: boolean;
-
-  // Tenant context (optional)
-  tenantId?: string;
 }
 
 export function WineCheckPanel({
@@ -52,8 +49,7 @@ export function WineCheckPanel({
   title = 'Wine Check',
   description = 'Verifierar och normaliserar vinnamn med Wine-Searcher API. Visar ENDAST normaliserat namn, producent, region - INGEN prisdata.',
   compact = false,
-  hideVintage = false,
-  tenantId
+  hideVintage = false
 }: WineCheckPanelProps) {
   const {
     name,
@@ -66,7 +62,7 @@ export function WineCheckPanel({
     setVintage,
     runCheck,
     reset
-  } = useWineCheck({ tenantId });
+  } = useWineCheck();
 
   // Persist state
   const [isPersisting, setIsPersisting] = useState(false);
