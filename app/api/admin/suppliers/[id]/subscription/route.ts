@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
 import { SubscriptionTier } from '@/lib/subscription-service';
+import { sendEmail } from '@/lib/email-service';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,6 +66,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Supplier not found' }, { status: 404 });
     }
 
+    // Get current subscription to determine if upgrade or downgrade
+    const { data: currentSub } = await supabase
+      .from('subscriptions')
+      .select('tier')
+      .eq('supplier_id', supplierId)
+      .single();
+
+    const oldTier = currentSub?.tier || 'free';
+
     // Upsert subscription
     const { data: subscription, error: subError } = await supabase
       .from('subscriptions')
@@ -84,6 +94,96 @@ export async function PUT(
       return NextResponse.json({ error: 'Failed to update subscription' }, { status: 500 });
     }
 
+    // Send email notification to supplier users
+    const { data: supplierUsers } = await supabase
+      .from('supplier_users')
+      .select('user_id')
+      .eq('supplier_id', supplierId);
+
+    if (supplierUsers && supplierUsers.length > 0) {
+      const userIds = supplierUsers.map(u => u.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('email')
+        .in('id', userIds);
+
+      const tierLabels: Record<string, string> = {
+        free: 'Free',
+        pro: 'Pro',
+        premium: 'Premium',
+      };
+
+      const tierOrder = { free: 0, pro: 1, premium: 2 };
+      const isUpgrade = tierOrder[tier as keyof typeof tierOrder] > tierOrder[oldTier as keyof typeof tierOrder];
+      const isDowngrade = tierOrder[tier as keyof typeof tierOrder] < tierOrder[oldTier as keyof typeof tierOrder];
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://winefeed.se';
+
+      for (const profile of profiles || []) {
+        if (!profile.email) continue;
+
+        let subject: string;
+        let html: string;
+        let text: string;
+
+        if (isUpgrade) {
+          subject = `Din Winefeed-prenumeration har uppgraderats till ${tierLabels[tier]}`;
+          html = `
+            <h2>Grattis! Din prenumeration har uppgraderats</h2>
+            <p>Hej!</p>
+            <p>Din Winefeed-prenumeration för <strong>${supplier.namn}</strong> har uppgraderats till <strong>${tierLabels[tier]}</strong>.</p>
+            ${tier === 'pro' || tier === 'premium' ? `
+            <p>Du har nu tillgång till:</p>
+            <ul>
+              <li>Obegränsat antal viner</li>
+              <li>Obegränsat antal offerter</li>
+              ${tier === 'premium' ? '<li>Prioriterad placering i sökresultat</li>' : ''}
+              ${tier === 'premium' ? '<li>Konkurrentanalys</li>' : ''}
+            </ul>
+            ` : ''}
+            <p><a href="${appUrl}/supplier">Logga in på Winefeed</a> för att fortsätta.</p>
+            <hr>
+            <p style="color: #666; font-size: 12px;">
+              Vill du ändra din prenumeration? Gå till <a href="${appUrl}/supplier/pricing">Prissättning</a>
+              eller kontakta oss på <a href="mailto:support@winefeed.se">support@winefeed.se</a>.
+            </p>
+          `;
+          text = `Grattis! Din Winefeed-prenumeration för ${supplier.namn} har uppgraderats till ${tierLabels[tier]}.\n\nLogga in på ${appUrl}/supplier för att fortsätta.\n\nVill du ändra din prenumeration? Gå till ${appUrl}/supplier/pricing eller kontakta oss på support@winefeed.se.`;
+        } else if (isDowngrade) {
+          subject = `Din Winefeed-prenumeration har ändrats till ${tierLabels[tier]}`;
+          html = `
+            <h2>Din prenumeration har ändrats</h2>
+            <p>Hej!</p>
+            <p>Din Winefeed-prenumeration för <strong>${supplier.namn}</strong> har ändrats till <strong>${tierLabels[tier]}</strong>.</p>
+            ${tier === 'free' ? `
+            <p>Med Free-planen har du:</p>
+            <ul>
+              <li>Max 10 aktiva viner</li>
+              <li>Max 5 leads per månad</li>
+              <li>Max 10 offerter per månad</li>
+            </ul>
+            <p>Behöver du fler viner eller obegränsade offerter? <a href="${appUrl}/supplier/pricing">Uppgradera till Pro</a>.</p>
+            ` : ''}
+            <p><a href="${appUrl}/supplier">Logga in på Winefeed</a> för att se ditt konto.</p>
+            <hr>
+            <p style="color: #666; font-size: 12px;">
+              Vill du ändra din prenumeration? Gå till <a href="${appUrl}/supplier/pricing">Prissättning</a>
+              eller kontakta oss på <a href="mailto:support@winefeed.se">support@winefeed.se</a>.
+            </p>
+          `;
+          text = `Din Winefeed-prenumeration för ${supplier.namn} har ändrats till ${tierLabels[tier]}.\n\nLogga in på ${appUrl}/supplier för att se ditt konto.\n\nVill du ändra din prenumeration? Gå till ${appUrl}/supplier/pricing eller kontakta oss på support@winefeed.se.`;
+        } else {
+          // Same tier, no email needed
+          continue;
+        }
+
+        // Send email (fail-safe, won't block response)
+        sendEmail({ to: profile.email, subject, html, text }).catch(err => {
+          console.error('Failed to send subscription email:', err);
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       supplier: {
@@ -94,7 +194,8 @@ export async function PUT(
         tier: subscription.tier,
         status: subscription.status,
       },
-      message: `Leverantör "${supplier.namn}" uppgraderad till ${tier}`,
+      message: `Leverantör "${supplier.namn}" ${oldTier !== tier ? (tierOrder[tier as keyof typeof tierOrder] > tierOrder[oldTier as keyof typeof tierOrder] ? 'uppgraderad' : 'nedgraderad') : 'uppdaterad'} till ${tier}`,
+      emailSent: true,
     });
 
   } catch (error: any) {
