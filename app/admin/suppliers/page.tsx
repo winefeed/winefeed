@@ -326,7 +326,7 @@ export default function AdminSuppliersPage() {
                   <tr
                     key={supplier.id}
                     className="hover:bg-accent transition-colors cursor-pointer"
-                    onClick={() => router.push(`/admin/wines?supplier=${supplier.id}`)}
+                    onClick={() => router.push(`/admin/suppliers/${supplier.id}`)}
                   >
                     <td className="px-4 py-3">
                       <div className="font-medium text-foreground">{supplier.name}</div>
