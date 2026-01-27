@@ -116,31 +116,23 @@ REGLER:
 - Svenskt språk i reason`;
 
   try {
-    console.log('Calling Claude AI to rank', wines.length, 'wines...');
-    console.log('User request:', userRequest);
     const response = await callClaude(prompt, 2000);
-    console.log('✓ Claude AI responded successfully');
-    console.log('Claude raw response:', response.substring(0, 500));
 
     // Extract JSON from response
     const jsonMatch = response.match(/\[[\s\S]*?\]/);
     if (!jsonMatch) {
-      console.error('Claude returned no JSON:', response);
       throw new Error('Claude returned no JSON');
     }
 
-    console.log('Extracted JSON:', jsonMatch[0].substring(0, 300));
     const ranked: { wine_id: string; score: number; reason: string }[] = JSON.parse(
       jsonMatch[0]
     );
-    console.log('Parsed ranked wines:', ranked.length, 'wines');
 
     // Map back to Wine objects with score and reason
     const result = ranked
       .map((r) => {
         const wine = wines.find((w) => w.id === r.wine_id);
         if (!wine) {
-          console.log('WARNING: Could not find wine with ID:', r.wine_id);
           return null;
         }
         return {
@@ -151,12 +143,8 @@ REGLER:
       })
       .filter((w): w is RankedWine => w !== null);
 
-    console.log('Final ranked wines after filtering:', result.length, 'wines');
     return result;
   } catch (error: any) {
-    console.error('❌ Error ranking wines with Claude:', error?.message || error);
-    console.error('Error details:', JSON.stringify(error, null, 2));
-    console.log('⚠️  Falling back to default ranking (no AI)');
     // Fallback: return wines without AI ranking
     return wines.slice(0, 8).map((wine, index) => ({
       ...wine,

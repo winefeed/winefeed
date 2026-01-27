@@ -9,6 +9,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useActor } from '@/lib/hooks/useActor';
 import { StepIndicator } from '@/components/ui/StepIndicator';
 
 interface Request {
@@ -52,9 +53,7 @@ export default function RequestDetailPage() {
       setError(null);
 
       const response = await fetch(`/api/requests/${requestId}`, {
-        headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {

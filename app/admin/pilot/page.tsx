@@ -139,7 +139,7 @@ export default function PilotAdminPage() {
 
       const response = await fetch('/api/admin/pilot/overview', {
         headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+          
         }
       });
 

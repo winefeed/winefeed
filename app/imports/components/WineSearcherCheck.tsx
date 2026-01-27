@@ -64,9 +64,7 @@ export function WineSearcherCheck({ wineName, vintage, onSelect }: WineSearcherC
       });
 
       const response = await fetch(`/api/enrich/wine-searcher/check?${params.toString()}`, {
-        headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001' // TODO: Get from context
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {

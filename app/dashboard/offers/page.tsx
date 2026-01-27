@@ -14,9 +14,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { RefreshCw, ChevronRight, Clock, CheckCircle2, AlertCircle, Inbox, FileText, ArrowRight } from 'lucide-react';
-
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
-const USER_ID = '00000000-0000-0000-0000-000000000001'; // MVP: Simulated auth
+import { useActor } from '@/lib/hooks/useActor';
 
 interface RequestWithOffers {
   id: string;
@@ -47,6 +45,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 export default function RestaurantOffersPage() {
   const router = useRouter();
+  const { actor, loading: actorLoading } = useActor();
   const [requests, setRequests] = useState<RequestWithOffers[]>([]);
   const [summary, setSummary] = useState<OffersSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,8 +53,10 @@ export default function RestaurantOffersPage() {
   const [filter, setFilter] = useState<'all' | 'new' | 'pending' | 'accepted'>('all');
 
   useEffect(() => {
-    fetchRequestsWithOffers();
-  }, []);
+    if (!actorLoading && actor) {
+      fetchRequestsWithOffers();
+    }
+  }, [actor, actorLoading]);
 
   const fetchRequestsWithOffers = async () => {
     try {
@@ -64,10 +65,7 @@ export default function RestaurantOffersPage() {
 
       // Fetch all requests with offer counts
       const response = await fetch('/api/requests?include_offers=true', {
-        headers: {
-          'x-tenant-id': TENANT_ID,
-          'x-user-id': USER_ID
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {

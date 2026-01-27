@@ -25,7 +25,6 @@ import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
 
 // Tenant ID - single tenant for MVP
 // Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
 interface ActorContext {
   tenant_id: string;

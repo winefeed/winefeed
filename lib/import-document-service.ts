@@ -82,11 +82,6 @@ class ImportDocumentService {
     tenantId: string,
     actorId?: string
   ): Promise<GenerateDocumentResult> {
-    // DEBUG LOGGING
-    console.log('[DEBUG] generate5369 called with:', { importId, tenantId, actorId });
-    console.log('[DEBUG] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('[DEBUG] Service key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-
     // 1. Fetch import case with all required data
     const { data: importCase, error: fetchError } = await supabase
       .from('imports')
@@ -116,16 +111,7 @@ class ImportDocumentService {
       .eq('tenant_id', tenantId)
       .single();
 
-    // DEBUG LOGGING
-    console.log('[DEBUG] Query result:', {
-      hasData: !!importCase,
-      hasError: !!fetchError,
-      errorDetails: fetchError
-    });
-
     if (fetchError || !importCase) {
-      console.error('[DEBUG] Query failed! Error:', fetchError);
-      console.error('[DEBUG] Data:', importCase);
       throw new Error(`Import case not found: ${fetchError?.message || 'Not found'}`);
     }
 

@@ -15,9 +15,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, RefreshCw, Plus, ChevronRight, Clock, CheckCircle2, AlertCircle, Inbox, Info } from 'lucide-react';
 import { RequestStatusBadge, ExpectationText } from '@/components/dashboard/RequestTimeline';
-
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
-const USER_ID = '00000000-0000-0000-0000-000000000001'; // MVP: Simulated auth
+import { useActor } from '@/lib/hooks/useActor';
 
 interface RequestTracking {
   dispatched_to: number;
@@ -48,13 +46,16 @@ interface Request {
 
 export default function MyRequestsPage() {
   const router = useRouter();
+  const { actor, loading: actorLoading } = useActor();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
+    if (!actorLoading && actor) {
+      fetchRequests();
+    }
+  }, [actor, actorLoading]);
 
   const fetchRequests = async () => {
     try {
@@ -63,10 +64,7 @@ export default function MyRequestsPage() {
 
       // Fetch all requests (not just OPEN) for the restaurant
       const response = await fetch('/api/requests?status=', {
-        headers: {
-          'x-tenant-id': TENANT_ID,
-          'x-user-id': USER_ID
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {

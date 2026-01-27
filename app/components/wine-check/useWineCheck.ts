@@ -40,7 +40,7 @@ interface UseWineCheckReturn {
 }
 
 export function useWineCheck(options: UseWineCheckOptions = {}): UseWineCheckReturn {
-  const { tenantId = '00000000-0000-0000-0000-000000000001', onSuccess, onError } = options;
+  const { tenantId, onSuccess, onError } = options;
 
   // State
   const [name, setName] = useState('');
@@ -74,9 +74,7 @@ export function useWineCheck(options: UseWineCheckOptions = {}): UseWineCheckRet
       });
 
       const response = await fetch(`/api/enrich/wine-searcher/check?${params.toString()}`, {
-        headers: {
-          'x-tenant-id': tenantId
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {

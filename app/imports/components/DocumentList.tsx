@@ -31,7 +31,7 @@ export function DocumentList({ documents, importId }: DocumentListProps) {
     try {
       const response = await fetch(`/api/imports/${importId}/documents/${doc.id}/download`, {
         headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+          
         }
       });
 

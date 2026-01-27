@@ -37,7 +37,6 @@ import { ChevronDown, ChevronUp, Edit3, AlertTriangle } from 'lucide-react';
 
 // Tenant ID - single tenant for MVP
 // Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
 const SUPPLIER_TYPE_LABELS: Record<string, string> = {
   'SWEDISH_IMPORTER': 'Svensk importör',

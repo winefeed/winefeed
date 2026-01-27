@@ -60,7 +60,7 @@ export default function MatchDemoPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001' // Test tenant
+           // Test tenant
         },
         body: JSON.stringify(payload)
       });

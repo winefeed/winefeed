@@ -67,27 +67,26 @@ export default function RestaurantOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const params = new URLSearchParams();
+        if (statusFilter !== 'all') {
+          params.set('status', statusFilter);
+        }
+
+        const res = await fetch(`/api/restaurant/orders?${params}`);
+        if (res.ok) {
+          const data = await res.json();
+          setOrders(data.orders || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
     fetchOrders();
   }, [statusFilter]);
-
-  async function fetchOrders() {
-    try {
-      const params = new URLSearchParams();
-      if (statusFilter !== 'all') {
-        params.set('status', statusFilter);
-      }
-
-      const res = await fetch(`/api/restaurant/orders?${params}`);
-      if (res.ok) {
-        const data = await res.json();
-        setOrders(data.orders || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch orders:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('sv-SE', {

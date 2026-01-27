@@ -11,8 +11,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users, RefreshCw, ArrowLeft } from 'lucide-react';
-
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+import { useActor } from '@/lib/hooks/useActor';
 
 interface User {
   user_id: string;
@@ -35,6 +34,7 @@ interface UsersResponse {
 
 export default function AdminUsersPage() {
   const router = useRouter();
+  const { actor, loading: actorLoading } = useActor();
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,8 +43,15 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (!actorLoading && actor) {
+      if (!actor.roles.includes('ADMIN')) {
+        setError('Access Denied: Admin privileges required');
+        setLoading(false);
+        return;
+      }
+      fetchUsers();
+    }
+  }, [actor, actorLoading]);
 
   useEffect(() => {
     let filtered = users;
@@ -68,9 +75,7 @@ export default function AdminUsersPage() {
       setError(null);
 
       const response = await fetch('/api/admin/users', {
-        headers: {
-          'x-tenant-id': TENANT_ID,
-        },
+        credentials: 'include'
       });
 
       if (!response.ok) {

@@ -19,7 +19,6 @@ export async function callClaude(prompt: string, maxTokens: number = 2000): Prom
   }
 
   try {
-    console.log('Calling Claude API (model: claude-3-haiku-20240307)...');
     const message = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',
       max_tokens: maxTokens,

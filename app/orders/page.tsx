@@ -28,8 +28,6 @@ import { StepIndicator } from '@/components/ui/StepIndicator';
 
 // MVP: Hardcoded tenant for testing
 // Production: Get from authenticated user context or environment
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
-const USER_ID = '00000000-0000-0000-0000-000000000001'; // MVP: Simulated auth
 
 interface ActorContext {
   tenant_id: string;
@@ -71,8 +69,8 @@ export default function RestaurantOrdersPage() {
 
       const response = await fetch('/api/me/actor', {
         headers: {
-          'x-tenant-id': TENANT_ID,
-          'x-user-id': USER_ID
+          
+          
         }
       });
 
@@ -120,8 +118,8 @@ export default function RestaurantOrdersPage() {
 
       const response = await fetch(url, {
         headers: {
-          'x-tenant-id': TENANT_ID,
-          'x-user-id': USER_ID
+          
+          
         }
       });
 

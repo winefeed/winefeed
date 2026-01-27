@@ -81,7 +81,7 @@ export default function MatchStatusPage() {
     try {
       const response = await fetch('/api/match/status', {
         headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001' // Test tenant
+           // Test tenant
         }
       });
 

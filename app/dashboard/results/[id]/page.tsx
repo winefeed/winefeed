@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useActor } from '@/lib/hooks/useActor';
 import { formatPrice } from '@/lib/utils';
 import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle } from 'lucide-react';
 
@@ -90,9 +91,7 @@ export default function ResultsPage() {
   const fetchOfferCounts = useCallback(async () => {
     try {
       const response = await fetch(`/api/quote-requests/${requestId}/offers`, {
-        headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
-        }
+        credentials: 'include'
       });
       if (response.ok) {
         const data = await response.json();
