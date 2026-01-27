@@ -525,7 +525,10 @@ export default function AdminDashboardPage() {
 
         {/* Overview Stats - Row 2: Orders, Requests, Offers */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-card rounded-lg border border-border p-5">
+          <Link
+            href="/orders"
+            className="bg-card rounded-lg border border-border p-5 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer block"
+          >
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600">
                 <ShoppingCart className="h-5 w-5" />
@@ -544,9 +547,12 @@ export default function AdminDashboardPage() {
                 {stats.orders.delivered} levererade
               </span>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-card rounded-lg border border-border p-5">
+          <Link
+            href="/admin/requests"
+            className="bg-card rounded-lg border border-border p-5 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer block"
+          >
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600">
                 <Inbox className="h-5 w-5" />
@@ -562,9 +568,12 @@ export default function AdminDashboardPage() {
                 {stats.requests.closed} avslutade
               </span>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-card rounded-lg border border-border p-5">
+          <Link
+            href="/admin/offers"
+            className="bg-card rounded-lg border border-border p-5 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer block"
+          >
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-lg bg-teal-500/10 text-teal-600">
                 <FileText className="h-5 w-5" />
@@ -583,7 +592,7 @@ export default function AdminDashboardPage() {
                 {stats.offers.draft} utkast
               </span>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Color Distribution */}
