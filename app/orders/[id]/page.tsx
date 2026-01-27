@@ -43,6 +43,32 @@ const SUPPLIER_TYPE_LABELS: Record<string, string> = {
   'EU_IMPORTER': 'EU-importor',
 };
 
+// Carrier tracking URL templates
+const CARRIER_TRACKING_URLS: Record<string, string> = {
+  'dhl': 'https://www.dhl.com/se-sv/home/tracking.html?tracking-id={tracking}',
+  'postnord': 'https://tracking.postnord.com/se/?id={tracking}',
+  'ups': 'https://www.ups.com/track?tracknum={tracking}',
+  'schenker': 'https://www.dbschenker.com/se-sv/spara-forsandelse?tracking={tracking}',
+  'fedex': 'https://www.fedex.com/fedextrack/?trknbr={tracking}',
+  'bring': 'https://tracking.bring.se/tracking/{tracking}',
+  'dsv': 'https://www.dsv.com/sv-se/vara-losningar/spara-din-forsandelse?trackingNumber={tracking}',
+};
+
+function getTrackingUrl(carrier: string | undefined, trackingNumber: string): string | null {
+  if (!carrier) return null;
+
+  const carrierKey = carrier.toLowerCase().replace(/[^a-z]/g, '');
+
+  // Find matching carrier
+  for (const [key, urlTemplate] of Object.entries(CARRIER_TRACKING_URLS)) {
+    if (carrierKey.includes(key) || key.includes(carrierKey)) {
+      return urlTemplate.replace('{tracking}', encodeURIComponent(trackingNumber));
+    }
+  }
+
+  return null;
+}
+
 interface OrderDetail {
   order: {
     id: string;
@@ -361,7 +387,19 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
               <div>
                 <p className="text-xs text-muted-foreground uppercase">Sparningsnummer</p>
                 <div className="flex items-center gap-2">
-                  <p className="font-mono font-medium">{order.tracking_number}</p>
+                  {getTrackingUrl(order.carrier, order.tracking_number) ? (
+                    <a
+                      href={getTrackingUrl(order.carrier, order.tracking_number)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono font-medium text-primary hover:underline flex items-center gap-1"
+                    >
+                      {order.tracking_number}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : (
+                    <p className="font-mono font-medium">{order.tracking_number}</p>
+                  )}
                   <button
                     onClick={() => copyTrackingNumber(order.tracking_number!)}
                     className="p-1 hover:bg-accent rounded transition-colors"
