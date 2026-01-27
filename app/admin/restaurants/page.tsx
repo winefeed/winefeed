@@ -294,7 +294,8 @@ export default function AdminRestaurantsPage() {
                 filteredRestaurants.map((restaurant) => (
                   <tr
                     key={restaurant.id}
-                    className="hover:bg-accent transition-colors"
+                    onClick={() => router.push(`/admin/restaurants/${restaurant.id}`)}
+                    className="hover:bg-accent transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-3">
                       <div className="font-medium text-foreground">{restaurant.name}</div>
