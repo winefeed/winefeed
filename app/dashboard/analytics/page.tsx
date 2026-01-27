@@ -26,8 +26,22 @@ import {
   RefreshCw,
   PiggyBank,
   ChevronRight,
+  Info,
 } from 'lucide-react';
 import Link from 'next/link';
+
+// Tooltip component for info icons
+function InfoTooltip({ text }: { text: string }) {
+  return (
+    <div className="group relative inline-block ml-1">
+      <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-64 text-center z-50 shadow-lg">
+        {text}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+      </div>
+    </div>
+  );
+}
 
 interface MonthlyData {
   month: string;
@@ -256,13 +270,13 @@ export default function RestaurantAnalyticsPage() {
           </Link>
 
           {/* Savings */}
-          <div
-            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
-            title="Skillnaden mellan din angivna budget och faktiskt pris. Positivt = du betalade mindre än budgeterat."
-          >
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Besparing vs budget</p>
+                <p className="text-sm text-gray-500 flex items-center">
+                  Besparing vs budget
+                  <InfoTooltip text="Jämför din angivna maxbudget per flaska med faktiskt orderpris. Positivt värde = du betalade mindre än budgeterat." />
+                </p>
                 <p className={`text-3xl font-bold mt-1 ${data.savings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {data.savings >= 0 ? '+' : ''}{formatCurrency(data.savings)}
                 </p>
@@ -274,9 +288,16 @@ export default function RestaurantAnalyticsPage() {
                 <PiggyBank className={`w-6 h-6 ${data.savings >= 0 ? 'text-green-600' : 'text-red-600'}`} />
               </div>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              Budget: {formatCurrency(data.total_budget)}
-            </p>
+            <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500 space-y-1">
+              <div className="flex justify-between">
+                <span>Din budget:</span>
+                <span className="font-medium">{formatCurrency(data.total_budget)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Faktiskt pris:</span>
+                <span className="font-medium">{formatCurrency(data.total_spent)}</span>
+              </div>
+            </div>
           </div>
         </div>
 
