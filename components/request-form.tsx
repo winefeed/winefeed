@@ -289,171 +289,185 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
   const getCountryLabel = (value: string) => WINE_COUNTRIES.find(c => c.value === value)?.label || value;
   const getGrapeLabel = (value: string) => GRAPE_VARIETIES.find(g => g.value === value)?.label || value;
 
-  // Confirmation Modal
+  // Confirmation Modal - Fixed overlay
   if (showConfirmation && pendingData) {
     return (
-      <div className="space-y-6 max-h-[80vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between sticky top-0 bg-white pb-2 z-10">
-          <h2 className="text-xl font-bold text-gray-900">Bekräfta din förfrågan</h2>
-          <button
-            onClick={() => setShowConfirmation(false)}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+      <>
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-black/50 z-50"
+          onClick={() => setShowConfirmation(false)}
+        />
 
-        {/* Summary */}
-        <div className="bg-gray-50 rounded-lg p-5 space-y-4">
-          <h3 className="font-medium text-gray-900 flex items-center gap-2">
-            <Wine className="h-5 w-5 text-primary" />
-            Vad du söker
-          </h3>
-
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {/* Wine type */}
-            <div>
-              <span className="text-gray-500">Vintyp:</span>
-              <p className="font-medium">
-                {getColorEmoji(pendingData.color)} {getColorLabel(pendingData.color)}
-              </p>
+        {/* Modal */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Bekräfta din förfrågan</h2>
+              <button
+                onClick={() => setShowConfirmation(false)}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            {/* Budget */}
-            <div>
-              <span className="text-gray-500">Max budget:</span>
-              <p className="font-medium">{pendingData.budget_max} kr/flaska</p>
-            </div>
+            {/* Scrollable Content */}
+            <div className="p-6 space-y-5 overflow-y-auto max-h-[60vh]">
+              {/* Summary */}
+              <div className="bg-gray-50 rounded-lg p-5 space-y-4">
+                <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                  <Wine className="h-5 w-5 text-primary" />
+                  Vad du söker
+                </h3>
 
-            {/* Quantity */}
-            <div>
-              <span className="text-gray-500">Antal:</span>
-              <p className="font-medium">{pendingData.antal_flaskor} flaskor</p>
-            </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {/* Wine type */}
+                  <div>
+                    <span className="text-gray-500">Vintyp:</span>
+                    <p className="font-medium">
+                      {getColorEmoji(pendingData.color)} {getColorLabel(pendingData.color)}
+                    </p>
+                  </div>
 
-            {/* Country */}
-            {pendingData.country && pendingData.country !== 'all' && (
-              <div>
-                <span className="text-gray-500">Land:</span>
-                <p className="font-medium">{getCountryLabel(pendingData.country)}</p>
+                  {/* Budget */}
+                  <div>
+                    <span className="text-gray-500">Max budget:</span>
+                    <p className="font-medium">{pendingData.budget_max} kr/flaska</p>
+                  </div>
+
+                  {/* Quantity */}
+                  <div>
+                    <span className="text-gray-500">Antal:</span>
+                    <p className="font-medium">{pendingData.antal_flaskor} flaskor</p>
+                  </div>
+
+                  {/* Country */}
+                  {pendingData.country && pendingData.country !== 'all' && (
+                    <div>
+                      <span className="text-gray-500">Land:</span>
+                      <p className="font-medium">{getCountryLabel(pendingData.country)}</p>
+                    </div>
+                  )}
+
+                  {/* Grape */}
+                  {pendingData.grape && pendingData.grape !== 'all' && (
+                    <div>
+                      <span className="text-gray-500">Druva:</span>
+                      <p className="font-medium">{getGrapeLabel(pendingData.grape)}</p>
+                    </div>
+                  )}
+
+                  {/* Certifications */}
+                  {selectedCertifications.length > 0 && (
+                    <div className="col-span-2">
+                      <span className="text-gray-500">Certifieringar:</span>
+                      <div className="flex gap-2 mt-1">
+                        {selectedCertifications.map(cert => (
+                          <span key={cert} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                            {CERTIFICATIONS.find(c => c.id === cert)?.label || cert}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Description */}
+                {pendingData.description && (
+                  <div className="pt-3 border-t border-gray-200">
+                    <span className="text-gray-500 text-sm">Övriga önskemål:</span>
+                    <p className="text-sm mt-1">{pendingData.description}</p>
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Grape */}
-            {pendingData.grape && pendingData.grape !== 'all' && (
-              <div>
-                <span className="text-gray-500">Druva:</span>
-                <p className="font-medium">{getGrapeLabel(pendingData.grape)}</p>
-              </div>
-            )}
+              {/* Delivery info */}
+              <div className="bg-gray-50 rounded-lg p-5 space-y-3">
+                <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  Leverans
+                </h3>
 
-            {/* Certifications */}
-            {selectedCertifications.length > 0 && (
-              <div className="col-span-2">
-                <span className="text-gray-500">Certifieringar:</span>
-                <div className="flex gap-2 mt-1">
-                  {selectedCertifications.map(cert => (
-                    <span key={cert} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                      {CERTIFICATIONS.find(c => c.id === cert)?.label || cert}
-                    </span>
-                  ))}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Leveransort:</span>
+                    <p className="font-medium">{pendingData.leverans_ort || 'Ej angiven'}</p>
+                  </div>
+
+                  {pendingData.leverans_senast && (
+                    <div>
+                      <span className="text-gray-500">Senast:</span>
+                      <p className="font-medium">
+                        {new Date(pendingData.leverans_senast).toLocaleDateString('sv-SE')}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Description */}
-          {pendingData.description && (
-            <div className="pt-3 border-t border-gray-200">
-              <span className="text-gray-500 text-sm">Övriga önskemål:</span>
-              <p className="text-sm mt-1">{pendingData.description}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Delivery info */}
-        <div className="bg-gray-50 rounded-lg p-5 space-y-3">
-          <h3 className="font-medium text-gray-900 flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-primary" />
-            Leverans
-          </h3>
-
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500">Leveransort:</span>
-              <p className="font-medium">{pendingData.leverans_ort}</p>
-            </div>
-
-            {pendingData.leverans_senast && (
-              <div>
-                <span className="text-gray-500">Senast:</span>
-                <p className="font-medium">
-                  {new Date(pendingData.leverans_senast).toLocaleDateString('sv-SE')}
+              {/* Message to suppliers */}
+              <div className="space-y-2">
+                <Label htmlFor="supplier_message">Meddelande till leverantörer (valfritt)</Label>
+                <Textarea
+                  id="supplier_message"
+                  value={supplierMessage}
+                  onChange={(e) => setSupplierMessage(e.target.value)}
+                  placeholder="T.ex. 'Vi planerar en vinprovning för 20 gäster'"
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Detta meddelande visas för alla leverantörer som får din förfrågan
                 </p>
               </div>
-            )}
+
+              {error && (
+                <div className="p-4 border border-destructive bg-destructive/10 rounded-md">
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer with actions */}
+            <div className="p-6 border-t border-gray-200 bg-gray-50 space-y-4">
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowConfirmation(false)}
+                  className="flex-1"
+                  disabled={isLoading}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Ändra
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleConfirmedSubmit}
+                  className="flex-1"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    'Söker viner...'
+                  ) : (
+                    <>
+                      <Wine className="h-4 w-4 mr-2" />
+                      Visa vinförslag
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Trust text */}
+              <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                <CheckCircle className="h-3 w-3" />
+                Du får vinförslag att granska. Ingen förpliktelse.
+              </p>
+            </div>
           </div>
         </div>
-
-        {/* Message to suppliers */}
-        <div className="space-y-2">
-          <Label htmlFor="supplier_message">Meddelande till leverantörer (valfritt)</Label>
-          <Textarea
-            id="supplier_message"
-            value={supplierMessage}
-            onChange={(e) => setSupplierMessage(e.target.value)}
-            placeholder="T.ex. 'Vi planerar en vinprovning för 20 gäster'"
-            rows={3}
-          />
-          <p className="text-xs text-muted-foreground">
-            Detta meddelande visas för alla leverantörer som får din förfrågan
-          </p>
-        </div>
-
-        {error && (
-          <div className="p-4 border border-destructive bg-destructive/10 rounded-md">
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowConfirmation(false)}
-            className="flex-1"
-            disabled={isLoading}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Ändra
-          </Button>
-          <Button
-            type="button"
-            onClick={handleConfirmedSubmit}
-            className="flex-1"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              'Söker viner...'
-            ) : (
-              <>
-                <Wine className="h-4 w-4 mr-2" />
-                Visa vinförslag
-              </>
-            )}
-          </Button>
-        </div>
-
-        {/* Trust text */}
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-            <CheckCircle className="h-3 w-3" />
-            Du får vinförslag att granska. Ingen förpliktelse.
-          </p>
-        </div>
-      </div>
+      </>
     );
   }
 
