@@ -1,42 +1,27 @@
 /**
- * RESTAURANT ORDER TRACKING - LIST PAGE
+ * ORDERS LIST PAGE
  *
  * /orders
  *
- * Restaurant view to track orders after acceptance (read-only)
+ * View and track orders (read-only)
  *
  * Features:
- * - List all orders for current restaurant
- * - Filter by status (CONFIRMED, IN_FULFILLMENT, SHIPPED, DELIVERED, CANCELLED)
- * - View order details
- * - See compliance status for EU orders
- *
- * Actor Resolution:
- * - Fetches current user's actor context from /api/me/actor
- * - Verifies user has RESTAURANT role and restaurant_id
- * - Uses dynamic restaurant_id for all API calls
+ * - List all orders (ADMIN sees all, RESTAURANT sees their own)
+ * - Filter by status
+ * - Search by order ID, supplier, restaurant
+ * - Sortable columns
+ * - Click row to view details
  */
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ShoppingCart, RefreshCw, Search, ArrowLeft, ChevronUp, ChevronDown, Package } from 'lucide-react';
 import { OrderStatusBadge } from './components/StatusBadge';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { StepIndicator } from '@/components/ui/StepIndicator';
-
-// MVP: Hardcoded tenant for testing
-// Production: Get from authenticated user context or environment
-
-interface ActorContext {
-  tenant_id: string;
-  user_id: string;
-  roles: string[];
-  restaurant_id?: string;
-  supplier_id?: string;
-  importer_id?: string;
-}
+import { useActor } from '@/lib/hooks/useActor';
 
 interface Order {
   id: string;
@@ -54,110 +39,166 @@ interface Order {
   currency: string;
 }
 
-export default function RestaurantOrdersPage() {
+const STATUS_OPTIONS = [
+  { value: 'ALL', label: 'Alla' },
+  { value: 'PENDING_SUPPLIER_CONFIRMATION', label: 'Vantande' },
+  { value: 'CONFIRMED', label: 'Bekraftad' },
+  { value: 'IN_FULFILLMENT', label: 'I leverans' },
+  { value: 'SHIPPED', label: 'Skickad' },
+  { value: 'DELIVERED', label: 'Levererad' },
+  { value: 'CANCELLED', label: 'Avbruten' },
+];
+
+export default function OrdersPage() {
   const router = useRouter();
-  const [actor, setActor] = useState<ActorContext | null>(null);
+  const { actor, loading: actorLoading } = useActor();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  const fetchActor = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Filters & sorting
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [sortColumn, setSortColumn] = useState<string>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-      const response = await fetch('/api/me/actor', {
-        headers: {
-          
-          
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch actor context');
-      }
-
-      const actorData = await response.json();
-      setActor(actorData);
-
-      // Allow ADMIN or RESTAURANT access
-      const isAdmin = actorData.roles.includes('ADMIN');
-      const isRestaurant = actorData.roles.includes('RESTAURANT') && actorData.restaurant_id;
-
-      if (!isAdmin && !isRestaurant) {
-        throw new Error('Du saknar behörighet. Kontakta admin för att få åtkomst.');
-      }
-    } catch (err: any) {
-      console.error('Failed to fetch actor:', err);
-      setError(err.message || 'Kunde inte ladda användarprofil');
-      setLoading(false);
-    }
-  }, []);
+  const isAdmin = actor?.roles.includes('ADMIN');
 
   const fetchOrders = useCallback(async () => {
     if (!actor) return;
 
-    const isAdmin = actor.roles.includes('ADMIN');
-    if (!isAdmin && !actor.restaurant_id) return;
+    const hasAccess = actor.roles.includes('ADMIN') || (actor.roles.includes('RESTAURANT') && actor.restaurant_id);
+    if (!hasAccess) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      // Build URL with status filter
-      const params = new URLSearchParams();
-      if (statusFilter !== 'ALL') {
-        params.append('status', statusFilter);
-      }
-
-      // Admin sees all orders, restaurant sees their own
-      const url = isAdmin
-        ? `/api/admin/orders${params.toString() ? `?${params.toString()}` : ''}`
-        : `/api/restaurant/orders${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = actor.roles.includes('ADMIN')
+        ? '/api/admin/orders'
+        : '/api/restaurant/orders';
 
       const response = await fetch(url, {
-        headers: {
-          
-          
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized: Missing authentication');
-        }
         if (response.status === 403) {
-          throw new Error('Access denied: Not authorized as RESTAURANT');
+          throw new Error('Atkomst nekad');
         }
-        throw new Error('Failed to fetch orders');
+        throw new Error('Kunde inte hamta ordrar');
       }
 
       const data = await response.json();
       setOrders(data.orders || []);
     } catch (err: any) {
       console.error('Failed to fetch orders:', err);
-      setError(err.message || 'Kunde inte ladda orders');
+      setError(err.message || 'Kunde inte ladda ordrar');
     } finally {
       setLoading(false);
     }
-  }, [actor, statusFilter]);
+  }, [actor]);
 
-  // Fetch actor context on mount
   useEffect(() => {
-    fetchActor();
-  }, [fetchActor]);
-
-  // Fetch orders when actor or filter changes
-  useEffect(() => {
-    if (actor && (actor.restaurant_id || actor.roles.includes('ADMIN'))) {
+    if (!actorLoading && actor) {
+      const hasAccess = actor.roles.includes('ADMIN') || (actor.roles.includes('RESTAURANT') && actor.restaurant_id);
+      if (!hasAccess) {
+        setError('Du saknar behorighet att se ordrar');
+        setLoading(false);
+        return;
+      }
       fetchOrders();
     }
-  }, [actor, fetchOrders]);
+  }, [actor, actorLoading, fetchOrders]);
+
+  // Filter and sort orders
+  const filteredOrders = useMemo(() => {
+    let filtered = orders;
+
+    // Status filter
+    if (statusFilter !== 'ALL') {
+      filtered = filtered.filter(o => o.status === statusFilter);
+    }
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(o =>
+        o.id.toLowerCase().includes(query) ||
+        o.supplier_name.toLowerCase().includes(query) ||
+        o.importer_name.toLowerCase().includes(query) ||
+        o.restaurant_name?.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    filtered = [...filtered].sort((a, b) => {
+      let aVal: any;
+      let bVal: any;
+
+      switch (sortColumn) {
+        case 'supplier_name':
+          aVal = a.supplier_name.toLowerCase();
+          bVal = b.supplier_name.toLowerCase();
+          break;
+        case 'restaurant_name':
+          aVal = (a.restaurant_name || '').toLowerCase();
+          bVal = (b.restaurant_name || '').toLowerCase();
+          break;
+        case 'status':
+          aVal = a.status;
+          bVal = b.status;
+          break;
+        case 'lines_count':
+          aVal = a.lines_count;
+          bVal = b.lines_count;
+          break;
+        case 'total_quantity':
+          aVal = a.total_quantity;
+          bVal = b.total_quantity;
+          break;
+        case 'created_at':
+        default:
+          aVal = new Date(a.created_at).getTime();
+          bVal = new Date(b.created_at).getTime();
+          break;
+      }
+
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [orders, statusFilter, searchQuery, sortColumn, sortDirection]);
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortableHeader = ({ column, label, className = '' }: { column: string; label: string; className?: string }) => (
+    <th
+      onClick={() => handleSort(column)}
+      className={`px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/50 transition-colors select-none ${className}`}
+    >
+      <div className={`flex items-center gap-1 ${className.includes('text-right') ? 'justify-end' : ''}`}>
+        {label}
+        {sortColumn === column ? (
+          sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+        ) : (
+          <div className="w-3" />
+        )}
+      </div>
+    </th>
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('sv-SE', {
-      year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -165,220 +206,235 @@ export default function RestaurantOrdersPage() {
     });
   };
 
-  // Status color/label logic moved to OrderStatusBadge component
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      'CONFIRMED': 'Bekräftad',
-      'IN_FULFILLMENT': 'I leverans',
-      'SHIPPED': 'Skickad',
-      'DELIVERED': 'Levererad',
-      'CANCELLED': 'Avbruten',
-    };
-    return labels[status] || status;
-  };
-
   const getSupplierTypeIcon = (type: string) => {
     switch (type) {
       case 'SWEDISH_IMPORTER': return '🇸🇪';
       case 'EU_PRODUCER': return '🇪🇺';
       case 'EU_IMPORTER': return '🇪🇺';
-      default: return '📦';
+      default: return '';
     }
   };
 
+  // Count orders by status for badges
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: orders.length };
+    orders.forEach(o => {
+      counts[o.status] = (counts[o.status] || 0) + 1;
+    });
+    return counts;
+  }, [orders]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Laddar orders...</p>
+      <div className="p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
+          <div className="h-12 bg-muted rounded mb-4"></div>
+          <div className="h-64 bg-muted rounded-lg"></div>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && orders.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
-          <div className="text-center">
-            <span className="text-6xl mb-4 block">⚠️</span>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => {
-                  setError(null);
-                  fetchActor();
-                }}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                🔄 Försök igen
-              </button>
-              {error.includes('RESTAURANT-behörighet') && (
-                <button
-                  onClick={() => router.push('/dashboard')}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  ← Tillbaka
-                </button>
-              )}
-            </div>
-          </div>
+      <div className="p-6">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
+          <div className="text-destructive text-5xl mb-4">!</div>
+          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+          >
+            Tillbaka till Dashboard
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <header className="bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">📦</span>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">
-                  {actor?.roles.includes('ADMIN') ? 'Alla Orders' : 'Mina Orders'}
-                </h1>
-                <p className="text-sm text-white/80">
-                  {actor?.roles.includes('ADMIN') ? 'Adminvy över alla orders' : 'Följ dina beställningar'}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={fetchOrders}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                🔄 Refresh
-              </button>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            {isAdmin ? 'Alla ordrar' : 'Mina ordrar'}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {filteredOrders.length} av {orders.length} ordrar
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={fetchOrders}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm font-medium"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Uppdatera
+          </button>
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground hover:bg-accent rounded-lg transition-colors text-sm font-medium"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
+          </Link>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-6 bg-card rounded-lg p-4 border border-border">
+        <div className="flex flex-wrap gap-4 items-end">
+          {/* Search */}
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-foreground mb-1">Sok</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Sok order-ID, leverantor, restaurang..."
+                className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Step Indicator */}
-        <div className="mb-6">
-          <StepIndicator currentStep={4} />
+          {/* Status filter */}
+          <div className="w-48">
+            <label className="block text-sm font-medium text-foreground mb-1">Status</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {STATUS_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label} {statusCounts[opt.value] ? `(${statusCounts[opt.value]})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        {/* Status Filter */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
-          {['ALL', 'CONFIRMED', 'IN_FULFILLMENT', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map(status => (
+        {/* Quick status filters */}
+        <div className="flex flex-wrap gap-2 mt-4">
+          {STATUS_OPTIONS.map(opt => (
             <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                statusFilter === status
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              key={opt.value}
+              onClick={() => setStatusFilter(opt.value)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === opt.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
             >
-              {status === 'ALL' ? 'Alla' : getStatusLabel(status)}
+              {opt.label}
+              {statusCounts[opt.value] > 0 && (
+                <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs bg-background/20">
+                  {statusCounts[opt.value]}
+                </span>
+              )}
             </button>
           ))}
         </div>
+      </div>
 
-        {/* Orders List */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800">
-              Orders ({orders.length})
-            </h2>
-          </div>
-
-          {orders.length === 0 ? (
-            <>
-              {statusFilter !== 'ALL' ? (
-                <div className="text-center py-12">
-                  <span className="text-6xl mb-4 block">🔍</span>
-                  <p className="text-gray-500 text-lg">Inga orders med detta filter</p>
-                  <p className="text-gray-400 text-sm mt-2">
-                    Prova ett annat filter eller <button onClick={() => setStatusFilter('ALL')} className="text-green-600 underline">visa alla</button>
-                  </p>
-                </div>
-              ) : (
-                <EmptyState
-                  icon="📦"
-                  title="Inga orders ännu"
-                  description="Orders skapas automatiskt när du accepterar en offert. Skapa din första offertförfrågan för att komma igång."
-                  actionLabel="Skapa första offertförfrågan"
-                  actionHref="/dashboard/new-request"
-                  showSteps={true}
-                />
-              )}
-            </>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Order ID</th>
-                    {actor?.roles.includes('ADMIN') && (
-                      <th className="px-4 py-3 text-left font-medium text-gray-700">Restaurang</th>
+      {/* Orders Table */}
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted">
+              <tr>
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">
+                  Order
+                </th>
+                {isAdmin && (
+                  <SortableHeader column="restaurant_name" label="Restaurang" className="text-left" />
+                )}
+                <SortableHeader column="supplier_name" label="Leverantor" className="text-left" />
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">
+                  Importor
+                </th>
+                <SortableHeader column="status" label="Status" className="text-left" />
+                <SortableHeader column="lines_count" label="Rader" className="text-right" />
+                <SortableHeader column="total_quantity" label="Antal" className="text-right" />
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">
+                  Compliance
+                </th>
+                <SortableHeader column="created_at" label="Skapad" className="text-left" />
+              </tr>
+            </thead>
+            <tbody className="bg-card divide-y divide-border">
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={isAdmin ? 9 : 8} className="px-4 py-12 text-center text-muted-foreground">
+                    <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p className="font-medium">Inga ordrar hittades</p>
+                    {statusFilter !== 'ALL' && (
+                      <button
+                        onClick={() => setStatusFilter('ALL')}
+                        className="text-primary hover:underline mt-2 text-sm"
+                      >
+                        Visa alla ordrar
+                      </button>
                     )}
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Leverantör</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Importör</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Status</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Rader</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Antal</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Compliance</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Skapad</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Åtgärd</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/orders/${order.id}`)}>
-                      <td className="px-4 py-3 font-mono text-xs text-blue-600">
+                  </td>
+                </tr>
+              ) : (
+                filteredOrders.map((order) => (
+                  <tr
+                    key={order.id}
+                    onClick={() => router.push(`/orders/${order.id}`)}
+                    className="hover:bg-accent transition-colors cursor-pointer"
+                  >
+                    <td className="px-4 py-3">
+                      <span className="font-mono text-sm text-primary">
                         {order.id.substring(0, 8)}...
+                      </span>
+                    </td>
+                    {isAdmin && (
+                      <td className="px-4 py-3 text-sm text-foreground">
+                        {order.restaurant_name || '-'}
                       </td>
-                      {actor?.roles.includes('ADMIN') && (
-                        <td className="px-4 py-3 text-gray-600">{order.restaurant_name || '—'}</td>
+                    )}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span>{getSupplierTypeIcon(order.supplier_type)}</span>
+                        <span className="text-sm text-foreground">{order.supplier_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {order.importer_name}
+                    </td>
+                    <td className="px-4 py-3">
+                      <OrderStatusBadge status={order.status} size="md" />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-foreground text-right">
+                      {order.lines_count}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-foreground text-right font-medium">
+                      {order.total_quantity}
+                    </td>
+                    <td className="px-4 py-3">
+                      {order.import_id ? (
+                        <ImportStatusBadge status={order.import_status} size="sm" />
+                      ) : (
+                        <span className="text-muted-foreground text-xs">-</span>
                       )}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          <span>{getSupplierTypeIcon(order.supplier_type)}</span>
-                          <span>{order.supplier_name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{order.importer_name}</td>
-                      <td className="px-4 py-3">
-                        <OrderStatusBadge status={order.status} size="md" />
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{order.lines_count}</td>
-                      <td className="px-4 py-3 text-gray-600">{order.total_quantity}</td>
-                      <td className="px-4 py-3">
-                        {order.import_id ? (
-                          <ImportStatusBadge status={order.import_status} size="sm" />
-                        ) : (
-                          <span className="text-gray-400 text-xs">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">{formatDate(order.created_at)}</td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/orders/${order.id}`);
-                          }}
-                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-xs font-medium"
-                        >
-                          Visa →
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {formatDate(order.created_at)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
