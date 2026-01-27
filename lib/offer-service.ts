@@ -31,6 +31,7 @@ export interface CreateOfferInput {
   title?: string;
   currency?: string;
   lines: CreateOfferLineInput[];
+  actor_user_id?: string;  // User who created the offer
 }
 
 export interface CreateOfferLineInput {
@@ -148,7 +149,7 @@ class OfferService {
       tenant_id: input.tenant_id,
       offer_id: offerId,
       event_type: 'CREATED',
-      actor_user_id: null,  // TODO: Get from context
+      actor_user_id: input.actor_user_id || null,
       payload: { line_count: input.lines.length }
     });
 
@@ -260,7 +261,8 @@ class OfferService {
   async updateOffer(
     tenantId: string,
     offerId: string,
-    updates: UpdateOfferInput
+    updates: UpdateOfferInput,
+    actorUserId?: string
   ): Promise<any> {
     // Check if offer is locked
     const { data: offer, error: fetchError } = await supabase
@@ -298,7 +300,7 @@ class OfferService {
       tenant_id: tenantId,
       offer_id: offerId,
       event_type: 'UPDATED',
-      actor_user_id: null,  // TODO: Get from context
+      actor_user_id: actorUserId || null,
       payload: { updates }
     });
 

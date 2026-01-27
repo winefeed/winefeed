@@ -18,7 +18,6 @@ import {
 } from './types';
 
 interface UseWineCheckOptions {
-  tenantId?: string; // Optional tenant ID (defaults to hardcoded for now)
   onSuccess?: (result: WineCheckResult, mock: boolean) => void;
   onError?: (error: string) => void;
 }
@@ -40,7 +39,7 @@ interface UseWineCheckReturn {
 }
 
 export function useWineCheck(options: UseWineCheckOptions = {}): UseWineCheckReturn {
-  const { tenantId, onSuccess, onError } = options;
+  const { onSuccess, onError } = options;
 
   // State
   const [name, setName] = useState('');
@@ -123,7 +122,7 @@ export function useWineCheck(options: UseWineCheckOptions = {}): UseWineCheckRet
     } finally {
       setLoading(false);
     }
-  }, [name, vintage, tenantId, onSuccess, onError]);
+  }, [name, vintage, onSuccess, onError]);
 
   /**
    * Reset hook state

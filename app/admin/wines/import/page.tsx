@@ -158,10 +158,10 @@ export default function WineImportPage() {
     try {
       const response = await fetch('/api/admin/wines/import', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           supplierId: selectedSupplierId,
-          tenantId: 'default', // TODO: Get from context
           wines: preview.validRows.map(r => r.data),
           filename: file?.name,
         }),
