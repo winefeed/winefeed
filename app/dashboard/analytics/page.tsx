@@ -25,7 +25,9 @@ import {
   Calendar,
   RefreshCw,
   PiggyBank,
+  ChevronRight,
 } from 'lucide-react';
+import Link from 'next/link';
 
 interface MonthlyData {
   month: string;
@@ -195,48 +197,69 @@ export default function RestaurantAnalyticsPage() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Requests */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <Link
+            href="/dashboard/requests"
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all group cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Förfrågningar</p>
+                <p className="text-sm text-gray-500 group-hover:text-blue-600">Förfrågningar</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{data.total_requests}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                 <FileText className="w-6 h-6 text-blue-600" />
               </div>
             </div>
-          </div>
+            <p className="text-xs text-gray-400 mt-2 flex items-center gap-1 group-hover:text-blue-500">
+              Visa alla <ChevronRight className="w-3 h-3" />
+            </p>
+          </Link>
 
           {/* Total Orders */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <Link
+            href="/orders"
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:border-green-300 hover:shadow-md transition-all group cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Ordrar</p>
+                <p className="text-sm text-gray-500 group-hover:text-green-600">Ordrar</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{data.total_orders}</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-200 transition-colors">
                 <ShoppingCart className="w-6 h-6 text-green-600" />
               </div>
             </div>
-          </div>
+            <p className="text-xs text-gray-400 mt-2 flex items-center gap-1 group-hover:text-green-500">
+              Visa alla <ChevronRight className="w-3 h-3" />
+            </p>
+          </Link>
 
           {/* Total Spent */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <Link
+            href="/orders"
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:border-purple-300 hover:shadow-md transition-all group cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total spenderat</p>
+                <p className="text-sm text-gray-500 group-hover:text-purple-600">Total spenderat</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">
                   {formatCurrency(data.total_spent)}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center group-hover:bg-purple-200 transition-colors">
                 <TrendingUp className="w-6 h-6 text-purple-600" />
               </div>
             </div>
-          </div>
+            <p className="text-xs text-gray-400 mt-2 flex items-center gap-1 group-hover:text-purple-500">
+              Se orderhistorik <ChevronRight className="w-3 h-3" />
+            </p>
+          </Link>
 
           {/* Savings */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
+            title="Skillnaden mellan din angivna budget och faktiskt pris. Positivt = du betalade mindre än budgeterat."
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Besparing vs budget</p>
@@ -251,6 +274,9 @@ export default function RestaurantAnalyticsPage() {
                 <PiggyBank className={`w-6 h-6 ${data.savings >= 0 ? 'text-green-600' : 'text-red-600'}`} />
               </div>
             </div>
+            <p className="text-xs text-gray-400 mt-2">
+              Budget: {formatCurrency(data.total_budget)}
+            </p>
           </div>
         </div>
 
