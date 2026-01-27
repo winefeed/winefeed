@@ -110,7 +110,6 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
   const [selectedAddressId, setSelectedAddressId] = useState<string | 'manual'>('manual');
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [newAddressLabel, setNewAddressLabel] = useState('');
-  const [sendToSuppliers, setSendToSuppliers] = useState(true); // Default checked
 
   const {
     register,
@@ -256,8 +255,6 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         description: pendingData.description || null,
         // Message to suppliers (new field)
         supplier_message: supplierMessage || null,
-        // Send to suppliers flag - only dispatch if user confirms
-        send_to_suppliers: sendToSuppliers,
         // Legacy field - build fritext from structured data for backwards compatibility
         fritext: buildFritext(pendingData, selectedCertifications),
         budget_per_flaska: pendingData.budget_max, // Legacy field
@@ -399,42 +396,20 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           </div>
         </div>
 
-        {/* Send to suppliers checkbox */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={sendToSuppliers}
-              onChange={(e) => setSendToSuppliers(e.target.checked)}
-              className="mt-1 rounded border-gray-300 text-primary focus:ring-primary h-5 w-5"
-            />
-            <div>
-              <span className="font-medium text-gray-900">
-                Skicka till leverantörer för att få offerter
-              </span>
-              <p className="text-sm text-muted-foreground mt-1">
-                Inget beställs nu - du får offerter att jämföra och kan välja själv
-              </p>
-            </div>
-          </label>
+        {/* Message to suppliers */}
+        <div className="space-y-2">
+          <Label htmlFor="supplier_message">Meddelande till leverantörer (valfritt)</Label>
+          <Textarea
+            id="supplier_message"
+            value={supplierMessage}
+            onChange={(e) => setSupplierMessage(e.target.value)}
+            placeholder="T.ex. 'Vi planerar en vinprovning för 20 gäster'"
+            rows={3}
+          />
+          <p className="text-xs text-muted-foreground">
+            Detta meddelande visas för alla leverantörer som får din förfrågan
+          </p>
         </div>
-
-        {/* Message to suppliers - only show if sending to suppliers */}
-        {sendToSuppliers && (
-          <div className="space-y-2">
-            <Label htmlFor="supplier_message">Meddelande till leverantörer (valfritt)</Label>
-            <Textarea
-              id="supplier_message"
-              value={supplierMessage}
-              onChange={(e) => setSupplierMessage(e.target.value)}
-              placeholder="T.ex. 'Vi planerar en vinprovning för 20 gäster'"
-              rows={3}
-            />
-            <p className="text-xs text-muted-foreground">
-              Detta meddelande visas för alla leverantörer som får din förfrågan
-            </p>
-          </div>
-        )}
 
         {error && (
           <div className="p-4 border border-destructive bg-destructive/10 rounded-md">
@@ -461,12 +436,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
             disabled={isLoading}
           >
             {isLoading ? (
-              'Skickar...'
-            ) : sendToSuppliers ? (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                Skicka till leverantörer
-              </>
+              'Söker viner...'
             ) : (
               <>
                 <Wine className="h-4 w-4 mr-2" />
@@ -480,9 +450,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         <div className="text-center">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
             <CheckCircle className="h-3 w-3" />
-            {sendToSuppliers
-              ? 'Din förfrågan skickas till utvalda leverantörer. Ingen förpliktelse.'
-              : 'Du får vinförslag baserat på dina kriterier. Ingen förfrågan skickas.'}
+            Du får vinförslag att granska. Ingen förpliktelse.
           </p>
         </div>
       </div>

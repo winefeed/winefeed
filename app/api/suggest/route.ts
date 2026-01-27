@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { rankWinesWithClaude } from '@/lib/ai/rank-wines';
 import { actorService } from '@/lib/actor-service';
-import { QuoteRequestRouter } from '@/lib/quote-request-router';
 
 // Create admin client lazily to avoid startup errors
 function getSupabaseAdmin() {
@@ -82,8 +81,6 @@ export async function POST(request: NextRequest) {
       fritext,
       budget_per_flaska,
       specialkrav,
-      // Dispatch control - only dispatch if user explicitly confirms
-      send_to_suppliers,
     } = body;
 
     // Use new fields if available, fall back to legacy, then default
@@ -95,7 +92,6 @@ export async function POST(request: NextRequest) {
 
     // Save request to database
     let request_id: string;
-    let dispatchedToSuppliers = 0;
 
     if (restaurantId) {
       const { data: savedRequest, error: requestError } = await getSupabaseAdmin()
@@ -119,53 +115,6 @@ export async function POST(request: NextRequest) {
         request_id = crypto.randomUUID();
       } else {
         request_id = savedRequest.id;
-
-        // AUTO-DISPATCH: Only if user explicitly confirmed sending to suppliers
-        if (send_to_suppliers) {
-          try {
-            const routingResult = await QuoteRequestRouter.routeQuoteRequest(
-              {
-                id: request_id,
-                fritext: fritext || description || 'Vinförfrågan',
-                budget_per_flaska: effectiveBudgetMax,
-                antal_flaskor: antal_flaskor || undefined,
-                leverans_senast: leverans_senast || undefined,
-                specialkrav: effectiveCertifications || undefined,
-              },
-              { maxMatches: 10, minScore: 20 }
-            );
-
-            if (routingResult.matches.length > 0) {
-              const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
-
-              const assignmentsToCreate = routingResult.matches.map(match => ({
-                quote_request_id: request_id,
-                supplier_id: match.supplierId,
-                status: 'SENT',
-                match_score: match.matchScore,
-                match_reasons: match.matchReasons,
-                sent_at: new Date().toISOString(),
-                expires_at: expiresAt.toISOString(),
-              }));
-
-              const { error: assignmentError } = await getSupabaseAdmin()
-                .from('quote_request_assignments')
-                .insert(assignmentsToCreate);
-
-              if (assignmentError) {
-                console.error('Failed to create assignments (auto-dispatch):', assignmentError);
-              } else {
-                dispatchedToSuppliers = routingResult.matches.length;
-                console.log(`Auto-dispatched request ${request_id} to ${dispatchedToSuppliers} suppliers`);
-              }
-            } else {
-              console.log(`No matching suppliers found for request ${request_id}`);
-            }
-          } catch (dispatchError) {
-            // Don't fail the request if auto-dispatch fails
-            console.error('Auto-dispatch error:', dispatchError);
-          }
-        }
       }
     } else {
       request_id = crypto.randomUUID();
@@ -366,11 +315,6 @@ export async function POST(request: NextRequest) {
         certifications: effectiveCertifications || [],
       },
       total_matches: wines.length,
-      // Auto-dispatch info
-      dispatched_to_suppliers: dispatchedToSuppliers,
-      dispatch_message: dispatchedToSuppliers > 0
-        ? `Din förfrågan har skickats till ${dispatchedToSuppliers} leverantörer`
-        : restaurantId ? 'Inga matchande leverantörer hittades för automatisk förfrågan' : null,
     });
 
   } catch (error: any) {

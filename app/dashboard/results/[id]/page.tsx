@@ -230,12 +230,36 @@ export default function ResultsPage() {
   const handleConfirmAndSend = async () => {
     setSending(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Dispatch the request to suppliers
+      const response = await fetch(`/api/quote-requests/${requestId}/dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          maxMatches: 10,
+          minScore: 20,
+          expiresInHours: 48,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        // If already dispatched, treat as success
+        if (response.status === 409) {
+          console.log('Request already dispatched');
+        } else {
+          throw new Error(errorData.error || 'Kunde inte skicka förfrågan');
+        }
+      }
+
       setShowConfirmModal(false);
       setSent(true);
+
+      // Refresh offer counts after dispatching
+      setTimeout(() => fetchOfferCounts(), 2000);
     } catch (error) {
       console.error('Failed to send request:', error);
-      alert('Kunde inte skicka förfrågan. Försök igen.');
+      alert(error instanceof Error ? error.message : 'Kunde inte skicka förfrågan. Försök igen.');
     } finally {
       setSending(false);
     }
@@ -886,6 +910,19 @@ export default function ResultsPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+
+                {/* No obligation notice */}
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="flex gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-green-800">
+                      <p className="font-medium mb-1">Ingen beställning – endast offertförfrågan</p>
+                      <p className="text-green-700">
+                        Du ber om offerter utan förpliktelse att köpa. När du fått offerter kan du i lugn och ro jämföra och välja – eller tacka nej.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Info Box */}
