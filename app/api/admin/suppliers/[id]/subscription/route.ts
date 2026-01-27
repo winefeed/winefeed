@@ -74,6 +74,7 @@ export async function PUT(
       .single();
 
     const oldTier = currentSub?.tier || 'free';
+    const tierOrder = { free: 0, pro: 1, premium: 2 };
 
     // Upsert subscription
     const { data: subscription, error: subError } = await supabase
@@ -113,7 +114,6 @@ export async function PUT(
         premium: 'Premium',
       };
 
-      const tierOrder = { free: 0, pro: 1, premium: 2 };
       const isUpgrade = tierOrder[tier as keyof typeof tierOrder] > tierOrder[oldTier as keyof typeof tierOrder];
       const isDowngrade = tierOrder[tier as keyof typeof tierOrder] < tierOrder[oldTier as keyof typeof tierOrder];
 
