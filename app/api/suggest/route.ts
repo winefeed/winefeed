@@ -90,35 +90,42 @@ export async function POST(request: NextRequest) {
     // Use authenticated user's restaurant
     const restaurantId = actor.restaurant_id;
 
-    // Save request to database
+    // Save request to database - REQUIRED for dispatch to work
     let request_id: string;
 
-    if (restaurantId) {
-      const { data: savedRequest, error: requestError } = await getSupabaseAdmin()
-        .from('requests')
-        .insert({
-          restaurant_id: restaurantId,
-          fritext: fritext || description || 'Vinförfrågan',
-          budget_per_flaska: effectiveBudgetMax,
-          antal_flaskor: antal_flaskor || null,
-          leverans_senast: leverans_senast || null,
-          leverans_ort: leverans_ort || null, // Delivery city for shipping calculation
-          specialkrav: effectiveCertifications || null,
-          status: 'OPEN',
-          created_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
-
-      if (requestError) {
-        console.error('Failed to save request:', requestError);
-        request_id = crypto.randomUUID();
-      } else {
-        request_id = savedRequest.id;
-      }
-    } else {
-      request_id = crypto.randomUUID();
+    if (!restaurantId) {
+      console.error('No restaurant_id for user:', userId);
+      return NextResponse.json(
+        { error: 'Du måste vara kopplad till en restaurang för att skapa förfrågningar' },
+        { status: 400 }
+      );
     }
+
+    const { data: savedRequest, error: requestError } = await getSupabaseAdmin()
+      .from('requests')
+      .insert({
+        restaurant_id: restaurantId,
+        fritext: fritext || description || 'Vinförfrågan',
+        budget_per_flaska: effectiveBudgetMax,
+        antal_flaskor: antal_flaskor || null,
+        leverans_senast: leverans_senast || null,
+        leverans_ort: leverans_ort || null,
+        specialkrav: effectiveCertifications || null,
+        status: 'OPEN',
+        created_at: new Date().toISOString()
+      })
+      .select('id')
+      .single();
+
+    if (requestError || !savedRequest) {
+      console.error('Failed to save request:', requestError);
+      return NextResponse.json(
+        { error: 'Kunde inte spara förfrågan', details: requestError?.message },
+        { status: 500 }
+      );
+    }
+
+    request_id = savedRequest.id;
 
     // MVP: Don't filter by is_active - wines in catalog may have is_active=false or null
     // Fetch all available wine fields
