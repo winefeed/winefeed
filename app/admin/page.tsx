@@ -10,6 +10,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
 import { Wine, Users, Building2, TrendingUp, ExternalLink, RefreshCw, ShoppingCart, FileText, Inbox, Store, AlertTriangle, Clock, ChevronRight, Filter } from 'lucide-react';
 import { ComplianceStatusBadge, type ComplianceStatus } from '@/components/compliance';
 
@@ -494,6 +495,7 @@ export default function AdminDashboardPage() {
             subtitle={`${stats.overview.activeSuppliers} aktiva`}
             icon={Building2}
             color="blue"
+            href="/admin/suppliers"
           />
           <StatCard
             title="Restauranger"
@@ -501,6 +503,7 @@ export default function AdminDashboardPage() {
             subtitle="Registrerade"
             icon={Store}
             color="green"
+            href="/admin/restaurants"
           />
           <StatCard
             title="Viner totalt"
@@ -508,6 +511,7 @@ export default function AdminDashboardPage() {
             subtitle={`${stats.overview.activeWines} aktiva`}
             icon={Wine}
             color="red"
+            href="/admin/wines"
           />
           <StatCard
             title="Användare"
@@ -515,6 +519,7 @@ export default function AdminDashboardPage() {
             subtitle="Leverantörkonton"
             icon={Users}
             color="purple"
+            href="/admin/users"
           />
         </div>
 
@@ -759,9 +764,10 @@ interface StatCardProps {
   icon: React.ElementType;
   color: 'blue' | 'red' | 'green' | 'purple';
   suffix?: string;
+  href?: string;
 }
 
-function StatCard({ title, value, subtitle, icon: Icon, color, suffix = '' }: StatCardProps) {
+function StatCard({ title, value, subtitle, icon: Icon, color, suffix = '', href }: StatCardProps) {
   const colorClasses = {
     blue: 'bg-blue-500/10 text-blue-600',
     red: 'bg-primary/10 text-primary',
@@ -769,8 +775,8 @@ function StatCard({ title, value, subtitle, icon: Icon, color, suffix = '' }: St
     purple: 'bg-purple-500/10 text-purple-600',
   };
 
-  return (
-    <div className="bg-card rounded-lg border border-border p-5">
+  const content = (
+    <>
       <div className="flex items-center gap-3 mb-3">
         <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
           <Icon className="h-5 w-5" />
@@ -779,6 +785,23 @@ function StatCard({ title, value, subtitle, icon: Icon, color, suffix = '' }: St
       </div>
       <p className="text-3xl font-bold text-foreground">{value}{suffix}</p>
       <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="bg-card rounded-lg border border-border p-5 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer block"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="bg-card rounded-lg border border-border p-5">
+      {content}
     </div>
   );
 }
