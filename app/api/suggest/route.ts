@@ -133,8 +133,10 @@ export async function POST(request: NextRequest) {
 
     if (requestError || !savedRequest) {
       console.error('Failed to save request:', requestError);
+      console.error('Restaurant ID used:', restaurantId);
+      const errorDetails = requestError?.message || 'Unknown error';
       return NextResponse.json(
-        { error: 'Kunde inte spara förfrågan', details: requestError?.message },
+        { error: `Kunde inte spara förfrågan: ${errorDetails}` },
         { status: 500 }
       );
     }
