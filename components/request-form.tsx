@@ -292,9 +292,9 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
   // Confirmation Modal
   if (showConfirmation && pendingData) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-h-[80vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between sticky top-0 bg-white pb-2 z-10">
           <h2 className="text-xl font-bold text-gray-900">Bekräfta din förfrågan</h2>
           <button
             onClick={() => setShowConfirmation(false)}
