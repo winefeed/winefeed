@@ -54,7 +54,7 @@ export async function GET(
     // Step 1: Fetch request with restaurant info
     const { data: requestData, error: requestError } = await supabase
       .from('requests')
-      .select('id, restaurant_id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, accepted_offer_id, created_at')
+      .select('*')
       .eq('id', requestId)
       .single();
 
@@ -90,14 +90,15 @@ export async function GET(
     }
 
     // Map Swedish column names to English API response format
+    // Handle both Swedish and English column names for flexibility
     const mappedRequest = {
       id: requestData.id,
       restaurant_id: requestData.restaurant_id,
-      title: null, // Not in schema
-      freetext: requestData.fritext || null,
-      budget_sek: requestData.budget_per_flaska || null,
-      quantity_bottles: requestData.antal_flaskor || null,
-      delivery_date_requested: requestData.leverans_senast || null,
+      title: requestData.title || null,
+      freetext: requestData.fritext || requestData.freetext || null,
+      budget_sek: requestData.budget_per_flaska || requestData.budget_sek || null,
+      quantity_bottles: requestData.antal_flaskor || requestData.quantity_bottles || null,
+      delivery_date_requested: requestData.leverans_senast || requestData.delivery_date_requested || null,
       specialkrav: requestData.specialkrav || null,
       status: requestData.status || 'OPEN',
       accepted_offer_id: requestData.accepted_offer_id || null,
