@@ -86,6 +86,7 @@ interface OrderDetail {
     note: string;
     actor_name: string;
     created_at: string;
+    metadata?: Record<string, any>;
   }>;
   compliance: {
     import_case_id: string | null;
@@ -105,6 +106,7 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
 
   const fetchActor = useCallback(async () => {
     try {
