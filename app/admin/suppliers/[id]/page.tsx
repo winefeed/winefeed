@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, ArrowLeft, Users, Wine, ShoppingCart, Mail, Phone, MapPin, Globe, ExternalLink } from 'lucide-react';
+import { Building2, ArrowLeft, Users, Wine, ShoppingCart, Mail, Phone, MapPin, Globe, ExternalLink, Crown, Check } from 'lucide-react';
 import { useActor } from '@/lib/hooks/useActor';
 
 interface User {
@@ -69,6 +69,16 @@ interface SupplierData {
   recentOrders: Order[];
 }
 
+interface SubscriptionData {
+  subscription: {
+    tier: 'free' | 'pro' | 'premium';
+    status: string;
+  };
+  usage: {
+    wines_count: number;
+  };
+}
+
 const SUPPLIER_TYPE_LABELS: Record<string, string> = {
   'SWEDISH_IMPORTER': 'Svensk importor',
   'EU_PRODUCER': 'EU-producent',
@@ -91,8 +101,10 @@ export default function AdminSupplierDetailPage() {
   const supplierId = params.id;
   const { actor, loading: actorLoading } = useActor();
   const [data, setData] = useState<SupplierData | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
     if (!actorLoading && actor) {
@@ -126,11 +138,48 @@ export default function AdminSupplierDetailPage() {
 
       const result = await response.json();
       setData(result);
+
+      // Also fetch subscription
+      const subResponse = await fetch(`/api/admin/suppliers/${supplierId}/subscription`, {
+        credentials: 'include'
+      });
+      if (subResponse.ok) {
+        const subResult = await subResponse.json();
+        setSubscription(subResult);
+      }
     } catch (err: any) {
       console.error('Failed to fetch supplier:', err);
       setError(err.message || 'Kunde inte ladda leverantor');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const upgradeTier = async (newTier: 'free' | 'pro' | 'premium') => {
+    try {
+      setUpgrading(true);
+      const response = await fetch(`/api/admin/suppliers/${supplierId}/subscription`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ tier: newTier }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update subscription');
+      }
+
+      const result = await response.json();
+      setSubscription({
+        subscription: result.subscription,
+        usage: subscription?.usage || { wines_count: 0 },
+      });
+      alert(result.message);
+    } catch (err: any) {
+      console.error('Failed to upgrade:', err);
+      alert('Kunde inte uppgradera: ' + err.message);
+    } finally {
+      setUpgrading(false);
     }
   };
 
@@ -220,6 +269,55 @@ export default function AdminSupplierDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Tillbaka
         </Link>
+      </div>
+
+      {/* Subscription */}
+      <div className="bg-card rounded-lg border border-border p-6 mb-8">
+        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Crown className="h-5 w-5 text-amber-500" />
+          Prenumeration
+        </h2>
+        <div className="flex items-center gap-6">
+          <div>
+            <span className="text-sm text-muted-foreground">Nuvarande plan: </span>
+            <span className={`ml-2 px-3 py-1 text-sm font-medium rounded-full ${
+              subscription?.subscription.tier === 'premium' ? 'bg-purple-100 text-purple-800' :
+              subscription?.subscription.tier === 'pro' ? 'bg-blue-100 text-blue-800' :
+              'bg-gray-100 text-gray-800'
+            }`}>
+              {subscription?.subscription.tier === 'premium' ? 'Premium' :
+               subscription?.subscription.tier === 'pro' ? 'Pro' : 'Free'}
+            </span>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Viner: {subscription?.usage.wines_count || wineStats.active} / {
+              subscription?.subscription.tier === 'free' ? '10' : 'obegransat'
+            }
+          </div>
+        </div>
+        <div className="flex gap-3 mt-4">
+          {['free', 'pro', 'premium'].map((tier) => {
+            const isCurrentTier = subscription?.subscription.tier === tier;
+            return (
+              <button
+                key={tier}
+                onClick={() => !isCurrentTier && upgradeTier(tier as 'free' | 'pro' | 'premium')}
+                disabled={isCurrentTier || upgrading}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                  isCurrentTier
+                    ? 'bg-primary text-primary-foreground cursor-default'
+                    : 'bg-muted text-foreground hover:bg-accent'
+                } ${upgrading ? 'opacity-50 cursor-wait' : ''}`}
+              >
+                {isCurrentTier && <Check className="h-4 w-4" />}
+                {tier === 'premium' ? 'Premium' : tier === 'pro' ? 'Pro' : 'Free'}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-muted-foreground mt-3">
+          Free = max 10 viner | Pro = obegransat | Premium = obegransat + prioritet
+        </p>
       </div>
 
       {/* Stats Row */}
