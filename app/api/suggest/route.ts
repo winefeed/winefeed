@@ -97,13 +97,14 @@ export async function POST(request: NextRequest) {
     if (!restaurantId) {
       if (actorService.hasRole(actor, 'ADMIN')) {
         // Admin fallback: use any existing restaurant for testing
-        restaurantId = await getAnyRestaurant();
-        if (!restaurantId) {
+        const fallbackRestaurant = await getAnyRestaurant();
+        if (!fallbackRestaurant) {
           return NextResponse.json(
             { error: 'Ingen restaurang finns i systemet. Skapa en restaurang först.' },
             { status: 400 }
           );
         }
+        restaurantId = fallbackRestaurant;
         console.log('Admin using fallback restaurant:', restaurantId);
       } else {
         console.error('No restaurant_id for user:', userId);
