@@ -13,6 +13,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useActor } from '@/lib/hooks/useActor';
 
 interface Request {
   id: string;
@@ -44,9 +45,7 @@ export default function RequestsListPage() {
       setError(null);
 
       const response = await fetch('/api/requests?status=OPEN', {
-        headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {

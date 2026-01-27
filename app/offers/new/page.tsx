@@ -39,9 +39,9 @@ export default function NewOfferPage() {
       // Create offer with 2 empty line items
       const response = await fetch('/api/offers', {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001' // TODO: Get from auth context
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           restaurant_id: restaurantId,

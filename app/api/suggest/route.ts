@@ -87,14 +87,6 @@ export async function POST(request: NextRequest) {
     const effectiveBudgetMax = budget_max || budget_per_flaska || 500; // Default 500 SEK
     const effectiveCertifications = certifications || specialkrav;
 
-    console.log('Suggest API called with:', {
-      color,
-      budget_min,
-      budget_max: effectiveBudgetMax,
-      country,
-      grape,
-    });
-
     // Use authenticated user's restaurant
     const restaurantId = actor.restaurant_id;
 
@@ -128,16 +120,6 @@ export async function POST(request: NextRequest) {
       request_id = crypto.randomUUID();
     }
 
-    // Query supplier_wines with structured filters
-    console.log('Querying supplier_wines with filters:', {
-      color,
-      budget_min,
-      budget_max: effectiveBudgetMax,
-      country,
-      grape,
-      certifications: effectiveCertifications,
-    });
-
     // MVP: Don't filter by is_active - wines in catalog may have is_active=false or null
     // Fetch all available wine fields
     let query = getSupabaseAdmin()
@@ -147,7 +129,6 @@ export async function POST(request: NextRequest) {
     // Filter by color (if specified)
     if (color && color !== 'all') {
       query = query.eq('color', color);
-      console.log(`Filtering by color: ${color}`);
     }
 
     // Filter by budget range
@@ -157,26 +138,22 @@ export async function POST(request: NextRequest) {
       const budgetMaxOre = effectiveBudgetMax * 100;
       // Allow up to 50% over budget to find matches
       query = query.lte('price_ex_vat_sek', budgetMaxOre * 1.5);
-      console.log(`Filtering by max budget: ${budgetMaxOre * 1.5} öre (${effectiveBudgetMax * 1.5} SEK)`);
     }
 
     if (budget_min) {
       const budgetMinOre = budget_min * 100;
       // Allow 50% under min to find matches
       query = query.gte('price_ex_vat_sek', budgetMinOre * 0.5);
-      console.log(`Filtering by min budget: ${budgetMinOre * 0.5} öre (${budget_min * 0.5} SEK)`);
     }
 
     // Filter by country (if specified)
     if (country && country !== 'all' && country !== 'other') {
       query = query.eq('country', country);
-      console.log(`Filtering by country: ${country}`);
     }
 
     // Filter by grape (if specified) - use ilike for partial match
     if (grape && grape !== 'all' && grape !== 'other') {
       query = query.ilike('grape', `%${grape}%`);
-      console.log(`Filtering by grape: ${grape}`);
     }
 
     // MVP: Certification filtering disabled - columns don't exist in current schema
@@ -191,7 +168,6 @@ export async function POST(request: NextRequest) {
 
       // If filtered query fails or returns nothing, try without filters
       if (winesError || !wines || wines.length === 0) {
-        console.log('Filtered query returned no results, trying without filters...');
         const fallbackResult = await getSupabaseAdmin()
           .from('supplier_wines')
           .select('*')
@@ -200,7 +176,6 @@ export async function POST(request: NextRequest) {
         if (!fallbackResult.error && fallbackResult.data && fallbackResult.data.length > 0) {
           wines = fallbackResult.data;
           winesError = null;
-          console.log(`Fallback query found ${wines.length} wines`);
         }
       }
     } catch (queryError: any) {
@@ -213,7 +188,6 @@ export async function POST(request: NextRequest) {
           .limit(50);
         wines = fallbackResult.data;
         winesError = fallbackResult.error;
-        console.log(`Fallback after error found ${wines?.length || 0} wines`);
       } catch (fallbackError: any) {
         console.error('Fallback query also failed:', fallbackError);
         return NextResponse.json(
@@ -230,8 +204,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-
-    console.log(`Found ${wines?.length || 0} wines matching criteria`);
 
     if (!wines || wines.length === 0) {
       return NextResponse.json({
@@ -295,11 +267,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Rank with Claude AI
-    console.log(`Ranking ${winesForRanking.length} wines with Claude AI...`);
-    console.log('Search context:', searchContext);
-
     const ranked = await rankWinesWithClaude(winesForRanking, searchContext);
-    console.log(`Claude returned ${ranked.length} ranked wines`);
 
     // Build suggestions response with all available wine details
     const suggestions = ranked.slice(0, 10).map((wine) => {

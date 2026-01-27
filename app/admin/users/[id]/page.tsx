@@ -17,7 +17,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
 interface UserDetail {
   user_id: string;
@@ -71,7 +70,7 @@ export default function AdminUserDetailPage() {
 
       const response = await fetch(`/api/admin/users/${userId}`, {
         headers: {
-          'x-tenant-id': TENANT_ID,
+          
         },
       });
 

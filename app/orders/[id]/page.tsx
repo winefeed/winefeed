@@ -28,8 +28,6 @@ import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
 import { Package, Truck, CheckCircle2, Clock, MapPin, ExternalLink } from 'lucide-react';
 
 // MVP: Hardcoded tenant for testing
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
-const USER_ID = '00000000-0000-0000-0000-000000000001'; // MVP: Simulated auth
 
 const SUPPLIER_TYPE_LABELS: Record<string, string> = {
   'SWEDISH_IMPORTER': 'Svensk importör',
@@ -115,8 +113,8 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
 
       const response = await fetch('/api/me/actor', {
         headers: {
-          'x-tenant-id': TENANT_ID,
-          'x-user-id': USER_ID
+          
+          
         }
       });
 
@@ -155,8 +153,8 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
       // API now supports both ADMIN and RESTAURANT access
       const response = await fetch(`/api/restaurant/orders/${orderId}`, {
         headers: {
-          'x-tenant-id': TENANT_ID,
-          'x-user-id': USER_ID
+          
+          
         }
       });
 

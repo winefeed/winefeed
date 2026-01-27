@@ -30,7 +30,7 @@ export function ActionsPanel({ importId, currentStatus, onRefresh }: ActionsPane
       const response = await fetch(`/api/imports/${importId}/validate-shipment`, {
         method: 'POST',
         headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+          
         }
       });
 
@@ -56,8 +56,8 @@ export function ActionsPanel({ importId, currentStatus, onRefresh }: ActionsPane
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001',
-          'x-user-id': '00000000-0000-0000-0000-000000000001'
+          
+          
         }
       });
 
@@ -89,8 +89,8 @@ export function ActionsPanel({ importId, currentStatus, onRefresh }: ActionsPane
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001',
-          'x-user-id': '00000000-0000-0000-0000-000000000001'
+          
+          
         },
         body: JSON.stringify({ to_status: toStatus, why })
       });

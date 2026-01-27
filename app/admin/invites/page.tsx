@@ -17,10 +17,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
-
-// Note: This uses service role key, so only works server-side
-// For production, move to API endpoint
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+import { useActor } from '@/lib/hooks/useActor';
 
 interface Restaurant {
   id: string;
@@ -45,6 +42,7 @@ interface Invite {
 
 export default function AdminInvitesPage() {
   const router = useRouter();
+  const { actor, loading: actorLoading } = useActor();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -59,8 +57,15 @@ export default function AdminInvitesPage() {
   const [selectedEntityId, setSelectedEntityId] = useState('');
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (!actorLoading && actor) {
+      if (!actor.roles.includes('ADMIN')) {
+        setError('Unauthorized: Admin access required');
+        setLoading(false);
+        return;
+      }
+      fetchData();
+    }
+  }, [actor, actorLoading]);
 
   const fetchData = async () => {
     try {
@@ -69,9 +74,7 @@ export default function AdminInvitesPage() {
 
       // Fetch invites
       const invitesResponse = await fetch('/api/admin/invites', {
-        headers: {
-          'x-tenant-id': TENANT_ID
-        }
+        credentials: 'include'
       });
 
       if (!invitesResponse.ok) {
@@ -129,9 +132,9 @@ export default function AdminInvitesPage() {
 
       const response = await fetch('/api/admin/invites', {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'x-tenant-id': TENANT_ID
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
       });

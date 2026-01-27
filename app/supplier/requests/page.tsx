@@ -14,6 +14,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useActor } from '@/lib/hooks/useActor';
 import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck, Send, AlertTriangle, CheckCircle } from 'lucide-react';
 
 // ============================================================================
@@ -251,9 +252,9 @@ export default function SupplierRequestsPage() {
     try {
       const response = await fetch(`/api/quote-requests/${quickRespondRequest.id}/offers`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           supplier_id: supplierId,
@@ -297,9 +298,9 @@ export default function SupplierRequestsPage() {
           // Create offer for this request
           const response = await fetch(`/api/quote-requests/${requestId}/offers`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-              'Content-Type': 'application/json',
-              'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               supplier_id: supplierId,

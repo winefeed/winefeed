@@ -135,7 +135,7 @@ export default function ImportDetailsPage({ params }: { params: { id: string } }
       // Fetch import case details
       const importResponse = await fetch(`/api/imports/${importId}`, {
         headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+          
         }
       });
 
@@ -149,7 +149,7 @@ export default function ImportDetailsPage({ params }: { params: { id: string } }
       // Fetch documents
       const docsResponse = await fetch(`/api/imports/${importId}/documents`, {
         headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+          
         }
       });
 
@@ -389,7 +389,7 @@ export default function ImportDetailsPage({ params }: { params: { id: string } }
                             `/api/imports/${importId}/documents/${latestDocument.id}/download`,
                             {
                               headers: {
-                                'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+                                
                               }
                             }
                           );
@@ -427,7 +427,7 @@ export default function ImportDetailsPage({ params }: { params: { id: string } }
                                   `/api/imports/${importId}/documents/${doc.id}/download`,
                                   {
                                     headers: {
-                                      'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+                                      
                                     }
                                   }
                                 );
@@ -570,7 +570,7 @@ function ImprovedActionsPanel({
       const response = await fetch(`/api/imports/${importId}/validate-shipment`, {
         method: 'POST',
         headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+          
         }
       });
 
@@ -595,8 +595,8 @@ function ImprovedActionsPanel({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001',
-          'x-user-id': '00000000-0000-0000-0000-000000000001'
+          
+          
         }
       });
 
@@ -621,8 +621,8 @@ function ImprovedActionsPanel({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001',
-          'x-user-id': '00000000-0000-0000-0000-000000000001'
+          
+          
         },
         body: JSON.stringify({ to_status: toStatus, why: note || '' })
       });

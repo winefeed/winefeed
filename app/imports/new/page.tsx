@@ -28,8 +28,8 @@ export default function NewImportPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001',
-          'x-user-id': '00000000-0000-0000-0000-000000000001'
+          
+          
         },
         body: JSON.stringify({
           restaurant_id: formData.restaurant_id,

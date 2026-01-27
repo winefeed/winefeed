@@ -103,9 +103,7 @@ export default function OfferEditorPage() {
       setError(null);
 
       const response = await fetch(`/api/offers/${offerId}`, {
-        headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001' // TODO: Get from auth context
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -201,9 +199,7 @@ export default function OfferEditorPage() {
 
       const response = await fetch(`/api/offer-lines/${lineId}/match`, {
         method: 'POST',
-        headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -265,9 +261,9 @@ export default function OfferEditorPage() {
 
       const response = await fetch(`/api/offers/${offerId}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           offer: {
@@ -308,10 +304,7 @@ export default function OfferEditorPage() {
 
       const response = await fetch(`/api/offers/${offerId}/accept`, {
         method: 'POST',
-        headers: {
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001',
-          'x-user-id': '00000000-0000-0000-0000-000000000001' // TODO: Get from auth
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {

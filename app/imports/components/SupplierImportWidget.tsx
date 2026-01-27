@@ -37,7 +37,7 @@ export function SupplierImportWidget({ importId, linkedImports, onRefresh }: Sup
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-id': '00000000-0000-0000-0000-000000000001'
+          
         },
         body: JSON.stringify({ supplier_import_id: supplierImportId })
       });
