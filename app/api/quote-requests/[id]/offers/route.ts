@@ -398,11 +398,14 @@ export async function GET(
       );
     }
 
-    // ACCESS CONTROL - Only restaurant owner can see offers
+    // ACCESS CONTROL - Restaurant owner or admin can see offers
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
-    if (!actor.restaurant_id || actor.restaurant_id !== quoteRequest.restaurant_id) {
+    const isAdmin = actorService.hasRole(actor, 'ADMIN');
+    const isOwner = actor.restaurant_id && actor.restaurant_id === quoteRequest.restaurant_id;
+
+    if (!isAdmin && !isOwner) {
       return NextResponse.json(
-        { error: 'Forbidden: Only the restaurant owner can view offers' },
+        { error: 'Forbidden: Only the restaurant owner or admin can view offers' },
         { status: 403 }
       );
     }
