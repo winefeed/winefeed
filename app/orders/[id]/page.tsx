@@ -1,5 +1,5 @@
 /**
- * ORDER TRACKING - DETAIL PAGE
+ * ORDER DETAIL PAGE
  *
  * /orders/[id]
  *
@@ -10,39 +10,38 @@
  * - Delivery tracking information
  * - View order summary (supplier, importer, status)
  * - View order lines (wines, quantities)
- * - View order events timeline (audit trail)
- * - View compliance summary for EU orders (read-only)
- *
- * Actor Resolution:
- * - Fetches current user's actor context from /api/me/actor
- * - RESTAURANT: Can view orders for their restaurant
- * - ADMIN: Can view any order (cross-restaurant access)
+ * - View order events timeline (expandable)
+ * - View compliance summary for EU orders
  */
 
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
-import { Package, Truck, CheckCircle2, Clock, MapPin, ExternalLink } from 'lucide-react';
-
-// MVP: Hardcoded tenant for testing
+import { useActor } from '@/lib/hooks/useActor';
+import {
+  Package,
+  Truck,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  ExternalLink,
+  ArrowLeft,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Wine
+} from 'lucide-react';
 
 const SUPPLIER_TYPE_LABELS: Record<string, string> = {
-  'SWEDISH_IMPORTER': 'Svensk importör',
+  'SWEDISH_IMPORTER': 'Svensk importor',
   'EU_PRODUCER': 'EU-producent',
-  'EU_IMPORTER': 'EU-importör',
+  'EU_IMPORTER': 'EU-importor',
 };
-
-interface ActorContext {
-  tenant_id: string;
-  user_id: string;
-  roles: string[];
-  restaurant_id?: string;
-  supplier_id?: string;
-  importer_id?: string;
-}
 
 interface OrderDetail {
   order: {
@@ -58,7 +57,6 @@ interface OrderDetail {
     updated_at: string;
     supplier: any;
     importer: any;
-    // Tracking info
     tracking_number?: string;
     carrier?: string;
     estimated_delivery?: string;
@@ -98,53 +96,27 @@ interface OrderDetail {
   } | null;
 }
 
-export default function RestaurantOrderDetailPage({ params }: { params: { id: string } }) {
+const STATUS_STEPS = [
+  { key: 'CONFIRMED', label: 'Bekraftad', icon: CheckCircle2, description: 'Order mottagen' },
+  { key: 'IN_FULFILLMENT', label: 'Forbereds', icon: Package, description: 'Packas for leverans' },
+  { key: 'SHIPPED', label: 'Skickad', icon: Truck, description: 'Pa vag' },
+  { key: 'DELIVERED', label: 'Levererad', icon: MapPin, description: 'Framme' },
+];
+
+export default function OrderDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const orderId = params.id;
+  const { actor, loading: actorLoading } = useActor();
 
-  const [actor, setActor] = useState<ActorContext | null>(null);
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
-
-  const fetchActor = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch('/api/me/actor', {
-        headers: {
-          
-          
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch actor context');
-      }
-
-      const actorData = await response.json();
-      setActor(actorData);
-
-      // Verify RESTAURANT or ADMIN access
-      const hasRestaurantAccess = actorData.roles.includes('RESTAURANT') && actorData.restaurant_id;
-      const hasAdminAccess = actorData.roles.includes('ADMIN');
-
-      if (!hasRestaurantAccess && !hasAdminAccess) {
-        throw new Error('Du saknar RESTAURANT- eller ADMIN-behörighet. Kontakta admin för att få åtkomst.');
-      }
-    } catch (err: any) {
-      console.error('Failed to fetch actor:', err);
-      setError(err.message || 'Kunde inte ladda användarprofil');
-      setLoading(false);
-    }
-  }, []);
+  const [copiedTracking, setCopiedTracking] = useState(false);
 
   const fetchOrderDetail = useCallback(async () => {
     if (!actor) return;
 
-    // ADMIN can access without restaurant_id
     const isAdmin = actor.roles.includes('ADMIN');
     if (!isAdmin && !actor.restaurant_id) return;
 
@@ -152,22 +124,18 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
       setLoading(true);
       setError(null);
 
-      // API now supports both ADMIN and RESTAURANT access
       const response = await fetch(`/api/restaurant/orders/${orderId}`, {
-        headers: {
-          
-          
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error('Order not found');
+          throw new Error('Order hittades inte');
         }
         if (response.status === 403) {
-          throw new Error('Access denied: Not authorized for this order');
+          throw new Error('Atkomst nekad');
         }
-        throw new Error('Failed to fetch order details');
+        throw new Error('Kunde inte hamta orderdetaljer');
       }
 
       const data = await response.json();
@@ -180,20 +148,17 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
     }
   }, [actor, orderId]);
 
-  // Fetch actor context on mount
   useEffect(() => {
-    fetchActor();
-  }, [fetchActor]);
-
-  // Fetch order when actor is ready
-  useEffect(() => {
-    if (actor) {
-      const isAdmin = actor.roles.includes('ADMIN');
-      if (isAdmin || actor.restaurant_id) {
-        fetchOrderDetail();
+    if (!actorLoading && actor) {
+      const hasAccess = actor.roles.includes('ADMIN') || (actor.roles.includes('RESTAURANT') && actor.restaurant_id);
+      if (!hasAccess) {
+        setError('Du saknar behorighet');
+        setLoading(false);
+        return;
       }
+      fetchOrderDetail();
     }
-  }, [actor, fetchOrderDetail]);
+  }, [actor, actorLoading, fetchOrderDetail]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('sv-SE', {
@@ -206,22 +171,35 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'Bekräftad';
-      case 'IN_FULFILLMENT': return 'I leverans';
-      case 'SHIPPED': return 'Skickad';
-      case 'DELIVERED': return 'Levererad';
-      case 'CANCELLED': return 'Avbruten';
-      default: return status;
-    }
+    const labels: Record<string, string> = {
+      'PENDING_SUPPLIER_CONFIRMATION': 'Vantande',
+      'CONFIRMED': 'Bekraftad',
+      'IN_FULFILLMENT': 'I leverans',
+      'SHIPPED': 'Skickad',
+      'DELIVERED': 'Levererad',
+      'CANCELLED': 'Avbruten',
+    };
+    return labels[status] || status;
+  };
+
+  const getCurrentStepIndex = (status: string) => {
+    if (status === 'CANCELLED' || status === 'PENDING_SUPPLIER_CONFIRMATION') return -1;
+    return STATUS_STEPS.findIndex(s => s.key === status);
+  };
+
+  const copyTrackingNumber = async (tracking: string) => {
+    await navigator.clipboard.writeText(tracking);
+    setCopiedTracking(true);
+    setTimeout(() => setCopiedTracking(false), 2000);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Laddar order...</p>
+      <div className="p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
+          <div className="h-32 bg-muted rounded-lg mb-4"></div>
+          <div className="h-64 bg-muted rounded-lg"></div>
         </div>
       </div>
     );
@@ -229,442 +207,382 @@ export default function RestaurantOrderDetailPage({ params }: { params: { id: st
 
   if (error && !orderDetail) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
-          <div className="text-center">
-            <span className="text-6xl mb-4 block">⚠️</span>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => router.push('/orders')}
-                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                ← Tillbaka till lista
-              </button>
-              <button
-                onClick={() => {
-                  setError(null);
-                  if (error.includes('RESTAURANT-behörighet')) {
-                    fetchActor();
-                  } else {
-                    fetchOrderDetail();
-                  }
-                }}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                🔄 Försök igen
-              </button>
-            </div>
+      <div className="p-6">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
+          <div className="text-destructive text-5xl mb-4">!</div>
+          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <div className="flex gap-3 justify-center">
+            <Link
+              href="/orders"
+              className="px-4 py-2 bg-card border border-border text-foreground hover:bg-accent rounded-lg"
+            >
+              Tillbaka till ordrar
+            </Link>
+            <button
+              onClick={fetchOrderDetail}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+            >
+              Forsok igen
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!orderDetail) {
-    return null;
-  }
+  if (!orderDetail) return null;
 
   const { order, lines, events, compliance } = orderDetail;
-
-  // Define order status steps for progress tracker
-  const statusSteps = [
-    { key: 'CONFIRMED', label: 'Bekräftad', icon: CheckCircle2, description: 'Order mottagen' },
-    { key: 'IN_FULFILLMENT', label: 'Förbereds', icon: Package, description: 'Packas för leverans' },
-    { key: 'SHIPPED', label: 'Skickad', icon: Truck, description: 'På väg till dig' },
-    { key: 'DELIVERED', label: 'Levererad', icon: MapPin, description: 'Framme hos dig' },
-  ];
-
-  const getCurrentStepIndex = () => {
-    if (order.status === 'CANCELLED') return -1;
-    if (order.status === 'PENDING_SUPPLIER_CONFIRMATION') return -1;
-    return statusSteps.findIndex(s => s.key === order.status);
-  };
-
-  const currentStep = getCurrentStepIndex();
+  const currentStep = getCurrentStepIndex(order.status);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <div className="p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <header className="bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => router.push('/orders')}
-                className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm"
-              >
-                ← Tillbaka
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Order {orderId.substring(0, 8)}...</h1>
-                <p className="text-sm text-white/80">Order detaljer</p>
-              </div>
-            </div>
+      <div className="mb-8 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/orders"
+            className="p-2 hover:bg-accent rounded-lg transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Order {orderId.substring(0, 8)}...
+            </h1>
+            <p className="text-muted-foreground">
+              Skapad {formatDate(order.created_at)}
+            </p>
           </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-        {/* Order Progress Tracker */}
-        {order.status !== 'CANCELLED' && order.status !== 'PENDING_SUPPLIER_CONFIRMATION' && (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-6">Orderstatus</h2>
-
-            {/* Progress Steps */}
-            <div className="relative">
-              {/* Progress Line */}
-              <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 mx-12">
-                <div
-                  className="h-full bg-green-500 transition-all duration-500"
-                  style={{ width: `${Math.max(0, (currentStep / (statusSteps.length - 1)) * 100)}%` }}
-                />
-              </div>
-
-              {/* Steps */}
-              <div className="relative flex justify-between">
-                {statusSteps.map((step, index) => {
-                  const StepIcon = step.icon;
-                  const isCompleted = index <= currentStep;
-                  const isCurrent = index === currentStep;
-
-                  return (
-                    <div key={step.key} className="flex flex-col items-center" style={{ width: '25%' }}>
-                      <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center z-10 transition-all duration-300 ${
-                          isCompleted
-                            ? 'bg-green-500 text-white shadow-lg'
-                            : 'bg-gray-200 text-gray-400'
-                        } ${isCurrent ? 'ring-4 ring-green-200 scale-110' : ''}`}
-                      >
-                        <StepIcon className="h-6 w-6" />
-                      </div>
-                      <p className={`mt-3 text-sm font-medium ${isCompleted ? 'text-green-700' : 'text-gray-400'}`}>
-                        {step.label}
-                      </p>
-                      <p className={`text-xs ${isCompleted ? 'text-gray-600' : 'text-gray-400'}`}>
-                        {step.description}
-                      </p>
-                      {/* Show timestamp if available */}
-                      {step.key === 'SHIPPED' && order.shipped_at && (
-                        <p className="text-xs text-green-600 mt-1">
-                          {formatDate(order.shipped_at)}
-                        </p>
-                      )}
-                      {step.key === 'DELIVERED' && order.delivered_at && (
-                        <p className="text-xs text-green-600 mt-1">
-                          {formatDate(order.delivered_at)}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delivery Tracking */}
-        {(order.tracking_number || order.carrier || order.estimated_delivery) && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-lg p-6 border border-blue-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-500 rounded-lg">
-                <Truck className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-lg font-bold text-gray-800">Leveransspårning</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {order.carrier && (
-                <div className="bg-white/70 p-4 rounded-lg">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Transportör</p>
-                  <p className="text-lg font-semibold text-gray-800">{order.carrier}</p>
-                </div>
-              )}
-
-              {order.tracking_number && (
-                <div className="bg-white/70 p-4 rounded-lg">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Spårningsnummer</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-mono font-semibold text-gray-800">{order.tracking_number}</p>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(order.tracking_number || '');
-                      }}
-                      className="p-1 hover:bg-gray-200 rounded transition-colors"
-                      title="Kopiera"
-                    >
-                      <ExternalLink className="h-4 w-4 text-blue-500" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {order.estimated_delivery && (
-                <div className="bg-white/70 p-4 rounded-lg">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Beräknad leverans</p>
-                  <p className="text-lg font-semibold text-green-700">
-                    {new Date(order.estimated_delivery).toLocaleDateString('sv-SE', {
-                      weekday: 'long',
-                      day: 'numeric',
-                      month: 'long'
-                    })}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {order.status === 'SHIPPED' && (
-              <div className="mt-4 p-3 bg-blue-100 rounded-lg">
-                <p className="text-sm text-blue-800 flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Din order är på väg! Du får ett meddelande när den levereras.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Pending Supplier Confirmation Banner */}
-        {order.status === 'PENDING_SUPPLIER_CONFIRMATION' && (
-          <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-amber-400 rounded-full">
-                <Clock className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-amber-800">Väntar på leverantörsbekräftelse</h3>
-                <p className="text-amber-700">
-                  Leverantören har inte bekräftat ordern ännu. Du får besked så snart de svarar.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Cancelled Order Banner */}
-        {order.status === 'CANCELLED' && (
-          <div className="bg-red-50 border-2 border-red-300 rounded-lg p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-red-500 rounded-full">
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-red-800">Order avbruten</h3>
-                <p className="text-red-700">
-                  Denna order har avbrutits. Se händelseloggen nedan för mer information.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Order Summary */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Orderdetaljer</h2>
-            <OrderStatusBadge status={order.status} size="md" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Supplier Info */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Leverantör</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="font-bold text-lg">{order.supplier?.namn || 'Unknown'}</p>
-                <p className="text-xs text-gray-500">{SUPPLIER_TYPE_LABELS[order.supplier?.type || ''] || order.supplier?.type}</p>
-                <p className="text-sm text-gray-600">{order.supplier?.kontakt_email}</p>
-              </div>
-            </div>
-
-            {/* Importer Info */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Importör (IOR)</h3>
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <p className="font-bold text-lg">{order.importer?.legal_name || 'Unknown'}</p>
-                <p className="text-sm text-gray-600">{order.importer?.contact_email}</p>
-              </div>
-            </div>
-
-            {/* Order Metadata */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Order Info</h3>
-              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Antal rader:</span>
-                  <span className="font-medium">{order.total_lines}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total kvantitet:</span>
-                  <span className="font-medium">{order.total_quantity}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Valuta:</span>
-                  <span className="font-medium">{order.currency}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Skapad:</span>
-                  <span className="text-xs">{formatDate(order.created_at)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="flex items-center gap-3">
+          <OrderStatusBadge status={order.status} size="lg" />
+          <button
+            onClick={fetchOrderDetail}
+            className="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground hover:bg-accent rounded-lg transition-colors text-sm font-medium"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Uppdatera
+          </button>
         </div>
+      </div>
 
-        {/* Compliance Section (Read-Only) */}
-        {compliance && compliance.import_case_id && (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Compliance Status (EU Order)</h2>
+      {/* Order Progress Stepper */}
+      {order.status !== 'CANCELLED' && order.status !== 'PENDING_SUPPLIER_CONFIRMATION' && (
+        <div className="bg-card rounded-lg border border-border p-6 mb-6">
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-6">Orderstatus</h2>
 
-            <div className="space-y-4">
-              {/* Import Case Status */}
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Import Case Status</span>
-                  <ImportStatusBadge status={compliance.import_status || 'NOT_REGISTERED'} size="md" />
-                </div>
-                <p className="text-xs text-gray-600">Import ID: {compliance.import_case_id}</p>
-              </div>
-
-              {/* DDL Status */}
-              {compliance.ddl_status && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Direct Delivery Location (DDL)</span>
-                    <ImportStatusBadge status={compliance.ddl_status} size="md" />
-                  </div>
-                  {compliance.ddl_address && (
-                    <p className="text-sm text-gray-600">{compliance.ddl_address}</p>
-                  )}
-                </div>
-              )}
-
-              {/* 5369 Document Status */}
-              {compliance.latest_5369_version !== null && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">5369 Document</span>
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-500 text-white">
-                      Version {compliance.latest_5369_version}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    Generated: {compliance.latest_5369_generated_at ? formatDate(compliance.latest_5369_generated_at) : 'N/A'}
-                  </p>
-                </div>
-              )}
-
-              <p className="text-xs text-gray-500 italic">
-                📋 Compliance status is managed by the IOR (Importer-of-Record). Contact them for details.
-              </p>
+          <div className="relative">
+            {/* Progress Line */}
+            <div className="absolute top-6 left-0 right-0 h-0.5 bg-border mx-16">
+              <div
+                className="h-full bg-primary transition-all duration-500"
+                style={{ width: `${Math.max(0, (currentStep / (STATUS_STEPS.length - 1)) * 100)}%` }}
+              />
             </div>
-          </div>
-        )}
 
-        {/* Order Lines */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800">Order Rader ({lines.length})</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">#</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Vin</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Producent</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Årg.</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Land</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Antal</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Enhet</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-700">Á-pris</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-700">Totalt</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {lines.map((line) => (
-                  <tr key={line.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-600">{line.line_number}</td>
-                    <td className="px-4 py-3 font-medium">{line.wine_name}</td>
-                    <td className="px-4 py-3 text-gray-600">{line.producer || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{line.vintage || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{line.country || '—'}</td>
-                    <td className="px-4 py-3 text-gray-800 font-medium">{line.quantity}</td>
-                    <td className="px-4 py-3 text-gray-600">{line.unit}</td>
-                    <td className="px-4 py-3 text-right text-gray-600">
-                      {line.unit_price_sek ? `${line.unit_price_sek.toFixed(2)} kr` : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium">
-                      {line.total_price_sek ? `${line.total_price_sek.toFixed(2)} kr` : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Events Timeline */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Händelselogg ({events.length})</h2>
-          <div className="space-y-4">
-            {events.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">Inga händelser ännu</p>
-            ) : (
-              events.map((event, index) => {
-                // Determine event styling based on type
-                const getEventStyle = (type: string) => {
-                  if (type.includes('CREATED')) return { bg: 'bg-green-500', text: 'Order skapad' };
-                  if (type.includes('CONFIRMED')) return { bg: 'bg-blue-500', text: 'Bekräftad' };
-                  if (type.includes('SHIPPED')) return { bg: 'bg-indigo-500', text: 'Skickad' };
-                  if (type.includes('DELIVERED')) return { bg: 'bg-green-600', text: 'Levererad' };
-                  if (type.includes('CANCELLED') || type.includes('DECLINED')) return { bg: 'bg-red-500', text: 'Avbruten' };
-                  if (type.includes('FULFILLMENT')) return { bg: 'bg-purple-500', text: 'I leverans' };
-                  return { bg: 'bg-gray-500', text: type.replace(/_/g, ' ') };
-                };
-
-                const eventStyle = getEventStyle(event.event_type);
+            {/* Steps */}
+            <div className="relative flex justify-between">
+              {STATUS_STEPS.map((step, index) => {
+                const StepIcon = step.icon;
+                const isCompleted = index <= currentStep;
+                const isCurrent = index === currentStep;
 
                 return (
-                  <div key={event.id} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <div className={`w-4 h-4 ${eventStyle.bg} rounded-full shadow-sm`}></div>
-                      {index < events.length - 1 && <div className="w-0.5 flex-1 bg-gray-200 mt-1"></div>}
+                  <div key={step.key} className="flex flex-col items-center" style={{ width: '25%' }}>
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center z-10 transition-all duration-300 ${
+                        isCompleted
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      } ${isCurrent ? 'ring-4 ring-primary/20 scale-110' : ''}`}
+                    >
+                      <StepIcon className="h-5 w-5" />
                     </div>
-                    <div className="flex-1 pb-6">
-                      <div className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
-                        <div className="flex justify-between items-start mb-2">
-                          <span className={`px-2 py-1 text-xs font-medium text-white rounded ${eventStyle.bg}`}>
-                            {eventStyle.text}
-                          </span>
-                          <p className="text-xs text-gray-500">{formatDate(event.created_at)}</p>
-                        </div>
-                        {event.from_status && event.to_status && (
-                          <p className="text-sm text-gray-600 mb-1">
-                            <span className="font-medium">{getStatusLabel(event.from_status)}</span>
-                            <span className="mx-2">→</span>
-                            <span className="font-medium text-green-700">{getStatusLabel(event.to_status)}</span>
-                          </p>
-                        )}
-                        {event.note && (
-                          <p className="text-sm text-gray-700 mt-2 italic">&ldquo;{event.note}&rdquo;</p>
-                        )}
-                        <p className="text-xs text-gray-400 mt-2">
-                          Av: {event.actor_name || 'System'}
-                        </p>
-                      </div>
-                    </div>
+                    <p className={`mt-3 text-sm font-medium ${isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {step.label}
+                    </p>
+                    <p className={`text-xs ${isCompleted ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
+                      {step.description}
+                    </p>
+                    {step.key === 'SHIPPED' && order.shipped_at && (
+                      <p className="text-xs text-primary mt-1">{formatDate(order.shipped_at)}</p>
+                    )}
+                    {step.key === 'DELIVERED' && order.delivered_at && (
+                      <p className="text-xs text-primary mt-1">{formatDate(order.delivered_at)}</p>
+                    )}
                   </div>
                 );
-              })
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pending/Cancelled Banners */}
+      {order.status === 'PENDING_SUPPLIER_CONFIRMATION' && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6 flex items-center gap-4">
+          <Clock className="h-6 w-6 text-amber-600" />
+          <div>
+            <p className="font-medium text-amber-800">Vantar pa leverantorsbekraftelse</p>
+            <p className="text-sm text-amber-700">Du far besked nar leverantoren svarar.</p>
+          </div>
+        </div>
+      )}
+
+      {order.status === 'CANCELLED' && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-6 flex items-center gap-4">
+          <div className="h-6 w-6 rounded-full bg-destructive flex items-center justify-center">
+            <span className="text-destructive-foreground text-sm font-bold">X</span>
+          </div>
+          <div>
+            <p className="font-medium text-destructive">Order avbruten</p>
+            <p className="text-sm text-destructive/80">Se handelseloggen for mer information.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Delivery Tracking */}
+      {(order.tracking_number || order.carrier || order.estimated_delivery) && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Truck className="h-5 w-5 text-blue-600" />
+            <h3 className="font-medium text-foreground">Leveranssparning</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {order.carrier && (
+              <div>
+                <p className="text-xs text-muted-foreground uppercase">Transportor</p>
+                <p className="font-medium">{order.carrier}</p>
+              </div>
+            )}
+            {order.tracking_number && (
+              <div>
+                <p className="text-xs text-muted-foreground uppercase">Sparningsnummer</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono font-medium">{order.tracking_number}</p>
+                  <button
+                    onClick={() => copyTrackingNumber(order.tracking_number!)}
+                    className="p-1 hover:bg-accent rounded transition-colors"
+                    title="Kopiera"
+                  >
+                    <Copy className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                  {copiedTracking && <span className="text-xs text-primary">Kopierat!</span>}
+                </div>
+              </div>
+            )}
+            {order.estimated_delivery && (
+              <div>
+                <p className="text-xs text-muted-foreground uppercase">Beraknad leverans</p>
+                <p className="font-medium text-primary">
+                  {new Date(order.estimated_delivery).toLocaleDateString('sv-SE', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long'
+                  })}
+                </p>
+              </div>
             )}
           </div>
         </div>
-      </main>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Order Info */}
+        <div className="bg-card rounded-lg border border-border p-4">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">Orderinfo</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Antal rader</span>
+              <span className="font-medium">{order.total_lines}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Total kvantitet</span>
+              <span className="font-medium">{order.total_quantity}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Valuta</span>
+              <span className="font-medium">{order.currency}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Supplier */}
+        <div className="bg-card rounded-lg border border-border p-4">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">Leverantor</h3>
+          <p className="font-medium text-foreground">{order.supplier?.namn || '-'}</p>
+          <p className="text-xs text-muted-foreground">{SUPPLIER_TYPE_LABELS[order.supplier?.type] || order.supplier?.type}</p>
+          {order.supplier?.kontakt_email && (
+            <p className="text-sm text-muted-foreground mt-1">{order.supplier.kontakt_email}</p>
+          )}
+        </div>
+
+        {/* Importer */}
+        <div className="bg-card rounded-lg border border-border p-4">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">Importor (IOR)</h3>
+          <p className="font-medium text-foreground">{order.importer?.legal_name || '-'}</p>
+          {order.importer?.contact_email && (
+            <p className="text-sm text-muted-foreground mt-1">{order.importer.contact_email}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Compliance */}
+      {compliance?.import_case_id && (
+        <div className="bg-card rounded-lg border border-border p-4 mb-6">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">Compliance (EU-order)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <span className="text-sm text-muted-foreground">Import Status</span>
+              <ImportStatusBadge status={compliance.import_status || 'NOT_REGISTERED'} size="sm" />
+            </div>
+            {compliance.ddl_status && (
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <span className="text-sm text-muted-foreground">DDL Status</span>
+                <ImportStatusBadge status={compliance.ddl_status} size="sm" />
+              </div>
+            )}
+            {compliance.latest_5369_version && (
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <span className="text-sm text-muted-foreground">5369 Doc</span>
+                <span className="text-sm font-medium">v{compliance.latest_5369_version}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Order Lines */}
+      <div className="bg-card rounded-lg border border-border overflow-hidden mb-6">
+        <div className="px-4 py-3 border-b border-border">
+          <h3 className="font-medium text-foreground">Orderrader ({lines.length})</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-border text-sm">
+            <thead className="bg-muted">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">#</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Vin</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Producent</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Arg.</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Land</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">Antal</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">A-pris</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">Totalt</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {lines.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                    <Wine className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>Inga orderrader</p>
+                  </td>
+                </tr>
+              ) : (
+                lines.map((line) => (
+                  <tr key={line.id} className="hover:bg-accent/50">
+                    <td className="px-4 py-3 text-muted-foreground">{line.line_number}</td>
+                    <td className="px-4 py-3 font-medium text-foreground">{line.wine_name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{line.producer || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{line.vintage || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{line.country || '-'}</td>
+                    <td className="px-4 py-3 text-right font-medium">{line.quantity} {line.unit}</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">
+                      {line.unit_price_sek ? `${line.unit_price_sek.toFixed(0)} kr` : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium">
+                      {line.total_price_sek ? `${line.total_price_sek.toFixed(0)} kr` : '-'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Events Timeline */}
+      <div className="bg-card rounded-lg border border-border p-4">
+        <h3 className="font-medium text-foreground mb-4">Handelselogg ({events.length})</h3>
+        <div className="space-y-3">
+          {events.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">Inga handelser annu</p>
+          ) : (
+            events.map((event, index) => {
+              const getEventStyle = (type: string) => {
+                if (type.includes('CREATED')) return { color: 'bg-green-500', label: 'Order skapad' };
+                if (type.includes('CONFIRMED')) return { color: 'bg-blue-500', label: 'Bekraftad' };
+                if (type.includes('SHIPPED')) return { color: 'bg-indigo-500', label: 'Skickad' };
+                if (type.includes('DELIVERED')) return { color: 'bg-green-600', label: 'Levererad' };
+                if (type.includes('CANCELLED') || type.includes('DECLINED')) return { color: 'bg-red-500', label: 'Avbruten' };
+                if (type.includes('FULFILLMENT')) return { color: 'bg-purple-500', label: 'I leverans' };
+                return { color: 'bg-gray-500', label: type.replace(/_/g, ' ') };
+              };
+
+              const style = getEventStyle(event.event_type);
+              const isExpanded = expandedEventId === event.id;
+              const hasDetails = event.metadata && Object.keys(event.metadata).length > 0;
+
+              return (
+                <div key={event.id} className="flex gap-3">
+                  {/* Timeline dot */}
+                  <div className="flex flex-col items-center">
+                    <div className={`w-3 h-3 ${style.color} rounded-full`}></div>
+                    {index < events.length - 1 && <div className="w-0.5 flex-1 bg-border mt-1"></div>}
+                  </div>
+
+                  {/* Event content */}
+                  <div className="flex-1 pb-4">
+                    <div
+                      className={`bg-muted/50 rounded-lg p-3 ${hasDetails ? 'cursor-pointer hover:bg-muted' : ''}`}
+                      onClick={() => hasDetails && setExpandedEventId(isExpanded ? null : event.id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 text-xs font-medium text-white rounded ${style.color}`}>
+                            {style.label}
+                          </span>
+                          {hasDetails && (
+                            isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{formatDate(event.created_at)}</span>
+                      </div>
+
+                      {event.from_status && event.to_status && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {getStatusLabel(event.from_status)} → <span className="text-foreground">{getStatusLabel(event.to_status)}</span>
+                        </p>
+                      )}
+
+                      {event.note && (
+                        <p className="text-sm text-foreground mt-2 italic">&ldquo;{event.note}&rdquo;</p>
+                      )}
+
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Av: {event.actor_name || 'System'}
+                      </p>
+
+                      {/* Expanded details */}
+                      {isExpanded && event.metadata && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <p className="text-xs text-muted-foreground uppercase mb-2">Metadata</p>
+                          <pre className="text-xs bg-background p-2 rounded overflow-x-auto">
+                            {JSON.stringify(event.metadata, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
     </div>
   );
 }
