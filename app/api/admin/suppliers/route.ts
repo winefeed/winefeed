@@ -40,9 +40,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all suppliers
+    // Note: Only select columns that exist in the table
     const { data: suppliers, error: suppliersError } = await supabase
       .from('suppliers')
-      .select('id, namn, type, is_active, kontakt_email, telefon, hemsida, org_number, created_at, address, city, postal_code, country')
+      .select('*')
       .order('namn', { ascending: true });
 
     if (suppliersError) {
@@ -73,17 +74,17 @@ export async function GET(request: NextRequest) {
 
       return {
         id: supplier.id,
-        name: supplier.namn,
-        type: supplier.type,
-        isActive: supplier.is_active,
-        email: supplier.kontakt_email,
-        phone: supplier.telefon,
-        website: supplier.hemsida,
-        orgNumber: supplier.org_number,
-        address: supplier.address,
-        city: supplier.city,
-        postalCode: supplier.postal_code,
-        country: supplier.country,
+        name: supplier.namn || supplier.name,
+        type: supplier.type || null,
+        isActive: supplier.is_active ?? true,
+        email: supplier.kontakt_email || supplier.email || null,
+        phone: supplier.telefon || supplier.phone || null,
+        website: supplier.hemsida || supplier.website || null,
+        orgNumber: supplier.org_number || null,
+        address: supplier.address || null,
+        city: supplier.city || null,
+        postalCode: supplier.postal_code || null,
+        country: supplier.country || null,
         createdAt: supplier.created_at,
         stats: {
           totalWines: wines.length,
