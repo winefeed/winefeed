@@ -119,11 +119,11 @@ export async function POST(request: NextRequest) {
       .from('requests')
       .insert({
         restaurant_id: restaurantId,
-        fritext: fritext || description || 'Vinförfrågan',
+        fritext: [fritext || description || 'Vinförfrågan', leverans_ort ? `Leverans: ${leverans_ort}` : null].filter(Boolean).join('. '),
         budget_per_flaska: effectiveBudgetMax,
         antal_flaskor: antal_flaskor || null,
         leverans_senast: leverans_senast || null,
-        leverans_ort: leverans_ort || null,
+        // Note: leverans_ort stored in fritext for now (column doesn't exist in requests table)
         specialkrav: effectiveCertifications || null,
         status: 'OPEN',
         created_at: new Date().toISOString()
