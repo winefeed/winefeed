@@ -58,11 +58,11 @@ export class QuoteRequestRouter {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // Step 1: Get all active suppliers
+    // Step 1: Get all active suppliers (include null is_active for MVP)
     const { data: suppliers, error: suppliersError } = await supabase
       .from('suppliers')
       .select('id, namn, type, is_active, normalleveranstid_dagar')
-      .eq('is_active', true);
+      .or('is_active.eq.true,is_active.is.null');
 
     if (suppliersError || !suppliers || suppliers.length === 0) {
       return {
@@ -108,11 +108,11 @@ export class QuoteRequestRouter {
     const reasons: string[] = [];
 
     // Get supplier's wine catalog
+    // MVP: Don't filter by is_active - wines may have is_active=false or null
     const { data: wines } = await supabase
       .from('supplier_wines')
       .select('*')
-      .eq('supplier_id', supplier.id)
-      .eq('is_active', true);
+      .eq('supplier_id', supplier.id);
 
     const catalogSize = wines?.length || 0;
 
