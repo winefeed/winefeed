@@ -77,6 +77,7 @@ export default function ResultsPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [offersCount, setOffersCount] = useState(0);
   const [newOffersCount, setNewOffersCount] = useState(0);
+  const [requestedQuantity, setRequestedQuantity] = useState<number | null>(null);
 
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
@@ -103,6 +104,21 @@ export default function ResultsPage() {
     }
   }, [requestId]);
 
+  // Fetch request details to get requested quantity
+  const fetchRequestDetails = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/requests/${requestId}`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRequestedQuantity(data.request?.quantity_bottles || data.request?.antal_flaskor || null);
+      }
+    } catch (err) {
+      console.log('Could not fetch request details:', err);
+    }
+  }, [requestId]);
+
   useEffect(() => {
     const stored = sessionStorage.getItem('latest-suggestions');
     if (stored) {
@@ -118,9 +134,10 @@ export default function ResultsPage() {
     }
     setLoading(false);
 
-    // Fetch offer counts for this request
+    // Fetch offer counts and request details
     fetchOfferCounts();
-  }, [fetchOfferCounts]);
+    fetchRequestDetails();
+  }, [fetchOfferCounts, fetchRequestDetails]);
 
   // Extract unique values for filter dropdowns
   const filterOptions = useMemo(() => {
@@ -565,27 +582,103 @@ export default function ResultsPage() {
 
                 {/* Card Body */}
                 <div className="p-6">
-                  {/* Expert Recommendation */}
-                  <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">✨</span>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground mb-1">Varför detta vin passar dig</p>
-                        <p className="text-sm text-foreground/80">{suggestion.motivering}</p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                            <div
-                              className="bg-primary h-full rounded-full"
-                              style={{ width: `${suggestion.ranking_score * 100}%` }}
-                            />
+                  {/* Order Info - MOQ, Stock, Lead Time */}
+                  {(() => {
+                    const moq = suggestion.wine.moq || 0;
+                    const isBelowMoq = moq > 0 && requestedQuantity !== null && requestedQuantity < moq;
+                    const moqDiff = moq - (requestedQuantity || 0);
+                    const stock = suggestion.wine.lager;
+                    const isLowStock = stock !== undefined && stock !== null && requestedQuantity !== null && stock > 0 && stock < requestedQuantity;
+
+                    return (
+                      <div className={`mb-6 p-4 rounded-xl border ${isBelowMoq ? 'bg-orange-50 border-orange-200' : 'bg-muted/30 border-border'}`}>
+                        <div className="grid grid-cols-3 gap-4">
+                          {/* MOQ */}
+                          <div className={`text-center p-3 rounded-lg ${isBelowMoq ? 'bg-orange-100' : 'bg-background'}`}>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Min. order</p>
+                            {moq > 0 ? (
+                              <>
+                                <p className={`text-lg font-bold ${isBelowMoq ? 'text-orange-600' : 'text-foreground'}`}>
+                                  {moq} fl
+                                </p>
+                                {isBelowMoq && (
+                                  <p className="text-xs text-orange-600 font-medium mt-1">
+                                    +{moqDiff} fl behövs
+                                  </p>
+                                )}
+                                {!isBelowMoq && requestedQuantity && (
+                                  <p className="text-xs text-green-600 font-medium mt-1">✓ OK</p>
+                                )}
+                              </>
+                            ) : (
+                              <p className="text-lg font-bold text-green-600">Ingen</p>
+                            )}
                           </div>
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {Math.round(suggestion.ranking_score * 100)}% matchning
-                          </span>
+
+                          {/* Stock */}
+                          <div className={`text-center p-3 rounded-lg ${isLowStock ? 'bg-amber-100' : 'bg-background'}`}>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Lagerstatus</p>
+                            {stock !== undefined && stock !== null ? (
+                              stock > 0 ? (
+                                <>
+                                  <p className={`text-lg font-bold ${isLowStock ? 'text-amber-600' : 'text-green-600'}`}>
+                                    {stock} i lager
+                                  </p>
+                                  {isLowStock && (
+                                    <p className="text-xs text-amber-600 font-medium mt-1">
+                                      Endast {stock} st
+                                    </p>
+                                  )}
+                                </>
+                              ) : (
+                                <p className="text-sm font-medium text-orange-500">Beställningsvara</p>
+                              )
+                            ) : (
+                              <p className="text-sm font-medium text-muted-foreground">Ej angivet</p>
+                            )}
+                          </div>
+
+                          {/* Lead Time */}
+                          <div className="text-center p-3 bg-background rounded-lg">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Leveranstid</p>
+                            {suggestion.wine.ledtid_dagar ? (
+                              <p className="text-lg font-bold text-foreground">{suggestion.wine.ledtid_dagar} dagar</p>
+                            ) : suggestion.supplier.normalleveranstid_dagar ? (
+                              <p className="text-lg font-bold text-foreground">{suggestion.supplier.normalleveranstid_dagar} dagar</p>
+                            ) : (
+                              <p className="text-sm font-medium text-muted-foreground">Ej angivet</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* MOQ Warning Banner */}
+                        {isBelowMoq && (
+                          <div className="mt-3 p-3 bg-orange-100 border border-orange-300 rounded-lg">
+                            <p className="text-sm text-orange-800 font-medium flex items-center gap-2">
+                              <AlertCircle className="h-4 w-4" />
+                              Du sökte {requestedQuantity} fl, men minsta order är {moq} fl
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Matching score - smaller */}
+                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Matchning</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-24 bg-muted rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className="bg-primary h-full rounded-full"
+                                style={{ width: `${suggestion.ranking_score * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-muted-foreground">
+                              {Math.round(suggestion.ranking_score * 100)}%
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
 
                   {/* Expandable Wine Details */}
                   <div className="mb-6">
