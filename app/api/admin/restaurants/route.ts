@@ -40,9 +40,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all restaurants
+    // Note: Only select columns that exist in the table
     const { data: restaurants, error: restaurantsError } = await supabase
       .from('restaurants')
-      .select('id, name, org_number, address, city, postal_code, country, created_at')
+      .select('*')
       .order('name', { ascending: true });
 
     if (restaurantsError) {
@@ -74,11 +75,11 @@ export async function GET(request: NextRequest) {
       return {
         id: restaurant.id,
         name: restaurant.name,
-        orgNumber: restaurant.org_number,
-        address: restaurant.address,
-        city: restaurant.city,
-        postalCode: restaurant.postal_code,
-        country: restaurant.country,
+        orgNumber: restaurant.org_number || null,
+        address: restaurant.address || null,
+        city: restaurant.city || null,
+        postalCode: restaurant.postal_code || null,
+        country: restaurant.country || null,
         createdAt: restaurant.created_at,
         stats: {
           userCount: users.length,
