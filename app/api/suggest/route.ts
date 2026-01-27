@@ -87,18 +87,31 @@ export async function POST(request: NextRequest) {
     const effectiveBudgetMax = budget_max || budget_per_flaska || 500; // Default 500 SEK
     const effectiveCertifications = certifications || specialkrav;
 
-    // Use authenticated user's restaurant
-    const restaurantId = actor.restaurant_id;
+    // Use authenticated user's restaurant, or fallback for admins
+    let restaurantId = actor.restaurant_id;
 
     // Save request to database - REQUIRED for dispatch to work
     let request_id: string;
 
+    // Admins can create requests without being linked to a restaurant (for testing)
     if (!restaurantId) {
-      console.error('No restaurant_id for user:', userId);
-      return NextResponse.json(
-        { error: 'Du måste vara kopplad till en restaurang för att skapa förfrågningar' },
-        { status: 400 }
-      );
+      if (actorService.hasRole(actor, 'ADMIN')) {
+        // Admin fallback: use any existing restaurant for testing
+        restaurantId = await getAnyRestaurant();
+        if (!restaurantId) {
+          return NextResponse.json(
+            { error: 'Ingen restaurang finns i systemet. Skapa en restaurang först.' },
+            { status: 400 }
+          );
+        }
+        console.log('Admin using fallback restaurant:', restaurantId);
+      } else {
+        console.error('No restaurant_id for user:', userId);
+        return NextResponse.json(
+          { error: 'Du måste vara kopplad till en restaurang för att skapa förfrågningar' },
+          { status: 400 }
+        );
+      }
     }
 
     const { data: savedRequest, error: requestError } = await getSupabaseAdmin()
