@@ -13,12 +13,12 @@ import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send, Plus,
 // Wine color options - matches database enum (wine_color)
 // Valid values: red, white, rose, sparkling, orange, fortified
 const WINE_COLORS = [
-  { value: 'all', label: 'Alla typer', emoji: '🍷' },
-  { value: 'sparkling', label: 'Mousserande', emoji: '🍾' },
+  { value: 'all', label: 'Alla typer', emoji: '🍇' },
+  { value: 'red', label: 'Rött', emoji: '🍷' },
   { value: 'white', label: 'Vitt', emoji: '🥂' },
   { value: 'rose', label: 'Rosé', emoji: '🌸' },
+  { value: 'sparkling', label: 'Mousserande', emoji: '🍾' },
   { value: 'orange', label: 'Orange', emoji: '🍊' },
-  { value: 'red', label: 'Rött', emoji: '🍷' },
   { value: 'fortified', label: 'Starkvin', emoji: '🥃' },
 ] as const;
 
