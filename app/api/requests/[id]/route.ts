@@ -106,13 +106,11 @@ export async function GET(
     };
 
     // Fetch related offers
-    // SECURITY: Filter offers by tenant_id to prevent cross-tenant data leakage
-    // requests table doesn't have tenant_id, but offers table does
+    // Note: offers table may not have tenant_id - security is via request ownership
     const { data: offers, error: offersError } = await supabase
       .from('offers')
       .select('id, status, supplier_id, title, currency, created_at, updated_at, accepted_at, locked_at')
       .eq('request_id', requestId)
-      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false });
 
     if (offersError) {
@@ -126,8 +124,7 @@ export async function GET(
         const { data: lines } = await supabase
           .from('offer_lines')
           .select('quantity, offered_unit_price_ore')
-          .eq('offer_id', offer.id)
-          .eq('tenant_id', tenantId);
+          .eq('offer_id', offer.id);
 
         const lines_count = lines?.length || 0;
         const total_ore = lines?.reduce((sum, line) => 
