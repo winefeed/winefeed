@@ -60,12 +60,67 @@ export async function POST(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Verify restaurant ownership of the offer
+    // Load offer first to check existence and ownership
+    // Note: offers table doesn't have tenant_id, get restaurant via request
+    const { data: existingOffer, error: offerError } = await supabase
+      .from('offers')
+      .select(`
+        id,
+        request_id,
+        supplier_id,
+        status,
+        requests!inner (
+          id,
+          restaurant_id
+        )
+      `)
+      .eq('id', offerId)
+      .single();
+
+    if (offerError || !existingOffer) {
+      if (offerError?.code === 'PGRST116') {
+        return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
+      }
+      return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
+    }
+
+    // Get restaurant_id from the related request
+    const requestData = existingOffer.requests as { id: string; restaurant_id: string };
+    const offerRestaurantId = requestData?.restaurant_id;
+
+    // Verify restaurant ownership of the offer (non-admin only)
     if (!actorService.hasRole(actor, 'ADMIN')) {
-      const existingOffer = await offerService.getOffer(tenantId, offerId);
-      if (!existingOffer || existingOffer.offer.restaurant_id !== actor.restaurant_id) {
+      if (offerRestaurantId !== actor.restaurant_id) {
         return NextResponse.json({ error: 'Access denied' }, { status: 403 });
       }
+    }
+
+    // Validate assignment is valid and not expired
+    const { data: assignment, error: assignmentError } = await supabase
+      .from('quote_request_assignments')
+      .select('id, status, expires_at')
+      .eq('quote_request_id', existingOffer.request_id)
+      .eq('supplier_id', existingOffer.supplier_id)
+      .single();
+
+    if (assignmentError || !assignment) {
+      return NextResponse.json(
+        { error: 'No valid assignment found for this offer. Only offers from assigned suppliers can be accepted.' },
+        { status: 403 }
+      );
+    }
+
+    // Check if assignment has expired
+    if (assignment.status === 'EXPIRED' ||
+        (assignment.expires_at && new Date(assignment.expires_at) < new Date())) {
+      return NextResponse.json(
+        {
+          errorCode: 'OFFER_EXPIRED',
+          error: 'This offer has expired and cannot be accepted.',
+          details: 'The supplier assignment window has closed.'
+        },
+        { status: 403 }
+      );
     }
 
     // Accept offer via service (lock + snapshot + event)

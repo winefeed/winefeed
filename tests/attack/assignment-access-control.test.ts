@@ -148,11 +148,15 @@ describe('Assignment Access Control (Attack Tests)', () => {
       .single();
     testQuoteRequest_Assigned_Id = requestAssigned!.id;
 
-    // Dispatch to Supplier A
-    await fetch(`http://localhost:3000/api/quote-requests/${testQuoteRequest_Assigned_Id}/dispatch`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ maxMatches: 10, minScore: 0 }),
+    // Create valid assignment for Supplier A (manually to ensure it exists)
+    await supabase.from('quote_request_assignments').insert({
+      quote_request_id: testQuoteRequest_Assigned_Id,
+      supplier_id: testSupplierA_Id,
+      status: 'SENT',
+      sent_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48h from now
+      match_score: 80,
+      match_reasons: ['Test assignment'],
     });
 
     // Create quote request that will NOT be dispatched (no assignments)
