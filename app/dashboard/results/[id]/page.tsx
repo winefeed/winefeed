@@ -838,16 +838,17 @@ export default function ResultsPage() {
                                   <Info className="h-3.5 w-3.5 text-muted-foreground/60" />
                                 </button>
                                 {openTooltip === suggestion.wine.id && (
-                                  <div className="absolute bottom-full left-0 mb-2 z-10 w-64">
-                                    <div className="bg-foreground text-background text-xs p-3 rounded-lg shadow-lg">
+                                  <div className="absolute top-full left-0 mt-2 z-50 w-64">
+                                    <div className="bg-gray-900 text-white text-xs p-3 rounded-lg shadow-xl border border-gray-700">
+                                      <div className="absolute -top-1.5 left-3 w-3 h-3 bg-gray-900 border-l border-t border-gray-700 rotate-45"></div>
                                       <p className="font-medium mb-2">Så beräknas matchningen:</p>
-                                      <ul className="space-y-1 text-background/90">
+                                      <ul className="space-y-1 text-gray-300">
                                         <li>• Vintyp (rött/vitt etc)</li>
                                         <li>• Land/region matchar</li>
                                         <li>• Druva/stil passar</li>
                                         <li>• Certifieringar (eko etc)</li>
                                       </ul>
-                                      <p className="mt-2 text-background/70 text-[10px]">
+                                      <p className="mt-2 text-gray-400 text-[10px]">
                                         OBS: Lägre pris än budget är positivt!
                                       </p>
                                     </div>
