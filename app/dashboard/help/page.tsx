@@ -52,7 +52,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     category: 'Sök & Beställ',
     question: 'Är offertförfrågan bindande?',
-    answer: 'Nej! En offertförfrågan är aldrig bindande. Du ber bara leverantörerna om prisuppgift. När du får offerter kan du i lugn och ro jämföra, förhandla eller tacka nej - helt utan förpliktelser.',
+    answer: 'Nej, absolut inte! En offertförfrågan innebär inget köpåtagande. Du väljer själv fritt bland leverantörernas offerter och förbinder dig först när du aktivt klickar "Acceptera offert". Innan dess kan du jämföra, fundera, eller helt enkelt tacka nej utan några förpliktelser.',
   },
   {
     category: 'Förfrågningar',
@@ -62,7 +62,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     category: 'Förfrågningar',
     question: 'Hur många leverantörer får min förfrågan?',
-    answer: 'Winefeed matchar din förfrågan mot lämpliga leverantörer baserat på deras sortiment. Vanligtvis skickas förfrågan till 3-10 relevanta leverantörer.',
+    answer: 'Winefeed matchar din förfrågan mot lämpliga leverantörer baserat på deras sortiment. Vanligtvis skickas förfrågan till 3-10 relevanta leverantörer. Kom ihåg: du förbinder dig inte till något köp förrän du aktivt accepterar en offert!',
   },
   {
     category: 'Offerter',
