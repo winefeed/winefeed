@@ -34,9 +34,13 @@ interface Wine {
 }
 
 interface Supplier {
+  id?: string;
   namn: string;
   kontakt_email: string;
   normalleveranstid_dagar?: number;
+  min_order_bottles?: number;
+  provorder_enabled?: boolean;
+  provorder_fee_sek?: number;
 }
 
 interface MarketData {
@@ -84,6 +88,7 @@ export default function ResultsPage() {
   const [wineQuantities, setWineQuantities] = useState<Record<string, number>>({});
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
   const [justAdjustedToMoq, setJustAdjustedToMoq] = useState<string | null>(null);
+  const [provorderWines, setProvorderWines] = useState<Set<string>>(new Set());
 
   // Draft list (Spara till lista)
   const draftList = useDraftList();
@@ -802,22 +807,78 @@ export default function ResultsPage() {
                         {/* MOQ Warning Banner with Action */}
                         {isBelowMoq && (
                           <div className="mt-3 p-3 bg-orange-100 border border-orange-300 rounded-lg">
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-sm text-orange-800 font-medium flex items-center gap-2">
-                                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                                Minsta order är {moq} flaskor
-                              </p>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
-                                }}
-                                className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
-                              >
-                                Ändra till {moq} fl
-                              </button>
-                            </div>
+                            {provorderWines.has(suggestion.wine.id) ? (
+                              // Provorder accepted - show confirmation
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm text-green-700 font-medium flex items-center gap-2">
+                                  <Check className="h-4 w-4 flex-shrink-0" />
+                                  Provorder valt (+{suggestion.supplier.provorder_fee_sek || 500} kr avgift)
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setProvorderWines(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.delete(suggestion.wine.id);
+                                      return newSet;
+                                    });
+                                  }}
+                                  className="px-3 py-1.5 bg-gray-500 text-white text-xs font-medium rounded-lg hover:bg-gray-600 transition-colors whitespace-nowrap"
+                                >
+                                  Ångra
+                                </button>
+                              </div>
+                            ) : (
+                              // Show MOQ warning with options
+                              <div>
+                                <div className="flex items-center justify-between gap-3">
+                                  <p className="text-sm text-orange-800 font-medium flex items-center gap-2">
+                                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                    Minsta order är {moq} flaskor
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
+                                    }}
+                                    className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
+                                  >
+                                    Ändra till {moq} fl
+                                  </button>
+                                </div>
+                                {/* Provorder option */}
+                                {suggestion.supplier.provorder_enabled && (
+                                  <div className="mt-3 pt-3 border-t border-orange-200">
+                                    <div className="flex items-center justify-between gap-3">
+                                      <div>
+                                        <p className="text-sm text-orange-900 font-medium">
+                                          Eller beställ som provorder
+                                        </p>
+                                        <p className="text-xs text-orange-700 mt-0.5">
+                                          Beställ {qty} fl med en extra avgift på {suggestion.supplier.provorder_fee_sek || 500} kr
+                                        </p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setProvorderWines(prev => {
+                                            const newSet = new Set(prev);
+                                            newSet.add(suggestion.wine.id);
+                                            return newSet;
+                                          });
+                                        }}
+                                        className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
+                                      >
+                                        Välj provorder
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -881,9 +942,11 @@ export default function ResultsPage() {
                             const tags: string[] = [];
                             const wine = suggestion.wine;
 
-                            // Color
+                            // Color (try multiple formats)
                             if (wine.color && COLOR_LABELS[wine.color]) {
                               tags.push(COLOR_LABELS[wine.color].label);
+                            } else if (wine.color && COLOR_LABELS[wine.color.toLowerCase()]) {
+                              tags.push(COLOR_LABELS[wine.color.toLowerCase()].label);
                             }
 
                             // Region/Country
@@ -891,6 +954,11 @@ export default function ResultsPage() {
                               tags.push(wine.region);
                             } else if (wine.land) {
                               tags.push(wine.land);
+                            }
+
+                            // Grape variety (if no region)
+                            if (tags.length < 2 && wine.druva) {
+                              tags.push(wine.druva.split(',')[0].trim()); // First grape only
                             }
 
                             // Price vs budget
@@ -904,6 +972,11 @@ export default function ResultsPage() {
                             if (wine.ekologisk) tags.push('eko');
                             if (wine.biodynamiskt) tags.push('biodynamisk');
 
+                            // Fallback: use producer if still no tags
+                            if (tags.length === 0 && wine.producent) {
+                              tags.push(wine.producent);
+                            }
+
                             const isGoodMatch = suggestion.ranking_score >= 0.8;
 
                             return (
@@ -915,7 +988,7 @@ export default function ResultsPage() {
                                   <span className={`text-xs ${isGoodMatch ? 'text-green-600' : 'text-muted-foreground'}`}>
                                     {tags.join(' · ')}
                                   </span>
-                                ) : suggestion.motivering ? (
+                                ) : suggestion.motivering && !suggestion.motivering.includes('Baserat på dina kriterier') ? (
                                   <span className={`text-xs ${
                                     isGoodMatch ? 'text-green-600' :
                                     suggestion.ranking_score >= 0.6 ? 'text-muted-foreground' :
@@ -1084,6 +1157,9 @@ export default function ResultsPage() {
                       const qty = getWineQuantity(suggestion.wine.id, moq);
                       const isSaved = draftList.hasItem(suggestion.wine.id);
                       const isBelowMoq = moq > 0 && qty < moq;
+                      const hasProvorder = provorderWines.has(suggestion.wine.id);
+                      const canAddToList = !isBelowMoq || hasProvorder;
+                      const provorderFee = suggestion.supplier.provorder_fee_sek || 500;
 
                       return (
                         <div className="flex flex-col items-end gap-1">
@@ -1103,7 +1179,7 @@ export default function ResultsPage() {
                                   <span className={`w-10 text-center text-sm font-medium transition-colors ${
                                     justAdjustedToMoq === suggestion.wine.id
                                       ? 'text-green-600 bg-green-100 rounded px-1'
-                                      : isBelowMoq ? 'text-orange-600' : ''
+                                      : isBelowMoq && !hasProvorder ? 'text-orange-600' : ''
                                   }`}>
                                     {qty}
                                   </span>
@@ -1117,9 +1193,14 @@ export default function ResultsPage() {
                                     <Plus className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
-                                {moq > 0 && (
+                                {moq > 0 && !hasProvorder && (
                                   <span className={`text-xs mt-0.5 ${isBelowMoq ? 'text-orange-600 font-medium' : 'text-muted-foreground'}`}>
                                     Min. {moq} fl
+                                  </span>
+                                )}
+                                {hasProvorder && (
+                                  <span className="text-xs mt-0.5 text-green-600 font-medium">
+                                    Provorder
                                   </span>
                                 )}
                               </div>
@@ -1129,7 +1210,7 @@ export default function ResultsPage() {
                                 e.stopPropagation();
                                 if (isSaved) {
                                   draftList.removeItem(suggestion.wine.id);
-                                } else if (!isBelowMoq) {
+                                } else if (canAddToList) {
                                   draftList.addItem({
                                     wine_id: suggestion.wine.id,
                                     wine_name: suggestion.wine.namn,
@@ -1138,30 +1219,39 @@ export default function ResultsPage() {
                                     region: suggestion.wine.region,
                                     vintage: suggestion.wine.argang,
                                     color: suggestion.wine.color,
-                                    supplier_id: suggestion.supplier.namn,
+                                    supplier_id: suggestion.supplier.id || suggestion.supplier.namn,
                                     supplier_name: suggestion.supplier.namn,
                                     quantity: qty,
                                     moq: moq,
                                     price_sek: suggestion.wine.pris_sek,
                                     stock: suggestion.wine.lager,
                                     lead_time_days: suggestion.wine.ledtid_dagar || suggestion.supplier.normalleveranstid_dagar,
+                                    provorder: hasProvorder,
+                                    provorder_fee: hasProvorder ? provorderFee : undefined,
                                   });
                                 }
                               }}
-                              disabled={!isSaved && isBelowMoq}
+                              disabled={!isSaved && !canAddToList}
                               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                 isSaved
                                   ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                  : isBelowMoq
+                                  : !canAddToList
                                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : hasProvorder
+                                  ? 'bg-green-600 text-white hover:bg-green-700'
                                   : 'bg-amber-500 text-white hover:bg-amber-600'
                               }`}
-                              title={isSaved ? 'Ta bort från din lista' : isBelowMoq ? `Öka till minst ${moq} fl` : 'Lägg till i din lista'}
+                              title={isSaved ? 'Ta bort från din lista' : !canAddToList ? `Öka till minst ${moq} fl eller välj provorder` : hasProvorder ? `Lägg till som provorder (+${provorderFee} kr)` : 'Lägg till i din lista'}
                             >
                               {isSaved ? (
                                 <>
                                   <Check className="h-4 w-4" />
                                   I din lista ({qty} fl)
+                                </>
+                              ) : hasProvorder ? (
+                                <>
+                                  <ListPlus className="h-4 w-4" />
+                                  Provorder +{provorderFee} kr
                                 </>
                               ) : (
                                 <>
@@ -1171,18 +1261,35 @@ export default function ResultsPage() {
                               )}
                             </button>
                           </div>
-                          {!isSaved && isBelowMoq && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
-                                setJustAdjustedToMoq(suggestion.wine.id);
-                                setTimeout(() => setJustAdjustedToMoq(null), 1500);
-                              }}
-                              className="text-xs text-orange-600 hover:text-orange-700 underline"
-                            >
-                              Ändra till {moq} fl
-                            </button>
+                          {!isSaved && isBelowMoq && !hasProvorder && (
+                            <div className="flex flex-col items-end gap-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
+                                  setJustAdjustedToMoq(suggestion.wine.id);
+                                  setTimeout(() => setJustAdjustedToMoq(null), 1500);
+                                }}
+                                className="text-xs text-orange-600 hover:text-orange-700 underline"
+                              >
+                                Ändra till {moq} fl
+                              </button>
+                              {suggestion.supplier.provorder_enabled && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setProvorderWines(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.add(suggestion.wine.id);
+                                      return newSet;
+                                    });
+                                  }}
+                                  className="text-xs text-green-600 hover:text-green-700 underline"
+                                >
+                                  Eller provorder (+{provorderFee} kr)
+                                </button>
+                              )}
+                            </div>
                           )}
                           {justAdjustedToMoq === suggestion.wine.id && (
                             <span className="text-xs text-green-600 font-medium animate-pulse">

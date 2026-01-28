@@ -21,6 +21,9 @@ export interface DraftWineItem {
   stock?: number;
   lead_time_days?: number;
   added_at: string;
+  // Provorder fields
+  provorder?: boolean;
+  provorder_fee?: number;
 }
 
 export interface DraftList {
@@ -177,10 +180,10 @@ export const draftStorage = {
       }
     }
 
-    // Beräkna MOQ-status per grupp
+    // Beräkna MOQ-status per grupp (provorder-viner räknas alltid som OK)
     for (const [, group] of grouped) {
       group.meets_moq = group.items.every(item =>
-        item.moq === 0 || item.quantity >= item.moq
+        item.moq === 0 || item.quantity >= item.moq || item.provorder === true
       );
     }
 

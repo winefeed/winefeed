@@ -149,6 +149,8 @@ interface QuoteRequest {
   };
   myOfferCount: number;
   totalOfferCount: number;
+  hasProvorder?: boolean;
+  provorderFeeTotal?: number;
 }
 
 export default function SupplierRequestsPage() {
@@ -692,6 +694,15 @@ export default function SupplierRequestsPage() {
                           </>
                         )}
                       </div>
+
+                      {/* Provorder badge */}
+                      {request.hasProvorder && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                            Provorder +{request.provorderFeeTotal} kr
+                          </span>
+                        </div>
+                      )}
 
                       {/* Delivery location - important for shipping calculation */}
                       {request.leveransOrt && (

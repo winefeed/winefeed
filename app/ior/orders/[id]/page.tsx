@@ -167,7 +167,7 @@ function ComplianceCardSection({
       />
 
       {/* Import Case Details */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Import Case Detaljer</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -180,7 +180,7 @@ function ComplianceCardSection({
             <p className="text-xs text-gray-600 mb-2">ID: {order.import_case.id.substring(0, 8)}...</p>
             <a
               href={`/imports/${order.import_case.id}`}
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-[#7B1E1E] hover:underline"
             >
               → Visa import case
             </a>
@@ -555,10 +555,11 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Laddar order...</p>
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
@@ -566,18 +567,18 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
 
   if (error && !orderDetail) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
+      <div className="p-6">
+        <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg border border-red-200">
           <div className="text-center">
-            <span className="text-6xl mb-4 block">⚠️</span>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
+            <span className="text-5xl mb-4 block">⚠️</span>
+            <h2 className="text-xl font-bold text-red-600 mb-2">Fel</h2>
             <p className="text-gray-600 mb-4">{error}</p>
-            <div className="flex gap-3 justify-center">
+            <div className="flex gap-3 justify-center flex-wrap">
               <button
                 onClick={() => router.push('/ior/orders')}
-                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
               >
-                ← Tillbaka till lista
+                ← Tillbaka
               </button>
               <button
                 onClick={() => {
@@ -588,18 +589,10 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                     fetchOrderDetail();
                   }
                 }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-sm"
               >
-                🔄 Försök igen
+                Försök igen
               </button>
-              {error.includes('IOR-behörighet') && (
-                <button
-                  onClick={() => router.push('/dashboard')}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Dashboard →
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -615,63 +608,53 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
   const nextStatusOptions = getNextStatusOptions(order.status);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.push('/ior/orders')}
-                className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm"
-              >
-                ← Tillbaka
-              </button>
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold tracking-tight">
-                    Order {formatOrderId(orderId, order.created_at)}
-                  </h1>
-                  <OrderStatusBadge status={order.status} size="md" />
-                </div>
-                <p className="text-sm text-white/80">
-                  {order.restaurant?.name || 'Okänd restaurang'} → {order.supplier?.namn || 'Okänd leverantör'}
-                </p>
-              </div>
-            </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push('/ior/orders')}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            ← Tillbaka
+          </button>
+          <div>
             <div className="flex items-center gap-3">
-              {/* Status actions in header */}
-              {nextStatusOptions.length > 0 && (
-                <div className="flex gap-2">
-                  {nextStatusOptions.map(status => (
-                    <button
-                      key={status}
-                      onClick={() => updateOrderStatus(status)}
-                      disabled={updating}
-                      className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
-                        status === 'CANCELLED'
-                          ? 'bg-red-500/80 hover:bg-red-500 text-white'
-                          : 'bg-white text-blue-600 hover:bg-white/90'
-                      }`}
-                    >
-                      {updating ? '...' : `→ ${getStatusLabel(status)}`}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <button
-                onClick={() => router.push('/supplier')}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                Supplier Portal
-              </button>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Order {formatOrderId(orderId, order.created_at)}
+              </h1>
+              <OrderStatusBadge status={order.status} size="md" />
             </div>
+            <p className="text-sm text-gray-500 mt-1">
+              {order.restaurant?.name || 'Okänd restaurang'} → {order.supplier?.namn || 'Okänd leverantör'}
+            </p>
           </div>
         </div>
-      </header>
+        <div className="flex items-center gap-3">
+          {/* Status actions */}
+          {nextStatusOptions.length > 0 && (
+            <div className="flex gap-2">
+              {nextStatusOptions.map(status => (
+                <button
+                  key={status}
+                  onClick={() => updateOrderStatus(status)}
+                  disabled={updating}
+                  className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+                    status === 'CANCELLED'
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-[#7B1E1E] text-white hover:bg-[#6B1818]'
+                  }`}
+                >
+                  {updating ? '...' : `→ ${getStatusLabel(status)}`}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      <div className="space-y-6">
         {/* Success/Error Messages */}
         {updateSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-green-800">
@@ -686,7 +669,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
         )}
 
         {/* Order Summary */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Order Summary</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -728,7 +711,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
             {/* IOR Info */}
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">Importer-of-Record</h3>
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="bg-[#7B1E1E]/5 p-4 rounded-lg border border-[#7B1E1E]/20">
                 <p className="font-bold text-lg">
                   {order.importer?.legal_name || order.importer?.name || '⚠️ IOR saknas'}
                 </p>
@@ -780,7 +763,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
             formatDate={formatDate}
           />
         ) : (
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Compliance & Import Case</h2>
             <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
               <span className="text-5xl mb-3 block">📦</span>
@@ -806,7 +789,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
 
         {/* Status Update Actions */}
         {nextStatusOptions.length > 0 && (
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Uppdatera Status</h2>
             <div className="flex gap-3">
               {nextStatusOptions.map(status => (
@@ -814,7 +797,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                   key={status}
                   onClick={() => updateOrderStatus(status)}
                   disabled={updating}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                  className="px-6 py-3 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                   {updating ? 'Uppdaterar...' : `→ ${getStatusLabel(status)}`}
                 </button>
@@ -824,7 +807,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
         )}
 
         {/* Order Lines */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">Order Rader ({lines.length})</h2>
             {getLinesNeedingAction().length > 0 && (
@@ -983,7 +966,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
         />
 
         {/* Events Timeline */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Event Timeline ({events.length})</h2>
           <div className="space-y-4">
             {events.length === 0 ? (
@@ -992,7 +975,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
               events.map((event, index) => (
                 <div key={event.id} className="flex gap-4">
                   <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-[#7B1E1E] rounded-full"></div>
                     {index < events.length - 1 && <div className="w-0.5 h-full bg-gray-300 mt-1"></div>}
                   </div>
                   <div className="flex-1 pb-4">
@@ -1017,7 +1000,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

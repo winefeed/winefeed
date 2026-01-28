@@ -309,6 +309,17 @@ export const SUPPLIER_NAVIGATION: NavSection[] = [
     ],
   },
   {
+    title: 'IOR',
+    items: [
+      {
+        label: 'IOR Ordrar',
+        href: '/ior/orders',
+        icon: Globe,
+        roles: ['IOR', 'ADMIN'],
+      },
+    ],
+  },
+  {
     title: 'Synlighet',
     items: [
       {

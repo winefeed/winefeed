@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
-import { SUPPLIER_NAVIGATION } from '@/lib/navigation';
+import { SUPPLIER_NAVIGATION, getNavigationForRoles } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import type { ActorRole } from '@/lib/actor-service';
 import { NotificationBell } from '@/components/supplier/NotificationBell';
@@ -111,7 +111,7 @@ export function SupplierShell({ children }: SupplierShellProps) {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar
-        sections={SUPPLIER_NAVIGATION}
+        sections={getNavigationForRoles(SUPPLIER_NAVIGATION, supplier?.roles || ['SELLER'])}
         userEmail={supplier?.userEmail}
         userRoles={supplier?.roles || ['SELLER']}
         isAdmin={false}

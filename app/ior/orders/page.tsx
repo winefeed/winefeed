@@ -212,10 +212,11 @@ export default function IOROrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Laddar orders...</p>
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-12 bg-gray-200 rounded"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
@@ -223,11 +224,11 @@ export default function IOROrdersPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
+      <div className="p-6">
+        <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg border border-red-200">
           <div className="text-center">
-            <span className="text-6xl mb-4 block">⚠️</span>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
+            <span className="text-5xl mb-4 block">⚠️</span>
+            <h2 className="text-xl font-bold text-red-600 mb-2">Fel</h2>
             <p className="text-gray-600 mb-4">{error}</p>
             <div className="flex gap-3 justify-center">
               <button
@@ -235,14 +236,14 @@ export default function IOROrdersPage() {
                   setError(null);
                   fetchActor();
                 }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-sm"
               >
-                🔄 Försök igen
+                Försök igen
               </button>
               {error.includes('IOR-behörighet') && (
                 <button
-                  onClick={() => router.push('/dashboard')}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  onClick={() => router.push('/supplier')}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
                 >
                   ← Tillbaka
                 </button>
@@ -255,54 +256,33 @@ export default function IOROrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">📦</span>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">IOR Orders</h1>
-                <p className="text-sm text-white/80">Importer-of-Record Fulfillment Console</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => router.push('/supplier')}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                ← Supplier Portal
-              </button>
-              <button
-                onClick={() => router.push('/supplier/orders')}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                Mina försäljningar
-              </button>
-              <button
-                onClick={fetchOrders}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                🔄 Refresh
-              </button>
-            </div>
-          </div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">IOR Ordrar</h1>
+          <p className="text-gray-500 mt-1">Importer-of-Record - hantera orderflöden</p>
         </div>
-      </header>
+        <button
+          onClick={fetchOrders}
+          className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Uppdatera
+        </button>
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <div>
         {/* Status Filter */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
           {['ALL', 'CONFIRMED', 'IN_FULFILLMENT', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map(status => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                 statusFilter === status
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  ? 'bg-[#7B1E1E] text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               {status === 'ALL' ? 'Alla' : getStatusLabel(status)}
@@ -318,7 +298,7 @@ export default function IOROrdersPage() {
               placeholder="Sök på restaurang, leverantör eller ordernummer..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
             />
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
             {searchQuery && (
@@ -333,10 +313,10 @@ export default function IOROrdersPage() {
         </div>
 
         {/* Orders List */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-800">
-              Orders ({filteredOrders.length}{searchQuery && ` av ${orders.length}`})
+            <h2 className="text-lg font-semibold text-gray-900">
+              Ordrar ({filteredOrders.length}{searchQuery && ` av ${orders.length}`})
             </h2>
           </div>
 
@@ -349,10 +329,10 @@ export default function IOROrdersPage() {
               {(statusFilter !== 'ALL' || searchQuery) && (
                 <p className="text-gray-400 text-sm mt-2">
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className="text-blue-600 underline mr-2">Rensa sökning</button>
+                    <button onClick={() => setSearchQuery('')} className="text-[#7B1E1E] underline mr-2">Rensa sökning</button>
                   )}
                   {statusFilter !== 'ALL' && (
-                    <button onClick={() => setStatusFilter('ALL')} className="text-blue-600 underline">Visa alla statusar</button>
+                    <button onClick={() => setStatusFilter('ALL')} className="text-[#7B1E1E] underline">Visa alla statusar</button>
                   )}
                 </p>
               )}
@@ -376,7 +356,7 @@ export default function IOROrdersPage() {
                   {filteredOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/ior/orders/${order.id}`)}>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-blue-600">{formatOrderId(order)}</div>
+                        <div className="font-medium text-[#7B1E1E]">{formatOrderId(order)}</div>
                         <div className="text-xs text-gray-400">{order.total_lines} rad{order.total_lines !== 1 ? 'er' : ''}</div>
                       </td>
                       <td className="px-4 py-3">
@@ -404,7 +384,7 @@ export default function IOROrdersPage() {
                             e.stopPropagation();
                             router.push(`/ior/orders/${order.id}`);
                           }}
-                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs font-medium"
+                          className="px-3 py-1.5 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-xs font-medium"
                         >
                           Visa →
                         </button>
@@ -416,7 +396,7 @@ export default function IOROrdersPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

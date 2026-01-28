@@ -222,6 +222,20 @@ export async function GET(
       myOfferMap.set(offer.request_id, count + 1);
     });
 
+    // Step 5b: Get request items (wines) for this supplier
+    const { data: requestItems } = await supabase
+      .from('request_items')
+      .select('*')
+      .in('request_id', quoteRequestIds)
+      .eq('supplier_id', supplierId);
+
+    const requestItemsMap = new Map<string, typeof requestItems>();
+    (requestItems || []).forEach(item => {
+      const existing = requestItemsMap.get(item.request_id) || [];
+      existing.push(item);
+      requestItemsMap.set(item.request_id, existing);
+    });
+
     // Step 6: Combine data
     const assignmentMap = new Map(
       assignments.map(a => [a.quote_request_id, a])
@@ -230,6 +244,13 @@ export async function GET(
     const transformedRequests = requests.map(req => {
       const assignment = assignmentMap.get(req.id)!;
       const isExpired = new Date(assignment.expires_at) < new Date();
+
+      // Get items for this request
+      const items = requestItemsMap.get(req.id) || [];
+      const hasProvorder = items.some(i => i.provorder);
+      const provorderFeeTotal = items
+        .filter(i => i.provorder)
+        .reduce((sum, i) => sum + (i.provorder_fee || 500), 0);
 
       return {
         id: req.id,
@@ -255,6 +276,24 @@ export async function GET(
         },
         myOfferCount: myOfferMap.get(req.id) || 0,
         totalOfferCount: totalOfferMap.get(req.id) || 0,
+        // Request items with provorder info
+        items: items.map(i => ({
+          id: i.id,
+          wineId: i.wine_id,
+          wineName: i.wine_name,
+          producer: i.producer,
+          country: i.country,
+          region: i.region,
+          vintage: i.vintage,
+          color: i.color,
+          quantity: i.quantity,
+          priceSek: i.price_sek ? Math.round(i.price_sek / 100) : null, // Convert from öre
+          moq: i.moq,
+          provorder: i.provorder || false,
+          provorderFee: i.provorder_fee,
+        })),
+        hasProvorder,
+        provorderFeeTotal,
       };
     });
 
