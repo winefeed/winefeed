@@ -3,8 +3,9 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
+import { useDraftList } from '@/lib/hooks/useDraftList';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, ListPlus, ShoppingCart, Check, Info, Minus, Plus } from 'lucide-react';
 
 interface Wine {
   id: string;
@@ -78,6 +79,26 @@ export default function ResultsPage() {
   const [offersCount, setOffersCount] = useState(0);
   const [newOffersCount, setNewOffersCount] = useState(0);
   const [requestedQuantity, setRequestedQuantity] = useState<number | null>(null);
+  const [wineQuantities, setWineQuantities] = useState<Record<string, number>>({});
+
+  // Draft list (Spara till lista)
+  const draftList = useDraftList();
+
+  // Get quantity for a wine (default to requestedQuantity or MOQ or 6)
+  const getWineQuantity = (wineId: string, moq: number) => {
+    if (wineQuantities[wineId] !== undefined) return wineQuantities[wineId];
+    if (requestedQuantity && requestedQuantity > 0) return requestedQuantity;
+    if (moq > 0) return moq;
+    return 6;
+  };
+
+  const updateWineQuantity = (wineId: string, delta: number, moq: number) => {
+    setWineQuantities(prev => {
+      const current = getWineQuantity(wineId, moq);
+      const newQty = Math.max(1, current + delta);
+      return { ...prev, [wineId]: newQty };
+    });
+  };
 
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
@@ -287,9 +308,17 @@ export default function ResultsPage() {
     return suggestions.filter(s => selectedWines.has(s.wine.id));
   }, [suggestions, selectedWines]);
 
+  // Calculate total value: price × quantity for each wine
   const totalEstimatedValue = useMemo(() => {
-    return selectedWineDetails.reduce((sum, s) => sum + s.wine.pris_sek, 0);
-  }, [selectedWineDetails]);
+    const qty = requestedQuantity || 1;
+    return selectedWineDetails.reduce((sum, s) => sum + (s.wine.pris_sek * qty), 0);
+  }, [selectedWineDetails, requestedQuantity]);
+
+  // Total bottles
+  const totalBottles = useMemo(() => {
+    const qty = requestedQuantity || 1;
+    return selectedWineDetails.length * qty;
+  }, [selectedWineDetails, requestedQuantity]);
 
   if (loading) {
     return (
@@ -317,6 +346,23 @@ export default function ResultsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {/* Min lista - med badge */}
+              <button
+                onClick={() => router.push('/dashboard/draft-list')}
+                className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 ${
+                  draftList.count > 0
+                    ? 'bg-amber-500 text-white hover:bg-amber-600'
+                    : 'bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30'
+                }`}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Min lista
+                {draftList.count > 0 && (
+                  <span className="px-2 py-0.5 bg-white text-amber-600 text-xs font-bold rounded-full">
+                    {draftList.count}
+                  </span>
+                )}
+              </button>
               <button
                 onClick={() => router.push('/dashboard/my-requests')}
                 className="px-4 py-2 bg-primary-foreground/20 text-primary-foreground rounded-lg hover:bg-primary-foreground/30 transition-colors text-sm font-medium"
@@ -350,12 +396,12 @@ export default function ResultsPage() {
         {/* Results Header */}
         <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-2 bg-secondary/20 text-secondary-foreground px-4 py-2 rounded-full mb-4">
-            <span className="text-2xl">✓</span>
-            <span className="font-medium">Din offert är klar</span>
+            <span className="text-2xl">🔍</span>
+            <span className="font-medium">Sökning klar</span>
           </div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Din vinoffert</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Dina sökresultat</h1>
           <p className="text-xl text-muted-foreground">
-            Vi hittade <span className="font-semibold text-foreground">{suggestions.length} {suggestions.length === 1 ? 'vin' : 'viner'}</span> för din restaurang
+            Vi hittade <span className="font-semibold text-foreground">{suggestions.length} matchande {suggestions.length === 1 ? 'vin' : 'viner'}</span> för din förfrågan
           </p>
         </div>
 
@@ -518,18 +564,32 @@ export default function ResultsPage() {
               </button>
             </div>
           ) : (
-            filteredSuggestions.map((suggestion, index) => (
+            filteredSuggestions.map((suggestion, index) => {
+              const isSelected = selectedWines.has(suggestion.wine.id);
+
+              return (
               <div
                 key={suggestion.wine.id}
-                className="bg-card border-2 border-border rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
+                className={`bg-card border-2 rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden ${
+                  isSelected ? 'border-green-500 bg-green-50/30' : 'border-border'
+                }`}
               >
-                {/* Card Header */}
-                <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-border">
+                {/* Card Header - Clickable to toggle selection */}
+                <div
+                  className={`px-6 py-4 border-b cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-green-100/50 border-green-200'
+                      : 'bg-gradient-to-r from-primary/5 to-accent/5 border-border hover:bg-primary/10'
+                  }`}
+                  onClick={() => toggleWineSelection(suggestion.wine.id)}
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
-                          {index + 1}
+                        <span className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                          isSelected ? 'bg-green-600 text-white' : 'bg-primary text-primary-foreground'
+                        }`}>
+                          {isSelected ? <Check className="h-4 w-4" /> : index + 1}
                         </span>
                         <h2 className="text-2xl font-bold text-foreground">
                           {suggestion.wine.namn}
@@ -544,6 +604,12 @@ export default function ResultsPage() {
                         {suggestion.wine.ekologisk && (
                           <span className="px-2 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-full">
                             🌱 Eko
+                          </span>
+                        )}
+                        {isSelected && (
+                          <span className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-full flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            I din offert
                           </span>
                         )}
                       </div>
@@ -571,28 +637,51 @@ export default function ResultsPage() {
                         )}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end gap-0.5">
                       <p className="text-3xl font-bold text-foreground">
                         {formatPrice(suggestion.wine.pris_sek)}
                       </p>
                       <p className="text-sm text-muted-foreground">per flaska</p>
+                      {(() => {
+                        const qty = requestedQuantity || suggestion.wine.moq || 6;
+                        return (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {qty} fl = <span className="font-medium text-foreground">{formatPrice(suggestion.wine.pris_sek * qty)}</span>
+                          </p>
+                        );
+                      })()}
+                      {isSelected && (
+                        <p className="text-xs text-green-600 font-medium mt-1">
+                          Klicka för att ta bort
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Card Body */}
+                {/* Card Body - Hidden when selected (compact view) */}
+                {!isSelected && (
                 <div className="p-6">
-                  {/* Order Info - MOQ, Stock, Lead Time */}
+                  {/* Order Info - Requested Qty, MOQ, Stock, Lead Time */}
                   {(() => {
                     const moq = suggestion.wine.moq || 0;
-                    const isBelowMoq = moq > 0 && requestedQuantity !== null && requestedQuantity < moq;
-                    const moqDiff = moq - (requestedQuantity || 0);
+                    const qty = requestedQuantity || 0;
+                    const isBelowMoq = moq > 0 && qty > 0 && qty < moq;
+                    const moqDiff = moq - qty;
                     const stock = suggestion.wine.lager;
-                    const isLowStock = stock !== undefined && stock !== null && requestedQuantity !== null && stock > 0 && stock < requestedQuantity;
+                    const isLowStock = stock !== undefined && stock !== null && qty > 0 && stock > 0 && stock < qty;
 
                     return (
                       <div className={`mb-6 p-4 rounded-xl border ${isBelowMoq ? 'bg-orange-50 border-orange-200' : 'bg-muted/30 border-border'}`}>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-4 gap-3">
+                          {/* Requested Quantity */}
+                          <div className="text-center p-3 bg-primary/10 rounded-lg">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Du sökte</p>
+                            <p className="text-lg font-bold text-primary">
+                              {qty > 0 ? `${qty} fl` : '–'}
+                            </p>
+                          </div>
+
                           {/* MOQ */}
                           <div className={`text-center p-3 rounded-lg ${isBelowMoq ? 'bg-orange-100' : 'bg-background'}`}>
                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Min. order</p>
@@ -601,14 +690,13 @@ export default function ResultsPage() {
                                 <p className={`text-lg font-bold ${isBelowMoq ? 'text-orange-600' : 'text-foreground'}`}>
                                   {moq} fl
                                 </p>
-                                {isBelowMoq && (
+                                {isBelowMoq ? (
                                   <p className="text-xs text-orange-600 font-medium mt-1">
                                     +{moqDiff} fl behövs
                                   </p>
-                                )}
-                                {!isBelowMoq && requestedQuantity && (
+                                ) : qty > 0 ? (
                                   <p className="text-xs text-green-600 font-medium mt-1">✓ OK</p>
-                                )}
+                                ) : null}
                               </>
                             ) : (
                               <p className="text-lg font-bold text-green-600">Ingen</p>
@@ -617,16 +705,16 @@ export default function ResultsPage() {
 
                           {/* Stock */}
                           <div className={`text-center p-3 rounded-lg ${isLowStock ? 'bg-amber-100' : 'bg-background'}`}>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Lagerstatus</p>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">I lager</p>
                             {stock !== undefined && stock !== null ? (
                               stock > 0 ? (
                                 <>
                                   <p className={`text-lg font-bold ${isLowStock ? 'text-amber-600' : 'text-green-600'}`}>
-                                    {stock} i lager
+                                    {stock} fl
                                   </p>
                                   {isLowStock && (
                                     <p className="text-xs text-amber-600 font-medium mt-1">
-                                      Endast {stock} st
+                                      Endast {stock} fl
                                     </p>
                                   )}
                                 </>
@@ -651,36 +739,97 @@ export default function ResultsPage() {
                           </div>
                         </div>
 
+                        {/* Carton info */}
+                        {suggestion.wine.kartong && suggestion.wine.kartong > 0 && (
+                          <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-xs text-blue-700 font-medium">
+                              📦 {suggestion.wine.kartong} fl/kartong = {formatPrice(suggestion.wine.pris_sek * suggestion.wine.kartong)}/kartong
+                            </p>
+                          </div>
+                        )}
+
                         {/* MOQ Warning Banner */}
                         {isBelowMoq && (
                           <div className="mt-3 p-3 bg-orange-100 border border-orange-300 rounded-lg">
                             <p className="text-sm text-orange-800 font-medium flex items-center gap-2">
                               <AlertCircle className="h-4 w-4" />
-                              Du sökte {requestedQuantity} fl, men minsta order är {moq} fl
+                              Öka till minst {moq} flaskor för att kunna beställa från denna leverantör
                             </p>
                           </div>
                         )}
 
-                        {/* Matching score - smaller */}
-                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">Matchning</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-24 bg-muted rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className="bg-primary h-full rounded-full"
-                                style={{ width: `${suggestion.ranking_score * 100}%` }}
-                              />
+                        {/* Matching score with explanation */}
+                        <div className="mt-3 pt-3 border-t border-border/50">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-medium text-muted-foreground">Matchning</span>
+                              <div className="group relative">
+                                <Info className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help" />
+                                <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10 w-64">
+                                  <div className="bg-foreground text-background text-xs p-3 rounded-lg shadow-lg">
+                                    <p className="font-medium mb-2">Så beräknas matchningen:</p>
+                                    <ul className="space-y-1 text-background/90">
+                                      <li>• Pris inom din budget</li>
+                                      <li>• Land/region matchar önskat</li>
+                                      <li>• Druva/stil passar din profil</li>
+                                      <li>• Lagertillgänglighet</li>
+                                      <li>• Leverantörens leveranstid</li>
+                                    </ul>
+                                    <p className="mt-2 text-background/70 text-[10px]">
+                                      Tips: Var mer specifik i din förfrågan för bättre träffar
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <span className="text-xs font-medium text-muted-foreground">
-                              {Math.round(suggestion.ranking_score * 100)}%
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-24 bg-muted rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    suggestion.ranking_score >= 0.8 ? 'bg-green-500' :
+                                    suggestion.ranking_score >= 0.6 ? 'bg-amber-400' :
+                                    'bg-red-500'
+                                  }`}
+                                  style={{ width: `${suggestion.ranking_score * 100}%` }}
+                                />
+                              </div>
+                              <span className={`text-xs font-bold ${
+                                suggestion.ranking_score >= 0.8 ? 'text-green-600' :
+                                suggestion.ranking_score >= 0.6 ? 'text-amber-600' :
+                                'text-red-600'
+                              }`}>
+                                {Math.round(suggestion.ranking_score * 100)}%
+                              </span>
+                            </div>
                           </div>
+                          {suggestion.ranking_score < 0.6 && (
+                            <p className="text-xs text-red-600">
+                              ⚠️ Låg matchning – kontrollera att vinet passar dina behov
+                            </p>
+                          )}
+                          {suggestion.ranking_score >= 0.6 && suggestion.ranking_score < 0.8 && (
+                            <p className="text-xs text-muted-foreground">
+                              💡 God matchning – granska detaljer för bästa val
+                            </p>
+                          )}
                         </div>
                       </div>
                     );
                   })()}
 
-                  {/* Expandable Wine Details */}
+                  {/* Expandable Wine Details - Only show if there's extra content */}
+                  {(() => {
+                    const hasExtraContent = suggestion.wine.beskrivning ||
+                      suggestion.wine.appellation ||
+                      suggestion.wine.alkohol ||
+                      suggestion.wine.volym_ml ||
+                      suggestion.wine.sku ||
+                      suggestion.wine.biodynamiskt ||
+                      suggestion.wine.veganskt;
+
+                    if (!hasExtraContent) return null;
+
+                    return (
                   <div className="mb-6">
                     <button
                       onClick={() => toggleWineExpanded(suggestion.wine.id)}
@@ -702,35 +851,19 @@ export default function ResultsPage() {
                         {/* Description */}
                         {suggestion.wine.beskrivning && (
                           <div>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Beskrivning</p>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Smakprofil</p>
                             <p className="text-sm text-foreground">{suggestion.wine.beskrivning}</p>
                           </div>
                         )}
 
-                        {/* Wine Identity */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                          {suggestion.wine.druva && (
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Druva</p>
-                              <p className="text-sm text-foreground">{suggestion.wine.druva}</p>
-                            </div>
-                          )}
+                        {/* Wine Details - Only unique info not shown elsewhere */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                           {suggestion.wine.appellation && (
                             <div>
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Appellation</p>
                               <p className="text-sm text-foreground">{suggestion.wine.appellation}</p>
                             </div>
                           )}
-                          {suggestion.wine.region && (
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Region</p>
-                              <p className="text-sm text-foreground">{suggestion.wine.region}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Technical Info */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-border">
                           {suggestion.wine.alkohol && (
                             <div>
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Alkohol</p>
@@ -749,47 +882,28 @@ export default function ResultsPage() {
                               <p className="text-sm text-foreground font-mono">{suggestion.wine.sku}</p>
                             </div>
                           )}
-                          {suggestion.wine.argang && (
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Årgång</p>
-                              <p className="text-sm text-foreground font-medium">{suggestion.wine.argang}</p>
-                            </div>
-                          )}
                         </div>
 
-                        {/* Purchase Info */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-border">
-                          {suggestion.wine.moq !== undefined && suggestion.wine.moq !== null && (
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Min. order</p>
-                              <p className="text-sm text-foreground font-medium">{suggestion.wine.moq} fl</p>
-                            </div>
-                          )}
-                          {suggestion.wine.kartong && (
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Per kartong</p>
-                              <p className="text-sm text-foreground font-medium">{suggestion.wine.kartong} fl</p>
-                            </div>
-                          )}
-                          {suggestion.wine.lager !== undefined && suggestion.wine.lager !== null && (
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">I lager</p>
-                              <p className={`text-sm font-medium ${suggestion.wine.lager > 0 ? 'text-green-600' : 'text-orange-500'}`}>
-                                {suggestion.wine.lager > 0 ? `${suggestion.wine.lager} fl` : 'Beställningsvara'}
-                              </p>
-                            </div>
-                          )}
-                          {suggestion.wine.ledtid_dagar && (
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Ledtid</p>
-                              <p className="text-sm text-foreground font-medium">{suggestion.wine.ledtid_dagar} dagar</p>
-                            </div>
-                          )}
-                        </div>
-
+                        {/* Certifications */}
+                        {(suggestion.wine.biodynamiskt || suggestion.wine.veganskt) && (
+                          <div className="flex gap-2 pt-3 border-t border-border">
+                            {suggestion.wine.biodynamiskt && (
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                                🌙 Biodynamiskt
+                              </span>
+                            )}
+                            {suggestion.wine.veganskt && (
+                              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                                🌱 Veganskt
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
+                    );
+                  })()}
 
                   {/* Market Data */}
                   {suggestion.market_data && (
@@ -843,19 +957,82 @@ export default function ResultsPage() {
                         )}
                       </div>
                     </div>
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={selectedWines.has(suggestion.wine.id)}
-                        onChange={() => toggleWineSelection(suggestion.wine.id)}
-                        className="w-5 h-5 rounded border-border text-primary focus:ring-primary cursor-pointer"
-                      />
-                      <span className="text-sm font-medium">Inkludera i offert</span>
-                    </label>
+                    {/* Spara till lista med antal-väljare */}
+                    <div className="flex items-center gap-2">
+                      {!draftList.hasItem(suggestion.wine.id) && (
+                        <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateWineQuantity(suggestion.wine.id, -1, suggestion.wine.moq || 0);
+                            }}
+                            className="p-1.5 rounded hover:bg-background transition-colors"
+                          >
+                            <Minus className="h-3.5 w-3.5" />
+                          </button>
+                          <span className="w-10 text-center text-sm font-medium">
+                            {getWineQuantity(suggestion.wine.id, suggestion.wine.moq || 0)}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateWineQuantity(suggestion.wine.id, 1, suggestion.wine.moq || 0);
+                            }}
+                            className="p-1.5 rounded hover:bg-background transition-colors"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (draftList.hasItem(suggestion.wine.id)) {
+                            draftList.removeItem(suggestion.wine.id);
+                          } else {
+                            draftList.addItem({
+                              wine_id: suggestion.wine.id,
+                              wine_name: suggestion.wine.namn,
+                              producer: suggestion.wine.producent,
+                              country: suggestion.wine.land,
+                              region: suggestion.wine.region,
+                              vintage: suggestion.wine.argang,
+                              color: suggestion.wine.color,
+                              supplier_id: suggestion.supplier.namn,
+                              supplier_name: suggestion.supplier.namn,
+                              quantity: getWineQuantity(suggestion.wine.id, suggestion.wine.moq || 0),
+                              moq: suggestion.wine.moq || 0,
+                              price_sek: suggestion.wine.pris_sek,
+                              stock: suggestion.wine.lager,
+                              lead_time_days: suggestion.wine.ledtid_dagar || suggestion.supplier.normalleveranstid_dagar,
+                            });
+                          }
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          draftList.hasItem(suggestion.wine.id)
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-amber-500 text-white hover:bg-amber-600'
+                        }`}
+                      >
+                        {draftList.hasItem(suggestion.wine.id) ? (
+                          <>
+                            <Check className="h-4 w-4" />
+                            I listan
+                          </>
+                        ) : (
+                          <>
+                            <ListPlus className="h-4 w-4" />
+                            Lägg till
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
+                )}
               </div>
-            ))
+            );
+            })
           )}
         </div>
 
@@ -962,12 +1139,12 @@ export default function ResultsPage() {
                     <div className="p-2 bg-blue-100 rounded-lg">
                       <CheckCircle2 className="h-5 w-5 text-blue-600" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold text-blue-900">
-                        {selectedWineDetails.length} vin{selectedWineDetails.length > 1 ? 'er' : ''} valda
+                        {selectedWineDetails.length} vin{selectedWineDetails.length > 1 ? 'er' : ''} × {requestedQuantity || 1} flaskor = {totalBottles} flaskor totalt
                       </p>
                       <p className="text-sm text-blue-700">
-                        Uppskattat värde: {formatPrice(totalEstimatedValue)} (per flaska)
+                        Uppskattat ordervärde: {formatPrice(totalEstimatedValue)}
                       </p>
                     </div>
                   </div>
@@ -998,8 +1175,12 @@ export default function ResultsPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">{formatPrice(suggestion.wine.pris_sek)}</p>
-                        <p className="text-xs text-gray-500">per flaska</p>
+                        <p className="text-xs text-gray-500 mb-1">
+                          {requestedQuantity || 1} fl × {formatPrice(suggestion.wine.pris_sek)}
+                        </p>
+                        <p className="font-semibold text-gray-900">
+                          {formatPrice(suggestion.wine.pris_sek * (requestedQuantity || 1))}
+                        </p>
                       </div>
                     </div>
                   ))}
