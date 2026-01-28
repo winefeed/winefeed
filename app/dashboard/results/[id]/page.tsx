@@ -79,6 +79,7 @@ export default function ResultsPage() {
   const [offersCount, setOffersCount] = useState(0);
   const [newOffersCount, setNewOffersCount] = useState(0);
   const [requestedQuantity, setRequestedQuantity] = useState<number | null>(null);
+  const [budgetMax, setBudgetMax] = useState<number | null>(null);
   const [wineQuantities, setWineQuantities] = useState<Record<string, number>>({});
 
   // Draft list (Spara till lista)
@@ -153,10 +154,28 @@ export default function ResultsPage() {
         console.error('Failed to parse suggestions:', e);
       }
     }
+
+    // Get search params from sessionStorage (more reliable than API call)
+    const searchParams = sessionStorage.getItem('latest-search-params');
+    if (searchParams) {
+      try {
+        const params = JSON.parse(searchParams);
+        if (params.antal_flaskor) {
+          setRequestedQuantity(params.antal_flaskor);
+        }
+        if (params.budget_max) {
+          setBudgetMax(params.budget_max);
+        }
+      } catch (e) {
+        console.error('Failed to parse search params:', e);
+      }
+    }
+
     setLoading(false);
 
-    // Fetch offer counts and request details
+    // Fetch offer counts (still needed for incoming offers banner)
     fetchOfferCounts();
+    // Also try API as fallback for quantity
     fetchRequestDetails();
   }, [fetchOfferCounts, fetchRequestDetails]);
 
@@ -570,7 +589,7 @@ export default function ResultsPage() {
               return (
               <div
                 key={suggestion.wine.id}
-                className={`bg-card border-2 rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden ${
+                className={`bg-card border-2 rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden group ${
                   isSelected ? 'border-green-500 bg-green-50/30' : 'border-border'
                 }`}
               >
@@ -606,10 +625,14 @@ export default function ResultsPage() {
                             🌱 Eko
                           </span>
                         )}
-                        {isSelected && (
+                        {isSelected ? (
                           <span className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-full flex items-center gap-1">
                             <CheckCircle2 className="h-3 w-3" />
                             I din offert
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            Klicka för att välja
                           </span>
                         )}
                       </div>
@@ -650,9 +673,13 @@ export default function ResultsPage() {
                           </p>
                         );
                       })()}
-                      {isSelected && (
+                      {isSelected ? (
                         <p className="text-xs text-green-600 font-medium mt-1">
-                          Klicka för att ta bort
+                          ✓ I offerten
+                        </p>
+                      ) : (
+                        <p className="text-xs text-primary font-medium mt-1 opacity-70 group-hover:opacity-100">
+                          + Lägg till i offert
                         </p>
                       )}
                     </div>
@@ -769,14 +796,13 @@ export default function ResultsPage() {
                                   <div className="bg-foreground text-background text-xs p-3 rounded-lg shadow-lg">
                                     <p className="font-medium mb-2">Så beräknas matchningen:</p>
                                     <ul className="space-y-1 text-background/90">
-                                      <li>• Pris inom din budget</li>
-                                      <li>• Land/region matchar önskat</li>
-                                      <li>• Druva/stil passar din profil</li>
-                                      <li>• Lagertillgänglighet</li>
-                                      <li>• Leverantörens leveranstid</li>
+                                      <li>• Vintyp (rött/vitt etc)</li>
+                                      <li>• Land/region matchar</li>
+                                      <li>• Druva/stil passar</li>
+                                      <li>• Certifieringar (eko etc)</li>
                                     </ul>
                                     <p className="mt-2 text-background/70 text-[10px]">
-                                      Tips: Var mer specifik i din förfrågan för bättre träffar
+                                      OBS: Lägre pris än budget är positivt!
                                     </p>
                                   </div>
                                 </div>
@@ -802,14 +828,21 @@ export default function ResultsPage() {
                               </span>
                             </div>
                           </div>
-                          {suggestion.ranking_score < 0.6 && (
-                            <p className="text-xs text-red-600">
-                              ⚠️ Låg matchning – kontrollera att vinet passar dina behov
+                          {/* Price advantage badge */}
+                          {budgetMax && suggestion.wine.pris_sek < budgetMax * 0.7 && (
+                            <p className="text-xs text-green-600 font-medium">
+                              💰 Prisfördelaktigt! {Math.round((1 - suggestion.wine.pris_sek / budgetMax) * 100)}% under budget
+                            </p>
+                          )}
+                          {/* Matching feedback - adjusted for price */}
+                          {suggestion.ranking_score < 0.6 && !(budgetMax && suggestion.wine.pris_sek < budgetMax * 0.7) && (
+                            <p className="text-xs text-amber-600">
+                              💡 Partiell matchning – granska att vinet passar dina övriga behov
                             </p>
                           )}
                           {suggestion.ranking_score >= 0.6 && suggestion.ranking_score < 0.8 && (
                             <p className="text-xs text-muted-foreground">
-                              💡 God matchning – granska detaljer för bästa val
+                              ✓ God matchning
                             </p>
                           )}
                         </div>
@@ -1013,16 +1046,17 @@ export default function ResultsPage() {
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
                             : 'bg-amber-500 text-white hover:bg-amber-600'
                         }`}
+                        title={draftList.hasItem(suggestion.wine.id) ? 'Ta bort från sparade viner' : 'Spara för senare (separat från offertförfrågan)'}
                       >
                         {draftList.hasItem(suggestion.wine.id) ? (
                           <>
                             <Check className="h-4 w-4" />
-                            I listan
+                            Sparad
                           </>
                         ) : (
                           <>
                             <ListPlus className="h-4 w-4" />
-                            Lägg till
+                            Spara
                           </>
                         )}
                       </button>
@@ -1068,17 +1102,17 @@ export default function ResultsPage() {
           <div className="bg-primary text-primary-foreground rounded-2xl shadow-xl p-8">
             <div className="max-w-3xl mx-auto text-center">
               <h3 className="text-2xl font-bold mb-3">
-                {selectedWines.size > 0 ? 'Bekräfta din offert' : 'Välj viner att inkludera'}
+                {selectedWines.size > 0 ? `${selectedWines.size} vin${selectedWines.size > 1 ? 'er' : ''} valt` : 'Välj viner för offertförfrågan'}
               </h3>
               <p className="text-primary-foreground/90 mb-2">
                 {selectedWines.size > 0 ? (
-                  <>Du har valt <span className="font-bold">{selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''}</span> att skicka till leverantörer.</>
+                  <>Klicka på &quot;Granska och skicka&quot; för att begära offerter från leverantörer.</>
                 ) : (
-                  <>Klicka i &quot;Inkludera i offert&quot; för de viner du vill begära offert på.</>
+                  <>Klicka på ett vinkort för att lägga till det i din offertförfrågan.</>
                 )}
               </p>
               <p className="text-primary-foreground/70 text-sm mb-6">
-                Vi skickar offerterna till dig så snart leverantörerna har svarat på din förfrågan.
+                Leverantörerna svarar vanligtvis inom 24-48 timmar.
               </p>
               <div className="flex gap-4 justify-center">
                 <button

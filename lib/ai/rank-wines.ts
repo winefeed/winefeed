@@ -94,11 +94,13 @@ Rangordna vinerna baserat på hur väl de matchar restaurangens behov.
 
 BEDÖMNINGSKRITERIER (i prioritetsordning):
 1. Vintyp (rött/vitt/etc) - MÅSTE matcha om specificerat
-2. Budget - pris inom eller nära angiven budget
+2. Budget - pris UNDER eller vid budget är BRA (lägre pris = bättre värde för restaurangen). Pris ÖVER budget är negativt.
 3. Land/Region - om specificerat
 4. Druva - om specificerat
 5. Certifieringar - om ekologiskt/biodynamiskt/veganskt efterfrågas
 6. Stil/smakprofil - baserat på eventuell beskrivning
+
+OBS: Ett vin som matchar alla kriterier men kostar MINDRE än budget ska få HÖG score - det är ett fynd!
 
 Returnera JSON i detta exakta format (utan markdown-formatering):
 
