@@ -275,8 +275,17 @@ export default function DraftListPage() {
           ))}
         </div>
 
+        {/* Non-binding info */}
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl max-w-lg mx-auto">
+          <p className="text-sm text-blue-800 text-center">
+            <span className="font-medium">💡 Icke-bindande förfrågan</span>
+            <br />
+            <span className="text-blue-700">Du förbinder dig inte till något köp. Först när du accepterar en offert från en leverantör blir det en order.</span>
+          </p>
+        </div>
+
         {/* Action Buttons */}
-        <div className="mt-8 flex flex-col items-center gap-4">
+        <div className="mt-6 flex flex-col items-center gap-4">
           {hasAnyBelowMoq && (
             <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl max-w-md text-center">
               <p className="text-sm text-orange-800 font-medium mb-2">
@@ -296,8 +305,11 @@ export default function DraftListPage() {
             </button>
             <button
               onClick={() => {
-                // TODO: Create quote request from draft list
-                alert('Funktion kommer snart!');
+                // TODO: Implement backend for creating quote request from draft list
+                // For now, show a confirmation that this is non-binding
+                if (confirm(`Skicka offertförfrågan för ${draftList.count} viner?\n\nDetta är INTE en bindande beställning. Du väljer själv om och när du vill acceptera en offert från leverantörerna.`)) {
+                  alert('Tack! Funktionen för att skicka förfrågan direkt från listan kommer snart.\n\nJust nu kan du använda "Ny förfrågan" för att söka och skicka förfrågan.');
+                }
               }}
               className={`px-8 py-3 rounded-xl transition-colors font-medium flex items-center gap-2 shadow-lg ${
                 hasAnyBelowMoq
