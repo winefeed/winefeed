@@ -115,6 +115,7 @@ export function SupplierShell({ children }: SupplierShellProps) {
         userEmail={supplier?.userEmail}
         userRoles={supplier?.roles || ['SELLER']}
         isAdmin={false}
+        brandSubtitle={supplier?.supplierName}
       />
 
       <div

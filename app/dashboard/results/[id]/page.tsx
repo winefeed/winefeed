@@ -721,39 +721,37 @@ export default function ResultsPage() {
                   {/* Order Info - Requested Qty, MOQ, Stock, Lead Time */}
                   {(() => {
                     const moq = suggestion.wine.moq || 0;
-                    const qty = requestedQuantity || 0;
-                    const isBelowMoq = moq > 0 && qty > 0 && qty < moq;
-                    const moqDiff = moq - qty;
+                    const originalQty = requestedQuantity || 0;
+                    const currentQty = getWineQuantity(suggestion.wine.id, moq);
+                    const wasAutoAdjusted = moq > 0 && originalQty > 0 && originalQty < moq;
                     const stock = suggestion.wine.lager;
-                    const isLowStock = stock !== undefined && stock !== null && qty > 0 && stock > 0 && stock < qty;
+                    const isLowStock = stock !== undefined && stock !== null && currentQty > 0 && stock > 0 && stock < currentQty;
 
                     return (
-                      <div className={`mb-6 p-4 rounded-xl border ${isBelowMoq ? 'bg-orange-50 border-orange-200' : 'bg-muted/30 border-border'}`}>
+                      <div className="mb-6 p-4 rounded-xl border bg-muted/30 border-border">
+                        {/* Auto-adjusted info banner */}
+                        {wasAutoAdjusted && (
+                          <div className="mb-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                            <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                            <p className="text-sm text-blue-700">
+                              Justerat till minsta order ({moq} fl) · <span className="text-blue-500">Du sökte {originalQty} fl</span>
+                            </p>
+                          </div>
+                        )}
                         <div className="grid grid-cols-4 gap-3">
-                          {/* Requested Quantity */}
+                          {/* Current Quantity */}
                           <div className="text-center p-3 bg-primary/10 rounded-lg">
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Du sökte</p>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Antal</p>
                             <p className="text-lg font-bold text-primary">
-                              {qty > 0 ? `${qty} fl` : '–'}
+                              {currentQty > 0 ? `${currentQty} fl` : '–'}
                             </p>
                           </div>
 
                           {/* MOQ */}
-                          <div className={`text-center p-3 rounded-lg ${isBelowMoq ? 'bg-orange-100' : 'bg-background'}`}>
+                          <div className="text-center p-3 rounded-lg bg-background">
                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Min. order</p>
                             {moq > 0 ? (
-                              <>
-                                <p className={`text-lg font-bold ${isBelowMoq ? 'text-orange-600' : 'text-foreground'}`}>
-                                  {moq} fl
-                                </p>
-                                {isBelowMoq ? (
-                                  <p className="text-xs text-orange-600 font-medium mt-1">
-                                    +{moqDiff} fl behövs
-                                  </p>
-                                ) : qty > 0 ? (
-                                  <p className="text-xs text-green-600 font-medium mt-1">✓ OK</p>
-                                ) : null}
-                              </>
+                              <p className="text-lg font-bold text-foreground">{moq} fl</p>
                             ) : (
                               <p className="text-lg font-bold text-green-600">Ingen</p>
                             )}
@@ -804,81 +802,49 @@ export default function ResultsPage() {
                           </div>
                         )}
 
-                        {/* MOQ Warning Banner with Action */}
-                        {isBelowMoq && (
-                          <div className="mt-3 p-3 bg-orange-100 border border-orange-300 rounded-lg">
-                            {provorderWines.has(suggestion.wine.id) ? (
-                              // Provorder accepted - show confirmation
-                              <div className="flex items-center justify-between gap-3">
-                                <p className="text-sm text-green-700 font-medium flex items-center gap-2">
-                                  <Check className="h-4 w-4 flex-shrink-0" />
-                                  Provorder valt (+{suggestion.supplier.provorder_fee_sek || 500} kr avgift)
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setProvorderWines(prev => {
-                                      const newSet = new Set(prev);
-                                      newSet.delete(suggestion.wine.id);
-                                      return newSet;
-                                    });
-                                  }}
-                                  className="px-3 py-1.5 bg-gray-500 text-white text-xs font-medium rounded-lg hover:bg-gray-600 transition-colors whitespace-nowrap"
-                                >
-                                  Ångra
-                                </button>
-                              </div>
-                            ) : (
-                              // Show MOQ warning with options
-                              <div>
-                                <div className="flex items-center justify-between gap-3">
-                                  <p className="text-sm text-orange-800 font-medium flex items-center gap-2">
-                                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                                    Minsta order är {moq} flaskor
-                                  </p>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
-                                    }}
-                                    className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
-                                  >
-                                    Ändra till {moq} fl
-                                  </button>
-                                </div>
-                                {/* Provorder option */}
-                                {suggestion.supplier.provorder_enabled && (
-                                  <div className="mt-3 pt-3 border-t border-orange-200">
-                                    <div className="flex items-center justify-between gap-3">
-                                      <div>
-                                        <p className="text-sm text-orange-900 font-medium">
-                                          Eller beställ som provorder
-                                        </p>
-                                        <p className="text-xs text-orange-700 mt-0.5">
-                                          Beställ {qty} fl med en extra avgift på {suggestion.supplier.provorder_fee_sek || 500} kr
-                                        </p>
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setProvorderWines(prev => {
-                                            const newSet = new Set(prev);
-                                            newSet.add(suggestion.wine.id);
-                                            return newSet;
-                                          });
-                                        }}
-                                        className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
-                                      >
-                                        Välj provorder
-                                      </button>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                        {/* Provorder option - shown when auto-adjusted and supplier supports it */}
+                        {wasAutoAdjusted && suggestion.supplier.provorder_enabled && !provorderWines.has(suggestion.wine.id) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Reset to original quantity and mark as provorder
+                              setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: originalQty }));
+                              setProvorderWines(prev => {
+                                const newSet = new Set(prev);
+                                newSet.add(suggestion.wine.id);
+                                return newSet;
+                              });
+                            }}
+                            className="mt-2 text-xs text-blue-600 hover:text-blue-700 underline"
+                          >
+                            Vill du ha {originalQty} fl istället? Provorder +{suggestion.supplier.provorder_fee_sek || 500} kr
+                          </button>
+                        )}
+
+                        {/* Provorder confirmation */}
+                        {provorderWines.has(suggestion.wine.id) && (
+                          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                            <p className="text-sm text-green-700 font-medium flex items-center gap-2">
+                              <Check className="h-4 w-4" />
+                              Provorder ({originalQty} fl) +{suggestion.supplier.provorder_fee_sek || 500} kr
+                            </p>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Reset to MOQ and remove provorder
+                                setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
+                                setProvorderWines(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(suggestion.wine.id);
+                                  return newSet;
+                                });
+                              }}
+                              className="text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              Ångra
+                            </button>
                           </div>
                         )}
 
