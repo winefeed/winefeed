@@ -65,12 +65,13 @@ describe('Draft List Flow (Integration)', () => {
     testRestaurantId = restaurant!.id;
 
     // Setup: Create restaurant_users link
-    await supabase.from('restaurant_users').insert({
-      id: testRestaurantUserId,
+    // Schema: id, user_id, restaurant_id, tenant_id, created_at
+    await supabase.from('restaurant_users').upsert({
+      id: crypto.randomUUID(),
+      user_id: testRestaurantUserId,
       restaurant_id: testRestaurantId,
-      email: restaurantAuth.user!.email,
-      role: 'OWNER',
-    });
+      tenant_id: TEST_TENANT_ID,
+    }, { onConflict: 'user_id,restaurant_id' }).select();
 
     // Setup: Create supplier
     const { data: supplierAuth } = await supabase.auth.admin.createUser({
@@ -80,27 +81,38 @@ describe('Draft List Flow (Integration)', () => {
     });
     testSupplierUserId = supplierAuth.user!.id;
 
-    const { data: supplier } = await supabase
+    const { data: supplier, error: supplierError } = await supabase
       .from('suppliers')
       .insert({
         namn: 'Draft Test Supplier AB',
         kontakt_email: supplierAuth.user!.email,
-        tenant_id: TEST_TENANT_ID,
+        // Note: suppliers table doesn't have tenant_id
       })
       .select()
       .single();
+
+    if (supplierError) {
+      console.error('Failed to create supplier:', supplierError);
+      throw new Error(`Supplier creation failed: ${supplierError.message}`);
+    }
     testSupplierId = supplier!.id;
 
     // Setup: Create supplier_users link
-    await supabase.from('supplier_users').insert({
+    // Schema: id, supplier_id, role, is_active, created_at, updated_at
+    const { error: suError } = await supabase.from('supplier_users').upsert({
       id: testSupplierUserId,
       supplier_id: testSupplierId,
-      email: supplierAuth.user!.email,
-      role: 'OWNER',
-    });
+      role: 'admin',
+      is_active: true,
+    }, { onConflict: 'id' });
+
+    if (suError) {
+      console.error('Failed to create supplier_users:', suError);
+    }
 
     // Setup: Create a wine in supplier catalog
-    const { data: wine } = await supabase
+    // Required fields: name, producer, country, vintage, color, bottle_size_ml, stock_qty, sku, case_size
+    const { data: wine, error: wineError } = await supabase
       .from('supplier_wines')
       .insert({
         supplier_id: testSupplierId,
@@ -108,19 +120,24 @@ describe('Draft List Flow (Integration)', () => {
         producer: 'Château Test',
         country: 'France',
         region: 'Bordeaux',
-        vintage: '2019',
+        vintage: 2019,
         color: 'red',
         grape: 'Cabernet Sauvignon',
         price_ex_vat_sek: 35000, // 350 SEK in öre
         moq: 6,
         stock_qty: 100,
         is_active: true,
-        status: 'ACTIVE',
-        provorder_enabled: true,
-        provorder_fee_sek: 500,
+        bottle_size_ml: 750,
+        sku: `TEST-DRAFT-${Date.now()}`,
+        case_size: 6,
       })
       .select()
       .single();
+
+    if (wineError) {
+      console.error('Failed to create wine:', wineError);
+      throw new Error(`Wine creation failed: ${wineError.message}`);
+    }
     testWineId = wine!.id;
 
     console.log('✓ Test setup complete: restaurant, supplier, wine');
