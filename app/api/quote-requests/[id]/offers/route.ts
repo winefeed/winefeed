@@ -280,7 +280,10 @@ export async function POST(
         notes,
         status,
         expires_at,
-        created_at
+        created_at,
+        is_franco,
+        shipping_cost_sek,
+        shipping_notes
       `)
       .single();
 
@@ -306,9 +309,8 @@ export async function POST(
     // 8. Return offer with wine details and shipping
     const priceExVat = offer.offered_price_ex_vat_sek / 100;
     const totalWinePrice = priceExVat * offer.quantity;
-    // Shipping fields may not exist in older DBs
-    const offerIsFranco = (offer as any).is_franco ?? isFranco ?? false;
-    const offerShippingCost = (offer as any).shipping_cost_sek ?? shipping_cost_sek ?? null;
+    const offerIsFranco = offer.is_franco ?? false;
+    const offerShippingCost = offer.shipping_cost_sek ?? null;
     const shippingCost = offerIsFranco ? 0 : (offerShippingCost || 0);
     const totalWithShipping = totalWinePrice + shippingCost;
 
@@ -329,10 +331,10 @@ export async function POST(
           status: offer.status,
           expiresAt: offer.expires_at,
           createdAt: offer.created_at,
-          // Shipping info (may not exist in older DBs)
+          // Shipping info
           isFranco: offerIsFranco,
           shippingCostSek: offerShippingCost,
-          shippingNotes: (offer as any).shipping_notes ?? shipping_notes ?? null,
+          shippingNotes: offer.shipping_notes ?? null,
           // Calculated totals
           totalWinePrice,
           totalWithShipping,
@@ -421,7 +423,6 @@ export async function GET(
     }
 
     // Get all offers for this request
-    // Note: shipping columns (is_franco, shipping_cost_sek, shipping_notes) may not exist in older DBs
     const { data: offers, error: offersError } = await supabase
       .from('offers')
       .select(`
@@ -438,6 +439,9 @@ export async function GET(
         status,
         expires_at,
         created_at,
+        is_franco,
+        shipping_cost_sek,
+        shipping_notes,
         suppliers (
           namn,
           kontakt_email
@@ -493,13 +497,14 @@ export async function GET(
       const totalExVat = priceExVatSek * offer.quantity;
       const totalIncVat = priceIncVatSek * offer.quantity;
 
-      // Shipping calculations (columns may not exist in older DBs)
-      const isFranco = (offer as any).is_franco ?? false;
-      const shippingCostSek = (offer as any).shipping_cost_sek ?? null;
+      // Shipping calculations (shipping also has 25% VAT in Sweden)
+      const isFranco = offer.is_franco ?? false;
+      const shippingCostSek = offer.shipping_cost_sek ?? null;
       const shippingCost = isFranco ? 0 : (shippingCostSek || 0);
+      const shippingCostIncVat = shippingCost * 1.25;
       const totalWithShippingExVat = totalExVat + shippingCost;
-      const totalWithShippingIncVat = totalIncVat + shippingCost;
-      const shippingNotes = (offer as any).shipping_notes ?? null;
+      const totalWithShippingIncVat = totalIncVat + shippingCostIncVat;
+      const shippingNotes = offer.shipping_notes ?? null;
 
       // Calculate estimated delivery date
       const estimatedDeliveryDate = new Date(offer.delivery_date);
@@ -534,7 +539,7 @@ export async function GET(
         quantity: offer.quantity,
         totalExVatSek: parseFloat(totalExVat.toFixed(2)),
         totalIncVatSek: parseFloat(totalIncVat.toFixed(2)),
-        // Shipping info (may not exist in older DBs)
+        // Shipping info
         isFranco,
         shippingCostSek,
         shippingNotes,

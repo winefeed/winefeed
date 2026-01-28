@@ -204,9 +204,7 @@ describe('Offer Shipping Flow (Integration)', () => {
     console.log('✓ Dispatched to', data.assignmentsCreated, 'suppliers');
   });
 
-  // TODO: Shipping columns (is_franco, shipping_cost_sek, shipping_notes) don't exist in DB yet.
-  // These tests are skipped until the shipping schema is migrated.
-  it.skip('Step 3: Supplier A creates offer WITH shipping cost', async () => {
+  it('Step 3: Supplier A creates offer WITH shipping cost', async () => {
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
@@ -247,8 +245,7 @@ describe('Offer Shipping Flow (Integration)', () => {
     console.log('  Total with shipping:', data.offer.totalWithShipping, 'SEK');
   });
 
-  // TODO: Depends on shipping columns existing in DB
-  it.skip('Step 4: Supplier B creates offer with FRANCO (shipping included)', async () => {
+  it('Step 4: Supplier B creates offer with FRANCO (shipping included)', async () => {
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
@@ -288,8 +285,7 @@ describe('Offer Shipping Flow (Integration)', () => {
     console.log('  Wine total (incl shipping):', data.offer.totalWinePrice, 'SEK');
   });
 
-  // TODO: Depends on Step 3 and Step 4 (shipping columns in DB)
-  it.skip('Step 5: Restaurant lists offers and sees shipping info', async () => {
+  it('Step 5: Restaurant lists offers and sees shipping info', async () => {
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
@@ -327,8 +323,7 @@ describe('Offer Shipping Flow (Integration)', () => {
     console.log('  Offer B: 420 kr/fl franco = 10080 kr ex moms');
   });
 
-  // TODO: Depends on shipping columns in DB
-  it.skip('Step 6: Verify B2B ex moms pricing is clear', async () => {
+  it('Step 6: Verify B2B ex moms pricing is clear', async () => {
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
@@ -362,8 +357,7 @@ describe('Offer Shipping Flow (Integration)', () => {
     console.log('  Secondary: totalWithShippingIncVat = 11262.5 SEK');
   });
 
-  // TODO: Depends on shipping columns in DB
-  it.skip('Step 7: Compare total cost (shipping included vs franco)', async () => {
+  it('Step 7: Compare total cost (shipping included vs franco)', async () => {
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       { method: 'GET', headers: authHeaders(testRestaurantId) }
