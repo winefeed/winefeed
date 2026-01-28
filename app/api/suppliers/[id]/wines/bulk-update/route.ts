@@ -28,7 +28,7 @@ const BULK_EDITABLE_FIELDS = [
   'status',
   'price_ex_vat_sek',
   'stock_qty',
-  'min_order_qty',
+  'moq',  // min_order_qty in DB is 'moq'
 ];
 
 type RouteParams = {

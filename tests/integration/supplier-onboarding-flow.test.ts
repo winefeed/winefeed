@@ -19,6 +19,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const TEST_TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
 let supabase: SupabaseClient;
 let testSupplierId: string;
@@ -26,6 +27,13 @@ let testSupplierUserId: string;
 let testSupplierWineId: string;
 let testRestaurantId: string;
 let testQuoteRequestId: string;
+
+// Helper to create auth headers for test bypass
+const authHeaders = (userId: string) => ({
+  'Content-Type': 'application/json',
+  'x-user-id': userId,
+  'x-tenant-id': TEST_TENANT_ID,
+});
 
 // Sample CSV for catalog import
 const SAMPLE_CATALOG_CSV = `name,producer,country,region,vintage,grape,priceExVatSek,vatRate,stockQty,minOrderQty,leadTimeDays,deliveryAreas
@@ -94,12 +102,13 @@ describe('Supplier Onboarding Flow (Integration)', () => {
 
   it('Step 2: Supplier imports catalog via CSV', async () => {
     expect(testSupplierId).toBeDefined();
+    expect(testSupplierUserId).toBeDefined();
 
     const response = await fetch(
       `http://localhost:3000/api/suppliers/${testSupplierId}/catalog/import`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testSupplierUserId),
         body: JSON.stringify({
           csvData: SAMPLE_CATALOG_CSV,
           replaceExisting: false,
@@ -124,7 +133,7 @@ describe('Supplier Onboarding Flow (Integration)', () => {
     expect(wines).toHaveLength(3);
     expect(wines![0].name).toBe('Château Margaux 2015');
     expect(wines![0].price_ex_vat_sek).toBe(45000); // 450.00 SEK -> 45000 öre
-    expect(wines![0].min_order_qty).toBe(6);
+    expect(wines![0].moq).toBe(6);
 
     // Store first wine for offer creation
     testSupplierWineId = wines![0].id;
@@ -185,13 +194,41 @@ describe('Supplier Onboarding Flow (Integration)', () => {
     console.log('✓ Quote request created:', testQuoteRequestId);
   });
 
+  it('Step 3b: Dispatch quote request to supplier', async () => {
+    expect(testQuoteRequestId).toBeDefined();
+    expect(testRestaurantId).toBeDefined();
+
+    const response = await fetch(
+      `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/dispatch`,
+      {
+        method: 'POST',
+        headers: authHeaders(testRestaurantId),
+        body: JSON.stringify({
+          maxMatches: 10,
+          minScore: 0, // Accept all suppliers for testing
+        }),
+      }
+    );
+
+    expect(response.status).toBe(201);
+
+    const data = await response.json();
+    expect(data.assignmentsCreated).toBeGreaterThan(0);
+
+    console.log('✓ Quote request dispatched to', data.assignmentsCreated, 'suppliers');
+  });
+
   it('Step 4: Supplier lists quote requests', async () => {
     expect(testSupplierId).toBeDefined();
     expect(testQuoteRequestId).toBeDefined();
+    expect(testSupplierUserId).toBeDefined();
 
     const response = await fetch(
       `http://localhost:3000/api/suppliers/${testSupplierId}/quote-requests?status=all&limit=10`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        headers: authHeaders(testSupplierUserId),
+      }
     );
 
     expect(response.status).toBe(200);
@@ -214,6 +251,7 @@ describe('Supplier Onboarding Flow (Integration)', () => {
     expect(testQuoteRequestId).toBeDefined();
     expect(testSupplierId).toBeDefined();
     expect(testSupplierWineId).toBeDefined();
+    expect(testSupplierUserId).toBeDefined();
 
     const deliveryDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
@@ -221,7 +259,7 @@ describe('Supplier Onboarding Flow (Integration)', () => {
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testSupplierUserId),
         body: JSON.stringify({
           supplierId: testSupplierId,
           supplierWineId: testSupplierWineId,
@@ -249,10 +287,14 @@ describe('Supplier Onboarding Flow (Integration)', () => {
 
   it('Step 6: Verify offer appears in quote request offers', async () => {
     expect(testQuoteRequestId).toBeDefined();
+    expect(testRestaurantId).toBeDefined();
 
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        headers: authHeaders(testRestaurantId),
+      }
     );
 
     expect(response.status).toBe(200);
@@ -272,13 +314,14 @@ describe('Supplier Onboarding Flow (Integration)', () => {
 
   it('Step 7: Validate minimum order quantity enforcement', async () => {
     expect(testQuoteRequestId).toBeDefined();
+    expect(testSupplierUserId).toBeDefined();
 
     // Try to create offer with quantity below minimum (6)
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testSupplierUserId),
         body: JSON.stringify({
           supplierId: testSupplierId,
           supplierWineId: testSupplierWineId,
@@ -299,6 +342,8 @@ describe('Supplier Onboarding Flow (Integration)', () => {
   });
 
   it('Step 8: CSV import validates prices', async () => {
+    expect(testSupplierUserId).toBeDefined();
+
     const invalidCSV = `name,producer,country,region,vintage,grape,priceExVatSek,vatRate,stockQty,minOrderQty,leadTimeDays,deliveryAreas
 "Invalid Wine","Producer","France","Bordeaux",2015,"Merlot",-10.00,25.00,24,6,7,"Stockholm"`;
 
@@ -306,7 +351,7 @@ describe('Supplier Onboarding Flow (Integration)', () => {
       `http://localhost:3000/api/suppliers/${testSupplierId}/catalog/import`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testSupplierUserId),
         body: JSON.stringify({
           csvData: invalidCSV,
         }),

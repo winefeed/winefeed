@@ -20,6 +20,14 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const TEST_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
+// Helper to create auth headers for test bypass
+const authHeaders = (userId: string) => ({
+  'Content-Type': 'application/json',
+  'x-user-id': userId,
+  'x-tenant-id': TEST_TENANT_ID,
+});
 
 let supabase: SupabaseClient;
 let testRestaurantId: string;
@@ -74,7 +82,7 @@ describe('Quote Request Routing Flow (Integration)', () => {
 "Château Bordeaux 2015","Château Test","France","Bordeaux",2015,"Cabernet Sauvignon",400.00,25.00,50,6,3,"Stockholm"`;
     await fetch(`http://localhost:3000/api/suppliers/${testSupplierA_Id}/catalog/import`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(testSupplierA_UserId),
       body: JSON.stringify({ csvData: catalogA }),
     });
 
@@ -106,7 +114,7 @@ describe('Quote Request Routing Flow (Integration)', () => {
 "Barolo Classico 2014","Italian Producer","Italy","Piedmont",2014,"Nebbiolo",500.00,25.00,30,6,7,"Stockholm"`;
     await fetch(`http://localhost:3000/api/suppliers/${testSupplierB_Id}/catalog/import`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(testSupplierB_UserId),
       body: JSON.stringify({ csvData: catalogB }),
     });
 
@@ -157,7 +165,7 @@ describe('Quote Request Routing Flow (Integration)', () => {
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/dispatch`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testRestaurantId),
         body: JSON.stringify({
           maxMatches: 10,
           minScore: 0, // Accept all suppliers for testing
@@ -197,7 +205,10 @@ describe('Quote Request Routing Flow (Integration)', () => {
   it('Step 3: Supplier A views assigned quote requests', async () => {
     const response = await fetch(
       `http://localhost:3000/api/suppliers/${testSupplierA_Id}/quote-requests?status=active`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        headers: authHeaders(testSupplierA_UserId),
+      }
     );
 
     expect(response.status).toBe(200);
@@ -223,7 +234,7 @@ describe('Quote Request Routing Flow (Integration)', () => {
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testSupplierA_UserId),
         body: JSON.stringify({
           supplierId: testSupplierA_Id,
           supplierWineId: testSupplierA_WineId,
@@ -278,7 +289,10 @@ describe('Quote Request Routing Flow (Integration)', () => {
     // Supplier B views requests
     const viewResponse = await fetch(
       `http://localhost:3000/api/suppliers/${testSupplierB_Id}/quote-requests?status=active`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        headers: authHeaders(testSupplierB_UserId),
+      }
     );
 
     const viewData = await viewResponse.json();
@@ -290,7 +304,7 @@ describe('Quote Request Routing Flow (Integration)', () => {
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testSupplierB_UserId),
         body: JSON.stringify({
           supplierId: testSupplierB_Id,
           supplierWineId: testSupplierB_WineId,
@@ -310,7 +324,10 @@ describe('Quote Request Routing Flow (Integration)', () => {
   it('Step 7: Restaurant can see all offers', async () => {
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        headers: authHeaders(testRestaurantId),
+      }
     );
 
     expect(response.status).toBe(200);
@@ -332,7 +349,7 @@ describe('Quote Request Routing Flow (Integration)', () => {
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/dispatch`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testRestaurantId),
         body: JSON.stringify({}),
       }
     );
@@ -349,7 +366,10 @@ describe('Quote Request Routing Flow (Integration)', () => {
     // Get status without preview
     const statusResponse = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/dispatch`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        headers: authHeaders(testRestaurantId),
+      }
     );
 
     expect(statusResponse.status).toBe(200);
@@ -373,7 +393,10 @@ describe('Quote Request Routing Flow (Integration)', () => {
 
     const previewResponse = await fetch(
       `http://localhost:3000/api/quote-requests/${newRequest!.id}/dispatch?preview=true`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        headers: authHeaders(testRestaurantId),
+      }
     );
 
     const previewData = await previewResponse.json();

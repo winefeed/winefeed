@@ -33,6 +33,7 @@ export async function middleware(request: NextRequest) {
     '/signup',           // Public restaurant registration
     '/api/org-lookup',   // Org number lookup (public)
     '/api/restaurants/onboard',  // Restaurant registration (public)
+    '/api/suppliers/onboard',    // Supplier registration (public)
     '/supplier/login',
     '/supplier/forgot-password',
     '/supplier/reset-password',
