@@ -240,37 +240,9 @@ export default function SupplierDashboard() {
           {/* Matching Suggestions */}
           <MatchingSuggestions limit={3} />
 
-          {/* Quick Actions for new users */}
+          {/* Onboarding Progress - shown for new users */}
           {!hasActivity && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-amber-500" />
-                Kom igång
-              </h2>
-              <div className="space-y-3">
-                <QuickAction
-                  title="Ladda upp vinkatalog"
-                  description="Importera dina viner via Excel eller CSV"
-                  href="/supplier/wines"
-                  icon={Wine}
-                  done={stats?.totalWines ? stats.totalWines > 0 : false}
-                />
-                <QuickAction
-                  title="Svara på förfrågningar"
-                  description="Se och besvara restaurangers förfrågningar"
-                  href="/supplier/requests"
-                  icon={Inbox}
-                  done={false}
-                />
-                <QuickAction
-                  title="Skapa offert"
-                  description="Skicka prisförslag till restauranger"
-                  href="/supplier/offers"
-                  icon={FileText}
-                  done={false}
-                />
-              </div>
-            </div>
+            <OnboardingProgress stats={stats} />
           )}
 
           {/* Recent Wines */}
@@ -413,18 +385,29 @@ function StatCard({ title, value, subtitle, icon: Icon, color, href, highlight }
     purple: 'bg-purple-50 text-purple-600',
   };
 
+  const hoverColorClasses = {
+    wine: 'group-hover:bg-[#7B1E1E]/20',
+    blue: 'group-hover:bg-blue-100',
+    amber: 'group-hover:bg-amber-100',
+    green: 'group-hover:bg-green-100',
+    purple: 'group-hover:bg-purple-100',
+  };
+
   return (
     <a
       href={href}
-      className={`block bg-white rounded-lg border p-5 transition-all hover:shadow-md ${
+      className={`group block bg-white rounded-lg border p-5 transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${
         highlight ? 'border-amber-300 ring-2 ring-amber-100' : 'border-gray-200 hover:border-gray-300'
       }`}
     >
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
-          <Icon className="h-5 w-5" />
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg transition-colors ${colorClasses[color]} ${hoverColorClasses[color]}`}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <span className="text-sm font-medium text-gray-600">{title}</span>
         </div>
-        <span className="text-sm font-medium text-gray-600">{title}</span>
+        <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" />
       </div>
       <p className="text-3xl font-bold text-gray-900">{value}</p>
       <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
@@ -463,5 +446,179 @@ function QuickAction({ title, description, href, icon: Icon, done }: QuickAction
         <span className="text-xs font-medium text-green-600">✓ Klar</span>
       )}
     </a>
+  );
+}
+
+// Onboarding steps configuration
+interface OnboardingStep {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+  icon: React.ElementType;
+}
+
+const ONBOARDING_STEPS: OnboardingStep[] = [
+  {
+    id: 'account',
+    title: 'Skapa konto',
+    description: 'Registrera dig som leverantör',
+    href: '/supplier/profile',
+    icon: Building2,
+  },
+  {
+    id: 'catalog',
+    title: 'Ladda upp vinkatalog',
+    description: 'Importera dina viner via Excel eller CSV',
+    href: '/supplier/wines',
+    icon: Wine,
+  },
+  {
+    id: 'request',
+    title: 'Svara på förfrågan',
+    description: 'Besvara din första restaurangförfrågan',
+    href: '/supplier/requests',
+    icon: Inbox,
+  },
+  {
+    id: 'offer',
+    title: 'Skicka offert',
+    description: 'Skicka ditt första prisförslag',
+    href: '/supplier/offers',
+    icon: FileText,
+  },
+];
+
+interface OnboardingProgressProps {
+  stats: DashboardStats | null;
+}
+
+function OnboardingProgress({ stats }: OnboardingProgressProps) {
+  // Calculate which steps are done
+  const completedSteps = {
+    account: true, // Always done if they're logged in
+    catalog: (stats?.totalWines || 0) > 0,
+    request: false, // Would need backend tracking
+    offer: (stats?.activeOffers || 0) > 0 || (stats?.acceptedOffers || 0) > 0,
+  };
+
+  // Find current step (first incomplete step)
+  const currentStepIndex = ONBOARDING_STEPS.findIndex(
+    step => !completedSteps[step.id as keyof typeof completedSteps]
+  );
+
+  const completedCount = Object.values(completedSteps).filter(Boolean).length;
+  const progressPercent = (completedCount / ONBOARDING_STEPS.length) * 100;
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <Zap className="h-5 w-5 text-amber-500" />
+          Kom igång
+        </h2>
+        <span className="text-sm text-gray-500">
+          {completedCount} av {ONBOARDING_STEPS.length} klara
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mb-6">
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-green-500 rounded-full transition-all duration-500"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Steps list */}
+      <div className="space-y-1">
+        {ONBOARDING_STEPS.map((step, index) => {
+          const isDone = completedSteps[step.id as keyof typeof completedSteps];
+          const isCurrent = index === currentStepIndex;
+          const Icon = step.icon;
+
+          return (
+            <a
+              key={step.id}
+              href={step.href}
+              className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                isDone
+                  ? 'bg-green-50 hover:bg-green-100'
+                  : isCurrent
+                  ? 'bg-amber-50 border border-amber-200 hover:bg-amber-100'
+                  : 'hover:bg-gray-50'
+              }`}
+            >
+              {/* Step indicator */}
+              <div
+                className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-medium ${
+                  isDone
+                    ? 'bg-green-500 text-white'
+                    : isCurrent
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-gray-200 text-gray-500'
+                }`}
+              >
+                {isDone ? '✓' : index + 1}
+              </div>
+
+              {/* Icon */}
+              <div
+                className={`p-2 rounded-lg ${
+                  isDone
+                    ? 'bg-green-100'
+                    : isCurrent
+                    ? 'bg-amber-100'
+                    : 'bg-gray-100'
+                }`}
+              >
+                <Icon
+                  className={`h-4 w-4 ${
+                    isDone
+                      ? 'text-green-600'
+                      : isCurrent
+                      ? 'text-amber-600'
+                      : 'text-gray-400'
+                  }`}
+                />
+              </div>
+
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className={`text-sm font-medium ${
+                    isDone
+                      ? 'text-green-800'
+                      : isCurrent
+                      ? 'text-amber-800'
+                      : 'text-gray-600'
+                  }`}
+                >
+                  {step.title}
+                </p>
+                <p className="text-xs text-gray-500 truncate">{step.description}</p>
+              </div>
+
+              {/* Status badge */}
+              {isDone ? (
+                <span className="text-xs font-medium text-green-600 flex-shrink-0">
+                  Klar
+                </span>
+              ) : isCurrent ? (
+                <span className="text-xs font-medium text-amber-600 flex-shrink-0 flex items-center gap-1">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                  Du är här
+                </span>
+              ) : null}
+            </a>
+          );
+        })}
+      </div>
+    </div>
   );
 }

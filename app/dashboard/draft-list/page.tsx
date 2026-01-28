@@ -37,6 +37,21 @@ export default function DraftListPage() {
   const totalValue = draftList.items.reduce((sum, item) => sum + (item.price_sek * item.quantity), 0);
   const totalBottles = draftList.items.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Check if any items are below MOQ
+  const itemsBelowMoq = draftList.items.filter(item => item.moq > 0 && item.quantity < item.moq);
+  const hasAnyBelowMoq = itemsBelowMoq.length > 0;
+
+  // Calculate minimum purchase value (if all MOQs were met)
+  const minPurchaseValue = draftList.items.reduce((sum, item) => {
+    const effectiveQty = item.moq > 0 ? Math.max(item.quantity, item.moq) : item.quantity;
+    return sum + (item.price_sek * effectiveQty);
+  }, 0);
+
+  // Set quantity to MOQ for a wine
+  const setQuantityToMoq = (wineId: string, moq: number) => {
+    draftList.updateQuantity(wineId, moq);
+  };
+
   // Format date
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -164,7 +179,7 @@ export default function DraftListPage() {
         )}
 
         {/* Summary Card */}
-        <div className="mb-6 p-6 bg-card border border-border rounded-2xl shadow-lg">
+        <div className={`mb-6 p-6 bg-card border rounded-2xl shadow-lg ${hasAnyBelowMoq ? 'border-orange-300' : 'border-border'}`}>
           <div className="grid grid-cols-3 gap-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-foreground">{draftList.count}</p>
@@ -175,11 +190,29 @@ export default function DraftListPage() {
               <p className="text-sm text-muted-foreground">Flaskor totalt</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-foreground">{formatPrice(totalValue)}</p>
-              <p className="text-sm text-muted-foreground">Uppskattat värde</p>
+              {hasAnyBelowMoq ? (
+                <>
+                  <p className="text-2xl font-bold text-orange-600 line-through">{formatPrice(totalValue)}</p>
+                  <p className="text-sm text-muted-foreground">Under min. order</p>
+                  <p className="text-lg font-bold text-foreground mt-1">{formatPrice(minPurchaseValue)}</p>
+                  <p className="text-xs text-muted-foreground">Min. köp</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-3xl font-bold text-foreground">{formatPrice(totalValue)}</p>
+                  <p className="text-sm text-muted-foreground">Uppskattat värde</p>
+                </>
+              )}
             </div>
           </div>
-          {draftList.createdAt && (
+          {hasAnyBelowMoq && (
+            <div className="mt-4 pt-4 border-t border-orange-200 bg-orange-50 -mx-6 -mb-6 px-6 pb-4 rounded-b-2xl">
+              <p className="text-sm text-orange-800 font-medium text-center">
+                ⚠️ {itemsBelowMoq.length} vin{itemsBelowMoq.length > 1 ? 'er' : ''} under minsta order – justera antal nedan
+              </p>
+            </div>
+          )}
+          {!hasAnyBelowMoq && draftList.createdAt && (
             <div className="mt-4 pt-4 border-t border-border text-center">
               <p className="text-xs text-muted-foreground">
                 Skapad {formatDate(draftList.createdAt)} ({daysSinceCreated()} dagar sedan)
@@ -215,12 +248,12 @@ export default function DraftListPage() {
                     {group.meets_moq ? (
                       <>
                         <CheckCircle2 className="h-4 w-4" />
-                        MOQ uppfyllt
+                        Minsta order uppfylld
                       </>
                     ) : (
                       <>
                         <AlertCircle className="h-4 w-4" />
-                        MOQ ej uppfyllt
+                        Under minsta order
                       </>
                     )}
                   </div>
@@ -243,23 +276,42 @@ export default function DraftListPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-8 flex gap-4 justify-center">
-          <button
-            onClick={() => router.push('/dashboard/new-request')}
-            className="px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-muted/80 transition-colors font-medium"
-          >
-            Fortsätt söka
-          </button>
-          <button
-            onClick={() => {
-              // TODO: Create quote request from draft list
-              alert('Funktion kommer snart!');
-            }}
-            className="px-8 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors font-medium flex items-center gap-2 shadow-lg"
-          >
-            <Send className="h-4 w-4" />
-            Skicka förfrågan ({draftList.count} viner)
-          </button>
+        <div className="mt-8 flex flex-col items-center gap-4">
+          {hasAnyBelowMoq && (
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl max-w-md text-center">
+              <p className="text-sm text-orange-800 font-medium mb-2">
+                ⚠️ {itemsBelowMoq.length} vin{itemsBelowMoq.length > 1 ? 'er' : ''} är under minsta order
+              </p>
+              <p className="text-xs text-orange-700">
+                Justera antal ovan eller skicka ändå – leverantören kan välja att acceptera eller föreslå alternativ.
+              </p>
+            </div>
+          )}
+          <div className="flex gap-4">
+            <button
+              onClick={() => router.push('/dashboard/new-request')}
+              className="px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-muted/80 transition-colors font-medium"
+            >
+              Fortsätt söka
+            </button>
+            <button
+              onClick={() => {
+                // TODO: Create quote request from draft list
+                alert('Funktion kommer snart!');
+              }}
+              className={`px-8 py-3 rounded-xl transition-colors font-medium flex items-center gap-2 shadow-lg ${
+                hasAnyBelowMoq
+                  ? 'bg-orange-500 text-white hover:bg-orange-600'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              }`}
+            >
+              <Send className="h-4 w-4" />
+              {hasAnyBelowMoq
+                ? `Skicka ändå (${draftList.count} viner)`
+                : `Skicka förfrågan (${draftList.count} viner)`
+              }
+            </button>
+          </div>
         </div>
       </div>
 
@@ -339,7 +391,7 @@ function WineItem({
             <span>{formatPrice(item.price_sek)}/fl</span>
             {item.moq > 0 && (
               <span className={isBelowMoq ? 'text-orange-600 font-medium' : ''}>
-                MOQ: {item.moq} fl
+                Min. order: {item.moq} fl
               </span>
             )}
             {item.stock !== undefined && item.stock !== null && (
@@ -384,12 +436,12 @@ function WineItem({
         </button>
       </div>
 
-      {/* MOQ Warning */}
+      {/* Minimum Order Warning */}
       {isBelowMoq && (
         <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded-lg">
           <p className="text-xs text-orange-700 flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
-            Behöver {item.moq - item.quantity} fler flaskor för att uppfylla MOQ
+            Behöver {item.moq - item.quantity} fler flaskor för att nå minsta order
           </p>
         </div>
       )}

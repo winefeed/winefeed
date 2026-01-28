@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { RequestForm } from '@/components/request-form';
 import { ChevronDown, ChevronUp, Globe2, TrendingUp, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { FloatingDraftList } from '@/components/FloatingDraftList';
 
 export default function NewRequestPage() {
   const router = useRouter();
@@ -216,6 +217,9 @@ export default function NewRequestPage() {
           </div>
         </div>
       </div>
+
+      {/* Floating draft list */}
+      <FloatingDraftList />
     </div>
   );
 }
