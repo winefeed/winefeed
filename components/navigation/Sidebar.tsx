@@ -32,11 +32,12 @@ interface SidebarProps {
   userEmail?: string;
   userRoles: ActorRole[];
   isAdmin?: boolean;
+  brandSubtitle?: string; // Custom subtitle (e.g., supplier name)
 }
 
 const STORAGE_KEY = 'sidebar-collapsed';
 
-export function Sidebar({ sections, userEmail, userRoles, isAdmin = false }: SidebarProps) {
+export function Sidebar({ sections, userEmail, userRoles, isAdmin = false, brandSubtitle }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -121,10 +122,10 @@ export function Sidebar({ sections, userEmail, userRoles, isAdmin = false }: Sid
               </div>
               <div>
                 <h2 className="text-lg font-bold tracking-tight text-foreground">
-                  {isAdmin ? 'Winefeed' : 'Winefeed'}
+                  Winefeed
                 </h2>
-                <p className="text-[11px] text-muted-foreground">
-                  {isAdmin ? 'Admin Console' : 'Din vininköpare'}
+                <p className="text-[11px] text-muted-foreground truncate max-w-[140px]">
+                  {isAdmin ? 'Admin Console' : brandSubtitle || 'Din vininköpare'}
                 </p>
               </div>
             </div>

@@ -277,24 +277,34 @@ export const RESTAURANT_NAVIGATION: NavSection[] = [
 /**
  * Supplier navigation
  * Shown in supplier portal (/supplier/* pages)
+ *
+ * Optimized for supplier workflow:
+ * 1. Förfrågningar first (where new business comes from)
+ * 2. Core workflow items grouped together
+ * 3. Settings consolidated (IOR, promotions, etc.)
  */
 export const SUPPLIER_NAVIGATION: NavSection[] = [
   {
     items: [
       {
+        label: 'Förfrågningar',
+        href: '/supplier/requests',
+        icon: Inbox,
+      },
+      {
         label: 'Översikt',
         href: '/supplier',
         icon: LayoutDashboard,
       },
+    ],
+  },
+  {
+    title: 'Hantera',
+    items: [
       {
-        label: 'Vinkatalog',
+        label: 'Katalog',
         href: '/supplier/wines',
         icon: Wine,
-      },
-      {
-        label: 'Förfrågningar',
-        href: '/supplier/requests',
-        icon: Inbox,
       },
       {
         label: 'Offerter',
@@ -309,33 +319,7 @@ export const SUPPLIER_NAVIGATION: NavSection[] = [
     ],
   },
   {
-    title: 'IOR',
-    items: [
-      {
-        label: 'IOR Ordrar',
-        href: '/ior/orders',
-        icon: Globe,
-        roles: ['IOR', 'ADMIN'],
-      },
-    ],
-  },
-  {
-    title: 'Synlighet',
-    items: [
-      {
-        label: 'Sponsrade platser',
-        href: '/supplier/promotions',
-        icon: Sparkles,
-      },
-      {
-        label: 'Prenumerationer',
-        href: '/supplier/pricing',
-        icon: CreditCard,
-      },
-    ],
-  },
-  {
-    title: 'Konto',
+    title: 'Inställningar',
     items: [
       {
         label: 'Företagsprofil',
@@ -343,7 +327,18 @@ export const SUPPLIER_NAVIGATION: NavSection[] = [
         icon: Building2,
       },
       {
-        label: 'Kontakta Winefeed',
+        label: 'EU-import',
+        href: '/ior/orders',
+        icon: Globe,
+        roles: ['IOR', 'ADMIN'],
+      },
+      {
+        label: 'Synlighet & Priser',
+        href: '/supplier/pricing',
+        icon: CreditCard,
+      },
+      {
+        label: 'Hjälp',
         href: '/supplier/contact',
         icon: HelpCircle,
       },
