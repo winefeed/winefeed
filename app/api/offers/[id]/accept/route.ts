@@ -85,7 +85,8 @@ export async function POST(
     }
 
     // Get restaurant_id from the related request
-    const requestData = existingOffer.requests as { id: string; restaurant_id: string };
+    // Note: Supabase returns nested relation as object when parent uses .single()
+    const requestData = existingOffer.requests as unknown as { id: string; restaurant_id: string };
     const offerRestaurantId = requestData?.restaurant_id;
 
     // Verify restaurant ownership of the offer (non-admin only)
