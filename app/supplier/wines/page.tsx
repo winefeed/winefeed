@@ -131,6 +131,11 @@ export default function SupplierWinesPage() {
   // Status filter
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
+  // Quick filters
+  const [colorFilter, setColorFilter] = useState<string>('ALL');
+  const [countryFilter, setCountryFilter] = useState<string>('ALL');
+  const [priceFilter, setPriceFilter] = useState<string>('ALL');
+
   // Delete confirmation
   const [deleteConfirm, setDeleteConfirm] = useState<SupplierWine | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -600,11 +605,41 @@ export default function SupplierWinesPage() {
     }
   };
 
+  // Extract unique values for quick filters
+  const uniqueColors = [...new Set(wines.map(w => w.color).filter(Boolean))].sort();
+  const uniqueCountries = [...new Set(wines.map(w => w.country).filter(Boolean))].sort();
+
+  // Price range options (in SEK)
+  const PRICE_RANGES = [
+    { value: 'ALL', label: 'Alla priser' },
+    { value: '0-100', label: '0-100 kr', min: 0, max: 10000 },
+    { value: '100-200', label: '100-200 kr', min: 10000, max: 20000 },
+    { value: '200-500', label: '200-500 kr', min: 20000, max: 50000 },
+    { value: '500+', label: '500+ kr', min: 50000, max: Infinity },
+  ];
+
   const filteredAndSortedWines = wines
     .filter((wine) => {
       // Status filter
       if (statusFilter !== 'ALL' && wine.status !== statusFilter) {
         return false;
+      }
+      // Color filter
+      if (colorFilter !== 'ALL' && wine.color !== colorFilter) {
+        return false;
+      }
+      // Country filter
+      if (countryFilter !== 'ALL' && wine.country !== countryFilter) {
+        return false;
+      }
+      // Price filter
+      if (priceFilter !== 'ALL') {
+        const range = PRICE_RANGES.find(r => r.value === priceFilter);
+        if (range && range.min !== undefined) {
+          if (wine.price_ex_vat_sek < range.min || wine.price_ex_vat_sek >= range.max) {
+            return false;
+          }
+        }
       }
       // Search filter
       return (
@@ -732,35 +767,114 @@ export default function SupplierWinesPage() {
       )}
 
       {/* Filters */}
-      <div className="mb-4 flex gap-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Sök viner..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
-          />
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-2 text-sm rounded-lg ${statusFilter === 'ALL' ? 'bg-[#7B1E1E] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-          >
-            Alla
-          </button>
-          {STATUS_OPTIONS.map(option => (
+      <div className="mb-4 space-y-3">
+        {/* Search + Status Row */}
+        <div className="flex gap-4 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Sök viner..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+            />
+          </div>
+          <div className="flex gap-2">
             <button
-              key={option.value}
-              onClick={() => setStatusFilter(option.value)}
-              className={`px-3 py-2 text-sm rounded-lg ${statusFilter === option.value ? 'bg-[#7B1E1E] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => setStatusFilter('ALL')}
+              className={`px-3 py-2 text-sm rounded-lg ${statusFilter === 'ALL' ? 'bg-[#7B1E1E] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
-              {option.label}
+              Alla
             </button>
-          ))}
+            {STATUS_OPTIONS.map(option => (
+              <button
+                key={option.value}
+                onClick={() => setStatusFilter(option.value)}
+                className={`px-3 py-2 text-sm rounded-lg ${statusFilter === option.value ? 'bg-[#7B1E1E] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Filters Row */}
+        <div className="flex gap-3 flex-wrap items-center">
+          <span className="text-sm text-gray-500">Snabbfilter:</span>
+
+          {/* Color Filter */}
+          <select
+            value={colorFilter}
+            onChange={(e) => setColorFilter(e.target.value)}
+            className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E] ${
+              colorFilter !== 'ALL' ? 'border-[#7B1E1E] bg-[#7B1E1E]/5 text-[#7B1E1E]' : 'border-gray-300 text-gray-700'
+            }`}
+          >
+            <option value="ALL">Alla färger</option>
+            {uniqueColors.map(color => (
+              <option key={color} value={color}>{colorLabels[color] || color}</option>
+            ))}
+          </select>
+
+          {/* Country Filter */}
+          <select
+            value={countryFilter}
+            onChange={(e) => setCountryFilter(e.target.value)}
+            className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E] ${
+              countryFilter !== 'ALL' ? 'border-[#7B1E1E] bg-[#7B1E1E]/5 text-[#7B1E1E]' : 'border-gray-300 text-gray-700'
+            }`}
+          >
+            <option value="ALL">Alla länder</option>
+            {uniqueCountries.map(country => (
+              <option key={country} value={country}>{country}</option>
+            ))}
+          </select>
+
+          {/* Price Filter */}
+          <select
+            value={priceFilter}
+            onChange={(e) => setPriceFilter(e.target.value)}
+            className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E] ${
+              priceFilter !== 'ALL' ? 'border-[#7B1E1E] bg-[#7B1E1E]/5 text-[#7B1E1E]' : 'border-gray-300 text-gray-700'
+            }`}
+          >
+            {PRICE_RANGES.map(range => (
+              <option key={range.value} value={range.value}>{range.label}</option>
+            ))}
+          </select>
+
+          {/* Clear All Filters */}
+          {(colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL' || statusFilter !== 'ALL' || searchTerm) && (
+            <button
+              onClick={() => {
+                setColorFilter('ALL');
+                setCountryFilter('ALL');
+                setPriceFilter('ALL');
+                setStatusFilter('ALL');
+                setSearchTerm('');
+              }}
+              className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              Rensa filter
+            </button>
+          )}
+
+          {/* Active filter count */}
+          {(colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL') && (
+            <span className="text-xs text-gray-400">
+              {[colorFilter !== 'ALL', countryFilter !== 'ALL', priceFilter !== 'ALL'].filter(Boolean).length} filter aktiva
+            </span>
+          )}
         </div>
       </div>
+
+      {/* Filter Results Info */}
+      {(searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL') && filteredAndSortedWines.length > 0 && (
+        <div className="mb-3 text-sm text-gray-500">
+          Visar {filteredAndSortedWines.length} av {wines.length} viner
+        </div>
+      )}
 
       {/* Wine List */}
       {filteredAndSortedWines.length > 0 ? (
@@ -969,12 +1083,12 @@ export default function SupplierWinesPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
           <Wine className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchTerm || statusFilter !== 'ALL' ? 'Inga viner hittades' : 'Din katalog är tom'}
+            {searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL' ? 'Inga viner hittades' : 'Din katalog är tom'}
           </h3>
           <p className="text-gray-500 mb-4">
-            {searchTerm || statusFilter !== 'ALL' ? 'Prova med en annan sökning eller filter' : 'Ladda upp dina viner för att komma igång'}
+            {searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL' ? 'Prova med en annan sökning eller filter' : 'Ladda upp dina viner för att komma igång'}
           </p>
-          {!searchTerm && statusFilter === 'ALL' && (
+          {!searchTerm && statusFilter === 'ALL' && colorFilter === 'ALL' && countryFilter === 'ALL' && priceFilter === 'ALL' && (
             <button
               onClick={() => setShowUpload(true)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg text-sm font-medium hover:bg-[#6B1818]"

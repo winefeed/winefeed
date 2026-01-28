@@ -29,15 +29,16 @@ export function FloatingDraftList() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
 
-  // Calculate totals
+  // Calculate totals (including provorder fees)
   const totalValue = draftList.items.reduce(
-    (sum, item) => sum + item.price_sek * item.quantity,
+    (sum, item) => sum + item.price_sek * item.quantity + (item.provorder ? (item.provorder_fee || 500) : 0),
     0
   );
   const totalBottles = draftList.items.reduce(
     (sum, item) => sum + item.quantity,
     0
   );
+  const provorderCount = draftList.items.filter(item => item.provorder).length;
 
   // Don't render if no items
   if (draftList.items.length === 0) {
@@ -98,9 +99,16 @@ export function FloatingDraftList() {
                   <p className="text-xs text-muted-foreground truncate">
                     {item.producer}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {item.quantity} fl × {formatPrice(item.price_sek)}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-muted-foreground">
+                      {item.quantity} fl × {formatPrice(item.price_sek)}
+                    </p>
+                    {item.provorder && (
+                      <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-medium rounded">
+                        +{item.provorder_fee || 500} kr
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={() => draftList.removeItem(item.wine_id)}

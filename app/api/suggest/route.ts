@@ -243,7 +243,7 @@ export async function POST(request: NextRequest) {
     if (supplierIds.length > 0) {
       const { data: suppliers } = await getSupabaseAdmin()
         .from('suppliers')
-        .select('id, namn, kontakt_email')
+        .select('id, namn, kontakt_email, min_order_bottles, provorder_enabled, provorder_fee_sek')
         .in('id', supplierIds);
 
       if (suppliers) {
@@ -318,9 +318,18 @@ export async function POST(request: NextRequest) {
           kartong: wine.kartong,
           ledtid_dagar: wine.ledtid_dagar,
         },
-        supplier: supplier || {
+        supplier: supplier ? {
+          id: supplier.id,
+          namn: supplier.namn,
+          kontakt_email: supplier.kontakt_email,
+          min_order_bottles: supplier.min_order_bottles,
+          provorder_enabled: supplier.provorder_enabled || false,
+          provorder_fee_sek: supplier.provorder_fee_sek || 500,
+        } : {
           namn: 'Okänd leverantör',
           kontakt_email: null,
+          provorder_enabled: false,
+          provorder_fee_sek: 500,
         },
         motivering: wine.ai_reason || wine.beskrivning || 'Ett utmärkt val för din restaurang.',
         ranking_score: wine.score,

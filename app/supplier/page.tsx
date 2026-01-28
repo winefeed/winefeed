@@ -37,7 +37,21 @@ interface DashboardStats {
   activeOffers: number;
   pendingOrders: number;
   acceptedOffers: number;
+  completedOrders: number;
   winRate: number;
+  // Performance metrics
+  avgResponseTimeHours: number;
+  responseRate: number;
+  conversionRate: number;
+  totalAssignments: number;
+  answeredAssignments: number;
+  // Trends
+  trends: {
+    offersLast30: number;
+    offersTrend: number;
+    acceptedLast30: number;
+    acceptedTrend: number;
+  };
 }
 
 export default function SupplierDashboard() {
@@ -86,7 +100,14 @@ export default function SupplierDashboard() {
             activeOffers: 0,
             pendingOrders: 0,
             acceptedOffers: 0,
+            completedOrders: 0,
             winRate: 0,
+            avgResponseTimeHours: 0,
+            responseRate: 0,
+            conversionRate: 0,
+            totalAssignments: 0,
+            answeredAssignments: 0,
+            trends: { offersLast30: 0, offersTrend: 0, acceptedLast30: 0, acceptedTrend: 0 },
           });
         }
       } catch (error) {
@@ -98,7 +119,14 @@ export default function SupplierDashboard() {
           activeOffers: 0,
           pendingOrders: 0,
           acceptedOffers: 0,
+          completedOrders: 0,
           winRate: 0,
+          avgResponseTimeHours: 0,
+          responseRate: 0,
+          conversionRate: 0,
+          totalAssignments: 0,
+          answeredAssignments: 0,
+          trends: { offersLast30: 0, offersTrend: 0, acceptedLast30: 0, acceptedTrend: 0 },
         });
       } finally {
         setLoading(false);
@@ -286,6 +314,7 @@ export default function SupplierDashboard() {
                 Din prestation
               </h2>
               <div className="space-y-4">
+                {/* Win rate */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm text-gray-600">Win rate</span>
@@ -302,6 +331,64 @@ export default function SupplierDashboard() {
                     />
                   </div>
                 </div>
+
+                {/* Response rate */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm text-gray-600">Svarsfrekvens</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {stats?.responseRate || 0}%
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        (stats?.responseRate || 0) >= 80 ? 'bg-green-500' : (stats?.responseRate || 0) >= 50 ? 'bg-amber-500' : 'bg-red-400'
+                      }`}
+                      style={{ width: `${Math.min(stats?.responseRate || 0, 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Avg response time */}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    Snitt svarstid
+                  </span>
+                  <span className={`text-sm font-semibold ${
+                    (stats?.avgResponseTimeHours || 0) <= 24 ? 'text-green-600' :
+                    (stats?.avgResponseTimeHours || 0) <= 48 ? 'text-amber-600' : 'text-red-600'
+                  }`}>
+                    {stats?.avgResponseTimeHours ? (
+                      stats.avgResponseTimeHours < 24
+                        ? `${stats.avgResponseTimeHours}h`
+                        : `${Math.round(stats.avgResponseTimeHours / 24)}d`
+                    ) : '-'}
+                  </span>
+                </div>
+
+                {/* Trend indicator */}
+                {stats?.trends && stats.trends.offersLast30 > 0 && (
+                  <div className="pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Senaste 30 dagarna</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{stats.trends.offersLast30} offerter</span>
+                        {stats.trends.offersTrend !== 0 && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${
+                            stats.trends.offersTrend > 0
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}>
+                            {stats.trends.offersTrend > 0 ? '+' : ''}{stats.trends.offersTrend}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="pt-3 border-t border-gray-100">
                   <a
                     href="/supplier/analytics"

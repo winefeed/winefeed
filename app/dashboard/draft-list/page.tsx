@@ -30,15 +30,25 @@ export default function DraftListPage() {
   const router = useRouter();
   const draftList = useDraftList();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const groupedItems = draftList.getGroupedBySupplier();
 
-  // Calculate total value
-  const totalValue = draftList.items.reduce((sum, item) => sum + (item.price_sek * item.quantity), 0);
+  // Calculate total value (including provorder fees)
+  const totalValue = draftList.items.reduce(
+    (sum, item) => sum + (item.price_sek * item.quantity) + (item.provorder ? (item.provorder_fee || 500) : 0),
+    0
+  );
   const totalBottles = draftList.items.reduce((sum, item) => sum + item.quantity, 0);
+  const provorderCount = draftList.items.filter(item => item.provorder).length;
+  const totalProvorderFees = draftList.items.reduce(
+    (sum, item) => sum + (item.provorder ? (item.provorder_fee || 500) : 0),
+    0
+  );
 
-  // Check if any items are below MOQ
-  const itemsBelowMoq = draftList.items.filter(item => item.moq > 0 && item.quantity < item.moq);
+  // Check if any items are below MOQ (excluding provorder items)
+  const itemsBelowMoq = draftList.items.filter(item => item.moq > 0 && item.quantity < item.moq && !item.provorder);
   const hasAnyBelowMoq = itemsBelowMoq.length > 0;
 
   // Calculate minimum purchase value (if all MOQs were met)
@@ -201,6 +211,11 @@ export default function DraftListPage() {
                 <>
                   <p className="text-3xl font-bold text-foreground">{formatPrice(totalValue)}</p>
                   <p className="text-sm text-muted-foreground">Uppskattat värde</p>
+                  {provorderCount > 0 && (
+                    <p className="text-xs text-green-600 mt-1">
+                      inkl. {provorderCount} provorder (+{formatPrice(totalProvorderFees)})
+                    </p>
+                  )}
                 </>
               )}
             </div>
@@ -296,32 +311,74 @@ export default function DraftListPage() {
               </p>
             </div>
           )}
+          {sendError && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl max-w-md text-center">
+              <p className="text-sm text-red-800">{sendError}</p>
+            </div>
+          )}
           <div className="flex gap-4">
             <button
               onClick={() => router.push('/dashboard/new-request')}
               className="px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-muted/80 transition-colors font-medium"
+              disabled={sending}
             >
               Fortsätt söka
             </button>
             <button
-              onClick={() => {
-                // TODO: Implement backend for creating quote request from draft list
-                // For now, show a confirmation that this is non-binding
-                if (confirm(`Skicka offertförfrågan för ${draftList.count} viner?\n\nDetta är INTE en bindande beställning. Du väljer själv om och när du vill acceptera en offert från leverantörerna.`)) {
-                  alert('Tack! Funktionen för att skicka förfrågan direkt från listan kommer snart.\n\nJust nu kan du använda "Ny förfrågan" för att söka och skicka förfrågan.');
+              onClick={async () => {
+                if (!confirm(`Skicka offertförfrågan för ${draftList.count} viner?\n\nDetta är INTE en bindande beställning. Du väljer själv om och när du vill acceptera en offert från leverantörerna.`)) {
+                  return;
+                }
+
+                setSending(true);
+                setSendError(null);
+
+                try {
+                  const response = await fetch('/api/draft-list/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ items: draftList.items }),
+                  });
+
+                  const data = await response.json();
+
+                  if (!response.ok) {
+                    throw new Error(data.error || 'Kunde inte skicka förfrågan');
+                  }
+
+                  // Success - clear draft list and redirect
+                  draftList.clear();
+                  router.push(`/dashboard/my-requests?sent=true`);
+                } catch (err: any) {
+                  setSendError(err.message || 'Ett fel uppstod');
+                } finally {
+                  setSending(false);
                 }
               }}
+              disabled={sending}
               className={`px-8 py-3 rounded-xl transition-colors font-medium flex items-center gap-2 shadow-lg ${
-                hasAnyBelowMoq
+                sending
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : hasAnyBelowMoq
                   ? 'bg-orange-500 text-white hover:bg-orange-600'
                   : 'bg-primary text-primary-foreground hover:bg-primary/90'
               }`}
             >
-              <Send className="h-4 w-4" />
-              {hasAnyBelowMoq
-                ? `Skicka ändå (${draftList.count} viner)`
-                : `Skicka förfrågan (${draftList.count} viner)`
-              }
+              {sending ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Skickar...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  {hasAnyBelowMoq
+                    ? `Skicka ändå (${draftList.count} viner)`
+                    : `Skicka förfrågan (${draftList.count} viner)`
+                  }
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -377,7 +434,8 @@ function WineItem({
   onQuantityChange: (wineId: string, delta: number) => void;
   onRemove: () => void;
 }) {
-  const isBelowMoq = item.moq > 0 && item.quantity < item.moq;
+  const isBelowMoq = item.moq > 0 && item.quantity < item.moq && !item.provorder;
+  const provorderFee = item.provorder_fee || 500;
 
   return (
     <div className="p-4">
@@ -394,6 +452,11 @@ function WineItem({
                 {COLOR_LABELS[item.color].label}
               </span>
             )}
+            {item.provorder && (
+              <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                Provorder
+              </span>
+            )}
           </div>
           <p className="text-sm text-muted-foreground">
             {item.producer} · {item.country}
@@ -401,9 +464,14 @@ function WineItem({
           </p>
           <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
             <span>{formatPrice(item.price_sek)}/fl</span>
-            {item.moq > 0 && (
+            {item.moq > 0 && !item.provorder && (
               <span className={isBelowMoq ? 'text-orange-600 font-medium' : ''}>
                 Min. order: {item.moq} fl
+              </span>
+            )}
+            {item.provorder && (
+              <span className="text-green-600 font-medium">
+                +{formatPrice(provorderFee)} provorderavgift
               </span>
             )}
             {item.stock !== undefined && item.stock !== null && (
@@ -436,6 +504,9 @@ function WineItem({
           </div>
           <p className="text-sm font-medium text-foreground">
             {formatPrice(item.price_sek * item.quantity)}
+            {item.provorder && (
+              <span className="text-green-600 text-xs ml-1">+{formatPrice(provorderFee)}</span>
+            )}
           </p>
         </div>
 
@@ -454,6 +525,16 @@ function WineItem({
           <p className="text-xs text-orange-700 flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
             Behöver {item.moq - item.quantity} fler flaskor för att nå minsta order
+          </p>
+        </div>
+      )}
+
+      {/* Provorder info */}
+      {item.provorder && (
+        <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-xs text-green-700 flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3" />
+            Provorder – extra avgift {formatPrice(provorderFee)} för småorder under MOQ
           </p>
         </div>
       )}

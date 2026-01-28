@@ -45,6 +45,38 @@ export interface OrderStatusUpdatedEmailParams {
   deepLink?: string;
 }
 
+export interface NewQuoteRequestEmailParams {
+  supplierName: string;
+  restaurantName: string;
+  requestId: string;
+  fritext: string;
+  antalFlaskor?: number;
+  budgetPerFlaska?: number;
+  leveransOrt?: string;
+  expiresAt?: string;
+  wineCount?: number;
+  hasProvorder?: boolean;
+  provorderFeeTotal?: number;
+}
+
+export interface OrderConfirmationEmailParams {
+  recipientName: string;
+  orderId: string;
+  restaurantName: string;
+  supplierName: string;
+  totalBottles: number;
+  totalValueSek?: number;
+  deliveryAddress?: string;
+  expectedDelivery?: string;
+  items: Array<{
+    wineName: string;
+    quantity: number;
+    priceSek?: number;
+    provorder?: boolean;
+    provorderFee?: number;
+  }>;
+}
+
 /**
  * Template: Offer Created (sent to restaurant)
  */
@@ -455,6 +487,248 @@ ${newStatus === 'IN_FULFILLMENT' ? 'Din order bearbetas nu för leverans. Du kom
 ${newStatus === 'CANCELLED' ? '❌ Ordern har avbrutits. Kontakta leverantören om du har frågor.\n' : ''}
 
 Visa order: ${orderUrl}
+
+---
+Winefeed - Din B2B-marknadsplats för vin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+/**
+ * Template: New Quote Request (sent to supplier)
+ */
+export function newQuoteRequestEmail(params: NewQuoteRequestEmailParams): { subject: string; html: string; text: string } {
+  const {
+    supplierName,
+    restaurantName,
+    requestId,
+    fritext,
+    antalFlaskor,
+    budgetPerFlaska,
+    leveransOrt,
+    expiresAt,
+    wineCount,
+    hasProvorder,
+    provorderFeeTotal
+  } = params;
+
+  const requestUrl = getAppUrl(`/supplier/requests/${requestId}`);
+
+  const expiryDate = expiresAt ? new Date(expiresAt).toLocaleString('sv-SE', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }) : null;
+
+  const subject = `📬 Ny förfrågan från ${restaurantName}`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">📬 Ny förfrågan!</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">En restaurang vill ha din offert</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <h2 style="color: #d97706; margin-top: 0;">Hej ${supplierName}!</h2>
+
+    <p><strong>${restaurantName}</strong> har skickat en förfrågan som matchar din katalog.</p>
+
+    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0;"><strong>Förfrågan:</strong> ${fritext}</p>
+      ${wineCount ? `<p style="margin: 0 0 10px 0;"><strong>Antal viner:</strong> ${wineCount} st</p>` : ''}
+      ${antalFlaskor ? `<p style="margin: 0 0 10px 0;"><strong>Antal flaskor:</strong> ${antalFlaskor}</p>` : ''}
+      ${budgetPerFlaska ? `<p style="margin: 0 0 10px 0;"><strong>Budget:</strong> ${budgetPerFlaska} kr/flaska</p>` : ''}
+      ${leveransOrt ? `<p style="margin: 0 0 10px 0;"><strong>Leveransort:</strong> ${leveransOrt}</p>` : ''}
+    </div>
+
+    ${hasProvorder ? `
+    <div style="background: #f0fdf4; border: 1px solid #86efac; padding: 15px; margin: 20px 0; border-radius: 6px;">
+      <p style="margin: 0; color: #065f46;"><strong>✅ Provorder accepterad</strong></p>
+      <p style="margin: 10px 0 0 0; color: #065f46; font-size: 14px;">Kunden godkänner extra avgift på ${provorderFeeTotal} kr för småorder.</p>
+    </div>
+    ` : ''}
+
+    ${expiryDate ? `
+    <p style="color: #b45309; font-weight: 500;">⏰ Svara senast: ${expiryDate}</p>
+    ` : ''}
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${requestUrl}" style="display: inline-block; background: #f59e0b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Visa förfrågan & skicka offert
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      Gå direkt till din leverantörsportal:<br>
+      <a href="${getAppUrl('/supplier/requests')}" style="color: #f59e0b;">Se alla förfrågningar</a>
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Winefeed - Din B2B-marknadsplats för vin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+Ny förfrågan från ${restaurantName}
+
+Hej ${supplierName}!
+
+${restaurantName} har skickat en förfrågan som matchar din katalog.
+
+Förfrågan: ${fritext}
+${wineCount ? `Antal viner: ${wineCount} st` : ''}
+${antalFlaskor ? `Antal flaskor: ${antalFlaskor}` : ''}
+${budgetPerFlaska ? `Budget: ${budgetPerFlaska} kr/flaska` : ''}
+${leveransOrt ? `Leveransort: ${leveransOrt}` : ''}
+
+${hasProvorder ? `✅ PROVORDER ACCEPTERAD - Kunden godkänner extra avgift på ${provorderFeeTotal} kr för småorder.\n` : ''}
+${expiryDate ? `⏰ Svara senast: ${expiryDate}` : ''}
+
+Visa förfrågan och skicka offert: ${requestUrl}
+
+---
+Winefeed - Din B2B-marknadsplats för vin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+/**
+ * Template: Order Confirmation (sent to both restaurant and supplier)
+ */
+export function orderConfirmationEmail(params: OrderConfirmationEmailParams): { subject: string; html: string; text: string } {
+  const {
+    recipientName,
+    orderId,
+    restaurantName,
+    supplierName,
+    totalBottles,
+    totalValueSek,
+    deliveryAddress,
+    expectedDelivery,
+    items
+  } = params;
+
+  const orderUrl = getAppUrl(`/orders/${orderId}`);
+  const shortOrderId = orderId.substring(0, 8).toUpperCase();
+
+  const subject = `✅ Order bekräftad #${shortOrderId}`;
+
+  // Build items list HTML
+  const itemsHtml = items.map(item => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${item.wineName}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
+      ${item.priceSek ? `<td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right;">${item.priceSek} kr</td>` : ''}
+      ${item.provorder ? `<td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right; color: #059669;">+${item.provorderFee || 500} kr</td>` : (item.priceSek ? '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"></td>' : '')}
+    </tr>
+  `).join('');
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">✅ Order bekräftad!</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Order #${shortOrderId}</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <h2 style="color: #10b981; margin-top: 0;">Tack för din order!</h2>
+
+    <p>Hej ${recipientName},</p>
+
+    <p>Din order har bekräftats och leverantören har börjat behandla den.</p>
+
+    <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0;"><strong>Order:</strong> #${shortOrderId}</p>
+      <p style="margin: 0 0 10px 0;"><strong>Restaurang:</strong> ${restaurantName}</p>
+      <p style="margin: 0 0 10px 0;"><strong>Leverantör:</strong> ${supplierName}</p>
+      <p style="margin: 0 0 10px 0;"><strong>Antal flaskor:</strong> ${totalBottles}</p>
+      ${totalValueSek ? `<p style="margin: 0 0 10px 0;"><strong>Totalt:</strong> ${totalValueSek.toLocaleString('sv-SE')} kr</p>` : ''}
+      ${deliveryAddress ? `<p style="margin: 0 0 10px 0;"><strong>Leveransadress:</strong> ${deliveryAddress}</p>` : ''}
+      ${expectedDelivery ? `<p style="margin: 0;"><strong>Förväntad leverans:</strong> ${expectedDelivery}</p>` : ''}
+    </div>
+
+    ${items.length > 0 ? `
+    <h3 style="color: #374151; margin-top: 25px;">Orderrader</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+      <thead>
+        <tr style="background: #f9fafb;">
+          <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Vin</th>
+          <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e5e7eb;">Antal</th>
+          ${items.some(i => i.priceSek) ? '<th style="padding: 10px; text-align: right; border-bottom: 2px solid #e5e7eb;">Pris</th>' : ''}
+          ${items.some(i => i.provorder) ? '<th style="padding: 10px; text-align: right; border-bottom: 2px solid #e5e7eb;">Provorder</th>' : ''}
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsHtml}
+      </tbody>
+    </table>
+    ` : ''}
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${orderUrl}" style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+        Visa order
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      Du får ett nytt mail när ordern skickas.
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Winefeed - Din B2B-marknadsplats för vin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  // Build items list text
+  const itemsText = items.map(item =>
+    `- ${item.wineName}: ${item.quantity} fl${item.priceSek ? ` @ ${item.priceSek} kr` : ''}${item.provorder ? ` (+${item.provorderFee || 500} kr provorder)` : ''}`
+  ).join('\n');
+
+  const text = `
+Order bekräftad #${shortOrderId}
+
+Hej ${recipientName},
+
+Din order har bekräftats och leverantören har börjat behandla den.
+
+Order: #${shortOrderId}
+Restaurang: ${restaurantName}
+Leverantör: ${supplierName}
+Antal flaskor: ${totalBottles}
+${totalValueSek ? `Totalt: ${totalValueSek.toLocaleString('sv-SE')} kr` : ''}
+${deliveryAddress ? `Leveransadress: ${deliveryAddress}` : ''}
+${expectedDelivery ? `Förväntad leverans: ${expectedDelivery}` : ''}
+
+${items.length > 0 ? `Orderrader:\n${itemsText}` : ''}
+
+Visa order: ${orderUrl}
+
+Du får ett nytt mail när ordern skickas.
 
 ---
 Winefeed - Din B2B-marknadsplats för vin

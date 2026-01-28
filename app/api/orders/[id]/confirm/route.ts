@@ -10,6 +10,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { orderService } from '@/lib/order-service';
+import { sendEmail, getRestaurantRecipients, getSupplierEmail } from '@/lib/email-service';
+import { orderConfirmationEmail } from '@/lib/email-templates';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -80,6 +82,103 @@ export async function POST(
       actor_user_id: userId,
       note,
     });
+
+    // Send confirmation emails (fail-safe)
+    try {
+      // Get full order details for email
+      const { data: fullOrder } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          buyer_restaurant_id,
+          seller_supplier_id,
+          delivery_address,
+          total_bottles
+        `)
+        .eq('id', orderId)
+        .single();
+
+      if (fullOrder) {
+        // Get restaurant and supplier details
+        const { data: restaurant } = await supabase
+          .from('restaurants')
+          .select('name, contact_email')
+          .eq('id', fullOrder.buyer_restaurant_id)
+          .single();
+
+        const { data: supplier } = await supabase
+          .from('suppliers')
+          .select('namn, kontakt_email')
+          .eq('id', fullOrder.seller_supplier_id)
+          .single();
+
+        // Get order lines
+        const { data: orderLines } = await supabase
+          .from('order_lines')
+          .select('wine_name, quantity, offered_unit_price_ore')
+          .eq('order_id', orderId);
+
+        const items = (orderLines || []).map(line => ({
+          wineName: line.wine_name,
+          quantity: line.quantity,
+          priceSek: line.offered_unit_price_ore ? Math.round(line.offered_unit_price_ore / 100) : undefined,
+        }));
+
+        const totalValue = (orderLines || []).reduce(
+          (sum, line) => sum + (line.offered_unit_price_ore || 0) * line.quantity / 100,
+          0
+        );
+
+        // Send to restaurant
+        const restaurantRecipients = await getRestaurantRecipients(fullOrder.buyer_restaurant_id, tenantId);
+        for (const email of restaurantRecipients) {
+          const emailContent = orderConfirmationEmail({
+            recipientName: restaurant?.name || 'Restaurang',
+            orderId,
+            restaurantName: restaurant?.name || 'Er restaurang',
+            supplierName: supplier?.namn || 'Leverantör',
+            totalBottles: fullOrder.total_bottles || items.reduce((sum, i) => sum + i.quantity, 0),
+            totalValueSek: totalValue > 0 ? Math.round(totalValue) : undefined,
+            deliveryAddress: fullOrder.delivery_address,
+            items,
+          });
+
+          await sendEmail({
+            to: email,
+            subject: emailContent.subject,
+            html: emailContent.html,
+            text: emailContent.text,
+          });
+        }
+
+        // Send to supplier
+        const supplierEmail = supplier?.kontakt_email || await getSupplierEmail(fullOrder.seller_supplier_id, tenantId);
+        if (supplierEmail) {
+          const emailContent = orderConfirmationEmail({
+            recipientName: supplier?.namn || 'Leverantör',
+            orderId,
+            restaurantName: restaurant?.name || 'Restaurang',
+            supplierName: supplier?.namn || 'Er firma',
+            totalBottles: fullOrder.total_bottles || items.reduce((sum, i) => sum + i.quantity, 0),
+            totalValueSek: totalValue > 0 ? Math.round(totalValue) : undefined,
+            deliveryAddress: fullOrder.delivery_address,
+            items,
+          });
+
+          await sendEmail({
+            to: supplierEmail,
+            subject: emailContent.subject,
+            html: emailContent.html,
+            text: emailContent.text,
+          });
+        }
+
+        console.log(`📧 Order confirmation emails sent for order ${orderId}`);
+      }
+    } catch (emailError) {
+      console.error('Error sending order confirmation emails:', emailError);
+      // Don't fail - emails are not critical
+    }
 
     return NextResponse.json({
       success: true,

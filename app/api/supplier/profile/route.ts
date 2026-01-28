@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     // Get full supplier details
     const { data: supplier, error: supplierError } = await supabase
       .from('suppliers')
-      .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles')
+      .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles, provorder_enabled, provorder_fee_sek')
       .eq('id', actor.supplier_id)
       .single();
 
@@ -80,6 +80,8 @@ export async function GET(request: NextRequest) {
       hemsida: supplier.hemsida,
       isActive: supplier.is_active,
       minOrderBottles: supplier.min_order_bottles,
+      provorderEnabled: supplier.provorder_enabled || false,
+      provorderFeeSek: supplier.provorder_fee_sek || 500,
       userEmail,
     });
 
@@ -127,9 +129,10 @@ export async function PATCH(request: NextRequest) {
 
     const body = await request.json();
 
-    // Validate min_order_bottles
+    // Build updates object with validated fields
     const updates: Record<string, any> = {};
 
+    // Min order bottles
     if ('minOrderBottles' in body) {
       const value = body.minOrderBottles;
       if (value !== null && (typeof value !== 'number' || value < 0 || !Number.isInteger(value))) {
@@ -139,6 +142,73 @@ export async function PATCH(request: NextRequest) {
         );
       }
       updates.min_order_bottles = value;
+    }
+
+    // Contact email
+    if ('kontaktEmail' in body) {
+      const value = body.kontaktEmail;
+      if (value !== null && typeof value !== 'string') {
+        return NextResponse.json(
+          { error: 'kontaktEmail must be a string or null' },
+          { status: 400 }
+        );
+      }
+      // Basic email validation
+      if (value && !value.includes('@')) {
+        return NextResponse.json(
+          { error: 'Invalid email format' },
+          { status: 400 }
+        );
+      }
+      updates.kontakt_email = value || null;
+    }
+
+    // Phone
+    if ('telefon' in body) {
+      const value = body.telefon;
+      if (value !== null && typeof value !== 'string') {
+        return NextResponse.json(
+          { error: 'telefon must be a string or null' },
+          { status: 400 }
+        );
+      }
+      updates.telefon = value || null;
+    }
+
+    // Website
+    if ('hemsida' in body) {
+      const value = body.hemsida;
+      if (value !== null && typeof value !== 'string') {
+        return NextResponse.json(
+          { error: 'hemsida must be a string or null' },
+          { status: 400 }
+        );
+      }
+      updates.hemsida = value || null;
+    }
+
+    // Provorder enabled
+    if ('provorderEnabled' in body) {
+      const value = body.provorderEnabled;
+      if (typeof value !== 'boolean') {
+        return NextResponse.json(
+          { error: 'provorderEnabled must be a boolean' },
+          { status: 400 }
+        );
+      }
+      updates.provorder_enabled = value;
+    }
+
+    // Provorder fee
+    if ('provorderFeeSek' in body) {
+      const value = body.provorderFeeSek;
+      if (value !== null && (typeof value !== 'number' || value < 0 || !Number.isInteger(value))) {
+        return NextResponse.json(
+          { error: 'provorderFeeSek must be a positive integer or null' },
+          { status: 400 }
+        );
+      }
+      updates.provorder_fee_sek = value;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -153,7 +223,7 @@ export async function PATCH(request: NextRequest) {
       .from('suppliers')
       .update(updates)
       .eq('id', actor.supplier_id)
-      .select('id, min_order_bottles')
+      .select('id, min_order_bottles, kontakt_email, telefon, hemsida, provorder_enabled, provorder_fee_sek')
       .single();
 
     if (updateError) {
@@ -167,6 +237,11 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       minOrderBottles: supplier.min_order_bottles,
+      kontaktEmail: supplier.kontakt_email,
+      telefon: supplier.telefon,
+      hemsida: supplier.hemsida,
+      provorderEnabled: supplier.provorder_enabled || false,
+      provorderFeeSek: supplier.provorder_fee_sek || 500,
     });
 
   } catch (error: any) {
