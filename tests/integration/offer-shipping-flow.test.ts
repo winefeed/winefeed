@@ -18,14 +18,24 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const TEST_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
+// Helper to create auth headers for test bypass
+const authHeaders = (userId: string) => ({
+  'Content-Type': 'application/json',
+  'x-user-id': userId,
+  'x-tenant-id': TEST_TENANT_ID,
+});
 
 let supabase: SupabaseClient;
 let testRestaurantId: string;
 let testQuoteRequestId: string;
 let testSupplierA_Id: string;
+let testSupplierA_UserId: string;
 let testSupplierA_WineId: string;
 let testSupplierA_OfferId: string; // With shipping cost
 let testSupplierB_Id: string;
+let testSupplierB_UserId: string;
 let testSupplierB_WineId: string;
 let testSupplierB_OfferId: string; // Franco (no shipping)
 
@@ -64,12 +74,13 @@ describe('Offer Shipping Flow (Integration)', () => {
     });
     const supplierAData = await supplierAResponse.json();
     testSupplierA_Id = supplierAData.supplier.id;
+    testSupplierA_UserId = supplierAData.user.id;
 
     const catalogA = `name,producer,country,region,vintage,grape,priceExVatSek,vatRate,stockQty,minOrderQty,leadTimeDays,deliveryAreas
 "Premium Chianti 2019","Castello A","Italy","Tuscany",2019,"Sangiovese",350.00,25.00,50,6,5,"Stockholm"`;
     await fetch(`http://localhost:3000/api/suppliers/${testSupplierA_Id}/catalog/import`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(testSupplierA_UserId),
       body: JSON.stringify({ csvData: catalogA }),
     });
 
@@ -94,12 +105,13 @@ describe('Offer Shipping Flow (Integration)', () => {
     });
     const supplierBData = await supplierBResponse.json();
     testSupplierB_Id = supplierBData.supplier.id;
+    testSupplierB_UserId = supplierBData.user.id;
 
     const catalogB = `name,producer,country,region,vintage,grape,priceExVatSek,vatRate,stockQty,minOrderQty,leadTimeDays,deliveryAreas
 "Premium Barolo 2018","Cantina B","Italy","Piedmont",2018,"Nebbiolo",450.00,25.00,30,6,7,"Stockholm"`;
     await fetch(`http://localhost:3000/api/suppliers/${testSupplierB_Id}/catalog/import`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(testSupplierB_UserId),
       body: JSON.stringify({ csvData: catalogB }),
     });
 
@@ -119,6 +131,8 @@ describe('Offer Shipping Flow (Integration)', () => {
       await supabase.from('restaurants').delete().eq('id', testRestaurantId);
       await supabase.auth.admin.deleteUser(testRestaurantId);
     }
+    if (testSupplierA_UserId) await supabase.auth.admin.deleteUser(testSupplierA_UserId);
+    if (testSupplierB_UserId) await supabase.auth.admin.deleteUser(testSupplierB_UserId);
     if (testSupplierA_Id) await supabase.from('suppliers').delete().eq('id', testSupplierA_Id);
     if (testSupplierB_Id) await supabase.from('suppliers').delete().eq('id', testSupplierB_Id);
   });
@@ -147,7 +161,7 @@ describe('Offer Shipping Flow (Integration)', () => {
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/dispatch`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testRestaurantId),
         body: JSON.stringify({ maxMatches: 10, minScore: 0 }),
       }
     );
@@ -165,7 +179,7 @@ describe('Offer Shipping Flow (Integration)', () => {
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testSupplierA_UserId),
         body: JSON.stringify({
           supplierId: testSupplierA_Id,
           supplierWineId: testSupplierA_WineId,
@@ -206,7 +220,7 @@ describe('Offer Shipping Flow (Integration)', () => {
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(testSupplierB_UserId),
         body: JSON.stringify({
           supplierId: testSupplierB_Id,
           supplierWineId: testSupplierB_WineId,
@@ -244,7 +258,10 @@ describe('Offer Shipping Flow (Integration)', () => {
   it('Step 5: Restaurant lists offers and sees shipping info', async () => {
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        headers: authHeaders(testRestaurantId),
+      }
     );
 
     expect(response.status).toBe(200);
@@ -279,7 +296,10 @@ describe('Offer Shipping Flow (Integration)', () => {
   it('Step 6: Verify B2B ex moms pricing is clear', async () => {
     const response = await fetch(
       `http://localhost:3000/api/quote-requests/${testQuoteRequestId}/offers`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        headers: authHeaders(testRestaurantId),
+      }
     );
 
     const data = await response.json();

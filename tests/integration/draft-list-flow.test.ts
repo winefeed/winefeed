@@ -21,9 +21,9 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const TEST_TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
 let supabase: SupabaseClient;
-let testTenantId: string;
 let testRestaurantId: string;
 let testRestaurantUserId: string;
 let testSupplierId: string;
@@ -37,9 +37,6 @@ describe('Draft List Flow (Integration)', () => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // Setup: Create tenant
-    testTenantId = 'test-tenant-draft-' + Date.now();
-
     // Setup: Create restaurant user
     const { data: restaurantAuth } = await supabase.auth.admin.createUser({
       email: `restaurant-draft-${Date.now()}@example.com`,
@@ -49,17 +46,22 @@ describe('Draft List Flow (Integration)', () => {
     });
     testRestaurantUserId = restaurantAuth.user!.id;
 
-    // Setup: Create restaurant
-    const { data: restaurant } = await supabase
+    // Setup: Create restaurant (note: restaurants table doesn't have tenant_id)
+    // Use upsert in case a trigger already created the restaurant
+    const { data: restaurant, error: restaurantError } = await supabase
       .from('restaurants')
-      .insert({
+      .upsert({
         id: testRestaurantUserId,
         name: 'Draft Test Restaurant',
         contact_email: restaurantAuth.user!.email,
-        tenant_id: testTenantId,
-      })
+      }, { onConflict: 'id' })
       .select()
       .single();
+
+    if (restaurantError) {
+      console.error('Failed to create restaurant:', restaurantError);
+      throw new Error(`Restaurant creation failed: ${restaurantError.message}`);
+    }
     testRestaurantId = restaurant!.id;
 
     // Setup: Create restaurant_users link
@@ -83,7 +85,7 @@ describe('Draft List Flow (Integration)', () => {
       .insert({
         namn: 'Draft Test Supplier AB',
         kontakt_email: supplierAuth.user!.email,
-        tenant_id: testTenantId,
+        tenant_id: TEST_TENANT_ID,
       })
       .select()
       .single();
@@ -162,7 +164,7 @@ describe('Draft List Flow (Integration)', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-tenant-id': testTenantId,
+        'x-tenant-id': TEST_TENANT_ID,
         'x-user-id': testRestaurantUserId,
       },
       body: JSON.stringify({ items: draftItems }),
@@ -270,7 +272,7 @@ describe('Draft List Flow (Integration)', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-tenant-id': testTenantId,
+        'x-tenant-id': TEST_TENANT_ID,
         'x-user-id': testRestaurantUserId,
       },
       body: JSON.stringify({ items: draftItems }),
@@ -306,7 +308,7 @@ describe('Draft List Flow (Integration)', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-tenant-id': testTenantId,
+        'x-tenant-id': TEST_TENANT_ID,
         'x-user-id': testRestaurantUserId,
       },
       body: JSON.stringify({ items: [] }),

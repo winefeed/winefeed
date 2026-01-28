@@ -10,14 +10,17 @@ interface CatalogRow {
   producer: string;
   country: string;
   region?: string;
-  vintage?: number;
+  vintage: number;        // Required (0 for NV)
   grape?: string;
   priceExVatSek: number;  // In SEK (will be converted to öre)
   vatRate?: number;
-  stockQty?: number;
+  stockQty: number;       // Required (0 if out of stock)
   minOrderQty?: number;
   leadTimeDays?: number;
-  deliveryAreas?: string;  // Comma-separated
+  deliveryAreas?: string; // Comma-separated
+  color?: string;         // Wine type (red, white, etc.)
+  bottleSizeMl?: number;  // Bottle size in ml
+  sku?: string;           // Article number
 }
 
 /**
@@ -157,23 +160,31 @@ export async function POST(
           .eq('vintage', row.vintage || null)
           .maybeSingle();
 
+        // Generate SKU if not provided
+        const generatedSku = row.sku || `${row.producer.substring(0, 3).toUpperCase()}-${row.vintage || 'NV'}-${Date.now().toString(36)}`;
+
         const wineData = {
           supplier_id: supplierId,
           name: row.name,
           producer: row.producer,
           country: row.country,
           region: row.region || null,
-          vintage: row.vintage || null,
+          vintage: row.vintage ?? 0,  // Required: 0 for NV wines
           grape: row.grape || null,
           price_ex_vat_sek: Math.round(row.priceExVatSek * 100), // Convert SEK to öre
           vat_rate: row.vatRate || 25.00,
-          stock_qty: row.stockQty || null,
-          min_order_qty: row.minOrderQty || 6,
+          stock_qty: row.stockQty ?? 0,  // Required: default 0
+          moq: row.minOrderQty || 6,
           lead_time_days: row.leadTimeDays || 3,
           delivery_areas: row.deliveryAreas
             ? row.deliveryAreas.split(',').map(s => s.trim())
             : null,
           is_active: true,
+          // Required fields added in 20260120/20260121 migrations
+          color: row.color || 'red',  // Default to red if not specified
+          bottle_size_ml: row.bottleSizeMl || 750,  // Default 750ml
+          sku: generatedSku,
+          case_size: row.minOrderQty || 6,  // Default 6 bottles per case
         };
 
         if (existing) {
@@ -295,10 +306,10 @@ function validateCatalogRow(row: Record<string, string>, rowNumber: number): Cat
     throw new Error(`Row ${rowNumber}: Invalid price '${row.priceExVatSek}'`);
   }
 
-  // Parse optional numeric fields
-  const vintage = row.vintage ? parseInt(row.vintage) : undefined;
-  if (vintage !== undefined && (isNaN(vintage) || vintage < 1900 || vintage > new Date().getFullYear())) {
-    throw new Error(`Row ${rowNumber}: Invalid vintage '${row.vintage}'`);
+  // Parse vintage (required: 0 for NV, 1900-current year for dated)
+  const vintage = row.vintage ? parseInt(row.vintage) : 0;
+  if (isNaN(vintage) || (vintage !== 0 && (vintage < 1900 || vintage > new Date().getFullYear()))) {
+    throw new Error(`Row ${rowNumber}: Invalid vintage '${row.vintage}' (use 0 for NV)`);
   }
 
   const vatRate = row.vatRate ? parseFloat(row.vatRate) : 25.00;
@@ -306,8 +317,8 @@ function validateCatalogRow(row: Record<string, string>, rowNumber: number): Cat
     throw new Error(`Row ${rowNumber}: Invalid VAT rate '${row.vatRate}'`);
   }
 
-  const stockQty = row.stockQty ? parseInt(row.stockQty) : undefined;
-  if (stockQty !== undefined && (isNaN(stockQty) || stockQty < 0)) {
+  const stockQty = row.stockQty ? parseInt(row.stockQty) : 0;
+  if (isNaN(stockQty) || stockQty < 0) {
     throw new Error(`Row ${rowNumber}: Invalid stock quantity '${row.stockQty}'`);
   }
 
@@ -319,6 +330,19 @@ function validateCatalogRow(row: Record<string, string>, rowNumber: number): Cat
   const leadTimeDays = row.leadTimeDays ? parseInt(row.leadTimeDays) : 3;
   if (isNaN(leadTimeDays) || leadTimeDays < 0) {
     throw new Error(`Row ${rowNumber}: Invalid lead time '${row.leadTimeDays}'`);
+  }
+
+  // Parse color (wine type) - optional, defaults to 'red'
+  const validColors = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange'];
+  const color = row.color?.trim().toLowerCase();
+  if (color && !validColors.includes(color)) {
+    throw new Error(`Row ${rowNumber}: Invalid color '${row.color}' (must be: ${validColors.join(', ')})`);
+  }
+
+  // Parse bottle size - optional, defaults to 750
+  const bottleSizeMl = row.bottleSizeMl ? parseInt(row.bottleSizeMl) : 750;
+  if (isNaN(bottleSizeMl) || bottleSizeMl <= 0) {
+    throw new Error(`Row ${rowNumber}: Invalid bottle size '${row.bottleSizeMl}'`);
   }
 
   return {
@@ -334,5 +358,8 @@ function validateCatalogRow(row: Record<string, string>, rowNumber: number): Cat
     minOrderQty,
     leadTimeDays,
     deliveryAreas: row.deliveryAreas?.trim(),
+    color: color || undefined,
+    bottleSizeMl,
+    sku: row.sku?.trim(),
   };
 }

@@ -305,9 +305,9 @@ export class QuoteRequestRouter {
    * Score minimum order quantity match
    */
   private static scoreMinOrderQuantity(wines: any[], requestedQty: number): number {
-    // Find wines where minOrderQty <= requestedQty
+    // Find wines where moq (minimum order quantity) <= requestedQty
     const availableWines = wines.filter(
-      wine => wine.min_order_qty <= requestedQty
+      wine => wine.moq <= requestedQty
     );
 
     if (availableWines.length === 0) return 0;

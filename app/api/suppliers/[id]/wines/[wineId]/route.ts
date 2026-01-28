@@ -26,7 +26,7 @@ const EDITABLE_FIELDS = [
   'price_ex_vat_sek',
   'stock_qty',
   'status',
-  'min_order_qty',
+  'moq',  // min_order_qty in DB is 'moq'
   'lead_time_days',
   'region',
   'country',

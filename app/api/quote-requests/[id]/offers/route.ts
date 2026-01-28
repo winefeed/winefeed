@@ -166,7 +166,7 @@ export async function POST(
     // 3. Verify wine belongs to this supplier
     const { data: supplierWine, error: wineError } = await supabase
       .from('supplier_wines')
-      .select('id, supplier_id, name, price_ex_vat_sek, vat_rate, min_order_qty')
+      .select('id, supplier_id, name, price_ex_vat_sek, vat_rate, moq')
       .eq('id', supplierWineId)
       .single();
 
@@ -185,10 +185,10 @@ export async function POST(
     }
 
     // 4. Validate minimum order quantity
-    if (quantity < supplierWine.min_order_qty) {
+    if (quantity < supplierWine.moq) {
       return NextResponse.json(
         {
-          error: `Quantity must be at least ${supplierWine.min_order_qty} (minimum order quantity)`,
+          error: `Quantity must be at least ${supplierWine.moq} (minimum order quantity)`,
         },
         { status: 400 }
       );
@@ -238,25 +238,35 @@ export async function POST(
       : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     // 7. Create the offer
+    // Build insert object (shipping fields are optional - may not exist in DB yet)
+    const insertData: Record<string, any> = {
+      request_id: requestId,
+      supplier_id: supplierId,
+      supplier_wine_id: supplierWineId,
+      offered_price_ex_vat_sek: Math.round(offeredPriceExVatSek * 100), // Convert to öre
+      vat_rate: supplierWine.vat_rate,
+      quantity,
+      delivery_date: deliveryDateObj.toISOString().split('T')[0], // Date only
+      lead_time_days: leadTimeDays,
+      notes: body.notes || null,
+      status: 'pending',
+      expires_at: expiresAt.toISOString(),
+    };
+
+    // Only add shipping fields if explicitly provided (columns may not exist in older DBs)
+    if (is_franco !== undefined) {
+      insertData.is_franco = isFranco;
+    }
+    if (shipping_cost_sek !== undefined && !isFranco) {
+      insertData.shipping_cost_sek = shipping_cost_sek;
+    }
+    if (shipping_notes !== undefined) {
+      insertData.shipping_notes = shipping_notes;
+    }
+
     const { data: offer, error: offerError } = await supabase
       .from('offers')
-      .insert({
-        request_id: requestId,
-        supplier_id: supplierId,
-        supplier_wine_id: supplierWineId,
-        offered_price_ex_vat_sek: Math.round(offeredPriceExVatSek * 100), // Convert to öre
-        vat_rate: supplierWine.vat_rate,
-        quantity,
-        delivery_date: deliveryDateObj.toISOString().split('T')[0], // Date only
-        lead_time_days: leadTimeDays,
-        notes: body.notes || null,
-        status: 'pending',
-        expires_at: expiresAt.toISOString(),
-        // Shipping fields
-        is_franco: isFranco,
-        shipping_cost_sek: isFranco ? null : (shipping_cost_sek || null),
-        shipping_notes: shipping_notes || null,
-      })
+      .insert(insertData)
       .select(`
         id,
         request_id,
@@ -270,10 +280,7 @@ export async function POST(
         notes,
         status,
         expires_at,
-        created_at,
-        is_franco,
-        shipping_cost_sek,
-        shipping_notes
+        created_at
       `)
       .single();
 
@@ -299,7 +306,10 @@ export async function POST(
     // 8. Return offer with wine details and shipping
     const priceExVat = offer.offered_price_ex_vat_sek / 100;
     const totalWinePrice = priceExVat * offer.quantity;
-    const shippingCost = offer.is_franco ? 0 : (offer.shipping_cost_sek || 0);
+    // Shipping fields may not exist in older DBs
+    const offerIsFranco = (offer as any).is_franco ?? isFranco ?? false;
+    const offerShippingCost = (offer as any).shipping_cost_sek ?? shipping_cost_sek ?? null;
+    const shippingCost = offerIsFranco ? 0 : (offerShippingCost || 0);
     const totalWithShipping = totalWinePrice + shippingCost;
 
     return NextResponse.json(
@@ -319,10 +329,10 @@ export async function POST(
           status: offer.status,
           expiresAt: offer.expires_at,
           createdAt: offer.created_at,
-          // Shipping info
-          isFranco: offer.is_franco,
-          shippingCostSek: offer.shipping_cost_sek,
-          shippingNotes: offer.shipping_notes,
+          // Shipping info (may not exist in older DBs)
+          isFranco: offerIsFranco,
+          shippingCostSek: offerShippingCost,
+          shippingNotes: (offer as any).shipping_notes ?? shipping_notes ?? null,
           // Calculated totals
           totalWinePrice,
           totalWithShipping,
@@ -411,6 +421,7 @@ export async function GET(
     }
 
     // Get all offers for this request
+    // Note: shipping columns (is_franco, shipping_cost_sek, shipping_notes) may not exist in older DBs
     const { data: offers, error: offersError } = await supabase
       .from('offers')
       .select(`
@@ -427,9 +438,6 @@ export async function GET(
         status,
         expires_at,
         created_at,
-        is_franco,
-        shipping_cost_sek,
-        shipping_notes,
         suppliers (
           namn,
           kontakt_email
@@ -485,11 +493,13 @@ export async function GET(
       const totalExVat = priceExVatSek * offer.quantity;
       const totalIncVat = priceIncVatSek * offer.quantity;
 
-      // Shipping calculations
-      const isFranco = offer.is_franco || false;
-      const shippingCost = isFranco ? 0 : (offer.shipping_cost_sek || 0);
+      // Shipping calculations (columns may not exist in older DBs)
+      const isFranco = (offer as any).is_franco ?? false;
+      const shippingCostSek = (offer as any).shipping_cost_sek ?? null;
+      const shippingCost = isFranco ? 0 : (shippingCostSek || 0);
       const totalWithShippingExVat = totalExVat + shippingCost;
       const totalWithShippingIncVat = totalIncVat + shippingCost;
+      const shippingNotes = (offer as any).shipping_notes ?? null;
 
       // Calculate estimated delivery date
       const estimatedDeliveryDate = new Date(offer.delivery_date);
@@ -524,10 +534,10 @@ export async function GET(
         quantity: offer.quantity,
         totalExVatSek: parseFloat(totalExVat.toFixed(2)),
         totalIncVatSek: parseFloat(totalIncVat.toFixed(2)),
-        // Shipping info
+        // Shipping info (may not exist in older DBs)
         isFranco,
-        shippingCostSek: offer.shipping_cost_sek,
-        shippingNotes: offer.shipping_notes,
+        shippingCostSek,
+        shippingNotes,
         totalWithShippingExVat: parseFloat(totalWithShippingExVat.toFixed(2)),
         totalWithShippingIncVat: parseFloat(totalWithShippingIncVat.toFixed(2)),
         // Delivery
