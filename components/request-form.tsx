@@ -274,6 +274,13 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
       const result = await response.json();
       sessionStorage.setItem('latest-suggestions', JSON.stringify(result.suggestions));
+      // Store search parameters for display on results page
+      sessionStorage.setItem('latest-search-params', JSON.stringify({
+        antal_flaskor: pendingData.antal_flaskor,
+        budget_max: pendingData.budget_max,
+        color: pendingData.color,
+        country: pendingData.country,
+      }));
       setShowConfirmation(false);
       onSuccess?.(result.request_id);
     } catch (err) {
