@@ -83,6 +83,7 @@ export default function ResultsPage() {
   const [budgetMax, setBudgetMax] = useState<number | null>(null);
   const [wineQuantities, setWineQuantities] = useState<Record<string, number>>({});
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
+  const [justAdjustedToMoq, setJustAdjustedToMoq] = useState<string | null>(null);
 
   // Draft list (Spara till lista)
   const draftList = useDraftList();
@@ -1098,7 +1099,11 @@ export default function ResultsPage() {
                                   >
                                     <Minus className="h-3.5 w-3.5" />
                                   </button>
-                                  <span className={`w-10 text-center text-sm font-medium ${isBelowMoq ? 'text-orange-600' : ''}`}>
+                                  <span className={`w-10 text-center text-sm font-medium transition-colors ${
+                                    justAdjustedToMoq === suggestion.wine.id
+                                      ? 'text-green-600 bg-green-100 rounded px-1'
+                                      : isBelowMoq ? 'text-orange-600' : ''
+                                  }`}>
                                     {qty}
                                   </span>
                                   <button
@@ -1170,11 +1175,18 @@ export default function ResultsPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
+                                setJustAdjustedToMoq(suggestion.wine.id);
+                                setTimeout(() => setJustAdjustedToMoq(null), 1500);
                               }}
                               className="text-xs text-orange-600 hover:text-orange-700 underline"
                             >
                               Ändra till {moq} fl
                             </button>
+                          )}
+                          {justAdjustedToMoq === suggestion.wine.id && (
+                            <span className="text-xs text-green-600 font-medium animate-pulse">
+                              ✓ Ändrat till {moq} fl
+                            </span>
                           )}
                         </div>
                       );
