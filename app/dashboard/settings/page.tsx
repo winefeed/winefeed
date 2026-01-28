@@ -3,13 +3,13 @@
  *
  * /dashboard/settings
  *
- * Manage restaurant profile and delivery addresses
+ * Manage restaurant profile, notifications, and delivery addresses
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Building2, MapPin, Plus, Pencil, Trash2, Star, Check, X } from 'lucide-react';
+import { Building2, MapPin, Plus, Pencil, Trash2, Star, Check, X, Bell, Mail, User, Shield, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ interface Restaurant {
   city: string;
   address: string;
   postal_code: string;
+  contact_person?: string;
 }
 
 interface DeliveryAddress {
@@ -39,11 +40,44 @@ interface DeliveryAddress {
   is_default: boolean;
 }
 
+interface NotificationSettings {
+  email_new_offer: boolean;
+  email_offer_reminder: boolean;
+  email_order_status: boolean;
+  email_frequency: 'immediate' | 'daily' | 'weekly';
+}
+
+type SettingsTab = 'account' | 'notifications' | 'addresses';
+
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [addresses, setAddresses] = useState<DeliveryAddress[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Restaurant edit state
+  const [editingRestaurant, setEditingRestaurant] = useState(false);
+  const [restaurantForm, setRestaurantForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    org_number: '',
+    contact_person: '',
+    address: '',
+    postal_code: '',
+    city: '',
+  });
+  const [savingRestaurant, setSavingRestaurant] = useState(false);
+
+  // Notification settings
+  const [notifications, setNotifications] = useState<NotificationSettings>({
+    email_new_offer: true,
+    email_offer_reminder: true,
+    email_order_status: true,
+    email_frequency: 'immediate',
+  });
+  const [savingNotifications, setSavingNotifications] = useState(false);
 
   // Address form state
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -77,16 +111,64 @@ export default function SettingsPage() {
       if (restaurantRes.ok) {
         const data = await restaurantRes.json();
         setRestaurant(data);
+        // Initialize form with current data
+        setRestaurantForm({
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          org_number: data.org_number || '',
+          contact_person: data.contact_person || '',
+          address: data.address || '',
+          postal_code: data.postal_code || '',
+          city: data.city || '',
+        });
       }
 
       if (addressesRes.ok) {
         const data = await addressesRes.json();
         setAddresses(data.addresses || []);
       }
+
+      // TODO: Fetch notification settings from API
+      // For now using defaults
     } catch (err) {
       setError('Kunde inte ladda data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveRestaurant = async () => {
+    setSavingRestaurant(true);
+    try {
+      const res = await fetch('/api/me/restaurant', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(restaurantForm),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRestaurant(data);
+        setEditingRestaurant(false);
+      }
+    } catch (err) {
+      // Handle error
+    } finally {
+      setSavingRestaurant(false);
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    setSavingNotifications(true);
+    try {
+      // TODO: Save to API
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate save
+      // Show success
+    } catch (err) {
+      // Handle error
+    } finally {
+      setSavingNotifications(false);
     }
   };
 
@@ -197,44 +279,296 @@ export default function SettingsPage() {
     );
   }
 
+  const tabs = [
+    { id: 'account' as const, label: 'Kontoinformation', icon: Building2 },
+    { id: 'notifications' as const, label: 'Notiser', icon: Bell },
+    { id: 'addresses' as const, label: 'Leveransadresser', icon: MapPin },
+  ];
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-foreground mb-8">Inställningar</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Inställningar</h1>
 
-      {/* Restaurant Info */}
-      {restaurant && (
-        <div className="bg-card rounded-lg border border-border p-6 mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Building2 className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Restaurangprofil</h2>
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 border-b border-border">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === tab.id
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <tab.icon className="h-4 w-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Account Tab */}
+      {activeTab === 'account' && (
+        <div className="space-y-6">
+          {/* Restaurant Info */}
+          <div className="bg-card rounded-lg border border-border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Building2 className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Restauranginformation</h2>
+              </div>
+              {!editingRestaurant && (
+                <Button variant="outline" size="sm" onClick={() => setEditingRestaurant(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Redigera
+                </Button>
+              )}
+            </div>
+
+            {editingRestaurant ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rest_name">Restaurangnamn *</Label>
+                    <Input
+                      id="rest_name"
+                      value={restaurantForm.name}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="org_number">Organisationsnummer</Label>
+                    <Input
+                      id="org_number"
+                      placeholder="XXXXXX-XXXX"
+                      value={restaurantForm.org_number}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, org_number: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact_person">Kontaktperson</Label>
+                    <Input
+                      id="contact_person"
+                      placeholder="Anna Andersson"
+                      value={restaurantForm.contact_person}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, contact_person: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefon</Label>
+                    <Input
+                      id="phone"
+                      placeholder="08-123 45 67"
+                      value={restaurantForm.phone}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label htmlFor="rest_email">E-postadress</Label>
+                    <Input
+                      id="rest_email"
+                      type="email"
+                      placeholder="info@restaurang.se"
+                      value={restaurantForm.email}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label htmlFor="rest_address">Gatuadress</Label>
+                    <Input
+                      id="rest_address"
+                      placeholder="Storgatan 1"
+                      value={restaurantForm.address}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, address: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="rest_postal">Postnummer</Label>
+                    <Input
+                      id="rest_postal"
+                      placeholder="123 45"
+                      value={restaurantForm.postal_code}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, postal_code: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="rest_city">Stad</Label>
+                    <Input
+                      id="rest_city"
+                      placeholder="Stockholm"
+                      value={restaurantForm.city}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, city: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end pt-4 border-t">
+                  <Button variant="ghost" onClick={() => setEditingRestaurant(false)}>
+                    Avbryt
+                  </Button>
+                  <Button onClick={handleSaveRestaurant} disabled={savingRestaurant}>
+                    {savingRestaurant ? 'Sparar...' : 'Spara ändringar'}
+                  </Button>
+                </div>
+              </div>
+            ) : restaurant ? (
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Namn</span>
+                  <p className="font-medium">{restaurant.name}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Orgnr</span>
+                  <p className="font-medium">{restaurant.org_number || '–'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Kontaktperson</span>
+                  <p className="font-medium">{restaurant.contact_person || '–'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Telefon</span>
+                  <p className="font-medium">{restaurant.phone || '–'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">E-post</span>
+                  <p className="font-medium">{restaurant.email || '–'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Adress</span>
+                  <p className="font-medium">
+                    {restaurant.address ? `${restaurant.address}, ${restaurant.postal_code} ${restaurant.city}` : '–'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">Ingen restauranginformation hittades.</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">Namn:</span>
-              <p className="font-medium">{restaurant.name}</p>
+          {/* Security section placeholder */}
+          <div className="bg-card rounded-lg border border-border p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Shield className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">Säkerhet</h2>
             </div>
-            <div>
-              <span className="text-muted-foreground">Orgnr:</span>
-              <p className="font-medium">{restaurant.org_number || '-'}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">E-post:</span>
-              <p className="font-medium">{restaurant.email || '-'}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Telefon:</span>
-              <p className="font-medium">{restaurant.phone || '-'}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Stad:</span>
-              <p className="font-medium">{restaurant.city || '-'}</p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div>
+                  <p className="font-medium">Lösenord</p>
+                  <p className="text-sm text-muted-foreground">Senast ändrat: Okänt</p>
+                </div>
+                <Button variant="outline" size="sm" disabled>
+                  Byt lösenord
+                </Button>
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <p className="font-medium">Tvåfaktorsautentisering</p>
+                  <p className="text-sm text-muted-foreground">Extra säkerhet för ditt konto</p>
+                </div>
+                <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Kommer snart</span>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delivery Addresses */}
+      {/* Notifications Tab */}
+      {activeTab === 'notifications' && (
+        <div className="bg-card rounded-lg border border-border p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Bell className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">E-postnotiser</h2>
+          </div>
+
+          <div className="space-y-6">
+            {/* Notification toggles */}
+            <div className="space-y-4">
+              <label className="flex items-center justify-between py-3 border-b border-border cursor-pointer">
+                <div>
+                  <p className="font-medium">Nya offerter</p>
+                  <p className="text-sm text-muted-foreground">Få e-post när en leverantör skickar en offert</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifications.email_new_offer}
+                  onChange={(e) => setNotifications({ ...notifications, email_new_offer: e.target.checked })}
+                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </label>
+
+              <label className="flex items-center justify-between py-3 border-b border-border cursor-pointer">
+                <div>
+                  <p className="font-medium">Påminnelser</p>
+                  <p className="text-sm text-muted-foreground">Påminnelse om obesvarade offerter efter 48h</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifications.email_offer_reminder}
+                  onChange={(e) => setNotifications({ ...notifications, email_offer_reminder: e.target.checked })}
+                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </label>
+
+              <label className="flex items-center justify-between py-3 border-b border-border cursor-pointer">
+                <div>
+                  <p className="font-medium">Orderstatus</p>
+                  <p className="text-sm text-muted-foreground">Uppdateringar om dina beställningar</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifications.email_order_status}
+                  onChange={(e) => setNotifications({ ...notifications, email_order_status: e.target.checked })}
+                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </label>
+            </div>
+
+            {/* Frequency */}
+            <div className="pt-4">
+              <Label className="text-base font-medium mb-3 block">Sammanfattningsfrekvens</Label>
+              <div className="space-y-2">
+                {[
+                  { value: 'immediate', label: 'Omedelbart', desc: 'Skicka e-post direkt när något händer' },
+                  { value: 'daily', label: 'Daglig sammanfattning', desc: 'En sammanfattning varje morgon kl 08:00' },
+                  { value: 'weekly', label: 'Veckovis sammanfattning', desc: 'En sammanfattning varje måndag' },
+                ].map((option) => (
+                  <label
+                    key={option.value}
+                    className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      notifications.email_frequency === option.value
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="frequency"
+                      value={option.value}
+                      checked={notifications.email_frequency === option.value}
+                      onChange={() => setNotifications({ ...notifications, email_frequency: option.value as any })}
+                      className="mt-1"
+                    />
+                    <div>
+                      <p className="font-medium">{option.label}</p>
+                      <p className="text-sm text-muted-foreground">{option.desc}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t">
+              <Button onClick={handleSaveNotifications} disabled={savingNotifications}>
+                <Save className="h-4 w-4 mr-2" />
+                {savingNotifications ? 'Sparar...' : 'Spara inställningar'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Addresses Tab */}
+      {activeTab === 'addresses' && (
       <div className="bg-card rounded-lg border border-border p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">

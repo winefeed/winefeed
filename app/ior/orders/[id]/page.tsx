@@ -468,6 +468,41 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
     return transitions[currentStatus] || [];
   };
 
+  // Calculate order total value
+  const calculateOrderTotal = () => {
+    if (!orderDetail) return 0;
+    return orderDetail.lines.reduce((sum, line) => sum + (line.total_price_sek || 0), 0);
+  };
+
+  // Format price
+  const formatPrice = (amount: number, currency: string = 'SEK') => {
+    return new Intl.NumberFormat('sv-SE', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // Format readable order ID
+  const formatOrderId = (id: string, createdAt: string) => {
+    const year = new Date(createdAt).getFullYear();
+    return `#${id.substring(0, 6).toUpperCase()}`;
+  };
+
+  // Get human-readable event description
+  const getEventDescription = (event: { event_type: string; from_status?: string; to_status?: string; note?: string }) => {
+    const descriptions: Record<string, string> = {
+      'ORDER_CREATED': 'Order skapad',
+      'ORDER_CONFIRMED': 'Order bekräftad',
+      'STATUS_CHANGED': event.to_status ? `Status ändrad till ${getStatusLabel(event.to_status)}` : 'Status uppdaterad',
+      'IMPORT_CASE_CREATED': 'Import case skapat',
+      'COMPLIANCE_UPDATED': 'Compliance-data uppdaterad',
+      'DOCUMENT_GENERATED': '5369-dokument genererat',
+    };
+    return descriptions[event.event_type] || event.event_type;
+  };
+
   // Toggle line expansion
   const toggleLineExpand = (lineId: string) => {
     setExpandedLines(prev => {
@@ -585,7 +620,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
       <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => router.push('/ior/orders')}
                 className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm"
@@ -593,22 +628,42 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                 ← Tillbaka
               </button>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Order {orderId.substring(0, 8)}...</h1>
-                <p className="text-sm text-white/80">Order detaljer och fulfillment</p>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold tracking-tight">
+                    Order {formatOrderId(orderId, order.created_at)}
+                  </h1>
+                  <OrderStatusBadge status={order.status} size="md" />
+                </div>
+                <p className="text-sm text-white/80">
+                  {order.restaurant?.name || 'Okänd restaurang'} → {order.supplier?.namn || 'Okänd leverantör'}
+                </p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
+              {/* Status actions in header */}
+              {nextStatusOptions.length > 0 && (
+                <div className="flex gap-2">
+                  {nextStatusOptions.map(status => (
+                    <button
+                      key={status}
+                      onClick={() => updateOrderStatus(status)}
+                      disabled={updating}
+                      className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+                        status === 'CANCELLED'
+                          ? 'bg-red-500/80 hover:bg-red-500 text-white'
+                          : 'bg-white text-blue-600 hover:bg-white/90'
+                      }`}
+                    >
+                      {updating ? '...' : `→ ${getStatusLabel(status)}`}
+                    </button>
+                  ))}
+                </div>
+              )}
               <button
                 onClick={() => router.push('/supplier')}
                 className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
               >
                 Supplier Portal
-              </button>
-              <button
-                onClick={() => router.push('/supplier/orders')}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                Mina försäljningar
               </button>
             </div>
           </div>
@@ -632,21 +687,24 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
 
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Order Summary</h2>
-            <OrderStatusBadge status={order.status} size="md" />
-          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Order Summary</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Restaurant Info */}
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">Restaurang</h3>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="font-bold text-lg">{order.restaurant?.name || 'Unknown'}</p>
-                <p className="text-sm text-gray-600">{order.restaurant?.contact_email}</p>
-                <p className="text-sm text-gray-600">{order.restaurant?.contact_phone}</p>
-                {order.restaurant?.address && (
-                  <p className="text-sm text-gray-500 mt-2">{order.restaurant.address}</p>
+                <p className="font-bold text-lg">
+                  {order.restaurant?.name || order.restaurant?.namn || '⚠️ Namn saknas'}
+                </p>
+                {order.restaurant?.contact_email && (
+                  <p className="text-sm text-gray-600">{order.restaurant.contact_email}</p>
+                )}
+                {order.restaurant?.contact_phone && (
+                  <p className="text-sm text-gray-600">{order.restaurant.contact_phone}</p>
+                )}
+                {order.restaurant?.city && (
+                  <p className="text-sm text-gray-500 mt-2">{order.restaurant.city}</p>
                 )}
               </div>
             </div>
@@ -655,10 +713,15 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">Leverantör</h3>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="font-bold text-lg">{order.supplier?.namn || 'Unknown'}</p>
-                <p className="text-xs text-gray-500">{SUPPLIER_TYPE_LABELS[order.supplier?.type || ''] || order.supplier?.type}</p>
-                <p className="text-sm text-gray-600">{order.supplier?.kontakt_email}</p>
-                <p className="text-sm text-gray-600">{order.supplier?.kontakt_telefon}</p>
+                <p className="font-bold text-lg">
+                  {order.supplier?.namn || order.supplier?.name || '⚠️ Namn saknas'}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {SUPPLIER_TYPE_LABELS[order.supplier?.type || ''] || order.supplier?.type || 'Okänd typ'}
+                </p>
+                {order.supplier?.kontakt_email && (
+                  <p className="text-sm text-gray-600">{order.supplier.kontakt_email}</p>
+                )}
               </div>
             </div>
 
@@ -666,10 +729,18 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">Importer-of-Record</h3>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <p className="font-bold text-lg">{order.importer?.legal_name || 'Unknown'}</p>
-                <p className="text-xs text-gray-500">Org.nr: {order.importer?.org_number}</p>
-                <p className="text-sm text-gray-600">{order.importer?.contact_email}</p>
-                <p className="text-xs text-gray-500 mt-2">Licens: {order.importer?.license_number || 'N/A'}</p>
+                <p className="font-bold text-lg">
+                  {order.importer?.legal_name || order.importer?.name || '⚠️ IOR saknas'}
+                </p>
+                {order.importer?.org_number && (
+                  <p className="text-xs text-gray-500">Org.nr: {order.importer.org_number}</p>
+                )}
+                {order.importer?.contact_email && (
+                  <p className="text-sm text-gray-600">{order.importer.contact_email}</p>
+                )}
+                {order.importer?.license_number && (
+                  <p className="text-xs text-gray-500 mt-2">Licens: {order.importer.license_number}</p>
+                )}
               </div>
             </div>
 
@@ -683,15 +754,17 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Total kvantitet:</span>
-                  <span className="font-medium">{order.total_quantity}</span>
+                  <span className="font-medium">{order.total_quantity} fl</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Valuta:</span>
-                  <span className="font-medium">{order.currency}</span>
+                <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                  <span className="text-sm font-medium text-gray-700">Ordervärde:</span>
+                  <span className="font-bold text-lg text-gray-900">
+                    {formatPrice(calculateOrderTotal(), order.currency)}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Skapad:</span>
-                  <span className="text-xs">{formatDate(order.created_at)}</span>
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Skapad:</span>
+                  <span>{formatDate(order.created_at)}</span>
                 </div>
               </div>
             </div>

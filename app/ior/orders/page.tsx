@@ -42,12 +42,14 @@ interface Order {
   status: string;
   total_lines: number;
   total_quantity: number;
+  total_amount?: number;
   currency: string;
   created_at: string;
   restaurant_name: string;
   restaurant_contact_email: string;
   supplier_name: string;
   supplier_type: string;
+  order_number?: number; // Sequential order number
 }
 
 export default function IOROrdersPage() {
@@ -57,6 +59,7 @@ export default function IOROrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const fetchActor = useCallback(async () => {
     try {
@@ -174,6 +177,39 @@ export default function IOROrdersPage() {
     }
   };
 
+  // Format order ID to readable format
+  const formatOrderId = (order: Order) => {
+    const year = new Date(order.created_at).getFullYear();
+    if (order.order_number) {
+      return `ORD-${year}-${String(order.order_number).padStart(3, '0')}`;
+    }
+    // Fallback: use last 6 chars of UUID
+    return `#${order.id.substring(0, 6).toUpperCase()}`;
+  };
+
+  // Format price
+  const formatPrice = (amount: number | undefined, currency: string = 'SEK') => {
+    if (!amount && amount !== 0) return '–';
+    return new Intl.NumberFormat('sv-SE', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // Filter orders by search query
+  const filteredOrders = orders.filter(order => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      order.restaurant_name.toLowerCase().includes(query) ||
+      order.supplier_name.toLowerCase().includes(query) ||
+      order.id.toLowerCase().includes(query) ||
+      formatOrderId(order).toLowerCase().includes(query)
+    );
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
@@ -274,21 +310,50 @@ export default function IOROrdersPage() {
           ))}
         </div>
 
+        {/* Search */}
+        <div className="mb-4">
+          <div className="relative max-w-md">
+            <input
+              type="text"
+              placeholder="Sök på restaurang, leverantör eller ordernummer..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Orders List */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">
-              Orders ({orders.length})
+              Orders ({filteredOrders.length}{searchQuery && ` av ${orders.length}`})
             </h2>
           </div>
 
-          {orders.length === 0 ? (
+          {filteredOrders.length === 0 ? (
             <div className="text-center py-12">
               <span className="text-6xl mb-4 block">📭</span>
-              <p className="text-gray-500 text-lg">Inga orders ännu</p>
-              {statusFilter !== 'ALL' && (
+              <p className="text-gray-500 text-lg">
+                {searchQuery ? 'Inga orders matchar sökningen' : 'Inga orders ännu'}
+              </p>
+              {(statusFilter !== 'ALL' || searchQuery) && (
                 <p className="text-gray-400 text-sm mt-2">
-                  Prova ett annat filter eller <button onClick={() => setStatusFilter('ALL')} className="text-blue-600 underline">visa alla</button>
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="text-blue-600 underline mr-2">Rensa sökning</button>
+                  )}
+                  {statusFilter !== 'ALL' && (
+                    <button onClick={() => setStatusFilter('ALL')} className="text-blue-600 underline">Visa alla statusar</button>
+                  )}
                 </p>
               )}
             </div>
@@ -297,27 +362,25 @@ export default function IOROrdersPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Order ID</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-700">Order</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Restaurang</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Leverantör</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Status</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Rader</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Antal</th>
+                    <th className="px-4 py-3 text-right font-medium text-gray-700">Antal</th>
+                    <th className="px-4 py-3 text-right font-medium text-gray-700">Summa</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-700">Skapad</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Åtgärd</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-700"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {orders.map((order) => (
+                  {filteredOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/ior/orders/${order.id}`)}>
-                      <td className="px-4 py-3 font-mono text-xs text-blue-600">
-                        {order.id.substring(0, 8)}...
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-blue-600">{formatOrderId(order)}</div>
+                        <div className="text-xs text-gray-400">{order.total_lines} rad{order.total_lines !== 1 ? 'er' : ''}</div>
                       </td>
                       <td className="px-4 py-3">
-                        <div>
-                          <div className="font-medium">{order.restaurant_name}</div>
-                          <div className="text-xs text-gray-500">{order.restaurant_contact_email}</div>
-                        </div>
+                        <div className="font-medium">{order.restaurant_name}</div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
@@ -328,8 +391,12 @@ export default function IOROrdersPage() {
                       <td className="px-4 py-3">
                         <OrderStatusBadge status={order.status} size="md" />
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{order.total_lines}</td>
-                      <td className="px-4 py-3 text-gray-600">{order.total_quantity}</td>
+                      <td className="px-4 py-3 text-right font-medium text-gray-900">
+                        {order.total_quantity} fl
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium text-gray-900">
+                        {formatPrice(order.total_amount, order.currency)}
+                      </td>
                       <td className="px-4 py-3 text-gray-600 text-xs">{formatDate(order.created_at)}</td>
                       <td className="px-4 py-3">
                         <button
@@ -337,7 +404,7 @@ export default function IOROrdersPage() {
                             e.stopPropagation();
                             router.push(`/ior/orders/${order.id}`);
                           }}
-                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-xs font-medium"
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs font-medium"
                         >
                           Visa →
                         </button>

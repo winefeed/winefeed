@@ -241,7 +241,7 @@ export function WineOfferCard({
                 clipRule="evenodd"
               />
             </svg>
-            MOQ uppfyllt
+            Minsta order OK
           </span>
         )}
       </div>

@@ -16,6 +16,8 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  Search,
+  ShoppingCart,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -26,6 +28,32 @@ interface FAQItem {
 }
 
 const FAQ_ITEMS: FAQItem[] = [
+  // Sök & Beställ - New section explaining the flow
+  {
+    category: 'Sök & Beställ',
+    question: 'Vad betyder "minsta order"?',
+    answer: 'Minsta order (även kallat MOQ) är det minsta antal flaskor du måste beställa av ett visst vin för att leverantören ska acceptera ordern. Till exempel: om minsta order är 6 flaskor kan du inte beställa färre än 6 av just det vinet. Detta visas tydligt på varje vinkort så du kan planera din beställning. Du kan fortfarande skicka en förfrågan under minsta order - leverantören kan då välja att acceptera eller föreslå alternativ.',
+  },
+  {
+    category: 'Sök & Beställ',
+    question: 'Hur fungerar sökresultaten?',
+    answer: 'När du söker efter vin visar vi matchande viner från olika leverantörer. Du kan klicka på ett vinkort för att lägga till det i din offertförfrågan. Matchningspoängen visar hur väl vinet passar dina kriterier. Viner under din budget markeras som "Prisfördelaktiga".',
+  },
+  {
+    category: 'Sök & Beställ',
+    question: 'Vad innebär det att lägga till vin i offertförfrågan?',
+    answer: 'När du klickar på ett vinkort läggs det till i din offertförfrågan. Detta är INTE en bindande beställning - det är en förfrågan till leverantören om pris och tillgänglighet. Först när du får och accepterar en offert blir det en faktisk order.',
+  },
+  {
+    category: 'Sök & Beställ',
+    question: 'Vad är skillnaden mellan "Lägg till i offert" och "Spara"?',
+    answer: '"Lägg till i offert" (klicka på kortet) = vinet inkluderas i den aktuella offertförfrågan som skickas till leverantörer. "Spara" = vinet sparas i din personliga lista för senare. Sparade viner försvinner inte när du skickar en förfrågan.',
+  },
+  {
+    category: 'Sök & Beställ',
+    question: 'Är offertförfrågan bindande?',
+    answer: 'Nej! En offertförfrågan är aldrig bindande. Du ber bara leverantörerna om prisuppgift. När du får offerter kan du i lugn och ro jämföra, förhandla eller tacka nej - helt utan förpliktelser.',
+  },
   {
     category: 'Förfrågningar',
     question: 'Hur skapar jag en förfrågan?',
@@ -79,6 +107,7 @@ export default function HelpPage() {
     : FAQ_ITEMS.filter(item => item.category === selectedCategory);
 
   const categoryIcons: Record<string, React.ElementType> = {
+    'Sök & Beställ': Search,
     'Förfrågningar': FileText,
     'Offerter': Mail,
     'Ordrar': Package,
@@ -190,12 +219,18 @@ export default function HelpPage() {
       </div>
 
       {/* Quick Links */}
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-4 gap-4">
         <QuickLink
-          title="Skapa förfrågan"
-          description="Börja här för att hitta vin"
+          title="Ny förfrågan"
+          description="Sök efter vin"
           href="/dashboard/new-request"
-          icon={FileText}
+          icon={Search}
+        />
+        <QuickLink
+          title="Min lista"
+          description="Sparade viner"
+          href="/dashboard/draft-list"
+          icon={ShoppingCart}
         />
         <QuickLink
           title="Mina ordrar"

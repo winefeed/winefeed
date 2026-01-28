@@ -128,11 +128,23 @@ export function ActivityFeed({ limit = 8 }: ActivityFeedProps) {
       </h2>
 
       {activities.length === 0 ? (
-        <div className="text-center py-8">
-          <TrendingUp className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">
-            Ingen aktivitet ännu. Börja med att ladda upp din vinkatalog!
+        <div className="text-center py-8 px-4">
+          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <TrendingUp className="h-6 w-6 text-gray-400" />
+          </div>
+          <p className="text-sm font-medium text-gray-700 mb-1">
+            Ingen aktivitet ännu
           </p>
+          <p className="text-xs text-gray-500 mb-4">
+            Här kommer du se förfrågningar, offerter och ordrar när de kommer in.
+          </p>
+          <a
+            href="/supplier/wines"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#7B1E1E] bg-[#7B1E1E]/10 rounded-lg hover:bg-[#7B1E1E]/20 transition-colors"
+          >
+            <Wine className="h-3.5 w-3.5" />
+            Ladda upp vinkatalog
+          </a>
         </div>
       ) : (
         <div className="space-y-1">

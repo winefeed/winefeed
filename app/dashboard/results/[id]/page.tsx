@@ -6,6 +6,7 @@ import { useActor } from '@/lib/hooks/useActor';
 import { useDraftList } from '@/lib/hooks/useDraftList';
 import { formatPrice } from '@/lib/utils';
 import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, ListPlus, ShoppingCart, Check, Info, Minus, Plus } from 'lucide-react';
+import { FloatingDraftList } from '@/components/FloatingDraftList';
 
 interface Wine {
   id: string;
@@ -81,6 +82,7 @@ export default function ResultsPage() {
   const [requestedQuantity, setRequestedQuantity] = useState<number | null>(null);
   const [budgetMax, setBudgetMax] = useState<number | null>(null);
   const [wineQuantities, setWineQuantities] = useState<Record<string, number>>({});
+  const [openTooltip, setOpenTooltip] = useState<string | null>(null);
 
   // Draft list (Spara till lista)
   const draftList = useDraftList();
@@ -175,6 +177,11 @@ export default function ResultsPage() {
 
     // Fetch offer counts (still needed for incoming offers banner)
     fetchOfferCounts();
+
+    // Close tooltip when clicking outside
+    const handleClickOutside = () => setOpenTooltip(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
     // Also try API as fallback for quantity
     fetchRequestDetails();
   }, [fetchOfferCounts, fetchRequestDetails]);
@@ -666,7 +673,20 @@ export default function ResultsPage() {
                       </p>
                       <p className="text-sm text-muted-foreground">per flaska</p>
                       {(() => {
-                        const qty = requestedQuantity || suggestion.wine.moq || 6;
+                        const moq = suggestion.wine.moq || 0;
+                        const qty = getWineQuantity(suggestion.wine.id, moq);
+                        const isBelowMoq = moq > 0 && qty < moq;
+
+                        if (isBelowMoq) {
+                          // Show MOQ minimum purchase info
+                          return (
+                            <div className="mt-1 text-right">
+                              <p className="text-xs text-orange-600 font-medium">
+                                Min. köp: {formatPrice(suggestion.wine.pris_sek * moq)} ({moq} fl)
+                              </p>
+                            </div>
+                          );
+                        }
                         return (
                           <p className="text-xs text-muted-foreground mt-1">
                             {qty} fl = <span className="font-medium text-foreground">{formatPrice(suggestion.wine.pris_sek * qty)}</span>
@@ -775,13 +795,25 @@ export default function ResultsPage() {
                           </div>
                         )}
 
-                        {/* MOQ Warning Banner */}
+                        {/* MOQ Warning Banner with Action */}
                         {isBelowMoq && (
                           <div className="mt-3 p-3 bg-orange-100 border border-orange-300 rounded-lg">
-                            <p className="text-sm text-orange-800 font-medium flex items-center gap-2">
-                              <AlertCircle className="h-4 w-4" />
-                              Öka till minst {moq} flaskor för att kunna beställa från denna leverantör
-                            </p>
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-sm text-orange-800 font-medium flex items-center gap-2">
+                                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                Minsta order är {moq} flaskor
+                              </p>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
+                                }}
+                                className="px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
+                              >
+                                Ändra till {moq} fl
+                              </button>
+                            </div>
                           </div>
                         )}
 
@@ -790,22 +822,33 @@ export default function ResultsPage() {
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-medium text-muted-foreground">Matchning</span>
-                              <div className="group relative">
-                                <Info className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help" />
-                                <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10 w-64">
-                                  <div className="bg-foreground text-background text-xs p-3 rounded-lg shadow-lg">
-                                    <p className="font-medium mb-2">Så beräknas matchningen:</p>
-                                    <ul className="space-y-1 text-background/90">
-                                      <li>• Vintyp (rött/vitt etc)</li>
-                                      <li>• Land/region matchar</li>
-                                      <li>• Druva/stil passar</li>
-                                      <li>• Certifieringar (eko etc)</li>
-                                    </ul>
-                                    <p className="mt-2 text-background/70 text-[10px]">
-                                      OBS: Lägre pris än budget är positivt!
-                                    </p>
+                              <div className="relative">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenTooltip(openTooltip === suggestion.wine.id ? null : suggestion.wine.id);
+                                  }}
+                                  className="p-1 -m-1 rounded hover:bg-muted/50 transition-colors"
+                                >
+                                  <Info className="h-3.5 w-3.5 text-muted-foreground/60" />
+                                </button>
+                                {openTooltip === suggestion.wine.id && (
+                                  <div className="absolute bottom-full left-0 mb-2 z-10 w-64">
+                                    <div className="bg-foreground text-background text-xs p-3 rounded-lg shadow-lg">
+                                      <p className="font-medium mb-2">Så beräknas matchningen:</p>
+                                      <ul className="space-y-1 text-background/90">
+                                        <li>• Vintyp (rött/vitt etc)</li>
+                                        <li>• Land/region matchar</li>
+                                        <li>• Druva/stil passar</li>
+                                        <li>• Certifieringar (eko etc)</li>
+                                      </ul>
+                                      <p className="mt-2 text-background/70 text-[10px]">
+                                        OBS: Lägre pris än budget är positivt!
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -828,21 +871,21 @@ export default function ResultsPage() {
                               </span>
                             </div>
                           </div>
+                          {/* AI Motivation - always show */}
+                          {suggestion.motivering && (
+                            <p className={`text-xs ${
+                              suggestion.ranking_score >= 0.8 ? 'text-green-600' :
+                              suggestion.ranking_score >= 0.6 ? 'text-muted-foreground' :
+                              'text-amber-600'
+                            }`}>
+                              {suggestion.ranking_score >= 0.8 ? '✓ ' : suggestion.ranking_score < 0.6 ? '💡 ' : ''}
+                              {suggestion.motivering}
+                            </p>
+                          )}
                           {/* Price advantage badge */}
                           {budgetMax && suggestion.wine.pris_sek < budgetMax * 0.7 && (
-                            <p className="text-xs text-green-600 font-medium">
-                              💰 Prisfördelaktigt! {Math.round((1 - suggestion.wine.pris_sek / budgetMax) * 100)}% under budget
-                            </p>
-                          )}
-                          {/* Matching feedback - adjusted for price */}
-                          {suggestion.ranking_score < 0.6 && !(budgetMax && suggestion.wine.pris_sek < budgetMax * 0.7) && (
-                            <p className="text-xs text-amber-600">
-                              💡 Partiell matchning – granska att vinet passar dina övriga behov
-                            </p>
-                          )}
-                          {suggestion.ranking_score >= 0.6 && suggestion.ranking_score < 0.8 && (
-                            <p className="text-xs text-muted-foreground">
-                              ✓ God matchning
+                            <p className="text-xs text-green-600 font-medium mt-1">
+                              💰 {Math.round((1 - suggestion.wine.pris_sek / budgetMax) * 100)}% under budget
                             </p>
                           )}
                         </div>
@@ -1017,49 +1060,60 @@ export default function ResultsPage() {
                           </button>
                         </div>
                       )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (draftList.hasItem(suggestion.wine.id)) {
-                            draftList.removeItem(suggestion.wine.id);
-                          } else {
-                            draftList.addItem({
-                              wine_id: suggestion.wine.id,
-                              wine_name: suggestion.wine.namn,
-                              producer: suggestion.wine.producent,
-                              country: suggestion.wine.land,
-                              region: suggestion.wine.region,
-                              vintage: suggestion.wine.argang,
-                              color: suggestion.wine.color,
-                              supplier_id: suggestion.supplier.namn,
-                              supplier_name: suggestion.supplier.namn,
-                              quantity: getWineQuantity(suggestion.wine.id, suggestion.wine.moq || 0),
-                              moq: suggestion.wine.moq || 0,
-                              price_sek: suggestion.wine.pris_sek,
-                              stock: suggestion.wine.lager,
-                              lead_time_days: suggestion.wine.ledtid_dagar || suggestion.supplier.normalleveranstid_dagar,
-                            });
-                          }
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          draftList.hasItem(suggestion.wine.id)
-                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                            : 'bg-amber-500 text-white hover:bg-amber-600'
-                        }`}
-                        title={draftList.hasItem(suggestion.wine.id) ? 'Ta bort från sparade viner' : 'Spara för senare (separat från offertförfrågan)'}
-                      >
-                        {draftList.hasItem(suggestion.wine.id) ? (
-                          <>
-                            <Check className="h-4 w-4" />
-                            Sparad
-                          </>
-                        ) : (
-                          <>
-                            <ListPlus className="h-4 w-4" />
-                            Spara
-                          </>
-                        )}
-                      </button>
+                      {(() => {
+                        const moq = suggestion.wine.moq || 0;
+                        const qty = getWineQuantity(suggestion.wine.id, moq);
+                        const isSaved = draftList.hasItem(suggestion.wine.id);
+                        const isBelowMoq = moq > 0 && qty < moq;
+
+                        return (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (isSaved) {
+                                draftList.removeItem(suggestion.wine.id);
+                              } else {
+                                draftList.addItem({
+                                  wine_id: suggestion.wine.id,
+                                  wine_name: suggestion.wine.namn,
+                                  producer: suggestion.wine.producent,
+                                  country: suggestion.wine.land,
+                                  region: suggestion.wine.region,
+                                  vintage: suggestion.wine.argang,
+                                  color: suggestion.wine.color,
+                                  supplier_id: suggestion.supplier.namn,
+                                  supplier_name: suggestion.supplier.namn,
+                                  quantity: qty,
+                                  moq: moq,
+                                  price_sek: suggestion.wine.pris_sek,
+                                  stock: suggestion.wine.lager,
+                                  lead_time_days: suggestion.wine.ledtid_dagar || suggestion.supplier.normalleveranstid_dagar,
+                                });
+                              }
+                            }}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              isSaved
+                                ? isBelowMoq
+                                  ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                : 'bg-amber-500 text-white hover:bg-amber-600'
+                            }`}
+                            title={isSaved ? 'Ta bort från sparade viner' : 'Spara för senare (separat från offertförfrågan)'}
+                          >
+                            {isSaved ? (
+                              <>
+                                <Check className="h-4 w-4" />
+                                Sparad ({qty} fl{isBelowMoq ? ' – under min. order' : ''})
+                              </>
+                            ) : (
+                              <>
+                                <ListPlus className="h-4 w-4" />
+                                Spara
+                              </>
+                            )}
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1280,6 +1334,9 @@ export default function ResultsPage() {
           </div>
         </>
       )}
+
+      {/* Floating draft list */}
+      <FloatingDraftList />
     </div>
   );
 }
