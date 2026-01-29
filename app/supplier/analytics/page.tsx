@@ -63,7 +63,7 @@ export default function SupplierAnalyticsPage() {
           return;
         }
       } catch (e) {
-        console.log('Using mock analytics data');
+        // Fall through to mock data
       }
 
       // Mock data for MVP

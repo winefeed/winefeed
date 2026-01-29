@@ -15,7 +15,9 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
-import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck, Send, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck, Send, AlertTriangle, CheckCircle, Check, XCircle } from 'lucide-react';
+import { ButtonSpinner } from '@/components/ui/spinner';
+import { RequestsListSkeleton, Skeleton } from '@/components/ui/skeleton';
 
 // ============================================================================
 // URGENCY HELPERS
@@ -181,6 +183,7 @@ export default function SupplierRequestsPage() {
   const [bulkShippingCost, setBulkShippingCost] = useState('');
   const [bulkShippingNotes, setBulkShippingNotes] = useState('');
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
+  const [bulkResults, setBulkResults] = useState<Map<string, 'pending' | 'success' | 'error'>>(new Map());
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -285,69 +288,73 @@ export default function SupplierRequestsPage() {
     }
   };
 
-  // Submit bulk offers
+  // Submit bulk offers with individual progress tracking
   const submitBulkOffers = async () => {
     if (selectedRequests.size === 0 || !supplierId) return;
 
     setBulkSubmitting(true);
-    try {
-      const selectedArray = Array.from(selectedRequests);
-      const results = await Promise.allSettled(
-        selectedArray.map(async (requestId) => {
-          const request = requests.find(r => r.id === requestId);
-          if (!request) throw new Error('Request not found');
+    const selectedArray = Array.from(selectedRequests);
 
-          // Create offer for this request
-          const response = await fetch(`/api/quote-requests/${requestId}/offers`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              supplier_id: supplierId,
-              price_sek: bulkPrice ? parseInt(bulkPrice) : (request.budgetPerFlaska || 100),
-              quantity: request.antalFlaskor || 24,
-              lead_time_days: parseInt(bulkLeadTime),
-              notes: `Offert: ${request.fritext}`,
-              // Shipping information
-              is_franco: bulkShippingType === 'franco',
-              shipping_cost_sek: bulkShippingType === 'specified' && bulkShippingCost
-                ? parseInt(bulkShippingCost)
-                : null,
-              shipping_notes: bulkShippingNotes || null
-            })
-          });
+    // Initialize all as pending
+    const initialResults = new Map<string, 'pending' | 'success' | 'error'>();
+    selectedArray.forEach(id => initialResults.set(id, 'pending'));
+    setBulkResults(initialResults);
 
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to create offer');
-          }
+    let successful = 0;
+    let failed = 0;
 
-          return response.json();
-        })
-      );
+    // Process sequentially for better UX feedback
+    for (const requestId of selectedArray) {
+      try {
+        const request = requests.find(r => r.id === requestId);
+        if (!request) throw new Error('Request not found');
 
-      const successful = results.filter(r => r.status === 'fulfilled').length;
-      const failed = results.filter(r => r.status === 'rejected').length;
+        const response = await fetch(`/api/quote-requests/${requestId}/offers`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            supplier_id: supplierId,
+            price_sek: bulkPrice ? parseInt(bulkPrice) : (request.budgetPerFlaska || 100),
+            quantity: request.antalFlaskor || 24,
+            lead_time_days: parseInt(bulkLeadTime),
+            notes: `Offert: ${request.fritext}`,
+            is_franco: bulkShippingType === 'franco',
+            shipping_cost_sek: bulkShippingType === 'specified' && bulkShippingCost
+              ? parseInt(bulkShippingCost)
+              : null,
+            shipping_notes: bulkShippingNotes || null
+          })
+        });
 
-      // Refresh and reset
-      setShowBulkModal(false);
-      setSelectedRequests(new Set());
-      setBulkMode(false);
-      fetchRequests();
+        if (!response.ok) {
+          throw new Error('Failed to create offer');
+        }
 
-      if (failed > 0) {
-        showToast(`${successful} offerter skickade, ${failed} misslyckades`, 'error');
-      } else {
-        showToast(`${successful} offerter skickade!`, 'success');
+        setBulkResults(prev => new Map(prev).set(requestId, 'success'));
+        successful++;
+      } catch (error) {
+        setBulkResults(prev => new Map(prev).set(requestId, 'error'));
+        failed++;
       }
-    } catch (error) {
-      console.error('Bulk offer error:', error);
-      showToast('Kunde inte skapa offerter - försök igen', 'error');
-    } finally {
-      setBulkSubmitting(false);
     }
+
+    // Wait a moment to show final state
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Refresh and reset
+    setShowBulkModal(false);
+    setSelectedRequests(new Set());
+    setBulkMode(false);
+    setBulkResults(new Map());
+    fetchRequests();
+
+    if (failed > 0) {
+      showToast(`${successful} offerter skickade, ${failed} misslyckades`, 'error');
+    } else {
+      showToast(`${successful} offerter skickade!`, 'success');
+    }
+    setBulkSubmitting(false);
   };
 
   // Sorted and filtered requests
@@ -426,16 +433,17 @@ export default function SupplierRequestsPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-12 bg-gray-200 rounded"></div>
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded-lg"></div>
-            ))}
-          </div>
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-32 rounded-lg" />
         </div>
+        <div className="flex gap-2">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-10 w-24 rounded-lg" />
+          ))}
+        </div>
+        <RequestsListSkeleton />
       </div>
     );
   }
@@ -933,7 +941,7 @@ export default function SupplierRequestsPage() {
                 >
                 {quickRespondSubmitting ? (
                   <>
-                    <span className="animate-spin">⏳</span>
+                    <ButtonSpinner />
                     Skickar...
                   </>
                 ) : (
@@ -968,16 +976,32 @@ export default function SupplierRequestsPage() {
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Summary of selected requests */}
+              {/* Summary of selected requests with progress */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Valda förfrågningar:</p>
-                <div className="space-y-1 max-h-32 overflow-y-auto">
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  {bulkSubmitting ? 'Skickar offerter...' : 'Valda förfrågningar:'}
+                </p>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
                   {Array.from(selectedRequests).map(id => {
                     const req = requests.find(r => r.id === id);
+                    const status = bulkResults.get(id);
                     return req ? (
-                      <div key={id} className="text-sm text-gray-600 flex justify-between">
-                        <span>{req.restaurantName}</span>
-                        <span className="text-gray-400">{req.antalFlaskor || 0} fl</span>
+                      <div key={id} className="text-sm flex items-center justify-between gap-2">
+                        <span className={status === 'error' ? 'text-red-600' : 'text-gray-600'}>
+                          {req.restaurantName}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-400">{req.antalFlaskor || 0} fl</span>
+                          {status === 'pending' && bulkSubmitting && (
+                            <ButtonSpinner className="text-blue-500" />
+                          )}
+                          {status === 'success' && (
+                            <Check className="h-4 w-4 text-green-500" />
+                          )}
+                          {status === 'error' && (
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
                       </div>
                     ) : null;
                   })}
@@ -1108,7 +1132,7 @@ export default function SupplierRequestsPage() {
               >
                 {bulkSubmitting ? (
                   <>
-                    <span className="animate-spin">⏳</span>
+                    <ButtonSpinner />
                     Skickar...
                   </>
                 ) : (

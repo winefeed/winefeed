@@ -3,6 +3,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
+import { ButtonSpinner, Spinner } from '@/components/ui/spinner';
+import { useToast } from '@/components/ui/toast';
+import { Wine } from 'lucide-react';
 
 // Types matching API response
 interface Wine {
@@ -115,6 +118,7 @@ export default function OffersPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const requestId = params.id;
+  const toast = useToast();
 
   const [offers, setOffers] = useState<Offer[]>([]);
   const [summary, setSummary] = useState<OfferSummary | null>(null);
@@ -173,6 +177,7 @@ export default function OffersPage() {
 
       // Success!
       setAcceptedOffer(data as AcceptResponse);
+      toast.success('Offert accepterad!', 'Din beställning har skapats');
 
       // Refresh offers to show updated state
       fetchOffers();
@@ -210,7 +215,12 @@ export default function OffersPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">🍷</div>
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <Wine className="h-12 w-12 text-[#7B1E1E]" />
+              <Spinner size="lg" className="absolute inset-0 text-[#7B1E1E]/30" />
+            </div>
+          </div>
           <p className="text-xl font-medium text-foreground">Hämtar offerter...</p>
           <p className="text-sm text-muted-foreground mt-2">Laddar jämförelsedata</p>
         </div>
@@ -685,7 +695,7 @@ export default function OffersPage() {
                     >
                       {accepting === offer.id ? (
                         <span className="flex items-center gap-2">
-                          <span className="animate-spin">⏳</span>
+                          <ButtonSpinner className="text-white" />
                           Accepterar...
                         </span>
                       ) : (

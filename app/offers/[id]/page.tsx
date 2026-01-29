@@ -21,6 +21,7 @@ import { OfferStatusBadge } from '../components/OfferStatusBadge';
 import { MatchStatusBadge } from '@/app/components/match/MatchStatusBadge';
 import type { MatchStatus } from '@/app/components/wine-check/types';
 import { getAlertColor } from '@/lib/design-system/alert-colors';
+import { ButtonSpinner } from '@/components/ui/spinner';
 
 interface Offer {
   id: string;
@@ -532,7 +533,7 @@ export default function OfferEditorPage() {
                     >
                       {matchingLineId === line.id ? (
                         <>
-                          <span className="animate-spin">⏳</span>
+                          <ButtonSpinner className="text-white" />
                           <span>Matching...</span>
                         </>
                       ) : (

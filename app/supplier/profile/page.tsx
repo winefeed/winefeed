@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { Building2, Mail, Phone, Globe, FileText, MapPin, CheckCircle, XCircle, Package, Loader2, Save, Pencil, X, Wine, Sparkles } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 
 interface SupplierProfile {
   supplierId: string;
@@ -35,12 +36,12 @@ export default function SupplierProfilePage() {
   const [profile, setProfile] = useState<SupplierProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   // MOQ editing state
   const [editingMoq, setEditingMoq] = useState(false);
   const [moqValue, setMoqValue] = useState<string>('');
   const [savingMoq, setSavingMoq] = useState(false);
-  const [moqSuccess, setMoqSuccess] = useState(false);
 
   // Contact editing state
   const [editingContact, setEditingContact] = useState(false);
@@ -48,13 +49,11 @@ export default function SupplierProfilePage() {
   const [contactPhone, setContactPhone] = useState('');
   const [contactWebsite, setContactWebsite] = useState('');
   const [savingContact, setSavingContact] = useState(false);
-  const [contactSuccess, setContactSuccess] = useState(false);
 
   // Provorder state
   const [provorderEnabled, setProvorderEnabled] = useState(false);
   const [provorderFee, setProvorderFee] = useState('500');
   const [savingProvorder, setSavingProvorder] = useState(false);
-  const [provorderSuccess, setProvorderSuccess] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -98,7 +97,6 @@ export default function SupplierProfilePage() {
     if (!profile) return;
 
     setSavingMoq(true);
-    setMoqSuccess(false);
 
     try {
       const value = moqValue.trim() === '' ? null : parseInt(moqValue, 10);
@@ -119,8 +117,7 @@ export default function SupplierProfilePage() {
         const data = await res.json();
         setProfile({ ...profile, minOrderBottles: data.minOrderBottles });
         setEditingMoq(false);
-        setMoqSuccess(true);
-        setTimeout(() => setMoqSuccess(false), 3000);
+        toast.success('Minsta order uppdaterad');
       } else {
         const err = await res.json();
         setError(err.error || 'Kunde inte spara');
@@ -136,7 +133,6 @@ export default function SupplierProfilePage() {
     if (!profile) return;
 
     setSavingContact(true);
-    setContactSuccess(false);
     setError(null);
 
     try {
@@ -159,8 +155,7 @@ export default function SupplierProfilePage() {
           hemsida: data.hemsida,
         });
         setEditingContact(false);
-        setContactSuccess(true);
-        setTimeout(() => setContactSuccess(false), 3000);
+        toast.success('Kontaktuppgifter sparade');
       } else {
         const err = await res.json();
         setError(err.error || 'Kunde inte spara kontaktuppgifter');
@@ -183,7 +178,6 @@ export default function SupplierProfilePage() {
     if (!profile) return;
 
     setSavingProvorder(true);
-    setProvorderSuccess(false);
     setError(null);
 
     try {
@@ -207,8 +201,7 @@ export default function SupplierProfilePage() {
         });
         setProvorderEnabled(data.provorderEnabled);
         setProvorderFee(data.provorderFeeSek?.toString() || '500');
-        setProvorderSuccess(true);
-        setTimeout(() => setProvorderSuccess(false), 3000);
+        toast.success(data.provorderEnabled ? 'Provorder aktiverat' : 'Provorder inaktiverat');
       } else {
         const err = await res.json();
         setError(err.error || 'Kunde inte spara provorder-inställningar');
@@ -323,12 +316,6 @@ export default function SupplierProfilePage() {
                     <Pencil className="h-3 w-3" />
                     Redigera
                   </button>
-                )}
-                {contactSuccess && (
-                  <span className="flex items-center gap-1 text-green-600 text-sm">
-                    <CheckCircle className="h-4 w-4" />
-                    Sparat
-                  </span>
                 )}
               </div>
 
@@ -492,12 +479,6 @@ export default function SupplierProfilePage() {
                   >
                     Ändra
                   </button>
-                  {moqSuccess && (
-                    <span className="flex items-center gap-1 text-green-600 text-sm">
-                      <CheckCircle className="h-4 w-4" />
-                      Sparat
-                    </span>
-                  )}
                 </div>
               )}
               <p className="text-xs text-gray-400 mt-1">
@@ -518,12 +499,6 @@ export default function SupplierProfilePage() {
                 Provorder
               </h3>
             </div>
-            {provorderSuccess && (
-              <span className="flex items-center gap-1 text-green-600 text-sm">
-                <CheckCircle className="h-4 w-4" />
-                Sparat
-              </span>
-            )}
           </div>
 
           <p className="text-sm text-gray-600 mb-4">

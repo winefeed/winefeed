@@ -32,6 +32,7 @@ import {
   Archive,
   Trash2,
 } from 'lucide-react';
+import { WinesTableSkeleton } from '@/components/ui/skeleton';
 
 interface SupplierWine {
   id: string;
@@ -692,12 +693,8 @@ export default function SupplierWinesPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-12 bg-gray-200 rounded"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
+      <div className="p-6 max-w-7xl mx-auto">
+        <WinesTableSkeleton />
       </div>
     );
   }
@@ -882,7 +879,7 @@ export default function SupplierWinesPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
               <tr>
-                <th className="w-10 p-4">
+                <th className="w-10 p-4 hidden sm:table-cell">
                   <input
                     type="checkbox"
                     checked={selectedWines.size === filteredAndSortedWines.length && filteredAndSortedWines.length > 0}
@@ -891,11 +888,11 @@ export default function SupplierWinesPage() {
                   />
                 </th>
                 <SortableHeader label="Vin" field="name" currentField={sortField} direction={sortDirection} onSort={handleSort} />
-                <SortableHeader label="Pris (ex moms)" field="price_ex_vat_sek" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" />
-                <th className="p-4 font-medium text-gray-600 text-sm text-right">Årgång</th>
-                <SortableHeader label="Status" field="status" currentField={sortField} direction={sortDirection} onSort={handleSort} />
-                <th className="p-4 font-medium text-gray-600 text-sm">Anteckning</th>
-                <SortableHeader label="I offerter" field="offer_count" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" />
+                <SortableHeader label="Pris" field="price_ex_vat_sek" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" />
+                <th className="p-4 font-medium text-gray-600 text-sm text-right hidden lg:table-cell">Årgång</th>
+                <SortableHeader label="Status" field="status" currentField={sortField} direction={sortDirection} onSort={handleSort} className="hidden md:table-cell" />
+                <th className="p-4 font-medium text-gray-600 text-sm hidden xl:table-cell">Anteckning</th>
+                <SortableHeader label="Offerter" field="offer_count" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" className="hidden lg:table-cell" />
                 <th className="p-4 font-medium text-gray-600 text-sm w-12"></th>
               </tr>
             </thead>
@@ -907,7 +904,7 @@ export default function SupplierWinesPage() {
                   key={wine.id}
                   className={`border-b border-gray-100 hover:bg-gray-50 group ${isEndOfVintage ? 'opacity-60' : ''}`}
                 >
-                  <td className="p-4">
+                  <td className="p-4 hidden sm:table-cell">
                     <input
                       type="checkbox"
                       checked={selectedWines.has(wine.id)}
@@ -916,13 +913,21 @@ export default function SupplierWinesPage() {
                     />
                   </td>
                   <td className="p-4">
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-900 line-clamp-1">
                       {wine.name}
                     </div>
-                    <div className="text-sm text-gray-500">{wine.producer} &middot; {wine.region}, {wine.country}</div>
-                    {wine.updated_at && formatTimeAgo(wine.updated_at) && (
-                      <div className="text-xs text-gray-400 mt-0.5">Uppdaterad {formatTimeAgo(wine.updated_at)}</div>
-                    )}
+                    <div className="text-sm text-gray-500 line-clamp-1">{wine.producer} &middot; {wine.region}</div>
+                    {/* Show status badge on mobile since column is hidden */}
+                    <div className="md:hidden mt-1">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        wine.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
+                        wine.status === 'END_OF_VINTAGE' ? 'bg-gray-100 text-gray-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {wine.status === 'ACTIVE' ? 'Aktiv' :
+                         wine.status === 'END_OF_VINTAGE' ? 'Slut' : 'Paus'}
+                      </span>
+                    </div>
                   </td>
 
                   {/* Editable Price */}
@@ -959,7 +964,7 @@ export default function SupplierWinesPage() {
                   </td>
 
                   {/* Editable Vintage */}
-                  <td className="p-4 text-right">
+                  <td className="p-4 text-right hidden lg:table-cell">
                     {editingCell?.wineId === wine.id && editingCell?.field === 'vintage' ? (
                       <div className="flex items-center justify-end gap-1">
                         <input
@@ -993,7 +998,7 @@ export default function SupplierWinesPage() {
                   </td>
 
                   {/* Status Badge + Dropdown */}
-                  <td className="p-4">
+                  <td className="p-4 hidden md:table-cell">
                     {saving === wine.id ? (
                       <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                     ) : (
@@ -1013,7 +1018,7 @@ export default function SupplierWinesPage() {
                   </td>
 
                   {/* Editable Notes */}
-                  <td className="p-4">
+                  <td className="p-4 hidden xl:table-cell">
                     {editingCell?.wineId === wine.id && editingCell?.field === 'notes' ? (
                       <div className="flex items-center gap-1">
                         <input
@@ -1049,7 +1054,7 @@ export default function SupplierWinesPage() {
                   </td>
 
                   {/* Offer Count */}
-                  <td className="p-4 text-right">
+                  <td className="p-4 text-right hidden lg:table-cell">
                     {wine.offer_count && wine.offer_count > 0 ? (
                       <span
                         className="inline-flex items-center gap-1 text-sm text-blue-600 cursor-help"
@@ -1341,12 +1346,13 @@ interface SortableHeaderProps {
   direction: SortDirection;
   onSort: (field: SortField) => void;
   align?: 'left' | 'right';
+  className?: string;
 }
 
-function SortableHeader({ label, field, currentField, direction, onSort, align = 'left' }: SortableHeaderProps) {
+function SortableHeader({ label, field, currentField, direction, onSort, align = 'left', className = '' }: SortableHeaderProps) {
   const isActive = currentField === field;
   return (
-    <th className={`p-4 font-medium text-gray-600 text-sm cursor-pointer hover:bg-gray-100 transition-colors select-none ${align === 'right' ? 'text-right' : 'text-left'}`} onClick={() => onSort(field)}>
+    <th className={`p-4 font-medium text-gray-600 text-sm cursor-pointer hover:bg-gray-100 transition-colors select-none ${align === 'right' ? 'text-right' : 'text-left'} ${className}`} onClick={() => onSort(field)}>
       <div className={`inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
         <span>{label}</span>
         <span className="text-gray-400">

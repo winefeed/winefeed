@@ -15,6 +15,7 @@
 
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, Edit2, Wine, Clock, X, Save, Copy } from 'lucide-react';
+import { ButtonSpinner } from '@/components/ui/spinner';
 
 interface OfferTemplate {
   id: string;
@@ -419,7 +420,7 @@ export default function SupplierTemplatesPage() {
               >
                 {saving ? (
                   <>
-                    <span className="animate-spin">⏳</span>
+                    <ButtonSpinner className="text-white" />
                     Sparar...
                   </>
                 ) : (
