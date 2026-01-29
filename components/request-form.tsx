@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send, Plus, Building2 } from 'lucide-react';
+import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send, Plus, Building2, AlertCircle } from 'lucide-react';
+import { FormErrorSummary, inputErrorClass } from '@/components/ui/form-error';
 
 // Wine color options - matches database enum (wine_color)
 // Valid values: red, white, rose, sparkling, orange, fortified
@@ -480,6 +481,8 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Error summary at top of form */}
+      <FormErrorSummary errors={errors} />
       {/* Wine Color Selection */}
       <div className="space-y-3">
         <Label>Vintyp</Label>
@@ -513,10 +516,14 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           type="number"
           step="10"
           placeholder="200"
+          className={inputErrorClass(!!errors.budget_max)}
           {...register('budget_max')}
         />
         {errors.budget_max && (
-          <p className="text-sm text-destructive">{errors.budget_max.message}</p>
+          <p className="text-sm text-red-600 flex items-center gap-1">
+            <AlertCircle className="h-3 w-3" />
+            {errors.budget_max.message}
+          </p>
         )}
       </div>
 
@@ -527,10 +534,14 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           id="antal_flaskor"
           type="number"
           placeholder="24"
+          className={inputErrorClass(!!errors.antal_flaskor)}
           {...register('antal_flaskor')}
         />
         {errors.antal_flaskor && (
-          <p className="text-sm text-destructive">{errors.antal_flaskor.message}</p>
+          <p className="text-sm text-red-600 flex items-center gap-1">
+            <AlertCircle className="h-3 w-3" />
+            {errors.antal_flaskor.message}
+          </p>
         )}
       </div>
 

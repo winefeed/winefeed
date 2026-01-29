@@ -29,8 +29,6 @@ function ResetPasswordContent() {
     // Listen for auth state changes - this catches the recovery token
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth event:', event, session?.user?.email);
-
         if (event === 'PASSWORD_RECOVERY') {
           // User clicked the recovery link - they can now set a new password
           setHasValidSession(true);

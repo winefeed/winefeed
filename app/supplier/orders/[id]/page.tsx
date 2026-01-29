@@ -24,6 +24,7 @@ import {
   Mail,
   Loader2,
 } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 
 interface OrderDetail {
   id: string;
@@ -64,6 +65,7 @@ export default function SupplierOrderDetailPage({
 }) {
   const { id: orderId } = use(params);
   const router = useRouter();
+  const toast = useToast();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -139,9 +141,10 @@ export default function SupplierOrderDetailPage({
         throw new Error(error.error || 'Kunde inte bekräfta ordern');
       }
 
+      toast.success('Order bekräftad');
       await fetchOrder();
     } catch (error: any) {
-      alert(error.message);
+      toast.error('Kunde inte bekräfta', error.message);
     } finally {
       setActionLoading(null);
     }
@@ -165,9 +168,10 @@ export default function SupplierOrderDetailPage({
 
       setShowDeclineModal(false);
       setDeclineReason('');
+      toast.info('Order avböjd');
       await fetchOrder();
     } catch (error: any) {
-      alert(error.message);
+      toast.error('Kunde inte avböja', error.message);
     } finally {
       setActionLoading(null);
     }
@@ -189,9 +193,10 @@ export default function SupplierOrderDetailPage({
 
       setShowShipModal(false);
       setTrackingNumber('');
+      toast.success('Markerad som skickad');
       await fetchOrder();
     } catch (error: any) {
-      alert(error.message);
+      toast.error('Kunde inte uppdatera', error.message);
     } finally {
       setActionLoading(null);
     }

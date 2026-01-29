@@ -5,8 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
 import { useDraftList } from '@/lib/hooks/useDraftList';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, ListPlus, ShoppingCart, Check, Info, Minus, Plus } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine } from 'lucide-react';
 import { FloatingDraftList } from '@/components/FloatingDraftList';
+import { Spinner } from '@/components/ui/spinner';
 
 interface Wine {
   id: string;
@@ -133,7 +134,7 @@ export default function ResultsPage() {
         setNewOffersCount(data.summary?.active || 0);
       }
     } catch (err) {
-      console.log('Could not fetch offer counts:', err);
+      // Silently fail - offer count is non-critical
     }
   }, [requestId]);
 
@@ -148,7 +149,7 @@ export default function ResultsPage() {
         setRequestedQuantity(data.request?.quantity_bottles || data.request?.antal_flaskor || null);
       }
     } catch (err) {
-      console.log('Could not fetch request details:', err);
+      // Silently fail - request details are non-critical
     }
   }, [requestId]);
 
@@ -319,7 +320,7 @@ export default function ResultsPage() {
         const errorData = await response.json();
         // If already dispatched, treat as success
         if (response.status === 409) {
-          console.log('Request already dispatched');
+          // Already dispatched - continue as success
         } else {
           throw new Error(errorData.error || 'Kunde inte skicka förfrågan');
         }
@@ -359,7 +360,12 @@ export default function ResultsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">🍷</div>
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <Wine className="h-12 w-12 text-[#7B1E1E]" />
+              <Spinner size="lg" className="absolute inset-0 text-[#7B1E1E]/30" />
+            </div>
+          </div>
           <p className="text-xl font-medium text-foreground">Genomsöker marknaden...</p>
           <p className="text-sm text-muted-foreground mt-2">Matchar viner efter dina behov</p>
         </div>
