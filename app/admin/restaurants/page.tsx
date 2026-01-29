@@ -8,6 +8,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -168,9 +169,9 @@ export default function AdminRestaurantsPage() {
       const data = await response.json();
       setRestaurants(data.restaurants);
       setFilteredRestaurants(data.restaurants);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch restaurants:', err);
-      setError(err.message || 'Kunde inte ladda restauranger');
+      setError(getErrorMessage(err, 'Kunde inte ladda restauranger'));
     } finally {
       setLoading(false);
     }

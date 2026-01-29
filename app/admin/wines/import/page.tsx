@@ -8,6 +8,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
+import { getErrorMessage } from '@/lib/utils';
 import { useDropzone } from 'react-dropzone';
 
 // ============================================================================
@@ -141,8 +142,8 @@ export default function WineImportPage() {
       } else {
         setError(data.error || 'Kunde inte läsa filen');
       }
-    } catch (err: any) {
-      setError(`Fel vid uppladdning: ${err.message}`);
+    } catch (err) {
+      setError(`Fel vid uppladdning: ${getErrorMessage(err)}`);
     } finally {
       setIsUploading(false);
     }
@@ -175,8 +176,8 @@ export default function WineImportPage() {
         setFile(null);
         setPreview(null);
       }
-    } catch (err: any) {
-      setError(`Fel vid import: ${err.message}`);
+    } catch (err) {
+      setError(`Fel vid import: ${getErrorMessage(err)}`);
     } finally {
       setIsImporting(false);
     }

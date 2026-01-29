@@ -34,6 +34,7 @@ import {
   type OrderLineComplianceData,
 } from '@/components/compliance';
 import { ChevronDown, ChevronUp, Edit3, AlertTriangle } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
 
 // Tenant ID - single tenant for MVP
 // Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
@@ -311,9 +312,9 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
       if (!hasIORAccess && !isAdmin) {
         throw new Error('Du saknar IOR-behörighet. Kontakta admin för att få åtkomst.');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch actor:', err);
-      setError(err.message || 'Kunde inte ladda användarprofil');
+      setError(getErrorMessage(err, 'Kunde inte ladda användarprofil'));
       setLoading(false);
     }
   }, []);
@@ -344,9 +345,9 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
 
       const data = await response.json();
       setOrderDetail(data);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch order details:', err);
-      setError(err.message || 'Kunde inte ladda order');
+      setError(getErrorMessage(err, 'Kunde inte ladda order'));
     } finally {
       setLoading(false);
     }
@@ -393,9 +394,9 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
 
       // Refresh order details
       await fetchOrderDetail();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to update status:', err);
-      setError(err.message || 'Kunde inte uppdatera status');
+      setError(getErrorMessage(err, 'Kunde inte uppdatera status'));
     } finally {
       setUpdating(false);
     }
@@ -428,9 +429,9 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
 
       // Refresh order details
       await fetchOrderDetail();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to create import case:', err);
-      setError(err.message || 'Kunde inte skapa import case');
+      setError(getErrorMessage(err, 'Kunde inte skapa import case'));
     } finally {
       setCreatingImport(false);
     }

@@ -14,6 +14,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OfferLineItemRow } from '../components/OfferLineItemRow';
@@ -114,9 +115,9 @@ export default function OfferEditorPage() {
 
       const offerData: OfferData = await response.json();
       setData(offerData);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to load offer:', err);
-      setError(err.message || 'Kunde inte ladda offert');
+      setError(getErrorMessage(err, 'Kunde inte ladda offert'));
     } finally {
       setLoading(false);
     }
@@ -222,10 +223,10 @@ export default function OfferEditorPage() {
       } else {
         alert(`Match result: ${matchData.explanation}`);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to match line:', err);
-      setError(err.message || 'Kunde inte matcha rad');
-      alert('Kunde inte matcha rad: ' + err.message);
+      setError(getErrorMessage(err, 'Kunde inte matcha rad'));
+      alert(`Kunde inte matcha rad: ${getErrorMessage(err)}`);
     } finally {
       setMatchingLineId(null);
     }
@@ -283,10 +284,10 @@ export default function OfferEditorPage() {
       await fetchOffer();
 
       alert('Offert sparad!');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save offer:', err);
-      setError(err.message || 'Kunde inte spara offert');
-      alert('Kunde inte spara offert: ' + err.message);
+      setError(getErrorMessage(err, 'Kunde inte spara offert'));
+      alert(`Kunde inte spara offert: ${getErrorMessage(err)}`);
     } finally {
       setSaving(false);
     }
@@ -317,10 +318,10 @@ export default function OfferEditorPage() {
       await fetchOffer();
 
       alert('Offert accepterad! Offerten är nu låst och går inte att ändra.');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to accept offer:', err);
-      setError(err.message || 'Kunde inte acceptera offert');
-      alert('Kunde inte acceptera offert: ' + err.message);
+      setError(getErrorMessage(err, 'Kunde inte acceptera offert'));
+      alert(`Kunde inte acceptera offert: ${getErrorMessage(err)}`);
     } finally {
       setAccepting(false);
     }

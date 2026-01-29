@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function NewImportPage() {
   const router = useRouter();
@@ -46,8 +47,8 @@ export default function NewImportPage() {
 
       const data = await response.json();
       router.push(`/imports/${data.id}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err, 'Ett fel uppstod'));
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getErrorMessage } from '@/lib/utils';
 import {
   Sparkles,
   Plus,
@@ -100,8 +101,8 @@ export default function AdminSponsoredCategoriesPage() {
 
       const data = await res.json();
       setCategories(data.categories || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -161,8 +162,8 @@ export default function AdminSponsoredCategoriesPage() {
 
       setShowModal(false);
       fetchCategories();
-    } catch (err: any) {
-      setFormError(err.message);
+    } catch (err) {
+      setFormError(getErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -185,8 +186,8 @@ export default function AdminSponsoredCategoriesPage() {
       }
 
       fetchCategories();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(getErrorMessage(err));
     }
   };
 
@@ -204,8 +205,8 @@ export default function AdminSponsoredCategoriesPage() {
       }
 
       fetchCategories();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(getErrorMessage(err));
     }
   };
 

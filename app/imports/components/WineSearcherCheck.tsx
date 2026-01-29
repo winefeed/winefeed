@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from './Tooltip';
 import { getStatusColor } from '@/lib/design-system/status-colors';
+import { getErrorMessage } from '@/lib/utils';
 
 /**
  * WINE-SEARCHER CHECK COMPONENT
@@ -85,8 +86,8 @@ export function WineSearcherCheck({ wineName, vintage, onSelect }: WineSearcherC
       if (onSelect) {
         onSelect(data);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err, 'Ett fel uppstod'));
     } finally {
       setLoading(false);
     }

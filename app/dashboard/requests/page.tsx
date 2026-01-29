@@ -11,6 +11,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
@@ -54,9 +55,9 @@ export default function RequestsListPage() {
 
       const data = await response.json();
       setRequests(data.requests || []);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch requests:', err);
-      setError(err.message || 'Kunde inte ladda requests');
+      setError(getErrorMessage(err, 'Kunde inte ladda requests'));
     } finally {
       setLoading(false);
     }

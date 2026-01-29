@@ -14,6 +14,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
@@ -86,9 +87,9 @@ export default function AdminUserDetailPage() {
 
       const data: UserDetail = await response.json();
       setUser(data);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch user detail:', err);
-      setError(err.message || 'Kunde inte ladda användardetaljer');
+      setError(getErrorMessage(err, 'Kunde inte ladda användardetaljer'));
     } finally {
       setLoading(false);
     }

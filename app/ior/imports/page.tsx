@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { ComplianceStatusBadge, ComplianceStatus } from '@/components/compliance/ComplianceStatusBadge';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 import { FileText, Clock, CheckCircle, AlertTriangle, ChevronRight, RefreshCw } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
 
 interface ActorContext {
   tenant_id: string;
@@ -82,8 +83,8 @@ export default function IORImportsCockpitPage() {
       if (!actorData.roles.includes('IOR') || !actorData.importer_id) {
         throw new Error('Du saknar IOR-behörighet. Kontakta admin för att få åtkomst.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Kunde inte ladda användarprofil');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Kunde inte ladda användarprofil'));
       setLoading(false);
     }
   }, []);
@@ -109,8 +110,8 @@ export default function IORImportsCockpitPage() {
       const data = await response.json();
       setImports(data.imports || []);
       setCounts(data.counts || { all: 0, needs_action: 0, waiting_admin: 0, ready: 0 });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

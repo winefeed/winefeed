@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { X, Save, Loader2, AlertCircle, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { MissingField, checkOrderLineCompliance } from './ComplianceStatusBadge';
+import { getErrorMessage } from '@/lib/utils';
 
 export interface OrderLineComplianceData {
   id: string;
@@ -105,8 +106,8 @@ export function ComplianceEditPanel({
       setTimeout(() => {
         onClose();
       }, 1000);
-    } catch (err: any) {
-      setError(err.message || 'Kunde inte spara ändringar');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Kunde inte spara ändringar'));
     } finally {
       setSaving(false);
     }

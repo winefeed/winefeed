@@ -14,6 +14,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
@@ -104,9 +105,9 @@ export default function AdminInvitesPage() {
         setSuppliers(suppliersRes.data || []);
       }
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch data:', err);
-      setError(err.message || 'Kunde inte ladda data');
+      setError(getErrorMessage(err, 'Kunde inte ladda data'));
     } finally {
       setLoading(false);
     }
@@ -153,9 +154,9 @@ export default function AdminInvitesPage() {
       // Refresh invites list
       await fetchData();
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to create invite:', err);
-      setError(err.message || 'Kunde inte skapa inbjudan');
+      setError(getErrorMessage(err, 'Kunde inte skapa inbjudan'));
     } finally {
       setSubmitting(false);
     }

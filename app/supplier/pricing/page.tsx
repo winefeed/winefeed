@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Zap, Crown, Loader2 } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
 
 interface PricingTier {
   name: string;
@@ -99,8 +100,8 @@ export default function PricingPage() {
       if (data.checkout_url) {
         window.location.href = data.checkout_url;
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err, 'Ett fel uppstod'));
       setLoading(null);
     }
   };

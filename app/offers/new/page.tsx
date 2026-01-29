@@ -12,6 +12,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -77,9 +78,9 @@ export default function NewOfferPage() {
 
       // Redirect to offer editor
       router.push(`/offers/${data.offer_id}`);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to create offer:', err);
-      setError(err.message || 'Failed to create offer');
+      setError(getErrorMessage(err, 'Failed to create offer'));
     } finally {
       setLoading(false);
     }

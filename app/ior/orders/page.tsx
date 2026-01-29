@@ -22,6 +22,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
+import { getErrorMessage } from '@/lib/utils';
 
 // Tenant ID - single tenant for MVP
 // Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
@@ -85,9 +86,9 @@ export default function IOROrdersPage() {
       if (!hasIORAccess && !isAdmin) {
         throw new Error('Du saknar IOR-behörighet. Kontakta admin för att få åtkomst.');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch actor:', err);
-      setError(err.message || 'Kunde inte ladda användarprofil');
+      setError(getErrorMessage(err, 'Kunde inte ladda användarprofil'));
       setLoading(false);
     }
   }, []);
@@ -126,9 +127,9 @@ export default function IOROrdersPage() {
 
       const data = await response.json();
       setOrders(data.orders || []);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch orders:', err);
-      setError(err.message || 'Kunde inte ladda orders');
+      setError(getErrorMessage(err, 'Kunde inte ladda orders'));
     } finally {
       setLoading(false);
     }

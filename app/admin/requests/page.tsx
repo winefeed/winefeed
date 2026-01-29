@@ -8,6 +8,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -74,9 +75,9 @@ export default function AdminRequestsPage() {
 
       const data = await response.json();
       setRequests(data.requests);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch requests:', err);
-      setError(err.message || 'Kunde inte ladda forfragningar');
+      setError(getErrorMessage(err, 'Kunde inte ladda forfragningar'));
     } finally {
       setLoading(false);
     }

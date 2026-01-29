@@ -12,6 +12,7 @@ import {
   Star,
   Zap
 } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
 
 interface SponsoredCategory {
   id: string;
@@ -86,8 +87,8 @@ export default function PromotionsPage() {
         setSlots(slotsData.slots || []);
         setEntitlement(slotsData.entitlement || null);
 
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(getErrorMessage(err, 'Ett fel uppstod'));
       } finally {
         setLoading(false);
       }
@@ -137,8 +138,8 @@ export default function PromotionsPage() {
 
       setSuccessMessage('Din sponsrade plats är nu aktiv!');
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err, 'Ett fel uppstod'));
     } finally {
       setActionLoading(null);
     }
@@ -170,8 +171,8 @@ export default function PromotionsPage() {
       setSlots(slotsData.slots || []);
       setEntitlement(slotsData.entitlement || null);
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err, 'Ett fel uppstod'));
     } finally {
       setActionLoading(null);
     }
@@ -203,8 +204,8 @@ export default function PromotionsPage() {
         window.location.href = data.checkout_url;
       }
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err, 'Ett fel uppstod'));
       setActionLoading(null);
     }
   };

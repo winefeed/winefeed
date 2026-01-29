@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { RefreshCw, ChevronRight, Clock, CheckCircle2, AlertCircle, Inbox, FileText, ArrowRight } from 'lucide-react';
 import { useActor } from '@/lib/hooks/useActor';
+import { getErrorMessage } from '@/lib/utils';
 
 interface RequestWithOffers {
   id: string;
@@ -85,9 +86,9 @@ export default function RestaurantOffersPage() {
 
       setRequests(requestsData);
       setSummary(summaryData);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch requests:', err);
-      setError(err.message || 'Kunde inte ladda offerter');
+      setError(getErrorMessage(err, 'Kunde inte ladda offerter'));
     } finally {
       setLoading(false);
     }

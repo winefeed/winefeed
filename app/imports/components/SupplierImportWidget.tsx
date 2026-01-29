@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getErrorMessage } from '@/lib/utils';
 
 interface SupplierImport {
   id: string;
@@ -50,8 +51,8 @@ export function SupplierImportWidget({ importId, linkedImports, onRefresh }: Sup
       setMessage({ type: 'success', text: 'Supplier import kopplat!' });
       setSupplierImportId('');
       onRefresh(); // Refresh to show new linked import
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
+    } catch (err) {
+      setMessage({ type: 'error', text: getErrorMessage(err, 'Ett fel uppstod') });
     } finally {
       setLoading(false);
     }

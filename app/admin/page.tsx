@@ -11,6 +11,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { getErrorMessage } from '@/lib/utils';
 import { Wine, Users, Building2, TrendingUp, ExternalLink, RefreshCw, ShoppingCart, FileText, Inbox, Store, AlertTriangle, Clock, ChevronRight, Filter } from 'lucide-react';
 import { ComplianceStatusBadge, type ComplianceStatus } from '@/components/compliance';
 
@@ -180,9 +181,9 @@ export default function AdminDashboardPage() {
 
       setStats(statsData);
       setPendingActions(pendingData);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch admin data:', err);
-      setError(err.message || 'Kunde inte ladda data');
+      setError(getErrorMessage(err, 'Kunde inte ladda data'));
     } finally {
       setLoading(false);
     }

@@ -8,6 +8,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -77,9 +78,9 @@ export default function AdminOffersPage() {
 
       const data = await response.json();
       setOffers(data.offers);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch offers:', err);
-      setError(err.message || 'Kunde inte ladda offerter');
+      setError(getErrorMessage(err, 'Kunde inte ladda offerter'));
     } finally {
       setLoading(false);
     }
