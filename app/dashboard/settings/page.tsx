@@ -655,6 +655,7 @@ export default function SettingsPage() {
                     <button
                       onClick={() => handleDeleteAddress(address.id)}
                       className="text-muted-foreground hover:text-destructive"
+                      aria-label="Radera adress"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

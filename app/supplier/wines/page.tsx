@@ -737,7 +737,7 @@ export default function SupplierWinesPage() {
         <div className={`mb-4 p-4 rounded-lg flex items-center gap-3 ${importResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
           {importResult.success ? <CheckCircle className="h-5 w-5 text-green-600" /> : <AlertCircle className="h-5 w-5 text-red-600" />}
           <span className={importResult.success ? 'text-green-800' : 'text-red-800'}>{importResult.message}</span>
-          <button onClick={() => setImportResult(null)} className="ml-auto text-gray-400 hover:text-gray-600"><X className="h-4 w-4" /></button>
+          <button onClick={() => setImportResult(null)} className="ml-auto text-gray-400 hover:text-gray-600" aria-label="Stäng"><X className="h-4 w-4" /></button>
         </div>
       )}
 
