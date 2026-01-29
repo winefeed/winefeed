@@ -18,6 +18,7 @@ import { WineCheckResult } from './WineCheckResult';
 import { WineCheckCandidates } from './WineCheckCandidates';
 import { MockModeBadge } from './WineCheckBadge';
 import { WineCheckCandidate } from './types';
+import { getErrorMessage } from '@/lib/utils';
 
 interface WineCheckPanelProps {
   // Mode
@@ -96,8 +97,8 @@ export function WineCheckPanel({
 
         // Clear success message after 3 seconds
         setTimeout(() => setPersistSuccess(null), 3000);
-      } catch (err: any) {
-        setPersistError(err.message || 'Kunde inte spara val');
+      } catch (err) {
+        setPersistError(getErrorMessage(err, 'Kunde inte spara val'));
       } finally {
         setIsPersisting(false);
       }

@@ -8,6 +8,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -181,9 +182,9 @@ export default function AdminSuppliersPage() {
       const data = await response.json();
       setSuppliers(data.suppliers);
       setFilteredSuppliers(data.suppliers);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch suppliers:', err);
-      setError(err.message || 'Kunde inte ladda leverantorer');
+      setError(getErrorMessage(err, 'Kunde inte ladda leverantorer'));
     } finally {
       setLoading(false);
     }

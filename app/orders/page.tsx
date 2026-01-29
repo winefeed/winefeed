@@ -22,6 +22,7 @@ import { ShoppingCart, RefreshCw, Search, ArrowLeft, ChevronUp, ChevronDown, Pac
 import { OrderStatusBadge } from './components/StatusBadge';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 import { useActor } from '@/lib/hooks/useActor';
+import { getErrorMessage } from '@/lib/utils';
 
 interface Order {
   id: string;
@@ -91,9 +92,9 @@ export default function OrdersPage() {
 
       const data = await response.json();
       setOrders(data.orders || []);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch orders:', err);
-      setError(err.message || 'Kunde inte ladda ordrar');
+      setError(getErrorMessage(err, 'Kunde inte ladda ordrar'));
     } finally {
       setLoading(false);
     }

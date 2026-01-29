@@ -15,6 +15,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertBadge } from '../components/AlertBadge';
@@ -152,9 +153,9 @@ export default function PilotAdminPage() {
 
       const result = await response.json();
       setData(result);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch pilot overview:', err);
-      setError(err.message || 'Kunde inte ladda pilot overview');
+      setError(getErrorMessage(err, 'Kunde inte ladda pilot overview'));
     } finally {
       setLoading(false);
     }

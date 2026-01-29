@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { getErrorMessage } from '@/lib/utils';
 
 interface ActionsPanelProps {
   importId: string;
@@ -36,11 +37,11 @@ export function ActionsPanel({ importId, currentStatus, onRefresh }: ActionsPane
 
       const data = await response.json();
       setValidationResult(data);
-    } catch (err: any) {
+    } catch (err) {
       setValidationResult({
         valid: false,
         error_code: 'NETWORK_ERROR',
-        error_message: err.message
+        error_message: getErrorMessage(err, 'Ett fel uppstod')
       });
     } finally {
       setLoading(false);
@@ -72,9 +73,9 @@ export function ActionsPanel({ importId, currentStatus, onRefresh }: ActionsPane
         storage_path: data.storage_path
       });
       onRefresh(); // Refresh to show new document
-    } catch (err: any) {
+    } catch (err) {
       setDocumentResult({
-        error: err.message
+        error: getErrorMessage(err, 'Ett fel uppstod')
       });
     } finally {
       setLoading(false);
@@ -101,8 +102,8 @@ export function ActionsPanel({ importId, currentStatus, onRefresh }: ActionsPane
       }
 
       onRefresh(); // Refresh to show new status
-    } catch (err: any) {
-      alert(`Fel: ${err.message}`);
+    } catch (err) {
+      alert(`Fel: ${getErrorMessage(err, 'Ett fel uppstod')}`);
     } finally {
       setLoading(false);
     }

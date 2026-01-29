@@ -9,6 +9,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 
 type OverallState = 'PASS' | 'WARN' | 'FAIL' | 'INSUFFICIENT_DATA';
@@ -92,9 +93,9 @@ export default function MatchStatusPage() {
 
       const statusData = await response.json();
       setData(statusData);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch match status:', err);
-      setError(err.message || 'Unknown error');
+      setError(getErrorMessage(err, 'Unknown error'));
     } finally {
       setLoading(false);
     }

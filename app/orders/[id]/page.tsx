@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
 import { useActor } from '@/lib/hooks/useActor';
+import { getErrorMessage } from '@/lib/utils';
 import {
   Package,
   Truck,
@@ -166,9 +167,9 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
 
       const data = await response.json();
       setOrderDetail(data);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch order details:', err);
-      setError(err.message || 'Kunde inte ladda order');
+      setError(getErrorMessage(err, 'Kunde inte ladda order'));
     } finally {
       setLoading(false);
     }

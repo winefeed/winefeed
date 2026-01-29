@@ -8,6 +8,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Wine, RefreshCw, Search, Filter, X, ChevronUp, ChevronDown } from 'lucide-react';
@@ -187,9 +188,9 @@ function AdminWinesPageContent() {
       setWines(data.wines);
       setFilteredWines(data.wines);
       setSuppliers(data.suppliers);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch wines:', err);
-      setError(err.message || 'Kunde inte ladda viner');
+      setError(getErrorMessage(err, 'Kunde inte ladda viner'));
     } finally {
       setLoading(false);
     }

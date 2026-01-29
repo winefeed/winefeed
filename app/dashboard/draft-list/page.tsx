@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDraftList } from '@/lib/hooks/useDraftList';
 import { DraftWineItem } from '@/lib/draft-storage';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getErrorMessage } from '@/lib/utils';
 import {
   ArrowLeft,
   Trash2,
@@ -350,8 +350,8 @@ export default function DraftListPage() {
                   // Success - clear draft list and redirect
                   draftList.clear();
                   router.push(`/dashboard/my-requests?sent=true`);
-                } catch (err: any) {
-                  setSendError(err.message || 'Ett fel uppstod');
+                } catch (err) {
+                  setSendError(getErrorMessage(err, 'Ett fel uppstod'));
                 } finally {
                   setSending(false);
                 }

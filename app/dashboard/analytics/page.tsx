@@ -13,6 +13,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
 import {
   TrendingUp,
@@ -118,9 +119,9 @@ export default function RestaurantAnalyticsPage() {
       }
 
       setData(result);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch analytics:', err);
-      setError(err.message || 'Kunde inte ladda statistik');
+      setError(getErrorMessage(err, 'Kunde inte ladda statistik'));
     } finally {
       setLoading(false);
     }

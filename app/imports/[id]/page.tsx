@@ -16,6 +16,7 @@ import {
   getImportCaseSteps,
   type ComplianceStatus,
 } from '@/components/compliance';
+import { getErrorMessage } from '@/lib/utils';
 
 interface ImportCaseData {
   id: string;
@@ -157,8 +158,8 @@ export default function ImportDetailsPage({ params }: { params: { id: string } }
         const docsData = await docsResponse.json();
         setDocuments(docsData.documents || []);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err, 'Ett fel uppstod'));
     } finally {
       setLoading(false);
     }
@@ -576,11 +577,11 @@ function ImprovedActionsPanel({
 
       const data = await response.json();
       setValidationResult(data);
-    } catch (err: any) {
+    } catch (err) {
       setValidationResult({
         valid: false,
         error_code: 'NETWORK_ERROR',
-        error_message: err.message
+        error_message: getErrorMessage(err)
       });
     } finally {
       setLoading(false);
@@ -606,8 +607,8 @@ function ImprovedActionsPanel({
       }
 
       onRefresh();
-    } catch (err: any) {
-      alert(`Fel: ${err.message}`);
+    } catch (err) {
+      alert(`Fel: ${getErrorMessage(err)}`);
     } finally {
       setLoading(false);
     }
@@ -633,8 +634,8 @@ function ImprovedActionsPanel({
       }
 
       onRefresh();
-    } catch (err: any) {
-      alert(`Fel: ${err.message}`);
+    } catch (err) {
+      alert(`Fel: ${getErrorMessage(err)}`);
     } finally {
       setLoading(false);
       setShowRejectModal(false);

@@ -60,7 +60,7 @@ function LoginForm() {
         window.location.href = targetPath;
       }
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Login error:', err);
       setError('Ett fel uppstod. Försök igen.');
     } finally {

@@ -8,6 +8,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users, RefreshCw, ArrowLeft } from 'lucide-react';
@@ -88,9 +89,9 @@ export default function AdminUsersPage() {
       const data: UsersResponse = await response.json();
       setUsers(data.users);
       setFilteredUsers(data.users);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch users:', err);
-      setError(err.message || 'Kunde inte ladda användare');
+      setError(getErrorMessage(err, 'Kunde inte ladda användare'));
     } finally {
       setLoading(false);
     }

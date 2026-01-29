@@ -13,3 +13,12 @@ export function formatPrice(price: number): string {
     maximumFractionDigits: 0,
   }).format(price);
 }
+
+/**
+ * Safely extract error message from unknown error type
+ */
+export function getErrorMessage(err: unknown, fallback = 'Ett fel uppstod'): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return fallback;
+}

@@ -12,6 +12,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
 import {
   FileText,
@@ -169,9 +170,9 @@ export default function AdminCompliancePage() {
       }
 
       setReport(data);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch compliance report:', err);
-      setError(err.message || 'Kunde inte ladda rapport');
+      setError(getErrorMessage(err, 'Kunde inte ladda rapport'));
     } finally {
       setLoading(false);
     }
@@ -213,7 +214,7 @@ export default function AdminCompliancePage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to export:', err);
       alert('Kunde inte exportera rapport');
     } finally {

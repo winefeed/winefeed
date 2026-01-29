@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { FileText, RefreshCw, Plus, ChevronRight, Clock, CheckCircle2, AlertCircle, Inbox, Info, X, Filter } from 'lucide-react';
 import { RequestStatusBadge, ExpectationText } from '@/components/dashboard/RequestTimeline';
 import { useActor } from '@/lib/hooks/useActor';
+import { getErrorMessage } from '@/lib/utils';
 
 interface RequestTracking {
   dispatched_to: number;
@@ -88,9 +89,9 @@ export default function MyRequestsPage() {
 
       const data = await response.json();
       setRequests(data.requests || []);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch requests:', err);
-      setError(err.message || 'Kunde inte ladda förfrågningar');
+      setError(getErrorMessage(err, 'Kunde inte ladda förfrågningar'));
     } finally {
       setLoading(false);
     }

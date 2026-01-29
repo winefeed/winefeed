@@ -17,6 +17,7 @@
 
 import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { getErrorMessage } from '@/lib/utils';
 
 interface InviteDetails {
   is_valid: boolean;
@@ -55,9 +56,9 @@ function InvitePageContent() {
       }
 
       setInviteDetails(data);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to verify invite:', err);
-      setError(err.message || 'Kunde inte verifiera inbjudan');
+      setError(getErrorMessage(err, 'Kunde inte verifiera inbjudan'));
     } finally {
       setLoading(false);
     }
@@ -111,9 +112,9 @@ function InvitePageContent() {
       // Success - redirect to login page
       router.push(`/login?email=${encodeURIComponent(data.email)}&invited=true`);
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to accept invite:', err);
-      setError(err.message || 'Kunde inte acceptera inbjudan');
+      setError(getErrorMessage(err, 'Kunde inte acceptera inbjudan'));
     } finally {
       setSubmitting(false);
     }

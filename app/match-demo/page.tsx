@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import type { MatchProductOutput } from '@/lib/match-service';
 import { MatchPanel } from '../components/match/MatchPanel';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function MatchDemoPage() {
   const [loading, setLoading] = useState(false);
@@ -73,9 +74,9 @@ export default function MatchDemoPage() {
       const data = await response.json();
       setResult(data);
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Match error:', err);
-      setError(err.message || 'Unknown error');
+      setError(getErrorMessage(err, 'Unknown error'));
     } finally {
       setLoading(false);
     }

@@ -8,6 +8,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useState } from 'react';
 import { Wine, Building2, MapPin, Mail, Lock, AlertCircle, Loader2, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 
@@ -77,7 +78,7 @@ export default function SignupPage() {
         setCity(data.city || '');
         setStep('details');
       }
-    } catch (err: any) {
+    } catch (err) {
       // On error, still allow manual entry
       setCompanyInfo(null);
       setRestaurantName('');
@@ -138,8 +139,8 @@ export default function SignupPage() {
 
       // Success - redirect to dashboard
       window.location.href = data.redirect_path || '/dashboard/new-request';
-    } catch (err: any) {
-      setError(err.message || 'Ett fel uppstod');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Ett fel uppstod'));
     } finally {
       setLoading(false);
     }

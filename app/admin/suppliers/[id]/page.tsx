@@ -8,6 +8,7 @@
 
 'use client';
 
+import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -147,9 +148,9 @@ export default function AdminSupplierDetailPage() {
         const subResult = await subResponse.json();
         setSubscription(subResult);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch supplier:', err);
-      setError(err.message || 'Kunde inte ladda leverantor');
+      setError(getErrorMessage(err, 'Kunde inte ladda leverantor'));
     } finally {
       setLoading(false);
     }
@@ -175,9 +176,9 @@ export default function AdminSupplierDetailPage() {
         usage: subscription?.usage || { wines_count: 0 },
       });
       alert(result.message);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to upgrade:', err);
-      alert('Kunde inte uppgradera: ' + err.message);
+      alert(`Kunde inte uppgradera: ${getErrorMessage(err)}`);
     } finally {
       setUpgrading(false);
     }

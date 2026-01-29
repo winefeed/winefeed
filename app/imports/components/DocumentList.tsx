@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getErrorMessage } from '@/lib/utils';
 
 interface Document {
   id: string;
@@ -44,8 +45,8 @@ export function DocumentList({ documents, importId }: DocumentListProps) {
 
       // Open signed URL in new window
       window.open(data.url, '_blank', 'noopener,noreferrer');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err, 'Ett fel uppstod'));
       setTimeout(() => setError(null), 5000); // Clear error after 5 seconds
     } finally {
       setLoadingDocId(null);
