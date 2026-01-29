@@ -1145,6 +1145,7 @@ export default function ResultsPage() {
                                       updateWineQuantity(suggestion.wine.id, -1, moq);
                                     }}
                                     className="p-1.5 rounded hover:bg-background transition-colors"
+                                    aria-label="Minska antal"
                                   >
                                     <Minus className="h-3.5 w-3.5" />
                                   </button>
@@ -1161,6 +1162,7 @@ export default function ResultsPage() {
                                       updateWineQuantity(suggestion.wine.id, 1, moq);
                                     }}
                                     className="p-1.5 rounded hover:bg-background transition-colors"
+                                    aria-label="Öka antal"
                                   >
                                     <Plus className="h-3.5 w-3.5" />
                                   </button>

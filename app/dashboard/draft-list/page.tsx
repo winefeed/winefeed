@@ -489,6 +489,7 @@ function WineItem({
               onClick={() => onQuantityChange(item.wine_id, -1)}
               disabled={item.quantity <= 1}
               className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Minska antal"
             >
               <Minus className="h-4 w-4" />
             </button>
@@ -498,6 +499,7 @@ function WineItem({
             <button
               onClick={() => onQuantityChange(item.wine_id, 1)}
               className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
+              aria-label="Öka antal"
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -514,6 +516,7 @@ function WineItem({
         <button
           onClick={onRemove}
           className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          aria-label="Ta bort från lista"
         >
           <Trash2 className="h-4 w-4" />
         </button>
