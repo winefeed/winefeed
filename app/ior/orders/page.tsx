@@ -237,7 +237,7 @@ export default function IOROrdersPage() {
                   setError(null);
                   fetchActor();
                 }}
-                className="px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-sm"
+                className="px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-sm"
               >
                 Försök igen
               </button>
@@ -282,7 +282,7 @@ export default function IOROrdersPage() {
               onClick={() => setStatusFilter(status)}
               className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                 statusFilter === status
-                  ? 'bg-[#7B1E1E] text-white'
+                  ? 'bg-wine text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -299,7 +299,7 @@ export default function IOROrdersPage() {
               placeholder="Sök på restaurang, leverantör eller ordernummer..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
             />
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
             {searchQuery && (
@@ -330,10 +330,10 @@ export default function IOROrdersPage() {
               {(statusFilter !== 'ALL' || searchQuery) && (
                 <p className="text-gray-400 text-sm mt-2">
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className="text-[#7B1E1E] underline mr-2">Rensa sökning</button>
+                    <button onClick={() => setSearchQuery('')} className="text-wine underline mr-2">Rensa sökning</button>
                   )}
                   {statusFilter !== 'ALL' && (
-                    <button onClick={() => setStatusFilter('ALL')} className="text-[#7B1E1E] underline">Visa alla statusar</button>
+                    <button onClick={() => setStatusFilter('ALL')} className="text-wine underline">Visa alla statusar</button>
                   )}
                 </p>
               )}
@@ -357,7 +357,7 @@ export default function IOROrdersPage() {
                   {filteredOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/ior/orders/${order.id}`)}>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-[#7B1E1E]">{formatOrderId(order)}</div>
+                        <div className="font-medium text-wine">{formatOrderId(order)}</div>
                         <div className="text-xs text-gray-400">{order.total_lines} rad{order.total_lines !== 1 ? 'er' : ''}</div>
                       </td>
                       <td className="px-4 py-3">
@@ -385,7 +385,7 @@ export default function IOROrdersPage() {
                             e.stopPropagation();
                             router.push(`/ior/orders/${order.id}`);
                           }}
-                          className="px-3 py-1.5 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-xs font-medium"
+                          className="px-3 py-1.5 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-xs font-medium"
                         >
                           Visa →
                         </button>

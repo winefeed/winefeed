@@ -8,6 +8,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Package, Clock, Building2, Truck, CheckCircle, XCircle, ChevronRight, AlertCircle } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
 
 interface Order {
   id: string;
@@ -88,9 +89,9 @@ export default function SupplierOrdersPage() {
 
       // Refresh orders
       await fetchOrders();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to confirm order:', error);
-      alert(error.message || 'Kunde inte bekräfta ordern');
+      alert(getErrorMessage(error, 'Kunde inte bekräfta ordern'));
     } finally {
       setActionLoading(null);
     }
@@ -116,9 +117,9 @@ export default function SupplierOrdersPage() {
       setShowDeclineModal(null);
       setDeclineReason('');
       await fetchOrders();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to decline order:', error);
-      alert(error.message || 'Kunde inte avböja ordern');
+      alert(getErrorMessage(error, 'Kunde inte avböja ordern'));
     } finally {
       setActionLoading(null);
     }

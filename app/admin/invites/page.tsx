@@ -120,7 +120,7 @@ export default function AdminInvitesPage() {
     setSuccess(null);
 
     try {
-      const body: any = {
+      const body: Record<string, string | null> = {
         email,
         role
       };

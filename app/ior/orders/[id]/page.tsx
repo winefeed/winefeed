@@ -54,6 +54,45 @@ interface ActorContext {
   restaurant_id?: string;
 }
 
+interface OrderRestaurant {
+  name?: string;
+  namn?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  city?: string;
+}
+
+interface OrderSupplier {
+  name?: string;
+  namn?: string;
+  type?: string;
+  kontakt_email?: string;
+}
+
+interface OrderImporter {
+  name?: string;
+  legal_name?: string;
+  org_number?: string;
+  contact_email?: string;
+  license_number?: string;
+}
+
+interface DeliveryLocation {
+  delivery_address_line1?: string;
+  postal_code?: string;
+  city?: string;
+}
+
+interface ImportCase {
+  id: string;
+  delivery_location?: DeliveryLocation;
+}
+
+interface OrderCompliance {
+  import_case_status?: string;
+  ddl_status?: string;
+}
+
 interface OrderDetail {
   order: {
     id: string;
@@ -66,12 +105,12 @@ interface OrderDetail {
     currency: string;
     created_at: string;
     updated_at: string;
-    restaurant: any;
-    supplier: any;
-    importer: any;
-    delivery_location: any;
-    import_case: any;
-    compliance: any;
+    restaurant?: OrderRestaurant;
+    supplier?: OrderSupplier;
+    importer?: OrderImporter;
+    delivery_location?: DeliveryLocation;
+    import_case?: ImportCase;
+    compliance?: OrderCompliance;
   };
   lines: Array<{
     id: string;
@@ -163,7 +202,7 @@ function ComplianceCardSection({
         steps={steps}
         collapsible={true}
         defaultExpanded={true}
-        onActionClick={() => window.location.href = `/imports/${order.import_case.id}`}
+        onActionClick={order.import_case ? () => window.location.href = `/imports/${order.import_case!.id}` : undefined}
         actionLabel="Åtgärda i Import Case"
       />
 
@@ -173,22 +212,24 @@ function ComplianceCardSection({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Import Case Info */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Import Case</span>
-              <ImportStatusBadge status={order.compliance?.import_case_status || 'NOT_REGISTERED'} size="md" />
+          {order.import_case && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Import Case</span>
+                <ImportStatusBadge status={order.compliance?.import_case_status || 'NOT_REGISTERED'} size="md" />
+              </div>
+              <p className="text-xs text-gray-600 mb-2">ID: {order.import_case.id.substring(0, 8)}...</p>
+              <a
+                href={`/imports/${order.import_case.id}`}
+                className="text-sm text-wine hover:underline"
+              >
+                → Visa import case
+              </a>
             </div>
-            <p className="text-xs text-gray-600 mb-2">ID: {order.import_case.id.substring(0, 8)}...</p>
-            <a
-              href={`/imports/${order.import_case.id}`}
-              className="text-sm text-[#7B1E1E] hover:underline"
-            >
-              → Visa import case
-            </a>
-          </div>
+          )}
 
           {/* DDL Status */}
-          {order.import_case.delivery_location && (
+          {order.import_case?.delivery_location && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">DDL Status</span>
@@ -590,7 +631,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                     fetchOrderDetail();
                   }
                 }}
-                className="px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-sm"
+                className="px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-sm"
               >
                 Försök igen
               </button>
@@ -643,7 +684,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                   className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                     status === 'CANCELLED'
                       ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : 'bg-[#7B1E1E] text-white hover:bg-[#6B1818]'
+                      : 'bg-wine text-white hover:bg-wine-hover'
                   }`}
                 >
                   {updating ? '...' : `→ ${getStatusLabel(status)}`}
@@ -712,7 +753,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
             {/* IOR Info */}
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">Importer-of-Record</h3>
-              <div className="bg-[#7B1E1E]/5 p-4 rounded-lg border border-[#7B1E1E]/20">
+              <div className="bg-wine/5 p-4 rounded-lg border border-wine/20">
                 <p className="font-bold text-lg">
                   {order.importer?.legal_name || order.importer?.name || '⚠️ IOR saknas'}
                 </p>
@@ -798,7 +839,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
                   key={status}
                   onClick={() => updateOrderStatus(status)}
                   disabled={updating}
-                  className="px-6 py-3 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                  className="px-6 py-3 bg-wine text-white rounded-lg hover:bg-wine-hover disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                   {updating ? 'Uppdaterar...' : `→ ${getStatusLabel(status)}`}
                 </button>
@@ -976,7 +1017,7 @@ export default function IOROrderDetailPage({ params }: { params: { id: string } 
               events.map((event, index) => (
                 <div key={event.id} className="flex gap-4">
                   <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 bg-[#7B1E1E] rounded-full"></div>
+                    <div className="w-3 h-3 bg-wine rounded-full"></div>
                     {index < events.length - 1 && <div className="w-0.5 h-full bg-gray-300 mt-1"></div>}
                   </div>
                   <div className="flex-1 pb-4">

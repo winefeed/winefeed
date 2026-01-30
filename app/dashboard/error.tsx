@@ -42,7 +42,7 @@ export default function DashboardError({
         <div className="mt-6 flex items-center justify-center gap-4">
           <button
             onClick={reset}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#7B1E1E] hover:bg-[#6B1818] rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-wine hover:bg-wine-hover rounded-lg transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
             Ladda om

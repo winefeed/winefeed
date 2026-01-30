@@ -125,11 +125,11 @@ export function UnansweredRequestsWidget() {
       <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Inbox className="h-5 w-5 text-[#7B1E1E]" />
+            <Inbox className="h-5 w-5 text-wine" />
             <h2 className="font-semibold text-gray-900">
               Obesvarade förfrågningar
             </h2>
-            <span className="px-2 py-0.5 bg-[#7B1E1E] text-white text-xs font-bold rounded-full">
+            <span className="px-2 py-0.5 bg-wine text-white text-xs font-bold rounded-full">
               {counts.total}
             </span>
           </div>
@@ -229,7 +229,7 @@ export function UnansweredRequestsWidget() {
         <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
           <a
             href="/supplier/requests"
-            className="text-sm font-medium text-[#7B1E1E] hover:underline"
+            className="text-sm font-medium text-wine hover:underline"
           >
             Visa alla {filteredRequests.length} förfrågningar →
           </a>
@@ -253,7 +253,7 @@ function FilterButton({ label, count, active, onClick, highlight }: FilterButton
       onClick={onClick}
       className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
         active
-          ? 'bg-[#7B1E1E] text-white'
+          ? 'bg-wine text-white'
           : highlight
           ? 'bg-red-100 text-red-700 hover:bg-red-200'
           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'

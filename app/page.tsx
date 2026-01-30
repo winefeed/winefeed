@@ -105,7 +105,7 @@ export default function LandingPage() {
         </div>
 
         {/* Hero Visual */}
-        <div className="bg-gradient-to-br from-wine-dark to-[#4A1A1F] relative overflow-hidden flex items-center justify-center min-h-[400px] lg:min-h-0">
+        <div className="bg-gradient-to-br from-wine-dark to-wine-deep relative overflow-hidden flex items-center justify-center min-h-[400px] lg:min-h-0">
           <div className="absolute inset-0 hero-pattern opacity-50" />
 
           {/* Floating Card */}
@@ -327,7 +327,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section
         id="cta"
-        className="py-24 px-8 bg-gradient-to-br from-wine-dark to-[#4A1A1F] text-white text-center"
+        className="py-24 px-8 bg-gradient-to-br from-wine-dark to-wine-deep text-white text-center"
       >
         <h2 className="font-serif text-4xl font-semibold mb-4">
           Driver du restaurang, hotell eller vinbar?

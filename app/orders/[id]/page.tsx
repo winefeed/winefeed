@@ -82,8 +82,8 @@ interface OrderDetail {
     currency: string;
     created_at: string;
     updated_at: string;
-    supplier: any;
-    importer: any;
+    supplier?: { namn?: string; type?: string; kontakt_email?: string };
+    importer?: { legal_name?: string; contact_email?: string };
     tracking_number?: string;
     carrier?: string;
     estimated_delivery?: string;
@@ -452,7 +452,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         <div className="bg-card rounded-lg border border-border p-4">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">Leverantor</h3>
           <p className="font-medium text-foreground">{order.supplier?.namn || '-'}</p>
-          <p className="text-xs text-muted-foreground">{SUPPLIER_TYPE_LABELS[order.supplier?.type] || order.supplier?.type}</p>
+          <p className="text-xs text-muted-foreground">{SUPPLIER_TYPE_LABELS[order.supplier?.type || ''] || order.supplier?.type}</p>
           {order.supplier?.kontakt_email && (
             <p className="text-sm text-muted-foreground mt-1">{order.supplier.kontakt_email}</p>
           )}

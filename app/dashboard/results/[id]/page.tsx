@@ -362,8 +362,8 @@ export default function ResultsPage() {
         <div className="text-center">
           <div className="flex justify-center mb-4">
             <div className="relative">
-              <Wine className="h-12 w-12 text-[#7B1E1E]" />
-              <Spinner size="lg" className="absolute inset-0 text-[#7B1E1E]/30" />
+              <Wine className="h-12 w-12 text-wine" />
+              <Spinner size="lg" className="absolute inset-0 text-wine/30" />
             </div>
           </div>
           <p className="text-xl font-medium text-foreground">Genomsöker marknaden...</p>

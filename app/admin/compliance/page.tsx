@@ -63,6 +63,16 @@ interface SummaryReport {
   };
 }
 
+interface AlcoholTaxItem {
+  order_id: string;
+  order_date: string;
+  supplier_name: string;
+  importer_name: string;
+  order_liters_wine: number;
+  order_liters_pure_alcohol: number;
+  order_alcohol_tax_sek: number;
+}
+
 interface AlcoholTaxReport {
   report_type: 'alcohol-tax';
   period: { start_date: string; end_date: string };
@@ -76,7 +86,16 @@ interface AlcoholTaxReport {
     total_liters_pure_alcohol: number;
     total_alcohol_tax_sek: number;
   };
-  items: any[];
+  items: AlcoholTaxItem[];
+}
+
+interface VatByRestaurant {
+  restaurant_name: string;
+  restaurant_org_number: string;
+  order_count: number;
+  total_goods_excl_vat_sek: number;
+  total_vat_sek: number;
+  total_incl_vat_sek: number;
 }
 
 interface VatReport {
@@ -89,7 +108,16 @@ interface VatReport {
     total_vat_sek: number;
     total_incl_vat_sek: number;
   };
-  by_restaurant: any[];
+  by_restaurant: VatByRestaurant[];
+}
+
+interface ImportItem {
+  import_id: string;
+  status: string;
+  created_at: string;
+  restaurant_name: string;
+  supplier_name: string;
+  importer_name: string;
 }
 
 interface ImportsReport {
@@ -106,8 +134,18 @@ interface ImportsReport {
       rejected: number;
     };
   };
-  eu_imports: any[];
-  domestic_imports: any[];
+  eu_imports: ImportItem[];
+  domestic_imports: ImportItem[];
+}
+
+interface TransactionItem {
+  order_id: string;
+  order_date: string;
+  restaurant: { name: string };
+  supplier: { name: string };
+  importer: { name: string };
+  total_bottles: number;
+  total_sek: number;
 }
 
 interface TransactionsReport {
@@ -120,7 +158,7 @@ interface TransactionsReport {
     total_shipping_sek: number;
     total_sek: number;
   };
-  transactions: any[];
+  transactions: TransactionItem[];
 }
 
 type Report = SummaryReport | AlcoholTaxReport | VatReport | ImportsReport | TransactionsReport;

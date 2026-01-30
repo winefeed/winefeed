@@ -25,7 +25,7 @@ interface OfferLineItemRowProps {
 export function OfferLineItemRow({ lineItem, onUpdate, onRemove }: OfferLineItemRowProps) {
   const [showWineCheck, setShowWineCheck] = useState(false);
 
-  const handleInputChange = (field: keyof OfferLineItem, value: any) => {
+  const handleInputChange = (field: keyof OfferLineItem, value: string | number | boolean | null) => {
     onUpdate({
       ...lineItem,
       [field]: value,

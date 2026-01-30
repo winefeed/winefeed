@@ -234,7 +234,7 @@ export default function AdminSponsoredCategoriesPage() {
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#7B1E1E]" />
+        <Loader2 className="w-8 h-8 animate-spin text-wine" />
       </div>
     );
   }
@@ -254,7 +254,7 @@ export default function AdminSponsoredCategoriesPage() {
         </div>
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors"
         >
           <Plus className="w-4 h-4" />
           Ny kategori
@@ -277,7 +277,7 @@ export default function AdminSponsoredCategoriesPage() {
           <p className="text-gray-500 mb-6">Skapa din första sponsrade kategori för att komma igång.</p>
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818]"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover"
           >
             <Plus className="w-4 h-4" />
             Skapa kategori
@@ -478,7 +478,7 @@ export default function AdminSponsoredCategoriesPage() {
                       slug: editingCategory ? formData.slug : generateSlug(e.target.value)
                     });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E] focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                   placeholder="t.ex. Burgundy"
                   required
                 />
@@ -492,7 +492,7 @@ export default function AdminSponsoredCategoriesPage() {
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase() })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E] focus:border-transparent font-mono text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent font-mono text-sm"
                   placeholder="burgundy"
                   pattern="[a-z0-9-]+"
                   required
@@ -507,7 +507,7 @@ export default function AdminSponsoredCategoriesPage() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E] focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                   rows={2}
                   placeholder="Valfri beskrivning..."
                 />
@@ -522,7 +522,7 @@ export default function AdminSponsoredCategoriesPage() {
                     type="number"
                     value={formData.sponsor_cap}
                     onChange={(e) => setFormData({ ...formData, sponsor_cap: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                     min={1}
                     max={10}
                   />
@@ -535,7 +535,7 @@ export default function AdminSponsoredCategoriesPage() {
                     type="number"
                     value={formData.price_monthly_sek}
                     onChange={(e) => setFormData({ ...formData, price_monthly_sek: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                     min={0}
                   />
                 </div>
@@ -549,7 +549,7 @@ export default function AdminSponsoredCategoriesPage() {
                   type="number"
                   value={formData.price_yearly_sek}
                   onChange={(e) => setFormData({ ...formData, price_yearly_sek: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E] focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                   min={0}
                 />
               </div>
@@ -563,7 +563,7 @@ export default function AdminSponsoredCategoriesPage() {
                       type="text"
                       value={formData.stripe_price_id_monthly}
                       onChange={(e) => setFormData({ ...formData, stripe_price_id_monthly: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E] focus:border-transparent font-mono text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent font-mono text-sm"
                       placeholder="price_xxx"
                     />
                   </div>
@@ -573,7 +573,7 @@ export default function AdminSponsoredCategoriesPage() {
                       type="text"
                       value={formData.stripe_price_id_yearly}
                       onChange={(e) => setFormData({ ...formData, stripe_price_id_yearly: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E] focus:border-transparent font-mono text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent font-mono text-sm"
                       placeholder="price_xxx"
                     />
                   </div>
@@ -586,7 +586,7 @@ export default function AdminSponsoredCategoriesPage() {
                   id="is_active"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 text-[#7B1E1E] border-gray-300 rounded focus:ring-[#7B1E1E]"
+                  className="w-4 h-4 text-wine border-gray-300 rounded focus:ring-wine"
                 />
                 <label htmlFor="is_active" className="text-sm text-gray-700">
                   Aktiv (synlig för leverantörer)
@@ -604,7 +604,7 @@ export default function AdminSponsoredCategoriesPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? (
                     <>

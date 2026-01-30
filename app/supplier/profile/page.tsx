@@ -181,7 +181,7 @@ export default function SupplierProfilePage() {
     setError(null);
 
     try {
-      const updates: any = { provorderEnabled: enabled };
+      const updates: { provorderEnabled: boolean; provorderFeeSek?: number } = { provorderEnabled: enabled };
       if (fee !== undefined) {
         updates.provorderFeeSek = fee;
       }
@@ -253,7 +253,7 @@ export default function SupplierProfilePage() {
       {/* Profile Card */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {/* Company Header */}
-        <div className="bg-gradient-to-r from-[#7B1E1E] to-[#9B2C2C] p-6 text-white">
+        <div className="bg-gradient-to-r from-wine to-wine-active p-6 text-white">
           <div className="flex items-center gap-4">
             <div className="bg-white/20 p-3 rounded-lg">
               <Building2 className="h-8 w-8" />
@@ -311,7 +311,7 @@ export default function SupplierProfilePage() {
                 {!editingContact && (
                   <button
                     onClick={() => setEditingContact(true)}
-                    className="flex items-center gap-1 text-sm text-[#7B1E1E] hover:underline"
+                    className="flex items-center gap-1 text-sm text-wine hover:underline"
                   >
                     <Pencil className="h-3 w-3" />
                     Redigera
@@ -331,7 +331,7 @@ export default function SupplierProfilePage() {
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
                       placeholder="kontakt@foretag.se"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     />
                   </div>
 
@@ -345,7 +345,7 @@ export default function SupplierProfilePage() {
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
                       placeholder="08-123 456 78"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     />
                   </div>
 
@@ -359,7 +359,7 @@ export default function SupplierProfilePage() {
                       value={contactWebsite}
                       onChange={(e) => setContactWebsite(e.target.value)}
                       placeholder="https://www.foretag.se"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     />
                   </div>
 
@@ -367,7 +367,7 @@ export default function SupplierProfilePage() {
                     <button
                       onClick={saveContact}
                       disabled={savingContact}
-                      className="flex-1 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg text-sm font-medium hover:bg-[#6B1818] disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {savingContact ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                       Spara
@@ -418,7 +418,7 @@ export default function SupplierProfilePage() {
               href={`mailto:markus@esima.se?subject=Uppdatera företagsuppgifter: ${encodeURIComponent(profile.supplierName)}&body=Hej,%0A%0AJag vill uppdatera följande uppgifter för ${encodeURIComponent(profile.supplierName)}:%0A%0A`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#7B1E1E] hover:underline font-medium"
+              className="text-wine hover:underline font-medium"
             >
               Kontakta Winefeed
             </a>
@@ -447,13 +447,13 @@ export default function SupplierProfilePage() {
                     onChange={(e) => setMoqValue(e.target.value)}
                     placeholder="t.ex. 90"
                     min="0"
-                    className="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                    className="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     autoFocus
                   />
                   <button
                     onClick={saveMoq}
                     disabled={savingMoq}
-                    className="px-3 py-1.5 bg-[#7B1E1E] text-white rounded-lg text-sm font-medium hover:bg-[#6B1818] disabled:opacity-50 flex items-center gap-1"
+                    className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 flex items-center gap-1"
                   >
                     {savingMoq ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     Spara
@@ -475,7 +475,7 @@ export default function SupplierProfilePage() {
                   </p>
                   <button
                     onClick={() => setEditingMoq(true)}
-                    className="text-[#7B1E1E] text-sm hover:underline"
+                    className="text-wine text-sm hover:underline"
                   >
                     Ändra
                   </button>

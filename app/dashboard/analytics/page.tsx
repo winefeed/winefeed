@@ -319,7 +319,7 @@ export default function RestaurantAnalyticsPage() {
                     <span className="text-sm text-gray-500 w-16">{formatMonth(month.month)}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
                       <div
-                        className="bg-[#7B1E1E] h-full rounded-full transition-all duration-500"
+                        className="bg-wine h-full rounded-full transition-all duration-500"
                         style={{ width: `${(month.amount / maxSpending) * 100}%` }}
                       />
                     </div>
@@ -382,7 +382,7 @@ export default function RestaurantAnalyticsPage() {
                     key={supplier.supplier_id}
                     className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
                   >
-                    <div className="w-8 h-8 bg-[#7B1E1E] text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    <div className="w-8 h-8 bg-wine text-white rounded-full flex items-center justify-center font-bold text-sm">
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -429,7 +429,7 @@ export default function RestaurantAnalyticsPage() {
                       </div>
                       <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
                         <div
-                          className="bg-[#7B1E1E] h-full rounded-full"
+                          className="bg-wine h-full rounded-full"
                           style={{ width: `${(wine.quantity / maxQty) * 100}%` }}
                         />
                       </div>

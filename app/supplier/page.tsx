@@ -161,7 +161,7 @@ export default function SupplierDashboard() {
           <div className="flex gap-2">
             <a
               href="/supplier/wines"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-sm font-medium"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-sm font-medium"
             >
               <Wine className="h-4 w-4" />
               Vinkatalog
@@ -272,7 +272,7 @@ export default function SupplierDashboard() {
                 </h2>
                 <a
                   href="/supplier/wines"
-                  className="inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:text-[#7B1E1E]/80"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-wine hover:text-wine/80"
                 >
                   Visa alla
                   <ArrowRight className="h-4 w-4" />
@@ -382,7 +382,7 @@ export default function SupplierDashboard() {
                 <div className="pt-3 border-t border-gray-100">
                   <a
                     href="/supplier/analytics"
-                    className="inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:text-[#7B1E1E]/80"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-wine hover:text-wine/80"
                   >
                     <TrendingUp className="h-4 w-4" />
                     Se detaljerad analys
@@ -400,10 +400,10 @@ export default function SupplierDashboard() {
             <div className="space-y-3">
               <a
                 href="/supplier/contact"
-                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-wine hover:bg-red-50 transition-colors"
               >
-                <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
-                  <HelpCircle className="h-4 w-4 text-[#7B1E1E]" />
+                <div className="p-2 bg-wine/10 rounded-lg">
+                  <HelpCircle className="h-4 w-4 text-wine" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">Kontakta support</p>
@@ -412,10 +412,10 @@ export default function SupplierDashboard() {
               </a>
               <a
                 href="/supplier/profile"
-                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-wine hover:bg-red-50 transition-colors"
               >
-                <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
-                  <Building2 className="h-4 w-4 text-[#7B1E1E]" />
+                <div className="p-2 bg-wine/10 rounded-lg">
+                  <Building2 className="h-4 w-4 text-wine" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">Företagsprofil</p>
@@ -455,7 +455,7 @@ interface StatCardProps {
 
 function StatCard({ title, value, subtitle, icon: Icon, color, href, highlight }: StatCardProps) {
   const colorClasses = {
-    wine: 'bg-[#7B1E1E]/10 text-[#7B1E1E]',
+    wine: 'bg-wine/10 text-wine',
     blue: 'bg-blue-50 text-blue-600',
     amber: 'bg-amber-50 text-amber-600',
     green: 'bg-green-50 text-green-600',
@@ -463,7 +463,7 @@ function StatCard({ title, value, subtitle, icon: Icon, color, href, highlight }
   };
 
   const hoverColorClasses = {
-    wine: 'group-hover:bg-[#7B1E1E]/20',
+    wine: 'group-hover:bg-wine/20',
     blue: 'group-hover:bg-blue-100',
     amber: 'group-hover:bg-amber-100',
     green: 'group-hover:bg-green-100',

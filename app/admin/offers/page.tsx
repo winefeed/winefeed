@@ -105,8 +105,8 @@ export default function AdminOffersPage() {
 
     // Sort
     filtered = [...filtered].sort((a, b) => {
-      let aVal: any;
-      let bVal: any;
+      let aVal: string | number | null;
+      let bVal: string | number | null;
 
       switch (sortColumn) {
         case 'supplierName':

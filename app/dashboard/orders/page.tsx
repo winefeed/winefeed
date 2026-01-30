@@ -175,7 +175,7 @@ export default function RestaurantOrdersPage() {
             placeholder="Sök på leverantör eller produkt..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
           />
         </div>
 
@@ -230,7 +230,7 @@ export default function RestaurantOrdersPage() {
           {orders.length === 0 && (
             <a
               href="/dashboard/offers"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg text-sm font-medium hover:bg-[#6B1818]"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover"
             >
               Se inkomna offerter
             </a>
@@ -320,7 +320,7 @@ export default function RestaurantOrdersPage() {
               <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-end">
                 <button
                   onClick={() => setSelectedOrder(order)}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:text-[#7B1E1E]/80"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-wine hover:text-wine/80"
                 >
                   Visa detaljer
                   <ChevronRight className="h-4 w-4" />
@@ -358,7 +358,7 @@ function FilterButton({ label, count, active, onClick, highlight }: FilterButton
       onClick={onClick}
       className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
         active
-          ? 'bg-[#7B1E1E] text-white'
+          ? 'bg-wine text-white'
           : highlight
           ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
