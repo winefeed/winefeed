@@ -6,7 +6,7 @@
  * Shows full details of a quote request and allows creating an offer
  */
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -143,11 +143,7 @@ export default function SupplierRequestDetailPage({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRequest();
-  }, [requestId]);
-
-  async function fetchRequest() {
+  const fetchRequest = useCallback(async () => {
     try {
       // Get supplier context
       const supplierRes = await fetch('/api/me/supplier');
@@ -187,7 +183,11 @@ export default function SupplierRequestDetailPage({
     } finally {
       setLoading(false);
     }
-  }
+  }, [requestId, router]);
+
+  useEffect(() => {
+    fetchRequest();
+  }, [fetchRequest]);
 
   async function submitOffer() {
     if (!request || !supplierId) return;

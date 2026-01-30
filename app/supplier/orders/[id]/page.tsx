@@ -6,7 +6,7 @@
  * Shows full details of a single order and allows status updates
  */
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -76,11 +76,7 @@ export default function SupplierOrderDetailPage({
   const [showShipModal, setShowShipModal] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState('');
 
-  useEffect(() => {
-    fetchOrder();
-  }, [orderId]);
-
-  async function fetchOrder() {
+  const fetchOrder = useCallback(async () => {
     try {
       // First get supplier context
       const supplierRes = await fetch('/api/me/supplier');
@@ -127,7 +123,11 @@ export default function SupplierOrderDetailPage({
     } finally {
       setLoading(false);
     }
-  }
+  }, [orderId, router]);
+
+  useEffect(() => {
+    fetchOrder();
+  }, [fetchOrder]);
 
   async function confirmOrder() {
     setActionLoading('confirm');

@@ -9,7 +9,7 @@
 'use client';
 
 import { getErrorMessage } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Store, ArrowLeft, Users, Inbox, ShoppingCart, Mail, Phone, MapPin, Building2 } from 'lucide-react';
@@ -66,18 +66,7 @@ export default function AdminRestaurantDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!actorLoading && actor) {
-      if (!actor.roles.includes('ADMIN')) {
-        setError('Access Denied: Admin privileges required');
-        setLoading(false);
-        return;
-      }
-      fetchRestaurant();
-    }
-  }, [actor, actorLoading, restaurantId]);
-
-  const fetchRestaurant = async () => {
+  const fetchRestaurant = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -104,7 +93,18 @@ export default function AdminRestaurantDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [restaurantId]);
+
+  useEffect(() => {
+    if (!actorLoading && actor) {
+      if (!actor.roles.includes('ADMIN')) {
+        setError('Access Denied: Admin privileges required');
+        setLoading(false);
+        return;
+      }
+      fetchRestaurant();
+    }
+  }, [actor, actorLoading, fetchRestaurant]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
