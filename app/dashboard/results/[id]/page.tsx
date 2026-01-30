@@ -1207,6 +1207,12 @@ export default function ResultsPage() {
                                 e.stopPropagation();
                                 if (isSaved) {
                                   draftList.removeItem(suggestion.wine.id);
+                                  // Also remove from offer selection
+                                  setSelectedWines(prev => {
+                                    const newSet = new Set(prev);
+                                    newSet.delete(suggestion.wine.id);
+                                    return newSet;
+                                  });
                                 } else if (canAddToList) {
                                   draftList.addItem({
                                     wine_id: suggestion.wine.id,
@@ -1226,6 +1232,8 @@ export default function ResultsPage() {
                                     provorder: hasProvorder,
                                     provorder_fee: hasProvorder ? provorderFee : undefined,
                                   });
+                                  // Also add to offer selection so user can proceed to review
+                                  setSelectedWines(prev => new Set([...prev, suggestion.wine.id]));
                                 }
                               }}
                               disabled={!isSaved && !canAddToList}
