@@ -734,29 +734,64 @@ export default function ResultsPage() {
 
                     return (
                       <div className="mb-6 p-4 rounded-xl border bg-muted/30 border-border">
-                        {/* Auto-adjusted info banner */}
+                        {/* MOQ guidance banner - shows when user's request is below minimum */}
                         {wasAutoAdjusted && (
-                          <div className="mb-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
-                            <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                            <p className="text-sm text-blue-700">
-                              Justerat till minsta order ({moq} fl) · <span className="text-blue-500">Du sökte {originalQty} fl</span>
-                            </p>
+                          <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <div className="flex items-start gap-3">
+                              <div className="p-1.5 bg-amber-100 rounded-full">
+                                <AlertCircle className="h-4 w-4 text-amber-600" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-amber-800">
+                                  Minsta order: {moq} flaskor
+                                </p>
+                                <p className="text-xs text-amber-600 mt-0.5">
+                                  Du sökte {originalQty} fl — vi har justerat till {moq} fl så du kan beställa
+                                </p>
+                                {/* Progress visualization */}
+                                <div className="mt-2 flex items-center gap-2">
+                                  <div className="flex-1 h-2 bg-amber-200 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-amber-500 rounded-full transition-all"
+                                      style={{ width: `${Math.min(100, (originalQty / moq) * 100)}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs font-medium text-amber-700 whitespace-nowrap">
+                                    {originalQty}/{moq} fl
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
                         <div className="grid grid-cols-4 gap-3">
-                          {/* Current Quantity */}
-                          <div className="text-center p-3 bg-primary/10 rounded-lg">
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Antal</p>
-                            <p className="text-lg font-bold text-primary">
+                          {/* Current Quantity - with MOQ status indicator */}
+                          <div className={`text-center p-3 rounded-lg ${
+                            currentQty >= moq
+                              ? 'bg-green-100 border-2 border-green-300'
+                              : 'bg-amber-100 border-2 border-amber-300'
+                          }`}>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Ditt antal</p>
+                            <p className={`text-lg font-bold ${currentQty >= moq ? 'text-green-700' : 'text-amber-700'}`}>
                               {currentQty > 0 ? `${currentQty} fl` : '–'}
                             </p>
+                            {currentQty >= moq && moq > 0 && (
+                              <p className="text-xs text-green-600 font-medium">✓ Uppfyller min</p>
+                            )}
                           </div>
 
-                          {/* MOQ */}
-                          <div className="text-center p-3 rounded-lg bg-background">
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Min. order</p>
+                          {/* MOQ - with visual connection */}
+                          <div className={`text-center p-3 rounded-lg ${
+                            moq > 0 && currentQty < moq ? 'bg-amber-50' : 'bg-background'
+                          }`}>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Minimum</p>
                             {moq > 0 ? (
-                              <p className="text-lg font-bold text-foreground">{moq} fl</p>
+                              <>
+                                <p className={`text-lg font-bold ${currentQty < moq ? 'text-amber-600' : 'text-foreground'}`}>{moq} fl</p>
+                                {currentQty < moq && (
+                                  <p className="text-xs text-amber-600 font-medium">+{moq - currentQty} fl till</p>
+                                )}
+                              </>
                             ) : (
                               <p className="text-lg font-bold text-green-600">Ingen</p>
                             )}
