@@ -734,32 +734,21 @@ export default function ResultsPage() {
 
                     return (
                       <div className="mb-6 p-4 rounded-xl border bg-muted/30 border-border">
-                        {/* MOQ guidance banner - shows when user's request is below minimum */}
+                        {/* MOQ guidance banner - shows when user's request was below minimum */}
                         {wasAutoAdjusted && (
-                          <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                          <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                             <div className="flex items-start gap-3">
-                              <div className="p-1.5 bg-amber-100 rounded-full">
-                                <AlertCircle className="h-4 w-4 text-amber-600" />
+                              <div className="p-1.5 bg-green-100 rounded-full">
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
                               </div>
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-amber-800">
-                                  Minsta order: {moq} flaskor
+                                <p className="text-sm font-medium text-green-800">
+                                  Justerat till minsta order
                                 </p>
-                                <p className="text-xs text-amber-600 mt-0.5">
-                                  Du sökte {originalQty} fl — vi har justerat till {moq} fl så du kan beställa
+                                <p className="text-xs text-green-600 mt-0.5">
+                                  Du sökte {originalQty} fl, men minimum är {moq} fl.
+                                  <span className="font-medium"> Vi har ändrat till {moq} fl åt dig.</span>
                                 </p>
-                                {/* Progress visualization */}
-                                <div className="mt-2 flex items-center gap-2">
-                                  <div className="flex-1 h-2 bg-amber-200 rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-amber-500 rounded-full transition-all"
-                                      style={{ width: `${Math.min(100, (originalQty / moq) * 100)}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-xs font-medium text-amber-700 whitespace-nowrap">
-                                    {originalQty}/{moq} fl
-                                  </span>
-                                </div>
                               </div>
                             </div>
                           </div>
