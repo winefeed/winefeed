@@ -374,7 +374,7 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10">
+    <div className={`min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 ${selectedWines.size > 0 && !sent ? 'pb-24' : ''}`}>
       {/* Header */}
       <header className="bg-primary text-primary-foreground shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -1514,6 +1514,29 @@ export default function ResultsPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Sticky action bar - shows when wines are selected */}
+      {selectedWines.size > 0 && !sent && (
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-lg safe-area-inset-bottom">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-gray-900 truncate">
+                {selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''} valt
+              </p>
+              <p className="text-sm text-gray-500 truncate">
+                Totalt: {formatPrice(selectedWineDetails.reduce((sum, w) => sum + (w.wine.pris_sek * w.quantity), 0))}
+              </p>
+            </div>
+            <button
+              onClick={handleRequestConfirmation}
+              className="flex-shrink-0 px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium shadow flex items-center gap-2"
+            >
+              <ArrowRight className="h-4 w-4" />
+              Granska och skicka
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Floating draft list */}
