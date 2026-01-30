@@ -1525,7 +1525,7 @@ export default function ResultsPage() {
                 {selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''} valt
               </p>
               <p className="text-sm text-gray-500 truncate">
-                Totalt: {formatPrice(selectedWineDetails.reduce((sum, w) => sum + (w.wine.pris_sek * w.quantity), 0))}
+                Uppskattat: {formatPrice(totalEstimatedValue)}
               </p>
             </div>
             <button
