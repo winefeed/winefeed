@@ -19,9 +19,22 @@ import {
   Building2,
   ChevronRight,
   Filter,
+  RotateCcw,
+  Minus,
+  Plus,
+  Loader2,
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { sv } from 'date-fns/locale';
+
+interface OrderLine {
+  id: string;
+  name: string;
+  wine_sku_id?: string;
+  quantity: number;
+  unit_price: number;
+  line_number?: number;
+}
 
 interface Order {
   id: string;
@@ -35,12 +48,7 @@ interface Order {
     id: string;
     namn: string;
   };
-  lines: Array<{
-    id: string;
-    name: string;
-    quantity: number;
-    unit_price: number;
-  }>;
+  lines: OrderLine[];
 }
 
 type StatusFilter = 'all' | 'pending' | 'confirmed' | 'shipped' | 'delivered';
@@ -65,6 +73,7 @@ export default function RestaurantOrdersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [reorderOrder, setReorderOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -317,7 +326,19 @@ export default function RestaurantOrdersPage() {
               </div>
 
               {/* Order Footer */}
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                {/* Reorder button - available for confirmed, shipped, or delivered orders */}
+                {['CONFIRMED', 'confirmed', 'SHIPPED', 'shipped', 'DELIVERED', 'delivered'].includes(order.status) && order.lines?.length > 0 ? (
+                  <button
+                    onClick={() => setReorderOrder(order)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Beställ igen
+                  </button>
+                ) : (
+                  <div />
+                )}
                 <button
                   onClick={() => setSelectedOrder(order)}
                   className="inline-flex items-center gap-1 text-sm font-medium text-wine hover:text-wine/80"
@@ -338,6 +359,15 @@ export default function RestaurantOrdersPage() {
           onClose={() => setSelectedOrder(null)}
           formatCurrency={formatCurrency}
           getStatusBadge={getStatusBadge}
+        />
+      )}
+
+      {/* Reorder Modal */}
+      {reorderOrder && (
+        <ReorderModal
+          order={reorderOrder}
+          onClose={() => setReorderOrder(null)}
+          formatCurrency={formatCurrency}
         />
       )}
     </div>
@@ -525,6 +555,239 @@ function TimelineItem({ label, date, active }: TimelineItemProps) {
       <p className="text-xs text-gray-400">
         {format(new Date(date), 'd MMM HH:mm', { locale: sv })}
       </p>
+    </div>
+  );
+}
+
+// ============================================================================
+// REORDER MODAL
+// ============================================================================
+
+interface ReorderModalProps {
+  order: Order;
+  onClose: () => void;
+  formatCurrency: (amount: number) => string;
+}
+
+function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
+  const [quantities, setQuantities] = useState<Record<string, number>>(() => {
+    const initial: Record<string, number> = {};
+    order.lines?.forEach((line, idx) => {
+      initial[line.id || `line-${idx}`] = line.quantity;
+    });
+    return initial;
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const updateQuantity = (lineId: string, delta: number) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [lineId]: Math.max(1, (prev[lineId] || 1) + delta)
+    }));
+  };
+
+  const setQuantity = (lineId: string, value: number) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [lineId]: Math.max(1, value)
+    }));
+  };
+
+  const totalQuantity = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+  const totalAmount = order.lines?.reduce((sum, line, idx) => {
+    const lineId = line.id || `line-${idx}`;
+    const qty = quantities[lineId] || line.quantity;
+    return sum + (line.unit_price * qty);
+  }, 0) || 0;
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const lines = order.lines?.map((line, idx) => ({
+        wine_sku_id: line.wine_sku_id,
+        line_number: line.line_number || idx + 1,
+        quantity: quantities[line.id || `line-${idx}`] || line.quantity
+      }));
+
+      const response = await fetch(`/api/restaurant/orders/${order.id}/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lines })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Något gick fel');
+      }
+
+      setSuccess(true);
+
+      // Redirect to requests after short delay
+      setTimeout(() => {
+        window.location.href = '/dashboard/requests';
+      }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Något gick fel');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Beställning skickad!
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Din återbeställning har skickats till {order.supplier?.namn}.
+          </p>
+          <p className="text-sm text-gray-500">
+            Du omdirigeras till dina förfrågningar...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <RotateCcw className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Beställ igen</h2>
+                <p className="text-sm text-gray-500">{order.supplier?.namn}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <XCircle className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[50vh]">
+          <p className="text-sm text-gray-600 mb-4">
+            Justera antal om du vill, sedan skickas beställningen direkt till leverantören.
+          </p>
+
+          {/* Wine lines with quantity adjustment */}
+          <div className="space-y-3">
+            {order.lines?.map((line, idx) => {
+              const lineId = line.id || `line-${idx}`;
+              const qty = quantities[lineId] || line.quantity;
+
+              return (
+                <div
+                  key={lineId}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex-1 min-w-0 mr-4">
+                    <p className="font-medium text-gray-900 truncate">{line.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {formatCurrency(line.unit_price)} / st
+                    </p>
+                  </div>
+
+                  {/* Quantity controls */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(lineId, -1)}
+                      className="p-1.5 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+                      disabled={qty <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <input
+                      type="number"
+                      value={qty}
+                      onChange={(e) => setQuantity(lineId, parseInt(e.target.value) || 1)}
+                      className="w-16 text-center border border-gray-300 rounded-lg py-1 text-sm"
+                      min="1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(lineId, 1)}
+                      className="p-1.5 rounded-lg border border-gray-300 hover:bg-gray-100"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {error && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-200 bg-gray-50">
+          {/* Summary */}
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <p className="text-sm text-gray-600">Totalt</p>
+              <p className="text-lg font-bold text-gray-900">
+                {totalQuantity} flaskor = {formatCurrency(totalAmount)}
+              </p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
+              disabled={isSubmitting}
+            >
+              Avbryt
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Skickar...
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="h-4 w-4" />
+                  Beställ igen
+                </>
+              )}
+            </button>
+          </div>
+
+          <p className="text-xs text-center text-gray-500 mt-3">
+            Beställningen skickas direkt till {order.supplier?.namn}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
