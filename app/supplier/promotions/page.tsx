@@ -213,7 +213,7 @@ export default function PromotionsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#7B1E1E]" />
+        <Loader2 className="w-8 h-8 animate-spin text-wine" />
       </div>
     );
   }
@@ -287,7 +287,7 @@ export default function PromotionsPage() {
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-[#7B1E1E]">
+                <div className="text-3xl font-bold text-wine">
                   {entitlement.remaining_slots}
                 </div>
                 <div className="text-sm text-gray-500">lediga av {entitlement.total_slots}</div>
@@ -298,7 +298,7 @@ export default function PromotionsPage() {
             <div className="mt-4">
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="bg-[#7B1E1E] h-2 rounded-full transition-all"
+                  className="bg-wine h-2 rounded-full transition-all"
                   style={{
                     width: `${entitlement.total_slots > 0
                       ? (entitlement.used_slots / entitlement.total_slots) * 100
@@ -453,7 +453,7 @@ export default function PromotionsPage() {
                         <button
                           onClick={() => handleAssignSlot(category.id)}
                           disabled={actionLoading === category.id}
-                          className="w-full py-2 px-4 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-sm disabled:opacity-50"
+                          className="w-full py-2 px-4 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-sm disabled:opacity-50"
                         >
                           {actionLoading === category.id ? (
                             <span className="flex items-center justify-center">
@@ -524,7 +524,7 @@ export default function PromotionsPage() {
         <div className="mt-12 text-center">
           <button
             onClick={() => router.back()}
-            className="text-[#7B1E1E] hover:underline"
+            className="text-wine hover:underline"
           >
             ← Tillbaka
           </button>

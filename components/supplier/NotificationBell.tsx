@@ -104,7 +104,7 @@ export function NotificationBell() {
         className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
         aria-label="Notifikationer"
       >
-        <Bell className={`h-5 w-5 ${hasUrgent ? 'text-[#7B1E1E]' : 'text-gray-600'}`} />
+        <Bell className={`h-5 w-5 ${hasUrgent ? 'text-wine' : 'text-gray-600'}`} />
 
         {/* Badge */}
         {counts.total > 0 && (
@@ -191,7 +191,7 @@ export function NotificationBell() {
             <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
               <a
                 href="/supplier/requests"
-                className="text-sm text-[#7B1E1E] hover:underline"
+                className="text-sm text-wine hover:underline"
                 onClick={() => setOpen(false)}
               >
                 Visa alla förfrågningar →

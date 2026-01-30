@@ -42,7 +42,7 @@ interface MatchStatusResponse {
       sku: { count: number; pct: number };
       text: { count: number; pct: number };
     };
-    thresholds: any;
+    thresholds: Record<string, number>;
     overall_state: OverallState;
   };
   breakdown: {

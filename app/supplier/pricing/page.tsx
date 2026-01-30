@@ -133,13 +133,13 @@ export default function PricingPage() {
               key={tier.tier}
               className={`relative bg-white rounded-2xl shadow-lg overflow-hidden ${
                 tier.highlighted
-                  ? 'ring-2 ring-[#7B1E1E] scale-105'
+                  ? 'ring-2 ring-wine scale-105'
                   : 'border border-gray-200'
               }`}
             >
               {/* Highlighted badge */}
               {tier.highlighted && (
-                <div className="absolute top-0 right-0 bg-[#7B1E1E] text-white px-4 py-1 text-sm font-medium rounded-bl-lg">
+                <div className="absolute top-0 right-0 bg-wine text-white px-4 py-1 text-sm font-medium rounded-bl-lg">
                   Populärast
                 </div>
               )}
@@ -153,8 +153,8 @@ export default function PricingPage() {
                     </div>
                   )}
                   {tier.tier === 'pro' && (
-                    <div className="w-12 h-12 bg-[#7B1E1E]/10 rounded-full flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-[#7B1E1E]" />
+                    <div className="w-12 h-12 bg-wine/10 rounded-full flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-wine" />
                     </div>
                   )}
                   {tier.tier === 'premium' && (
@@ -195,7 +195,7 @@ export default function PricingPage() {
                     tier.buttonVariant === 'outline'
                       ? 'border-2 border-gray-300 text-gray-500 cursor-not-allowed'
                       : tier.buttonVariant === 'primary'
-                      ? 'bg-[#7B1E1E] text-white hover:bg-[#6B1818] disabled:opacity-50'
+                      ? 'bg-wine text-white hover:bg-wine-hover disabled:opacity-50'
                       : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 disabled:opacity-50'
                   }`}
                 >
@@ -244,7 +244,7 @@ export default function PricingPage() {
         <div className="mt-12 text-center">
           <button
             onClick={() => router.back()}
-            className="text-[#7B1E1E] hover:underline"
+            className="text-wine hover:underline"
           >
             ← Tillbaka
           </button>

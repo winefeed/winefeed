@@ -35,7 +35,7 @@ interface Offer {
   status: 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED';
   accepted_at: string | null;
   locked_at: string | null;
-  snapshot: any | null;
+  snapshot: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -76,7 +76,7 @@ interface OfferEvent {
   offer_id: string;
   event_type: string;
   actor_user_id: string | null;
-  payload: any | null;
+  payload: Record<string, unknown> | null;
   created_at: string;
 }
 

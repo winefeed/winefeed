@@ -25,8 +25,8 @@ interface WinePreviewRow {
   rowNumber: number;
   valid: boolean;
   errors: string[];
-  data: any;
-  raw: any;
+  data: Record<string, unknown>;
+  raw: Record<string, unknown>;
 }
 
 interface ImportPreview {
@@ -457,7 +457,7 @@ export default function WineImportPage() {
                               <tr key={row.rowNumber}>
                                 <td className="px-3 py-2 text-gray-600">{row.rowNumber}</td>
                                 <td className="px-3 py-2 text-gray-900">
-                                  {row.raw.wine_name || row.raw.name || '(okänd)'}
+                                  {String(row.raw.wine_name || row.raw.name || '(okänd)')}
                                 </td>
                                 <td className="px-3 py-2 text-red-600">
                                   {row.errors.join(', ')}

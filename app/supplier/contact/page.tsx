@@ -58,7 +58,7 @@ export default function ContactPage() {
 
       {/* Contact Card */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
-        <div className="bg-gradient-to-r from-[#7B1E1E] to-[#9B2C2C] p-6 text-white">
+        <div className="bg-gradient-to-r from-wine to-wine-active p-6 text-white">
           <div className="flex items-center gap-4">
             <div className="bg-white/20 p-3 rounded-lg">
               <Mail className="h-8 w-8" />
@@ -78,7 +78,7 @@ export default function ContactPage() {
             )}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-[#7B1E1E] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#6B1A1A] transition-colors"
+            className="inline-flex items-center gap-2 bg-wine text-white px-6 py-3 rounded-lg font-medium hover:bg-wine-hover transition-colors"
           >
             <Mail className="h-5 w-5" />
             Skicka e-post till support
@@ -145,7 +145,7 @@ export default function ContactPage() {
               href={`mailto:${SUPPORT_EMAIL}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#7B1E1E] hover:underline font-medium"
+              className="text-wine hover:underline font-medium"
             >
               {SUPPORT_EMAIL}
             </a>

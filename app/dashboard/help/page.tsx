@@ -126,7 +126,7 @@ export default function HelpPage() {
       </div>
 
       {/* Contact Card */}
-      <div className="bg-gradient-to-br from-[#7B1E1E] to-[#5B1616] rounded-xl p-6 text-white mb-8">
+      <div className="bg-gradient-to-br from-wine to-wine-hover rounded-xl p-6 text-white mb-8">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-white/10 rounded-lg">
             <MessageCircle className="h-6 w-6" />
@@ -139,7 +139,7 @@ export default function HelpPage() {
             <div className="flex flex-wrap gap-3">
               <a
                 href="mailto:markus@esima.se"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#7B1E1E] rounded-lg text-sm font-medium hover:bg-white/90 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-wine rounded-lg text-sm font-medium hover:bg-white/90 transition-colors"
               >
                 <Mail className="h-4 w-4" />
                 markus@esima.se
@@ -162,7 +162,7 @@ export default function HelpPage() {
               onClick={() => setSelectedCategory('all')}
               className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                 selectedCategory === 'all'
-                  ? 'bg-[#7B1E1E] text-white'
+                  ? 'bg-wine text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -176,7 +176,7 @@ export default function HelpPage() {
                   onClick={() => setSelectedCategory(category)}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                     selectedCategory === category
-                      ? 'bg-[#7B1E1E] text-white'
+                      ? 'bg-wine text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -260,7 +260,7 @@ function QuickLink({ title, description, href, icon: Icon }: QuickLinkProps) {
   return (
     <a
       href={href}
-      className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
+      className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-wine hover:bg-red-50 transition-colors"
     >
       <div className="p-2 bg-gray-100 rounded-lg">
         <Icon className="h-5 w-5 text-gray-600" />

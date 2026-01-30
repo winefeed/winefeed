@@ -69,7 +69,7 @@ export function ComplianceEditPanel({
     }
   }, [isOpen, lines]);
 
-  const updateLine = (lineId: string, field: string, value: any) => {
+  const updateLine = (lineId: string, field: string, value: string | number | null) => {
     setEditedLines(prev => {
       const newMap = new Map(prev);
       const existing = newMap.get(lineId) || {};

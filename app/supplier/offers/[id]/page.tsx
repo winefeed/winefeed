@@ -137,7 +137,7 @@ export default function SupplierOfferDetailPage({
           id: offerData.id,
           status: offerData.status,
           offered_price: offerData.offered_price || (offerData.offered_unit_price_ore ? offerData.offered_unit_price_ore / 100 : 0),
-          quantity: offerData.quantity || lines.reduce((sum: number, l: any) => sum + (l.quantity || 0), 0),
+          quantity: offerData.quantity || lines.reduce((sum: number, l: { quantity?: number }) => sum + (l.quantity || 0), 0),
           notes: offerData.notes,
           lead_time_days: offerData.lead_time_days,
           created_at: offerData.created_at,

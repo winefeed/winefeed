@@ -172,7 +172,7 @@ export default function RestaurantOverview() {
           {/* Quick action */}
           <a
             href="/dashboard/new-request"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg hover:bg-[#6B1818] transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-sm font-medium"
           >
             <Plus className="h-4 w-4" />
             Ny förfrågan
@@ -237,7 +237,7 @@ export default function RestaurantOverview() {
                 </div>
                 <a
                   href="/dashboard/offers"
-                  className="text-sm font-medium text-[#7B1E1E] hover:underline"
+                  className="text-sm font-medium text-wine hover:underline"
                 >
                   Visa alla →
                 </a>
@@ -313,7 +313,7 @@ export default function RestaurantOverview() {
 
           {/* How it works */}
           {hasActivity && (
-            <div className="bg-gradient-to-br from-[#7B1E1E]/5 to-amber-50 rounded-lg border border-[#7B1E1E]/20 p-6">
+            <div className="bg-gradient-to-br from-wine/5 to-amber-50 rounded-lg border border-wine/20 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Så fungerar det
               </h2>
@@ -406,14 +406,14 @@ export default function RestaurantOverview() {
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                 <span className="text-sm font-medium text-gray-700">Totalt inköp</span>
-                <span className="font-bold text-[#7B1E1E]">
+                <span className="font-bold text-wine">
                   {formatCurrency(stats?.totalSpentThisMonth || 0)}
                 </span>
               </div>
             </div>
             <a
               href="/dashboard/analytics"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:underline"
+              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-wine hover:underline"
             >
               <TrendingUp className="h-4 w-4" />
               Se fullständig statistik
@@ -427,10 +427,10 @@ export default function RestaurantOverview() {
             </h2>
             <a
               href="/dashboard/help"
-              className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-[#7B1E1E] hover:bg-red-50 transition-colors"
+              className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-wine hover:bg-red-50 transition-colors"
             >
-              <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
-                <AlertCircle className="h-4 w-4 text-[#7B1E1E]" />
+              <div className="p-2 bg-wine/10 rounded-lg">
+                <AlertCircle className="h-4 w-4 text-wine" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900">Kontakta support</p>
@@ -496,20 +496,20 @@ function QuickAction({ title, description, href, icon: Icon, primary }: QuickAct
       href={href}
       className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
         primary
-          ? 'border-[#7B1E1E] bg-[#7B1E1E]/5 hover:bg-[#7B1E1E]/10'
+          ? 'border-wine bg-wine/5 hover:bg-wine/10'
           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
       }`}
     >
-      <div className={`p-2 rounded-lg ${primary ? 'bg-[#7B1E1E]/10' : 'bg-gray-100'}`}>
-        <Icon className={`h-4 w-4 ${primary ? 'text-[#7B1E1E]' : 'text-gray-600'}`} />
+      <div className={`p-2 rounded-lg ${primary ? 'bg-wine/10' : 'bg-gray-100'}`}>
+        <Icon className={`h-4 w-4 ${primary ? 'text-wine' : 'text-gray-600'}`} />
       </div>
       <div className="flex-1">
-        <p className={`text-sm font-medium ${primary ? 'text-[#7B1E1E]' : 'text-gray-900'}`}>
+        <p className={`text-sm font-medium ${primary ? 'text-wine' : 'text-gray-900'}`}>
           {title}
         </p>
         <p className="text-xs text-gray-500">{description}</p>
       </div>
-      <ArrowRight className={`h-4 w-4 ${primary ? 'text-[#7B1E1E]' : 'text-gray-400'}`} />
+      <ArrowRight className={`h-4 w-4 ${primary ? 'text-wine' : 'text-gray-400'}`} />
     </a>
   );
 }
@@ -523,7 +523,7 @@ interface StepCardProps {
 function StepCard({ number, title, description }: StepCardProps) {
   return (
     <div className="text-center">
-      <div className="w-8 h-8 bg-[#7B1E1E] text-white rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-2">
+      <div className="w-8 h-8 bg-wine text-white rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-2">
         {number}
       </div>
       <h3 className="font-medium text-gray-900">{title}</h3>

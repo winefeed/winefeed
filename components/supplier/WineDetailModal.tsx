@@ -81,8 +81,8 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
         {/* Header */}
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
-              <Wine className="h-5 w-5 text-[#7B1E1E]" />
+            <div className="p-2 bg-wine/10 rounded-lg">
+              <Wine className="h-5 w-5 text-wine" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900">Vindetaljer</h2>
           </div>
@@ -112,7 +112,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                     type="text"
                     value={editedWine.name}
                     onChange={(e) => setEditedWine({ ...editedWine, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine/20 focus:border-wine"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -122,7 +122,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                       type="text"
                       value={editedWine.producer}
                       onChange={(e) => setEditedWine({ ...editedWine, producer: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     />
                   </div>
                   <div>
@@ -131,7 +131,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                       type="text"
                       value={editedWine.vintage || ''}
                       onChange={(e) => setEditedWine({ ...editedWine, vintage: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine/20 focus:border-wine"
                       placeholder="t.ex. 2021"
                     />
                   </div>
@@ -163,7 +163,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                       type="text"
                       value={editedWine.region}
                       onChange={(e) => setEditedWine({ ...editedWine, region: e.target.value })}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-wine/20 focus:border-wine"
                       placeholder="Region"
                     />
                   </div>
@@ -183,7 +183,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                     type="text"
                     value={editedWine.grape}
                     onChange={(e) => setEditedWine({ ...editedWine, grape: e.target.value })}
-                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded mt-1 focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded mt-1 focus:ring-2 focus:ring-wine/20 focus:border-wine"
                   />
                 ) : (
                   <p className="font-medium text-gray-900">{wine.grape || '-'}</p>
@@ -202,7 +202,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                   <select
                     value={editedWine.color}
                     onChange={(e) => setEditedWine({ ...editedWine, color: e.target.value })}
-                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded mt-1 focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded mt-1 focus:ring-2 focus:ring-wine/20 focus:border-wine"
                   >
                     <option value="red">Rött</option>
                     <option value="white">Vitt</option>
@@ -230,7 +230,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                       type="number"
                       value={editedWine.price_ex_vat_sek / 100}
                       onChange={(e) => setEditedWine({ ...editedWine, price_ex_vat_sek: parseFloat(e.target.value) * 100 })}
-                      className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                      className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     />
                     <span className="text-sm text-gray-500">kr</span>
                   </div>
@@ -250,7 +250,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                     type="number"
                     value={editedWine.stock_qty}
                     onChange={(e) => setEditedWine({ ...editedWine, stock_qty: parseInt(e.target.value) || 0 })}
-                    className="w-24 px-2 py-1 text-sm border border-gray-300 rounded mt-1 focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                    className="w-24 px-2 py-1 text-sm border border-gray-300 rounded mt-1 focus:ring-2 focus:ring-wine/20 focus:border-wine"
                   />
                 ) : (
                   <p className="font-medium text-gray-900">{wine.stock_qty} st</p>
@@ -268,7 +268,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                     type="number"
                     value={editedWine.moq}
                     onChange={(e) => setEditedWine({ ...editedWine, moq: parseInt(e.target.value) || 1 })}
-                    className="w-24 px-2 py-1 text-sm border border-gray-300 rounded mt-1 focus:ring-2 focus:ring-[#7B1E1E]/20 focus:border-[#7B1E1E]"
+                    className="w-24 px-2 py-1 text-sm border border-gray-300 rounded mt-1 focus:ring-2 focus:ring-wine/20 focus:border-wine"
                   />
                 ) : (
                   <p className="font-medium text-gray-900">{wine.moq} st</p>
@@ -287,7 +287,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                     type="checkbox"
                     checked={editedWine.is_active}
                     onChange={(e) => setEditedWine({ ...editedWine, is_active: e.target.checked })}
-                    className="rounded border-gray-300 text-[#7B1E1E] focus:ring-[#7B1E1E]"
+                    className="rounded border-gray-300 text-wine focus:ring-wine"
                   />
                   <span className="text-sm text-gray-700">Aktiv</span>
                 </label>
@@ -323,7 +323,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg text-sm font-medium hover:bg-[#7B1E1E]/90 disabled:opacity-50 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine/90 disabled:opacity-50 transition-colors"
               >
                 {saving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -344,7 +344,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
               {supplierId && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#7B1E1E] text-white rounded-lg text-sm font-medium hover:bg-[#7B1E1E]/90 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine/90 transition-colors"
                 >
                   <Edit2 className="h-4 w-4" />
                   Redigera

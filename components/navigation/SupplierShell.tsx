@@ -155,8 +155,8 @@ export function SupplierShell({ children }: SupplierShellProps) {
                 href="/supplier/profile"
                 className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <div className="w-8 h-8 bg-[#7B1E1E]/10 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-[#7B1E1E]" />
+                <div className="w-8 h-8 bg-wine/10 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-wine" />
                 </div>
                 <span className="text-sm font-medium text-gray-700 hidden md:block max-w-[150px] truncate">
                   {supplier?.userEmail || 'Profil'}

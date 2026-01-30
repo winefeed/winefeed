@@ -50,14 +50,14 @@ export function WineCard({ wine, onClick }: WineCardProps) {
     >
       <div className="flex items-start gap-3">
         {/* Wine icon */}
-        <div className="p-2 bg-[#7B1E1E]/10 rounded-lg flex-shrink-0">
-          <Wine className="h-5 w-5 text-[#7B1E1E]" />
+        <div className="p-2 bg-wine/10 rounded-lg flex-shrink-0">
+          <Wine className="h-5 w-5 text-wine" />
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Name + vintage */}
-          <h3 className="font-medium text-gray-900 truncate group-hover:text-[#7B1E1E] transition-colors">
+          <h3 className="font-medium text-gray-900 truncate group-hover:text-wine transition-colors">
             {wine.name}
             {wine.vintage && wine.vintage !== 'NV' && (
               <span className="text-gray-500 ml-1">{wine.vintage}</span>

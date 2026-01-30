@@ -112,8 +112,8 @@ function AdminWinesPageContent() {
 
     // Sort
     filtered = [...filtered].sort((a, b) => {
-      let aVal: any = a[sortColumn as keyof WineItem];
-      let bVal: any = b[sortColumn as keyof WineItem];
+      let aVal: string | number | null = a[sortColumn as keyof WineItem] as string | number | null;
+      let bVal: string | number | null = b[sortColumn as keyof WineItem] as string | number | null;
 
       // Handle special cases
       if (sortColumn === 'priceSek') {

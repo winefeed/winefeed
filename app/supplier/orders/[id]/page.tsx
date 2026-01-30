@@ -25,6 +25,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
+import { getErrorMessage } from '@/lib/utils';
 
 interface OrderDetail {
   id: string;
@@ -97,7 +98,7 @@ export default function SupplierOrderDetailPage({
       }
 
       const ordersData = await ordersRes.json();
-      const foundOrder = ordersData.orders?.find((o: any) => o.id === orderId);
+      const foundOrder = ordersData.orders?.find((o: { id: string }) => o.id === orderId);
 
       if (!foundOrder) {
         setError('Ordern hittades inte');
@@ -143,8 +144,8 @@ export default function SupplierOrderDetailPage({
 
       toast.success('Order bekräftad');
       await fetchOrder();
-    } catch (error: any) {
-      toast.error('Kunde inte bekräfta', error.message);
+    } catch (error) {
+      toast.error('Kunde inte bekräfta', getErrorMessage(error));
     } finally {
       setActionLoading(null);
     }
@@ -170,8 +171,8 @@ export default function SupplierOrderDetailPage({
       setDeclineReason('');
       toast.info('Order avböjd');
       await fetchOrder();
-    } catch (error: any) {
-      toast.error('Kunde inte avböja', error.message);
+    } catch (error) {
+      toast.error('Kunde inte avböja', getErrorMessage(error));
     } finally {
       setActionLoading(null);
     }
@@ -195,8 +196,8 @@ export default function SupplierOrderDetailPage({
       setTrackingNumber('');
       toast.success('Markerad som skickad');
       await fetchOrder();
-    } catch (error: any) {
-      toast.error('Kunde inte uppdatera', error.message);
+    } catch (error) {
+      toast.error('Kunde inte uppdatera', getErrorMessage(error));
     } finally {
       setActionLoading(null);
     }

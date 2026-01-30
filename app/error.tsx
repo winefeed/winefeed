@@ -52,7 +52,7 @@ export default function GlobalError({
         <div className="mt-6 text-center">
           <a
             href="/"
-            className="text-[#7B1E1E] hover:underline text-sm font-medium"
+            className="text-wine hover:underline text-sm font-medium"
           >
             Gå till startsidan
           </a>

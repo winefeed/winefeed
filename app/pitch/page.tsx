@@ -46,7 +46,7 @@ export default function PitchPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-[#7B1E1E] text-white">
+      <header className="bg-wine text-white">
         <div className="max-w-4xl mx-auto px-6 py-12 md:py-20">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
@@ -113,7 +113,7 @@ export default function PitchPage() {
               { title: 'IMPORT CASE', subtitle: 'IOR hanterar compliance' },
             ].map((step, i) => (
               <div key={i} className="flex items-center">
-                <div className="bg-[#7B1E1E] text-white rounded-lg p-4 text-center min-w-[140px]">
+                <div className="bg-wine text-white rounded-lg p-4 text-center min-w-[140px]">
                   <div className="font-bold text-sm">{step.title}</div>
                   <div className="text-xs text-white/70 mt-1">{step.subtitle}</div>
                 </div>
@@ -124,8 +124,8 @@ export default function PitchPage() {
             ))}
           </div>
 
-          <div className="bg-[#7B1E1E]/5 border border-[#7B1E1E]/20 rounded-lg p-6 text-center">
-            <p className="text-[#7B1E1E] font-semibold text-lg">
+          <div className="bg-wine/5 border border-wine/20 rounded-lg p-6 text-center">
+            <p className="text-wine font-semibold text-lg">
               Alla parter ser samma status i realtid – restaurang, leverantör och importör.
               <br />
               <span className="font-normal">Inget faller mellan stolarna.</span>
@@ -223,7 +223,7 @@ export default function PitchPage() {
             Baserat på 15+ offerter och 8 ordrar under piloten. Mätt via plattformens loggdata.
           </p>
 
-          <blockquote className="bg-[#7B1E1E]/5 border-l-4 border-[#7B1E1E] rounded-r-lg p-6">
+          <blockquote className="bg-wine/5 border-l-4 border-wine rounded-r-lg p-6">
             <p className="text-lg text-gray-700 italic">
               &ldquo;Jag ser direkt vad som saknas och vem som måste agera. Inga överraskningar i tullen.&rdquo;
             </p>
@@ -262,8 +262,8 @@ export default function PitchPage() {
             ].map((benefit, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-200 p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#7B1E1E]/10 rounded-lg flex items-center justify-center">
-                    <benefit.icon className="h-5 w-5 text-[#7B1E1E]" />
+                  <div className="w-10 h-10 bg-wine/10 rounded-lg flex items-center justify-center">
+                    <benefit.icon className="h-5 w-5 text-wine" />
                   </div>
                   <h3 className="font-semibold text-gray-900">{benefit.title}</h3>
                 </div>
@@ -327,7 +327,7 @@ export default function PitchPage() {
       </section>
 
       {/* Why Now */}
-      <section className="py-16 px-6 bg-[#7B1E1E] text-white">
+      <section className="py-16 px-6 bg-wine text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-4">Varför pilot nu?</h2>
           <p className="text-lg text-white/80 max-w-2xl mx-auto">
@@ -373,7 +373,7 @@ export default function PitchPage() {
                     '5–10 restaurangkunder att testa med'
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-gray-600">
-                      <ArrowRight className="h-4 w-4 text-[#7B1E1E]" />
+                      <ArrowRight className="h-4 w-4 text-wine" />
                       {item}
                     </li>
                   ))}
@@ -390,7 +390,7 @@ export default function PitchPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
                 <a
                   href="mailto:markus@esima.se?subject=Intresserad%20av%20Winefeed-pilot&body=Hej%20Markus%2C%0A%0AJag%20%C3%A4r%20intresserad%20av%20Winefeed-piloten.%0A%0A"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-[#7B1E1E] hover:bg-[#6B1818] text-white rounded-xl transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-wine hover:bg-wine-hover text-white rounded-xl transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
                 >
                   <Mail className="h-5 w-5" />
                   Kontakta oss
@@ -399,7 +399,7 @@ export default function PitchPage() {
                   href="https://calendly.com/winefeed/pilot-demo?utm_source=pitch&utm_campaign=importer_pilot"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-[#7B1E1E] border-2 border-[#7B1E1E] rounded-xl transition-colors font-semibold text-lg"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-wine border-2 border-wine rounded-xl transition-colors font-semibold text-lg"
                 >
                   <Calendar className="h-5 w-5" />
                   Boka 20 min demo
@@ -421,7 +421,7 @@ export default function PitchPage() {
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-4">
                       <div className="flex flex-col items-center text-center">
-                        <div className="w-10 h-10 bg-[#7B1E1E] text-white rounded-full flex items-center justify-center font-bold mb-2">
+                        <div className="w-10 h-10 bg-wine text-white rounded-full flex items-center justify-center font-bold mb-2">
                           {item.step}
                         </div>
                         <div className="font-medium text-gray-900">{item.text}</div>
@@ -470,7 +470,7 @@ export default function PitchPage() {
           <div className="mb-6">
             <a
               href="mailto:markus@esima.se"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#7B1E1E] hover:bg-[#6B1818] rounded-lg transition-colors font-medium"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-wine hover:bg-wine-hover rounded-lg transition-colors font-medium"
             >
               <Mail className="h-5 w-5" />
               markus@esima.se

@@ -42,7 +42,7 @@ export default function SupplierError({
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             onClick={reset}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#7B1E1E] hover:bg-[#6B1818] rounded-lg transition-colors"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-wine hover:bg-wine-hover rounded-lg transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
             Försök igen
@@ -65,7 +65,7 @@ export default function SupplierError({
           </p>
           <a
             href="mailto:markus@esima.se"
-            className="inline-flex items-center gap-2 text-sm text-[#7B1E1E] hover:underline"
+            className="inline-flex items-center gap-2 text-sm text-wine hover:underline"
           >
             <Phone className="w-4 h-4" />
             markus@esima.se

@@ -102,10 +102,10 @@ export function MatchingSuggestions({ limit = 3 }: MatchingSuggestionsProps) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#7B1E1E]/5 to-amber-50 rounded-lg border border-[#7B1E1E]/20 p-6">
+    <div className="bg-gradient-to-br from-wine/5 to-amber-50 rounded-lg border border-wine/20 p-6">
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 bg-[#7B1E1E]/10 rounded-lg">
-          <Sparkles className="h-5 w-5 text-[#7B1E1E]" />
+        <div className="p-2 bg-wine/10 rounded-lg">
+          <Sparkles className="h-5 w-5 text-wine" />
         </div>
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
@@ -168,8 +168,8 @@ export function MatchingSuggestions({ limit = 3 }: MatchingSuggestionsProps) {
                       key={wine.id}
                       className="flex items-center gap-3 p-2 rounded-lg bg-gray-50"
                     >
-                      <div className="p-1.5 bg-[#7B1E1E]/10 rounded">
-                        <Wine className="h-4 w-4 text-[#7B1E1E]" />
+                      <div className="p-1.5 bg-wine/10 rounded">
+                        <Wine className="h-4 w-4 text-wine" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
@@ -193,7 +193,7 @@ export function MatchingSuggestions({ limit = 3 }: MatchingSuggestionsProps) {
                 {/* Action Button */}
                 <a
                   href={`/supplier/requests?id=${item.request.id}`}
-                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:text-[#7B1E1E]/80"
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-wine hover:text-wine/80"
                 >
                   Skapa offert
                   <ArrowRight className="h-4 w-4" />
@@ -207,7 +207,7 @@ export function MatchingSuggestions({ limit = 3 }: MatchingSuggestionsProps) {
       {data.length > limit && (
         <a
           href="/supplier/requests"
-          className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[#7B1E1E] hover:text-[#7B1E1E]/80"
+          className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-wine hover:text-wine/80"
         >
           Visa alla {data.length} matchande förfrågningar
           <ArrowRight className="h-4 w-4" />

@@ -64,7 +64,7 @@ export function ActivityFeed({ limit = 8 }: ActivityFeedProps) {
       return <Package className="h-4 w-4 text-purple-500" />;
     }
     if (type === 'request') return <Inbox className="h-4 w-4 text-amber-500" />;
-    if (type === 'wine') return <Wine className="h-4 w-4 text-[#7B1E1E]" />;
+    if (type === 'wine') return <Wine className="h-4 w-4 text-wine" />;
     return <TrendingUp className="h-4 w-4 text-gray-500" />;
   };
 
@@ -140,7 +140,7 @@ export function ActivityFeed({ limit = 8 }: ActivityFeedProps) {
           </p>
           <a
             href="/supplier/wines"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#7B1E1E] bg-[#7B1E1E]/10 rounded-lg hover:bg-[#7B1E1E]/20 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-wine bg-wine/10 rounded-lg hover:bg-wine/20 transition-colors"
           >
             <Wine className="h-3.5 w-3.5" />
             Ladda upp vinkatalog
