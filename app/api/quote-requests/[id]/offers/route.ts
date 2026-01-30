@@ -29,10 +29,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
  *   offer: Offer;
  * }
  */
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Auth check
     const tenantId = req.headers.get('x-tenant-id');
@@ -372,10 +370,8 @@ export async function POST(
  *   summary: { total, active, expired };
  * }
  */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Auth check
     const tenantId = req.headers.get('x-tenant-id');

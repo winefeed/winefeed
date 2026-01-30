@@ -10,10 +10,8 @@ import { createDDLService } from '@/lib/compliance/ddl-service';
 import { DDLNotFoundError } from '@/lib/compliance/types';
 import { actorService } from '@/lib/actor-service';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id: ddlId } = params;
 

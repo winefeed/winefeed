@@ -12,10 +12,8 @@ import {
   DDLDocumentGenerationError
 } from '@/lib/compliance/types';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id: ddlId } = params;
 

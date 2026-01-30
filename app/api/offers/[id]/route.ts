@@ -17,10 +17,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { offerService } from '@/lib/offer-service';
 import { actorService } from '@/lib/actor-service';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Alias id to offerId per routing standard
     const { id: offerId } = params;
@@ -67,10 +65,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Alias id to offerId per routing standard
     const { id: offerId } = params;

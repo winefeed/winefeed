@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { shipmentValidationService } from '@/lib/shipment-validation-service';
 import { actorService } from '@/lib/actor-service';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id: importId } = params;
     const tenantId = request.headers.get('x-tenant-id');
