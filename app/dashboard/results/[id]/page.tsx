@@ -692,20 +692,19 @@ export default function ResultsPage() {
                         const qty = getWineQuantity(suggestion.wine.id, moq);
                         const isBelowMoq = moq > 0 && qty < moq;
 
-                        if (isBelowMoq) {
-                          // Show MOQ minimum purchase info
-                          return (
-                            <div className="mt-1 text-right">
-                              <p className="text-xs text-orange-600 font-medium">
-                                Min. köp: {formatPrice(suggestion.wine.pris_sek * moq)} ({moq} fl)
-                              </p>
-                            </div>
-                          );
-                        }
                         return (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {qty} fl = <span className="font-medium text-foreground">{formatPrice(suggestion.wine.pris_sek * qty)}</span>
-                          </p>
+                          <div className="mt-1 text-right space-y-0.5">
+                            {/* Always show MOQ badge when MOQ exists */}
+                            {moq > 0 && (
+                              <p className={`text-xs font-medium ${isBelowMoq ? 'text-orange-600' : 'text-muted-foreground'}`}>
+                                Min. {moq} fl
+                              </p>
+                            )}
+                            {/* Show current selection total */}
+                            <p className="text-xs text-muted-foreground">
+                              {qty} fl = <span className={`font-medium ${isBelowMoq ? 'text-orange-600' : 'text-foreground'}`}>{formatPrice(suggestion.wine.pris_sek * qty)}</span>
+                            </p>
+                          </div>
                         );
                       })()}
                       {isSelected ? (

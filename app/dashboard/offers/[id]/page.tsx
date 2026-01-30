@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 import { ButtonSpinner, Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast';
-import { Wine } from 'lucide-react';
+import { Wine, LayoutGrid, List, Check } from 'lucide-react';
 
 // Types matching API response
 interface Wine {
@@ -125,6 +125,7 @@ export default function OffersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [includeExpired, setIncludeExpired] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'compare'>('list');
 
   // Accept state
   const [accepting, setAccepting] = useState<string | null>(null);
@@ -400,17 +401,47 @@ export default function OffersPage() {
                 </p>
               </div>
 
-              {summary.expired > 0 && (
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={includeExpired}
-                    onChange={(e) => setIncludeExpired(e.target.checked)}
-                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm text-muted-foreground">Visa utgångna</span>
-                </label>
-              )}
+              <div className="flex items-center gap-4">
+                {/* View mode toggle */}
+                {offers.length >= 2 && (
+                  <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                        viewMode === 'list'
+                          ? 'bg-background text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <List className="h-4 w-4" />
+                      Lista
+                    </button>
+                    <button
+                      onClick={() => setViewMode('compare')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                        viewMode === 'compare'
+                          ? 'bg-background text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <LayoutGrid className="h-4 w-4" />
+                      Jämför
+                    </button>
+                  </div>
+                )}
+
+                {summary.expired > 0 && (
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeExpired}
+                      onChange={(e) => setIncludeExpired(e.target.checked)}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm text-muted-foreground">Visa utgångna</span>
+                  </label>
+                )}
+              </div>
             </div>
 
             {acceptError && (
@@ -457,7 +488,140 @@ export default function OffersPage() {
           </div>
         )}
 
-        {/* Offer Cards */}
+        {/* Comparison View */}
+        {viewMode === 'compare' && offers.length >= 2 && (
+          <div className="bg-card border-2 border-border rounded-2xl shadow-lg overflow-hidden mb-6">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-muted-foreground w-40">Jämför</th>
+                    {offers.filter(o => !o.isExpired).slice(0, 4).map((offer, i) => (
+                      <th key={offer.id} className="text-left px-4 py-3 min-w-[200px]">
+                        <div className="flex items-center gap-2">
+                          <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                            i === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                          }`}>
+                            {i + 1}
+                          </span>
+                          <span className="font-semibold text-foreground truncate">{offer.supplierName}</span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {/* Wine */}
+                  <tr>
+                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Vin</td>
+                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
+                      <td key={offer.id} className="px-4 py-3">
+                        <p className="font-medium text-foreground">{offer.wine.name}</p>
+                        <p className="text-xs text-muted-foreground">{offer.wine.producer} · {offer.wine.vintage || 'NV'}</p>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Match Score */}
+                  <tr className="bg-muted/20">
+                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Matchning</td>
+                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
+                      <td key={offer.id} className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-bold ${getMatchScoreBg(offer.matchScore)} ${getMatchScoreColor(offer.matchScore)}`}>
+                          {offer.matchScore}%
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Price per bottle */}
+                  <tr>
+                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Pris/flaska</td>
+                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
+                      <td key={offer.id} className="px-4 py-3">
+                        <p className="font-bold text-lg text-foreground">{formatPrice(offer.offeredPriceExVatSek)}</p>
+                        <p className="text-xs text-muted-foreground">ex moms</p>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Quantity */}
+                  <tr className="bg-muted/20">
+                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Antal</td>
+                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
+                      <td key={offer.id} className="px-4 py-3 font-medium">{offer.quantity} flaskor</td>
+                    ))}
+                  </tr>
+                  {/* Shipping */}
+                  <tr>
+                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Frakt</td>
+                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
+                      <td key={offer.id} className="px-4 py-3">
+                        {offer.isFranco ? (
+                          <span className="text-green-600 font-medium">Fritt levererat</span>
+                        ) : offer.shippingCostSek ? (
+                          <span className="font-medium">{formatPrice(offer.shippingCostSek)}</span>
+                        ) : (
+                          <span className="text-muted-foreground">Ej angiven</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Total */}
+                  <tr className="bg-primary/5">
+                    <td className="px-4 py-3 text-sm font-bold text-foreground">Totalt ex moms</td>
+                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
+                      <td key={offer.id} className="px-4 py-3">
+                        <p className="font-bold text-xl text-primary">{formatPrice(offer.totalWithShippingExVat || offer.totalExVatSek)}</p>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Delivery */}
+                  <tr>
+                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Leveranstid</td>
+                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
+                      <td key={offer.id} className="px-4 py-3">
+                        <p className="font-medium">{offer.leadTimeDays} dagar</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(offer.estimatedDeliveryDate).toLocaleDateString('sv-SE')}
+                        </p>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Action */}
+                  <tr className="bg-muted/30">
+                    <td className="px-4 py-4 text-sm font-medium text-muted-foreground"></td>
+                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
+                      <td key={offer.id} className="px-4 py-4">
+                        <button
+                          onClick={() => handleAcceptOffer(offer.id)}
+                          disabled={accepting !== null}
+                          className={`w-full px-4 py-2.5 rounded-lg font-medium transition-all ${
+                            accepting === offer.id
+                              ? 'bg-primary/50 text-primary-foreground cursor-wait'
+                              : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                          }`}
+                        >
+                          {accepting === offer.id ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <ButtonSpinner className="text-white" />
+                              Accepterar...
+                            </span>
+                          ) : (
+                            <span className="flex items-center justify-center gap-1">
+                              <Check className="h-4 w-4" />
+                              Acceptera
+                            </span>
+                          )}
+                        </button>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Offer Cards (List View) */}
+        {viewMode === 'list' && (
         <div className="space-y-6">
           {offers.map((offer, index) => (
             <div
@@ -708,6 +872,7 @@ export default function OffersPage() {
             </div>
           ))}
         </div>
+        )}
       </div>
     </div>
   );
