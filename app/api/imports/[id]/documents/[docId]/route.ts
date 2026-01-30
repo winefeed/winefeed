@@ -30,8 +30,9 @@ const STORAGE_BUCKET = 'documents';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; docId: string } }
+  props: { params: Promise<{ id: string; docId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { id: importId, docId } = params;
     const tenantId = request.headers.get('x-tenant-id');
@@ -91,8 +92,9 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; docId: string } }
+  props: { params: Promise<{ id: string; docId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { id: importId, docId } = params;
     const tenantId = request.headers.get('x-tenant-id');
@@ -248,8 +250,9 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; docId: string } }
+  props: { params: Promise<{ id: string; docId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { id: importId, docId } = params;
     const tenantId = request.headers.get('x-tenant-id');

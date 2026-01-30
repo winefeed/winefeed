@@ -13,10 +13,8 @@ import { validateWineRows } from '@/lib/validators/wine-import';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   try {
     const supplierId = params.id;
 

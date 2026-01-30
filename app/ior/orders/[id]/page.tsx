@@ -17,7 +17,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
@@ -313,7 +313,8 @@ function ComplianceCardSection({
   );
 }
 
-export default function IOROrderDetailPage({ params }: { params: { id: string } }) {
+export default function IOROrderDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const router = useRouter();
   const orderId = params.id;
 

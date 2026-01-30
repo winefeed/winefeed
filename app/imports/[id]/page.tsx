@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { StatusTimeline } from '../components/StatusTimeline';
@@ -118,7 +118,8 @@ function ImportCaseComplianceCard({
   );
 }
 
-export default function ImportDetailsPage({ params }: { params: { id: string } }) {
+export default function ImportDetailsPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const { id: importId } = params;
   const router = useRouter();
 

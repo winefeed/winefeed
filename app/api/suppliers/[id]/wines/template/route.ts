@@ -9,10 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateExcelTemplate, generateExampleCSV } from '@/lib/parsers/excel-parser';
 import { actorService } from '@/lib/actor-service';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   try {
     const supplierId = params.id;
 

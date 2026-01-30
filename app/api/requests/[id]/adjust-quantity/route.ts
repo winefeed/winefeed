@@ -37,10 +37,8 @@ export interface AdjustQuantityResponse {
   error?: string;
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse<AdjustQuantityResponse>> {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }): Promise<NextResponse<AdjustQuantityResponse>> {
+  const params = await props.params;
   try {
     const { id: requestId } = params;
 

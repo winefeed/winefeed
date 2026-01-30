@@ -19,8 +19,9 @@ const SIGNED_URL_EXPIRES_IN = 300; // 5 minutes
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; docId: string } }
+  props: { params: Promise<{ id: string; docId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { id: importId, docId: documentId } = params;
     const tenantId = request.headers.get('x-tenant-id');

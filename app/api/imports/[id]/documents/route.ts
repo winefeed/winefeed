@@ -25,10 +25,8 @@ const ALLOWED_MIME_TYPES = [
  * List documents for import case
  * REQUIRES: IOR, SELLER, or ADMIN role
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id: importId } = params;
     const tenantId = request.headers.get('x-tenant-id');
@@ -86,10 +84,8 @@ export async function GET(
  * - type: string (document type code, required)
  * - notes: string (optional)
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id: importId } = params;
     const tenantId = request.headers.get('x-tenant-id');

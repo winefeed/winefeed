@@ -8,10 +8,8 @@ import { actorService } from '@/lib/actor-service';
  * Get import case details
  * REQUIRES: IOR, SELLER, or ADMIN role
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id: importId } = params;
     const tenantId = request.headers.get('x-tenant-id');

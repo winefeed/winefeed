@@ -16,7 +16,7 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ImportStatusBadge } from '@/app/imports/components/ImportStatusBadge';
@@ -130,7 +130,8 @@ const STATUS_STEPS = [
   { key: 'DELIVERED', label: 'Levererad', icon: MapPin, description: 'Framme' },
 ];
 
-export default function OrderDetailPage({ params }: { params: { id: string } }) {
+export default function OrderDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const router = useRouter();
   const orderId = params.id;
   const { actor, loading: actorLoading } = useActor();
@@ -294,7 +295,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           </button>
         </div>
       </div>
-
       {/* Order Progress Stepper */}
       {order.status !== 'CANCELLED' && order.status !== 'PENDING_SUPPLIER_CONFIRMATION' && (
         <div className="bg-card rounded-lg border border-border p-6 mb-6">
@@ -346,7 +346,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           </div>
         </div>
       )}
-
       {/* Pending/Cancelled Banners */}
       {order.status === 'PENDING_SUPPLIER_CONFIRMATION' && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6 flex items-center gap-4">
@@ -357,7 +356,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           </div>
         </div>
       )}
-
       {order.status === 'CANCELLED' && (
         <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-6 flex items-center gap-4">
           <div className="h-6 w-6 rounded-full bg-destructive flex items-center justify-center">
@@ -369,7 +367,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           </div>
         </div>
       )}
-
       {/* Delivery Tracking */}
       {(order.tracking_number || order.carrier || order.estimated_delivery) && (
         <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
@@ -427,7 +424,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           </div>
         </div>
       )}
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Order Info */}
         <div className="bg-card rounded-lg border border-border p-4">
@@ -467,7 +463,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           )}
         </div>
       </div>
-
       {/* Compliance */}
       {compliance?.import_case_id && (
         <div className="bg-card rounded-lg border border-border p-4 mb-6">
@@ -492,7 +487,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           </div>
         </div>
       )}
-
       {/* Order Lines */}
       <div className="bg-card rounded-lg border border-border overflow-hidden mb-6">
         <div className="px-4 py-3 border-b border-border">
@@ -542,7 +536,6 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           </table>
         </div>
       </div>
-
       {/* Events Timeline */}
       <div className="bg-card rounded-lg border border-border p-4">
         <h3 className="font-medium text-foreground mb-4">Handelselogg ({events.length})</h3>
