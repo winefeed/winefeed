@@ -483,26 +483,28 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Error summary at top of form */}
       <FormErrorSummary errors={errors} />
-      {/* Wine Color Selection */}
+      {/* Wine Color Selection - Mobile optimized */}
       <div className="space-y-3">
         <Label>Vintyp</Label>
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+        {/* Mobile: horizontal scroll, Desktop: grid */}
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:overflow-visible sm:flex-wrap sm:mx-0 sm:px-0">
           {WINE_COLORS.map((color) => (
             <button
               key={color.value}
               type="button"
               onClick={() => setValue('color', color.value)}
-              className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${
+              className={`flex-shrink-0 flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all min-w-[72px] sm:min-w-0 sm:flex-1 sm:max-w-[100px] ${
                 selectedColor === color.value
                   ? 'border-primary bg-primary/5 text-primary'
                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
               <span className="text-2xl">{color.emoji}</span>
-              <span className="text-xs font-medium">{color.label}</span>
+              <span className="text-xs font-medium whitespace-nowrap">{color.label}</span>
             </button>
           ))}
         </div>
+        <p className="text-xs text-muted-foreground sm:hidden">← Svep för fler alternativ</p>
         {errors.color && (
           <p className="text-sm text-destructive">{errors.color.message}</p>
         )}
@@ -514,6 +516,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         <Input
           id="budget_max"
           type="number"
+          inputMode="numeric"
           step="10"
           placeholder="200"
           className={inputErrorClass(!!errors.budget_max)}
@@ -533,6 +536,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         <Input
           id="antal_flaskor"
           type="number"
+          inputMode="numeric"
           placeholder="24"
           className={inputErrorClass(!!errors.antal_flaskor)}
           {...register('antal_flaskor')}
@@ -545,8 +549,8 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         )}
       </div>
 
-      {/* Country & Grape - collapsible */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Country & Grape - stacked on mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="country">Land (valfritt)</Label>
           <select
@@ -582,16 +586,16 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       <div className="space-y-3">
         <Label>Leveransort (valfritt)</Label>
 
-        {/* Saved addresses selector */}
+        {/* Saved addresses selector - Mobile: horizontal scroll */}
         {savedAddresses.length > 0 && (
           <div className="space-y-2">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:overflow-visible sm:flex-wrap sm:mx-0 sm:px-0">
               {savedAddresses.map((addr) => (
                 <button
                   key={addr.id}
                   type="button"
                   onClick={() => handleAddressSelect(addr.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                  className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
                     selectedAddressId === addr.id
                       ? 'border-primary bg-primary/5 text-primary'
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -608,7 +612,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
               <button
                 type="button"
                 onClick={() => handleAddressSelect('manual')}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all whitespace-nowrap ${
                   selectedAddressId === 'manual'
                     ? 'border-primary bg-primary/5 text-primary'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -696,23 +700,26 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         />
       </div>
 
-      {/* Certifications */}
+      {/* Certifications - Mobile: larger touch targets */}
       <div className="space-y-3">
         <Label>Certifieringar (valfritt)</Label>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           {CERTIFICATIONS.map((cert) => (
-            <label
+            <button
               key={cert.id}
-              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+              type="button"
+              onClick={() => toggleCertification(cert.id)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                selectedCertifications.includes(cert.id)
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
             >
-              <input
-                type="checkbox"
-                checked={selectedCertifications.includes(cert.id)}
-                onChange={() => toggleCertification(cert.id)}
-                className="rounded border-gray-300 text-primary focus:ring-primary"
-              />
-              <span className="text-sm">{cert.label}</span>
-            </label>
+              {selectedCertifications.includes(cert.id) && (
+                <CheckCircle className="h-4 w-4" />
+              )}
+              <span>{cert.label}</span>
+            </button>
           ))}
         </div>
       </div>
