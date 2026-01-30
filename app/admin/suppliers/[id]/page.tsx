@@ -9,7 +9,7 @@
 'use client';
 
 import { getErrorMessage } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Building2, ArrowLeft, Users, Wine, ShoppingCart, Mail, Phone, MapPin, Globe, ExternalLink, Crown, Check } from 'lucide-react';
@@ -107,18 +107,7 @@ export default function AdminSupplierDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [upgrading, setUpgrading] = useState(false);
 
-  useEffect(() => {
-    if (!actorLoading && actor) {
-      if (!actor.roles.includes('ADMIN')) {
-        setError('Access Denied: Admin privileges required');
-        setLoading(false);
-        return;
-      }
-      fetchSupplier();
-    }
-  }, [actor, actorLoading, supplierId]);
-
-  const fetchSupplier = async () => {
+  const fetchSupplier = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -154,7 +143,18 @@ export default function AdminSupplierDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supplierId]);
+
+  useEffect(() => {
+    if (!actorLoading && actor) {
+      if (!actor.roles.includes('ADMIN')) {
+        setError('Access Denied: Admin privileges required');
+        setLoading(false);
+        return;
+      }
+      fetchSupplier();
+    }
+  }, [actor, actorLoading, fetchSupplier]);
 
   const upgradeTier = async (newTier: 'free' | 'pro' | 'premium') => {
     try {
