@@ -10,6 +10,7 @@
 
 import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
+import { useToast } from '@/components/ui/toast';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Building2, ArrowLeft, Users, Wine, ShoppingCart, Mail, Phone, MapPin, Globe, ExternalLink, Crown, Check } from 'lucide-react';
@@ -101,6 +102,7 @@ export default function AdminSupplierDetailPage() {
   const params = useParams<{ id: string }>();
   const supplierId = params.id;
   const { actor, loading: actorLoading } = useActor();
+  const toast = useToast();
   const [data, setData] = useState<SupplierData | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -175,10 +177,10 @@ export default function AdminSupplierDetailPage() {
         subscription: result.subscription,
         usage: subscription?.usage || { wines_count: 0 },
       });
-      alert(result.message);
+      toast.success('Prenumeration uppdaterad', result.message);
     } catch (err) {
       console.error('Failed to upgrade:', err);
-      alert(`Kunde inte uppgradera: ${getErrorMessage(err)}`);
+      toast.error('Kunde inte uppgradera', getErrorMessage(err));
     } finally {
       setUpgrading(false);
     }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 
 interface ActionsPanelProps {
   importId: string;
@@ -11,6 +12,7 @@ interface ActionsPanelProps {
 }
 
 export function ActionsPanel({ importId, currentStatus, onRefresh }: ActionsPanelProps) {
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
@@ -103,7 +105,7 @@ export function ActionsPanel({ importId, currentStatus, onRefresh }: ActionsPane
 
       onRefresh(); // Refresh to show new status
     } catch (err) {
-      alert(`Fel: ${getErrorMessage(err, 'Ett fel uppstod')}`);
+      toast.error('Kunde inte uppdatera status', getErrorMessage(err, 'Ett fel uppstod'));
     } finally {
       setLoading(false);
     }

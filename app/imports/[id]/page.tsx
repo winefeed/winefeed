@@ -17,6 +17,7 @@ import {
   type ComplianceStatus,
 } from '@/components/compliance';
 import { getErrorMessage } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 
 interface ImportCaseData {
   id: string;
@@ -542,6 +543,7 @@ function ImprovedActionsPanel({
   ddlStatus,
   onRefresh,
 }: ImprovedActionsPanelProps) {
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
@@ -609,7 +611,7 @@ function ImprovedActionsPanel({
 
       onRefresh();
     } catch (err) {
-      alert(`Fel: ${getErrorMessage(err)}`);
+      toast.error('Kunde inte generera dokument', getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -636,7 +638,7 @@ function ImprovedActionsPanel({
 
       onRefresh();
     } catch (err) {
-      alert(`Fel: ${getErrorMessage(err)}`);
+      toast.error('Kunde inte uppdatera status', getErrorMessage(err));
     } finally {
       setLoading(false);
       setShowRejectModal(false);

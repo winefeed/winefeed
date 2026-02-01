@@ -13,6 +13,7 @@
 
 import { useState } from 'react';
 import { OfferLineItem, WineCheckEnrichment, assertNoForbiddenFieldsInEnrichment, getMatchStatusLabel } from '@/lib/offer-types';
+import { useToast } from '@/components/ui/toast';
 import { WineCheckPanel, WineCheckCandidate } from '@/app/components/wine-check';
 import { getStatusColor } from '@/lib/design-system/status-colors';
 
@@ -23,6 +24,7 @@ interface OfferLineItemRowProps {
 }
 
 export function OfferLineItemRow({ lineItem, onUpdate, onRemove }: OfferLineItemRowProps) {
+  const toast = useToast();
   const [showWineCheck, setShowWineCheck] = useState(false);
 
   const handleInputChange = (field: keyof OfferLineItem, value: string | number | boolean | null) => {
@@ -52,7 +54,7 @@ export function OfferLineItemRow({ lineItem, onUpdate, onRemove }: OfferLineItem
       assertNoForbiddenFieldsInEnrichment(enrichment);
     } catch (error) {
       console.error('Security violation in Wine Check enrichment:', error);
-      alert('SECURITY ERROR: Forbidden data detected. Contact support.');
+      toast.error('Säkerhetsfel', 'Otillåten data upptäckt. Kontakta support.');
       return;
     }
 

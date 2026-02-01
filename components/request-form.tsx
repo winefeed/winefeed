@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send, Plus, Building2, AlertCircle } from 'lucide-react';
+import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send, Plus, Building2, AlertCircle, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 import { FormErrorSummary, inputErrorClass } from '@/components/ui/form-error';
 
 // Wine color options - matches database enum (wine_color)
@@ -111,6 +111,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
   const [selectedAddressId, setSelectedAddressId] = useState<string | 'manual'>('manual');
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [newAddressLabel, setNewAddressLabel] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const {
     register,
@@ -549,39 +550,6 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         )}
       </div>
 
-      {/* Country & Grape - stacked on mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="country">Land (valfritt)</Label>
-          <select
-            id="country"
-            {...register('country')}
-            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-          >
-            {WINE_COUNTRIES.map((country) => (
-              <option key={country.value} value={country.value}>
-                {country.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="grape">Druva (valfritt)</Label>
-          <select
-            id="grape"
-            {...register('grape')}
-            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-          >
-            {GRAPE_VARIETIES.map((grape) => (
-              <option key={grape.value} value={grape.value}>
-                {grape.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
       {/* Delivery Location */}
       <div className="space-y-3">
         <Label>Leveransort (valfritt)</Label>
@@ -690,40 +658,6 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         )}
       </div>
 
-      {/* Delivery Date */}
-      <div className="space-y-2">
-        <Label htmlFor="leverans_senast">Leverans senast (valfritt)</Label>
-        <Input
-          id="leverans_senast"
-          type="date"
-          {...register('leverans_senast')}
-        />
-      </div>
-
-      {/* Certifications - Mobile: larger touch targets */}
-      <div className="space-y-3">
-        <Label>Certifieringar (valfritt)</Label>
-        <div className="flex flex-wrap gap-2">
-          {CERTIFICATIONS.map((cert) => (
-            <button
-              key={cert.id}
-              type="button"
-              onClick={() => toggleCertification(cert.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
-                selectedCertifications.includes(cert.id)
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              {selectedCertifications.includes(cert.id) && (
-                <CheckCircle className="h-4 w-4" />
-              )}
-              <span>{cert.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Free text description */}
       <div className="space-y-2">
         <Label htmlFor="description">Övriga önskemål (valfritt)</Label>
@@ -736,6 +670,114 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
         <p className="text-xs text-muted-foreground">
           Beskriv matpairing, stil eller andra preferenser
         </p>
+      </div>
+
+      {/* Advanced Filters - Collapsible */}
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <SlidersHorizontal className="h-4 w-4" />
+            <span>Fler filter</span>
+            {/* Show count of active advanced filters */}
+            {(() => {
+              const activeCount = [
+                watch('country') && watch('country') !== 'all',
+                watch('grape') && watch('grape') !== 'all',
+                watch('leverans_senast'),
+                selectedCertifications.length > 0,
+              ].filter(Boolean).length;
+              return activeCount > 0 ? (
+                <span className="px-2 py-0.5 bg-primary text-white text-xs rounded-full">
+                  {activeCount}
+                </span>
+              ) : null;
+            })()}
+          </div>
+          {showAdvancedFilters ? (
+            <ChevronUp className="h-5 w-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-gray-500" />
+          )}
+        </button>
+
+        {showAdvancedFilters && (
+          <div className="p-4 pt-0 space-y-4 border-t border-gray-200">
+            {/* Country & Grape */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="country">Land</Label>
+                <select
+                  id="country"
+                  {...register('country')}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                >
+                  {WINE_COUNTRIES.map((country) => (
+                    <option key={country.value} value={country.value}>
+                      {country.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="grape">Druva</Label>
+                <select
+                  id="grape"
+                  {...register('grape')}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                >
+                  {GRAPE_VARIETIES.map((grape) => (
+                    <option key={grape.value} value={grape.value}>
+                      {grape.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Delivery Date */}
+            <div className="space-y-2">
+              <Label htmlFor="leverans_senast">Leverans senast</Label>
+              <Input
+                id="leverans_senast"
+                type="date"
+                {...register('leverans_senast')}
+              />
+            </div>
+
+            {/* Certifications */}
+            <div className="space-y-3">
+              <Label>Certifieringar</Label>
+              <div className="flex flex-wrap gap-2">
+                {CERTIFICATIONS.map((cert) => (
+                  <button
+                    key={cert.id}
+                    type="button"
+                    onClick={() => toggleCertification(cert.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                      selectedCertifications.includes(cert.id)
+                        ? 'border-green-500 bg-green-50 text-green-700'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {selectedCertifications.includes(cert.id) && (
+                      <CheckCircle className="h-4 w-4" />
+                    )}
+                    <span>{cert.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Dessa filter kan begränsa resultaten. Lämna öppna för fler förslag.
+            </p>
+          </div>
+        )}
       </div>
 
       {error && (

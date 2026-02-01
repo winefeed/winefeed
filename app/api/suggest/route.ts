@@ -189,12 +189,18 @@ export async function POST(request: NextRequest) {
       wines = result.data;
       winesError = result.error;
 
-      // If filtered query fails or returns nothing, try without filters
+      // If filtered query fails or returns nothing, try with relaxed filters (keep color!)
       if (winesError || !wines || wines.length === 0) {
-        const fallbackResult = await getSupabaseAdmin()
+        let fallbackQuery = getSupabaseAdmin()
           .from('supplier_wines')
-          .select('*')
-          .limit(50);
+          .select('*');
+
+        // Keep color filter in fallback - user explicitly selected wine type
+        if (color && color !== 'all') {
+          fallbackQuery = fallbackQuery.eq('color', color);
+        }
+
+        const fallbackResult = await fallbackQuery.limit(50);
 
         if (!fallbackResult.error && fallbackResult.data && fallbackResult.data.length > 0) {
           wines = fallbackResult.data;
@@ -203,12 +209,18 @@ export async function POST(request: NextRequest) {
       }
     } catch (queryError: any) {
       console.error('Query execution error:', queryError);
-      // Try a simple fallback
+      // Try a simple fallback - still keep color filter
       try {
-        const fallbackResult = await getSupabaseAdmin()
+        let fallbackQuery = getSupabaseAdmin()
           .from('supplier_wines')
-          .select('*')
-          .limit(50);
+          .select('*');
+
+        // Keep color filter even in error fallback
+        if (color && color !== 'all') {
+          fallbackQuery = fallbackQuery.eq('color', color);
+        }
+
+        const fallbackResult = await fallbackQuery.limit(50);
         wines = fallbackResult.data;
         winesError = fallbackResult.error;
       } catch (fallbackError: any) {

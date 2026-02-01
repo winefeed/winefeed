@@ -6,6 +6,28 @@
 
 ---
 
+## 🎯 Core Principle
+
+> **Winefeed uses GS1 as a verification and anchoring layer, never as a primary product model.**
+
+GS1 data (GTIN/GLN) is used to *verify* and *enrich* Winefeed's internal master data.
+Winefeed's own identifiers (`wf_product_id`, `wf_party_id`) remain the primary keys for all operations.
+
+---
+
+## ❌ Non-Goals
+
+These are explicitly **out of scope** for this architecture:
+
+| Non-Goal | Rationale |
+|----------|-----------|
+| **Winefeed will not act as a GS1 datapool** | We consume GS1 for verification, not syndication |
+| **Winefeed will not enforce GTIN presence at draft level** | Suppliers can create products without GTIN; verification is optional |
+| **Winefeed will not attempt real-time GS1 synchronization** | Verify + cache pattern; batch refresh, not streaming |
+| **GTIN is not required for trade eligibility** | Confidence scoring allows trade at any level with appropriate controls |
+
+---
+
 ## 📋 Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
@@ -42,6 +64,43 @@
 ✅ **Stabilize party/location identity** (GLN-based delivery sites, billing)
 ✅ **Enable reliable reconciliation** (order ↔ shipment ↔ invoice via GTINs)
 ✅ **Audit-ready foundation** (provenance, retention, change logs)
+
+---
+
+### Confidence Score Contract
+
+The `confidence_score` (0.00 – 1.00) is a **system-wide contract** used across Winefeed:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ CONFIDENCE SCORE CONTRACT                                       │
+├────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Score Range    │ Meaning               │ System Behavior       │
+│  ───────────────┼───────────────────────┼─────────────────────  │
+│  1.00           │ GTIN verified by GS1  │ Full automation       │
+│  0.90 - 0.99    │ Known SKU mapping     │ Auto-match, no review │
+│  0.85 - 0.89    │ High fuzzy match      │ Auto-match, flagged   │
+│  0.50 - 0.84    │ Uncertain match       │ Human review required │
+│  < 0.50         │ Low confidence        │ Manual matching only  │
+│                                                                 │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Used for:**
+- **Trade eligibility** – Higher confidence = lower friction in checkout
+- **Automation thresholds** – When to auto-match vs. queue for review
+- **Partner trust weighting** – Verified products ranked higher in search
+- **Audit compliance** – Risk assessment for B2B transactions
+
+**Example usage in code:**
+```typescript
+if (match.confidence_score >= 0.85) {
+  await autoLinkToMasterProduct(match);
+} else {
+  await queueForHumanReview(match);
+}
+```
 
 ---
 
