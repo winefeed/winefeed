@@ -520,7 +520,8 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           inputMode="numeric"
           step="10"
           placeholder="200"
-          className={inputErrorClass(!!errors.budget_max)}
+          className={`${inputErrorClass(!!errors.budget_max)} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+          onWheel={(e) => e.currentTarget.blur()}
           {...register('budget_max')}
         />
         {errors.budget_max && (
@@ -539,7 +540,8 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           type="number"
           inputMode="numeric"
           placeholder="24"
-          className={inputErrorClass(!!errors.antal_flaskor)}
+          className={`${inputErrorClass(!!errors.antal_flaskor)} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+          onWheel={(e) => e.currentTarget.blur()}
           {...register('antal_flaskor')}
         />
         {errors.antal_flaskor && (

@@ -140,6 +140,14 @@ export default function ResultsPage() {
     sortBy: 'score' as SortOption,
   });
 
+  // Quick filters (always visible chips)
+  const [quickFilters, setQuickFilters] = useState({
+    color: null as string | null,  // 'red', 'white', 'rose', 'sparkling', etc.
+    inStock: false,
+    organic: false,
+    withinBudget: false,
+  });
+
   const fetchOfferCounts = useCallback(async () => {
     try {
       const response = await fetch(`/api/quote-requests/${requestId}/offers`, {
@@ -224,6 +232,20 @@ export default function ResultsPage() {
   const filteredSuggestions = useMemo(() => {
     let result = [...suggestions];
 
+    // Quick filters
+    if (quickFilters.color) {
+      result = result.filter(s => s.wine.color?.toLowerCase() === quickFilters.color);
+    }
+    if (quickFilters.inStock) {
+      result = result.filter(s => s.wine.lager && s.wine.lager > 0);
+    }
+    if (quickFilters.organic) {
+      result = result.filter(s => s.wine.ekologisk);
+    }
+    if (quickFilters.withinBudget && budgetMax) {
+      result = result.filter(s => s.wine.pris_sek <= budgetMax);
+    }
+
     // Price filters
     if (filters.priceMin) {
       const min = parseInt(filters.priceMin);
@@ -265,7 +287,7 @@ export default function ResultsPage() {
     }
 
     return result;
-  }, [suggestions, filters]);
+  }, [suggestions, filters, quickFilters, budgetMax]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -273,8 +295,41 @@ export default function ResultsPage() {
     if (filters.priceMax) count++;
     if (filters.country !== 'all') count++;
     if (filters.producer !== 'all') count++;
+    // Quick filters
+    if (quickFilters.color) count++;
+    if (quickFilters.inStock) count++;
+    if (quickFilters.organic) count++;
+    if (quickFilters.withinBudget) count++;
     return count;
-  }, [filters]);
+  }, [filters, quickFilters]);
+
+  // Count wines by color for filter badges
+  const colorCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    suggestions.forEach(s => {
+      const color = s.wine.color?.toLowerCase();
+      if (color) {
+        counts[color] = (counts[color] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [suggestions]);
+
+  // Count wines in stock
+  const inStockCount = useMemo(() => {
+    return suggestions.filter(s => s.wine.lager && s.wine.lager > 0).length;
+  }, [suggestions]);
+
+  // Count organic wines
+  const organicCount = useMemo(() => {
+    return suggestions.filter(s => s.wine.ekologisk).length;
+  }, [suggestions]);
+
+  // Count wines within budget
+  const withinBudgetCount = useMemo(() => {
+    if (!budgetMax) return 0;
+    return suggestions.filter(s => s.wine.pris_sek <= budgetMax).length;
+  }, [suggestions, budgetMax]);
 
   const clearFilters = () => {
     setFilters({
@@ -283,6 +338,12 @@ export default function ResultsPage() {
       country: 'all',
       producer: 'all',
       sortBy: 'score',
+    });
+    setQuickFilters({
+      color: null,
+      inStock: false,
+      organic: false,
+      withinBudget: false,
     });
   };
 
@@ -536,14 +597,101 @@ export default function ResultsPage() {
           </div>
         )}
 
-        {/* Filter Section */}
+        {/* Quick Filters - Always Visible */}
+        <div className="mb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Color filters */}
+            {Object.entries(COLOR_LABELS).map(([colorKey, colorInfo]) => {
+              const count = colorCounts[colorKey] || 0;
+              if (count === 0) return null;
+              const isActive = quickFilters.color === colorKey;
+              return (
+                <button
+                  key={colorKey}
+                  onClick={() => setQuickFilters(f => ({ ...f, color: isActive ? null : colorKey }))}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    isActive
+                      ? `${colorInfo.bg} ${colorInfo.text} ring-2 ring-offset-1 ring-primary`
+                      : `${colorInfo.bg} ${colorInfo.text} opacity-70 hover:opacity-100`
+                  }`}
+                >
+                  {colorInfo.label}
+                  <span className="ml-1.5 text-xs opacity-70">({count})</span>
+                </button>
+              );
+            })}
+
+            {/* Divider */}
+            {Object.keys(colorCounts).length > 0 && (inStockCount > 0 || organicCount > 0 || withinBudgetCount > 0) && (
+              <div className="w-px h-6 bg-border mx-1" />
+            )}
+
+            {/* In Stock filter */}
+            {inStockCount > 0 && (
+              <button
+                onClick={() => setQuickFilters(f => ({ ...f, inStock: !f.inStock }))}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
+                  quickFilters.inStock
+                    ? 'bg-green-100 text-green-700 ring-2 ring-offset-1 ring-green-500'
+                    : 'bg-green-50 text-green-600 hover:bg-green-100'
+                }`}
+              >
+                📦 I lager
+                <span className="text-xs opacity-70">({inStockCount})</span>
+              </button>
+            )}
+
+            {/* Organic filter */}
+            {organicCount > 0 && (
+              <button
+                onClick={() => setQuickFilters(f => ({ ...f, organic: !f.organic }))}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
+                  quickFilters.organic
+                    ? 'bg-emerald-100 text-emerald-700 ring-2 ring-offset-1 ring-emerald-500'
+                    : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                }`}
+              >
+                🌱 Ekologiskt
+                <span className="text-xs opacity-70">({organicCount})</span>
+              </button>
+            )}
+
+            {/* Within Budget filter */}
+            {budgetMax && withinBudgetCount > 0 && (
+              <button
+                onClick={() => setQuickFilters(f => ({ ...f, withinBudget: !f.withinBudget }))}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
+                  quickFilters.withinBudget
+                    ? 'bg-blue-100 text-blue-700 ring-2 ring-offset-1 ring-blue-500'
+                    : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                }`}
+              >
+                💰 Inom budget
+                <span className="text-xs opacity-70">({withinBudgetCount})</span>
+              </button>
+            )}
+
+            {/* Clear quick filters */}
+            {(quickFilters.color || quickFilters.inStock || quickFilters.organic || quickFilters.withinBudget) && (
+              <button
+                onClick={() => setQuickFilters({ color: null, inStock: false, organic: false, withinBudget: false })}
+                className="px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <X className="h-3.5 w-3.5" />
+                Rensa
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Advanced Filter Section */}
         <div className="mb-6">
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:bg-accent transition-colors"
           >
             <Filter className="h-4 w-4" />
-            <span className="font-medium">Filtrera & sortera</span>
+            <span className="font-medium">Fler filter & sortering</span>
             {activeFilterCount > 0 && (
               <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
                 {activeFilterCount}
