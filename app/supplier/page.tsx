@@ -22,6 +22,7 @@ import {
   Target,
   Clock,
 } from 'lucide-react';
+import { HelpTooltip, GLOSSARY } from '@/components/ui/help-tooltip';
 import { WineCard, type SupplierWine } from '@/components/supplier/WineCard';
 import { WineDetailModal } from '@/components/supplier/WineDetailModal';
 import { MatchingSuggestions } from '@/components/supplier/MatchingSuggestions';
@@ -307,7 +308,10 @@ export default function SupplierDashboard() {
                 {/* Win rate */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-gray-600">Win rate</span>
+                    <span className="text-sm text-gray-600 flex items-center gap-1">
+                      Win rate
+                      <HelpTooltip content={GLOSSARY.winRate} side="right" />
+                    </span>
                     <span className="text-sm font-semibold text-gray-900">
                       {stats?.winRate || 0}%
                     </span>
@@ -325,7 +329,10 @@ export default function SupplierDashboard() {
                 {/* Response rate */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-gray-600">Svarsfrekvens</span>
+                    <span className="text-sm text-gray-600 flex items-center gap-1">
+                      Svarsfrekvens
+                      <HelpTooltip content={GLOSSARY.responseRate} side="right" />
+                    </span>
                     <span className="text-sm font-semibold text-gray-900">
                       {stats?.responseRate || 0}%
                     </span>

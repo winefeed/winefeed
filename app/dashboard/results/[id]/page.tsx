@@ -5,10 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
 import { useDraftList } from '@/lib/hooks/useDraftList';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine, HelpCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { FloatingDraftList } from '@/components/FloatingDraftList';
 import { Spinner } from '@/components/ui/spinner';
+import { HelpTooltip, InfoBox, GLOSSARY } from '@/components/ui/help-tooltip';
 
 interface Wine {
   id: string;
@@ -1078,7 +1079,10 @@ export default function ResultsPage() {
                           <div className={`text-center p-3 rounded-lg ${
                             moq > 0 && currentQty < moq ? 'bg-amber-50' : 'bg-background'
                           }`}>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Minimum</p>
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Minimum</p>
+                              <HelpTooltip content={GLOSSARY.moq} side="top" />
+                            </div>
                             {moq > 0 ? (
                               <>
                                 <p className={`text-lg font-bold ${currentQty < moq ? 'text-amber-600' : 'text-foreground'}`}>{moq} fl</p>
@@ -1116,7 +1120,10 @@ export default function ResultsPage() {
 
                           {/* Lead Time */}
                           <div className="text-center p-3 bg-background rounded-lg">
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Leveranstid</p>
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Leveranstid</p>
+                              <HelpTooltip content={GLOSSARY.leadtime} side="top" />
+                            </div>
                             {suggestion.wine.ledtid_dagar ? (
                               <p className="text-lg font-bold text-foreground">{suggestion.wine.ledtid_dagar} dagar</p>
                             ) : suggestion.supplier.normalleveranstid_dagar ? (
@@ -1501,8 +1508,9 @@ export default function ResultsPage() {
                                   </span>
                                 )}
                                 {hasProvorder && (
-                                  <span className="text-xs mt-0.5 text-green-600 font-medium">
+                                  <span className="text-xs mt-0.5 text-green-600 font-medium flex items-center gap-1">
                                     Provorder
+                                    <HelpTooltip content={GLOSSARY.provorder} side="top" />
                                   </span>
                                 )}
                               </div>
@@ -1626,10 +1634,29 @@ export default function ResultsPage() {
                 <CheckCircle2 className="h-10 w-10" />
               </div>
               <h3 className="text-2xl font-bold mb-3">Förfrågan skickad!</h3>
-              <p className="text-white/90 mb-6">
-                Din förfrågan om {draftList.items.length} vin{draftList.items.length > 1 ? 'er' : ''} har skickats.
-                Vi skickar offerterna till dig så snart leverantörerna har svarat.
+              <p className="text-white/90 mb-4">
+                Din förfrågan om {draftList.items.length} vin{draftList.items.length > 1 ? 'er' : ''} har skickats till leverantörer.
               </p>
+
+              {/* What happens next - helpful for infrequent users */}
+              <div className="bg-white/10 rounded-xl p-4 mb-6 text-left">
+                <p className="text-white/90 font-medium mb-2">Vad händer nu?</p>
+                <ul className="text-white/80 text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-white/60">1.</span>
+                    <span>Leverantörer granskar din förfrågan och skickar offerter</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-white/60">2.</span>
+                    <span>Du får notis när nya offerter kommer in (oftast inom 24-48h)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-white/60">3.</span>
+                    <span>Jämför offerter och acceptera den du vill ha - ingen förpliktelse förrän du accepterar</span>
+                  </li>
+                </ul>
+              </div>
+
               <div className="flex gap-4 justify-center">
                 <button
                   onClick={() => router.push('/dashboard/my-requests')}

@@ -7,7 +7,8 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { FileText, Clock, Building2, CheckCircle, XCircle, AlertCircle, ChevronRight } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { FileText, Clock, Building2, CheckCircle, XCircle, AlertCircle, ChevronRight, X } from 'lucide-react';
 
 interface Offer {
   id: string;
@@ -22,10 +23,12 @@ interface Offer {
 }
 
 export default function SupplierOffersPage() {
+  const searchParams = useSearchParams();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
   const [supplierId, setSupplierId] = useState<string | null>(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(searchParams.get('success') === 'true');
 
   const fetchOffers = useCallback(async () => {
     try {
@@ -82,6 +85,36 @@ export default function SupplierOffersPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      {/* Success Message - shown after sending an offer */}
+      {showSuccessMessage && (
+        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 relative">
+          <button
+            onClick={() => setShowSuccessMessage(false)}
+            className="absolute top-3 right-3 text-green-600 hover:text-green-800"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div className="flex gap-3">
+            <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-green-800">Offert skickad!</h3>
+              <p className="text-green-700 text-sm mt-1">
+                Din offert har skickats till restaurangen.
+              </p>
+              <div className="mt-3 text-sm text-green-700">
+                <p className="font-medium mb-1">Vad händer nu?</p>
+                <ul className="list-disc list-inside space-y-1 text-green-600">
+                  <li>Restaurangen får notis om din offert</li>
+                  <li>De kan jämföra med andra leverantörer</li>
+                  <li>Du får notis om de accepterar eller avböjer</li>
+                  <li>Snabb svarstid ökar chansen att vinna affären</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Offerter</h1>
