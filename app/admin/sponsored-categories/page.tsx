@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getErrorMessage } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 import {
   Sparkles,
   Plus,
@@ -70,6 +71,7 @@ const defaultFormData: CategoryFormData = {
 };
 
 export default function AdminSponsoredCategoriesPage() {
+  const toast = useToast();
   const [categories, setCategories] = useState<SponsoredCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -187,7 +189,7 @@ export default function AdminSponsoredCategoriesPage() {
 
       fetchCategories();
     } catch (err) {
-      alert(getErrorMessage(err));
+      toast.error('Kunde inte ta bort', getErrorMessage(err));
     }
   };
 
@@ -206,7 +208,7 @@ export default function AdminSponsoredCategoriesPage() {
 
       fetchCategories();
     } catch (err) {
-      alert(getErrorMessage(err));
+      toast.error('Kunde inte uppdatera', getErrorMessage(err));
     }
   };
 

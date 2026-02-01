@@ -35,6 +35,7 @@ import {
 } from '@/components/compliance';
 import { ChevronDown, ChevronUp, Edit3, AlertTriangle } from 'lucide-react';
 import { getErrorMessage } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 
 // Tenant ID - single tenant for MVP
 // Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
@@ -165,6 +166,8 @@ function ComplianceCardSection({
   documents: OrderDetail['documents'];
   formatDate: (date: string) => string;
 }) {
+  const toast = useToast();
+
   // Compute compliance status from import case data
   const complianceResult = checkImportCaseCompliance({
     status: order.compliance?.import_case_status || 'NOT_REGISTERED',
@@ -288,7 +291,7 @@ function ComplianceCardSection({
               <button
                 onClick={() => {
                   if (isBlocked) return;
-                  alert('5369 generation: Coming soon! Use existing /api/imports/[id]/generate-5369 endpoint');
+                  toast.info('Kommer snart', '5369-generering är under utveckling');
                 }}
                 disabled={isBlocked}
                 className={`px-4 py-2 text-sm rounded transition-colors ${
@@ -317,6 +320,7 @@ export default function IOROrderDetailPage(props: { params: Promise<{ id: string
   const params = use(props.params);
   const router = useRouter();
   const orderId = params.id;
+  const toast = useToast();
 
   const [actor, setActor] = useState<ActorContext | null>(null);
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);

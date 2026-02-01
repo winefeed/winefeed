@@ -23,6 +23,7 @@ import { MatchStatusBadge } from '@/app/components/match/MatchStatusBadge';
 import type { MatchStatus } from '@/app/components/wine-check/types';
 import { getAlertColor } from '@/lib/design-system/alert-colors';
 import { ButtonSpinner } from '@/components/ui/spinner';
+import { useToast } from '@/components/ui/toast';
 
 interface Offer {
   id: string;
@@ -97,6 +98,9 @@ export default function OfferEditorPage() {
   const [accepting, setAccepting] = useState(false);
   const [matchingLineId, setMatchingLineId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Toast notifications
+  const toast = useToast();
 
   // Fetch offer from API
   const fetchOffer = useCallback(async () => {
@@ -217,16 +221,16 @@ export default function OfferEditorPage() {
       // Show success message
       const matchData = result.latest_match;
       if (matchData.status === 'AUTO_MATCH' || matchData.status === 'AUTO_MATCH_WITH_GUARDS') {
-        alert(`Match successful! ${matchData.explanation}`);
+        toast.success('Matchning lyckades', matchData.explanation);
       } else if (matchData.status === 'SUGGESTED') {
-        alert(`Match suggested (needs review): ${matchData.explanation}`);
+        toast.info('Matchning föreslagen', matchData.explanation);
       } else {
-        alert(`Match result: ${matchData.explanation}`);
+        toast.info('Matchningsresultat', matchData.explanation);
       }
     } catch (err) {
       console.error('Failed to match line:', err);
       setError(getErrorMessage(err, 'Kunde inte matcha rad'));
-      alert(`Kunde inte matcha rad: ${getErrorMessage(err)}`);
+      toast.error('Matchning misslyckades', getErrorMessage(err));
     } finally {
       setMatchingLineId(null);
     }
@@ -283,11 +287,11 @@ export default function OfferEditorPage() {
       // Refetch to get updated data with real IDs
       await fetchOffer();
 
-      alert('Offert sparad!');
+      toast.success('Sparad', 'Offerten har sparats');
     } catch (err) {
       console.error('Failed to save offer:', err);
       setError(getErrorMessage(err, 'Kunde inte spara offert'));
-      alert(`Kunde inte spara offert: ${getErrorMessage(err)}`);
+      toast.error('Kunde inte spara', getErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -317,11 +321,11 @@ export default function OfferEditorPage() {
       // Refetch to show accepted state
       await fetchOffer();
 
-      alert('Offert accepterad! Offerten är nu låst och går inte att ändra.');
+      toast.success('Offert accepterad', 'Offerten är nu låst och går inte att ändra');
     } catch (err) {
       console.error('Failed to accept offer:', err);
       setError(getErrorMessage(err, 'Kunde inte acceptera offert'));
-      alert(`Kunde inte acceptera offert: ${getErrorMessage(err)}`);
+      toast.error('Kunde inte acceptera', getErrorMessage(err));
     } finally {
       setAccepting(false);
     }

@@ -15,6 +15,7 @@
 
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, Edit2, Wine, Clock, X, Save, Copy } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 import { ButtonSpinner } from '@/components/ui/spinner';
 
 interface OfferTemplate {
@@ -29,6 +30,7 @@ interface OfferTemplate {
 }
 
 export default function SupplierTemplatesPage() {
+  const toast = useToast();
   const [templates, setTemplates] = useState<OfferTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [supplierId, setSupplierId] = useState<string | null>(null);
@@ -104,7 +106,7 @@ export default function SupplierTemplatesPage() {
 
   const handleSave = () => {
     if (!formName.trim()) {
-      alert('Ange ett namn för mallen');
+      toast.warning('Namn saknas', 'Ange ett namn för mallen');
       return;
     }
 

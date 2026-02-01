@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
 import { useDraftList } from '@/lib/hooks/useDraftList';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 import { FloatingDraftList } from '@/components/FloatingDraftList';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -90,19 +91,35 @@ export default function ResultsPage() {
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
   const [justAdjustedToMoq, setJustAdjustedToMoq] = useState<string | null>(null);
   const [provorderWines, setProvorderWines] = useState<Set<string>>(new Set());
+  // Track wines where user has actively chosen to adjust to MOQ
+  const [userAdjustedToMoq, setUserAdjustedToMoq] = useState<Set<string>>(new Set());
 
   // Draft list (Spara till lista)
   const draftList = useDraftList();
 
-  // Get quantity for a wine (default to max of requestedQuantity and MOQ, or 6)
+  // Toast notifications
+  const toast = useToast();
+
+  // Get quantity for a wine - NO auto-adjustment, user must actively choose
   const getWineQuantity = (wineId: string, moq: number) => {
+    // If user has set a specific quantity, use it
     if (wineQuantities[wineId] !== undefined) return wineQuantities[wineId];
-    // Start at MOQ if it's higher than requested quantity
-    const effectiveMoq = moq > 0 ? moq : 6;
+    // Otherwise, use the original requested quantity (don't auto-adjust to MOQ)
     if (requestedQuantity && requestedQuantity > 0) {
-      return Math.max(requestedQuantity, effectiveMoq);
+      return requestedQuantity;
     }
-    return effectiveMoq;
+    // Fallback default
+    return moq > 0 ? moq : 6;
+  };
+
+  // Handle user clicking to adjust to MOQ
+  const handleAdjustToMoq = (wineId: string, moq: number) => {
+    setWineQuantities(prev => ({ ...prev, [wineId]: moq }));
+    setUserAdjustedToMoq(prev => {
+      const newSet = new Set(prev);
+      newSet.add(wineId);
+      return newSet;
+    });
   };
 
   const updateWineQuantity = (wineId: string, delta: number, moq: number) => {
@@ -269,16 +286,54 @@ export default function ResultsPage() {
     });
   };
 
-  const toggleWineSelection = (wineId: string) => {
-    setSelectedWines(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(wineId)) {
+  const toggleWineSelection = (wineId: string, suggestion?: Suggestion) => {
+    const isCurrentlySelected = selectedWines.has(wineId);
+
+    if (isCurrentlySelected) {
+      // Deselecting - remove from both selectedWines and draftList
+      setSelectedWines(prev => {
+        const newSet = new Set(prev);
         newSet.delete(wineId);
-      } else {
-        newSet.add(wineId);
+        return newSet;
+      });
+      draftList.removeItem(wineId);
+    } else {
+      // Selecting - add to selectedWines, and try to add to draftList if data available
+      setSelectedWines(prev => new Set([...prev, wineId]));
+
+      // Add to draft list if we have the suggestion data
+      if (suggestion) {
+        const moq = suggestion.wine.moq || 1;
+        const qty = getWineQuantity(wineId, moq);
+        const isBelowMoq = moq > 1 && qty < moq;
+        const hasProvorder = provorderWines.has(wineId) && suggestion.supplier.provorder_enabled;
+
+        // Only add to list if meets MOQ or is provorder
+        if (!isBelowMoq || hasProvorder) {
+          const existingItem = draftList.items.find(item => item.wine_id === wineId);
+          if (!existingItem) {
+            draftList.addItem({
+              wine_id: wineId,
+              wine_name: suggestion.wine.namn,
+              producer: suggestion.wine.producent,
+              country: suggestion.wine.land,
+              region: suggestion.wine.region,
+              vintage: suggestion.wine.argang,
+              color: suggestion.wine.color,
+              supplier_id: suggestion.supplier.id || suggestion.supplier.namn,
+              supplier_name: suggestion.supplier.namn,
+              quantity: qty,
+              moq: moq,
+              price_sek: suggestion.wine.pris_sek,
+              stock: suggestion.wine.lager,
+              lead_time_days: suggestion.wine.ledtid_dagar || suggestion.supplier.normalleveranstid_dagar,
+              provorder: hasProvorder,
+              provorder_fee: hasProvorder ? (suggestion.supplier.provorder_fee_sek || 500) : undefined,
+            });
+          }
+        }
       }
-      return newSet;
-    });
+    }
   };
 
   const toggleWineExpanded = (wineId: string) => {
@@ -294,8 +349,8 @@ export default function ResultsPage() {
   };
 
   const handleRequestConfirmation = () => {
-    if (selectedWines.size === 0) {
-      alert('Välj minst ett vin att skicka till leverantörer');
+    if (draftList.items.length === 0) {
+      toast.warning('Tom lista', 'Lägg till minst ett vin i din lista innan du skickar förfrågan');
       return;
     }
     setShowConfirmModal(true);
@@ -329,32 +384,39 @@ export default function ResultsPage() {
       setShowConfirmModal(false);
       setSent(true);
 
-      // Refresh offer counts after dispatching
-      setTimeout(() => fetchOfferCounts(), 2000);
+      // Clear the draft list after successfully sending the request
+      draftList.clear();
+
+      // Clear visual selections too
+      setSelectedWines(new Set());
+
+      // Show toast and redirect to "Mina förfrågningar" after showing success message
+      toast.success('Förfrågan skickad!', 'Du dirigeras till dina förfrågningar...');
+      setTimeout(() => {
+        router.push('/dashboard/my-requests');
+      }, 2500);
     } catch (error) {
       console.error('Failed to send request:', error);
-      alert(error instanceof Error ? error.message : 'Kunde inte skicka förfrågan. Försök igen.');
+      toast.error('Kunde inte skicka', error instanceof Error ? error.message : 'Försök igen senare');
     } finally {
       setSending(false);
     }
   };
 
-  // Get selected wine details for confirmation modal
+  // Get selected wine details for confirmation modal - USE DRAFT LIST for accurate data
   const selectedWineDetails = useMemo(() => {
     return suggestions.filter(s => selectedWines.has(s.wine.id));
   }, [suggestions, selectedWines]);
 
-  // Calculate total value: price × quantity for each wine
+  // Calculate total value from draftList (MOQ-aware quantities)
   const totalEstimatedValue = useMemo(() => {
-    const qty = requestedQuantity || 1;
-    return selectedWineDetails.reduce((sum, s) => sum + (s.wine.pris_sek * qty), 0);
-  }, [selectedWineDetails, requestedQuantity]);
+    return draftList.items.reduce((sum, item) => sum + (item.price_sek * item.quantity), 0);
+  }, [draftList.items]);
 
-  // Total bottles
+  // Total bottles from draftList
   const totalBottles = useMemo(() => {
-    const qty = requestedQuantity || 1;
-    return selectedWineDetails.length * qty;
-  }, [selectedWineDetails, requestedQuantity]);
+    return draftList.items.reduce((sum, item) => sum + item.quantity, 0);
+  }, [draftList.items]);
 
   if (loading) {
     return (
@@ -374,7 +436,7 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 ${selectedWines.size > 0 && !sent ? 'pb-24' : ''}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 ${draftList.items.length > 0 && !sent ? 'pb-24' : ''}`}>
       {/* Header */}
       <header className="bg-primary text-primary-foreground shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -622,7 +684,7 @@ export default function ResultsPage() {
                       ? 'bg-green-100/50 border-green-200'
                       : 'bg-gradient-to-r from-primary/5 to-accent/5 border-border hover:bg-primary/10'
                   }`}
-                  onClick={() => toggleWineSelection(suggestion.wine.id)}
+                  onClick={() => toggleWineSelection(suggestion.wine.id, suggestion)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -732,10 +794,87 @@ export default function ResultsPage() {
                     const stock = suggestion.wine.lager;
                     const isLowStock = stock !== undefined && stock !== null && currentQty > 0 && stock > 0 && stock < currentQty;
 
+                    // Determine MOQ status
+                    const isBelowMoq = moq > 0 && currentQty < moq;
+                    const hasUserAdjusted = userAdjustedToMoq.has(suggestion.wine.id);
+                    const isInDraftList = draftList.items.some(item => item.wine_id === suggestion.wine.id);
+
                     return (
                       <div className="mb-6 p-4 rounded-xl border bg-muted/30 border-border">
-                        {/* MOQ guidance banner - shows when user's request was below minimum */}
-                        {wasAutoAdjusted && (
+                        {/* MOQ Status Banner - 3 states: Red (needs action), Yellow (adjusted), Green (in list) */}
+                        {moq > 0 && originalQty > 0 && originalQty < moq && (
+                          <>
+                            {/* STATE 1: RED - Below MOQ, needs user action */}
+                            {isBelowMoq && !hasUserAdjusted && (
+                              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <div className="flex items-start gap-3">
+                                  <div className="p-1.5 bg-red-100 rounded-full">
+                                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-red-800">
+                                      Under minsta orderantal
+                                    </p>
+                                    <p className="text-xs text-red-600 mt-0.5">
+                                      Du sökte {originalQty} fl, men minimum är {moq} fl.
+                                    </p>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAdjustToMoq(suggestion.wine.id, moq);
+                                      }}
+                                      className="mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors"
+                                    >
+                                      Justera till {moq} fl
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* STATE 2: YELLOW - User has adjusted to MOQ */}
+                            {hasUserAdjusted && !isInDraftList && (
+                              <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                <div className="flex items-start gap-3">
+                                  <div className="p-1.5 bg-amber-100 rounded-full">
+                                    <CheckCircle2 className="h-4 w-4 text-amber-600" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-amber-800">
+                                      Justerat till minsta order
+                                    </p>
+                                    <p className="text-xs text-amber-600 mt-0.5">
+                                      Du sökte {originalQty} fl → ändrat till {currentQty} fl
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* STATE 3: GREEN - In draft list */}
+                            {isInDraftList && (
+                              <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <div className="flex items-start gap-3">
+                                  <div className="p-1.5 bg-green-100 rounded-full">
+                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-green-800">
+                                      I din lista
+                                    </p>
+                                    <p className="text-xs text-green-600 mt-0.5">
+                                      {currentQty} fl tillagda
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {/* Also show green banner if in list but no MOQ issue */}
+                        {isInDraftList && !(moq > 0 && originalQty > 0 && originalQty < moq) && (
                           <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                             <div className="flex items-start gap-3">
                               <div className="p-1.5 bg-green-100 rounded-full">
@@ -743,30 +882,48 @@ export default function ResultsPage() {
                               </div>
                               <div className="flex-1">
                                 <p className="text-sm font-medium text-green-800">
-                                  Justerat till minsta order
+                                  I din lista
                                 </p>
                                 <p className="text-xs text-green-600 mt-0.5">
-                                  Du sökte {originalQty} fl, men minimum är {moq} fl.
-                                  <span className="font-medium"> Vi har ändrat till {moq} fl åt dig.</span>
+                                  {currentQty} fl tillagda
                                 </p>
                               </div>
                             </div>
                           </div>
                         )}
+
                         <div className="grid grid-cols-4 gap-3">
-                          {/* Current Quantity - with MOQ status indicator */}
+                          {/* Order Quantity - color based on state */}
                           <div className={`text-center p-3 rounded-lg ${
-                            currentQty >= moq
+                            isInDraftList
                               ? 'bg-green-100 border-2 border-green-300'
-                              : 'bg-amber-100 border-2 border-amber-300'
+                              : hasUserAdjusted
+                                ? 'bg-amber-100 border-2 border-amber-300'
+                                : isBelowMoq
+                                  ? 'bg-red-100 border-2 border-red-300'
+                                  : 'bg-green-100 border-2 border-green-300'
                           }`}>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Ditt antal</p>
-                            <p className={`text-lg font-bold ${currentQty >= moq ? 'text-green-700' : 'text-amber-700'}`}>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Att beställa</p>
+                            <p className={`text-lg font-bold ${
+                              isInDraftList
+                                ? 'text-green-700'
+                                : hasUserAdjusted
+                                  ? 'text-amber-700'
+                                  : isBelowMoq
+                                    ? 'text-red-700'
+                                    : 'text-green-700'
+                            }`}>
                               {currentQty > 0 ? `${currentQty} fl` : '–'}
                             </p>
-                            {currentQty >= moq && moq > 0 && (
-                              <p className="text-xs text-green-600 font-medium">✓ Uppfyller min</p>
-                            )}
+                            {isInDraftList ? (
+                              <p className="text-xs text-green-600 font-medium">✓ I lista</p>
+                            ) : hasUserAdjusted ? (
+                              <p className="text-xs text-amber-600 font-medium">({originalQty} → {currentQty})</p>
+                            ) : isBelowMoq ? (
+                              <p className="text-xs text-red-600 font-medium">Under minimum</p>
+                            ) : currentQty >= moq && moq > 0 ? (
+                              <p className="text-xs text-green-600 font-medium">✓ OK</p>
+                            ) : null}
                           </div>
 
                           {/* MOQ - with visual connection */}
@@ -1322,7 +1479,7 @@ export default function ResultsPage() {
               </div>
               <h3 className="text-2xl font-bold mb-3">Förfrågan skickad!</h3>
               <p className="text-white/90 mb-6">
-                Din förfrågan om {selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''} har skickats.
+                Din förfrågan om {draftList.items.length} vin{draftList.items.length > 1 ? 'er' : ''} har skickats.
                 Vi skickar offerterna till dig så snart leverantörerna har svarat.
               </p>
               <div className="flex gap-4 justify-center">
@@ -1345,13 +1502,13 @@ export default function ResultsPage() {
           <div className="bg-primary text-primary-foreground rounded-2xl shadow-xl p-8">
             <div className="max-w-3xl mx-auto text-center">
               <h3 className="text-2xl font-bold mb-3">
-                {selectedWines.size > 0 ? `${selectedWines.size} vin${selectedWines.size > 1 ? 'er' : ''} valt` : 'Välj viner för offertförfrågan'}
+                {draftList.items.length > 0 ? `${draftList.items.length} vin${draftList.items.length > 1 ? 'er' : ''} i din lista` : 'Lägg till viner i din lista'}
               </h3>
               <p className="text-primary-foreground/90 mb-2">
-                {selectedWines.size > 0 ? (
+                {draftList.items.length > 0 ? (
                   <>Klicka på &quot;Granska och skicka&quot; för att begära offerter från leverantörer.</>
                 ) : (
-                  <>Klicka på ett vinkort för att lägga till det i din offertförfrågan.</>
+                  <>Klicka på &quot;Lägg i lista&quot; på ett vin för att lägga till det.</>
                 )}
               </p>
               <p className="text-primary-foreground/70 text-sm mb-6">
@@ -1360,10 +1517,10 @@ export default function ResultsPage() {
               <div className="flex gap-4 justify-center">
                 <button
                   onClick={handleRequestConfirmation}
-                  disabled={selectedWines.size === 0}
+                  disabled={draftList.items.length === 0}
                   className="px-8 py-3 bg-primary-foreground text-primary rounded-xl hover:bg-primary-foreground/90 transition-colors font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  📧 Granska och skicka ({selectedWines.size} viner)
+                  📧 Granska och skicka ({draftList.items.length} viner)
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/new-request')}
@@ -1410,7 +1567,7 @@ export default function ResultsPage() {
 
               {/* Modal Body */}
               <div className="px-6 py-4 overflow-y-auto max-h-[50vh]">
-                {/* Summary */}
+                {/* Summary - use draftList for accurate MOQ-aware data */}
                 <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-100 rounded-lg">
@@ -1418,7 +1575,7 @@ export default function ResultsPage() {
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-blue-900">
-                        {selectedWineDetails.length} vin{selectedWineDetails.length > 1 ? 'er' : ''} × {requestedQuantity || 1} flaskor = {totalBottles} flaskor totalt
+                        {draftList.items.length} vin{draftList.items.length > 1 ? 'er' : ''} = {totalBottles} flaskor totalt
                       </p>
                       <p className="text-sm text-blue-700">
                         Uppskattat ordervärde: {formatPrice(totalEstimatedValue)}
@@ -1427,12 +1584,12 @@ export default function ResultsPage() {
                   </div>
                 </div>
 
-                {/* Wine List */}
+                {/* Wine List - use draftList.items for accurate quantities */}
                 <div className="space-y-3">
                   <p className="text-sm font-medium text-gray-700">Viner som ingår:</p>
-                  {selectedWineDetails.map((suggestion, index) => (
+                  {draftList.items.map((item, index) => (
                     <div
-                      key={suggestion.wine.id}
+                      key={item.wine_id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
                     >
                       <div className="flex items-center gap-3">
@@ -1441,22 +1598,22 @@ export default function ResultsPage() {
                         </span>
                         <div>
                           <p className="font-medium text-gray-900">
-                            {suggestion.wine.namn}
-                            {suggestion.wine.argang && (
-                              <span className="text-gray-500 ml-1">{suggestion.wine.argang}</span>
+                            {item.wine_name}
+                            {item.vintage && (
+                              <span className="text-gray-500 ml-1">{item.vintage}</span>
                             )}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {suggestion.wine.producent} · {suggestion.supplier.namn}
+                            {item.producer} · {item.supplier_name}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-gray-500 mb-1">
-                          {requestedQuantity || 1} fl × {formatPrice(suggestion.wine.pris_sek)}
+                          {item.quantity} fl × {formatPrice(item.price_sek)}
                         </p>
                         <p className="font-semibold text-gray-900">
-                          {formatPrice(suggestion.wine.pris_sek * (requestedQuantity || 1))}
+                          {formatPrice(item.price_sek * item.quantity)}
                         </p>
                       </div>
                     </div>
@@ -1524,13 +1681,13 @@ export default function ResultsPage() {
         </>
       )}
 
-      {/* Sticky action bar - shows when wines are selected */}
-      {selectedWines.size > 0 && !sent && (
+      {/* Sticky action bar - shows when wines are in list */}
+      {draftList.items.length > 0 && !sent && (
         <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-lg safe-area-inset-bottom">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 truncate">
-                {selectedWines.size} vin{selectedWines.size > 1 ? 'er' : ''} valt
+                {draftList.items.length} vin{draftList.items.length > 1 ? 'er' : ''} i listan ({totalBottles} fl)
               </p>
               <p className="text-sm text-gray-500 truncate">
                 Uppskattat: {formatPrice(totalEstimatedValue)}

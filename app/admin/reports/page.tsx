@@ -11,6 +11,7 @@
 
 import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
+import { useToast } from '@/components/ui/toast';
 import {
   FileText,
   Download,
@@ -81,6 +82,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function AdminReportsPage() {
   const router = useRouter();
+  const toast = useToast();
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -155,7 +157,7 @@ export default function AdminReportsPage() {
       document.body.removeChild(a);
     } catch (err) {
       console.error('Failed to export:', err);
-      alert('Kunde inte exportera rapport');
+      toast.error('Kunde inte exportera', 'Försök igen senare');
     } finally {
       setExporting(false);
     }

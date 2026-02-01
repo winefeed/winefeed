@@ -14,6 +14,7 @@
 
 import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
+import { useToast } from '@/components/ui/toast';
 import {
   FileText,
   Download,
@@ -172,6 +173,7 @@ const REPORT_TABS: { id: ReportType; label: string; icon: React.ElementType }[] 
 ];
 
 export default function AdminCompliancePage() {
+  const toast = useToast();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -254,7 +256,7 @@ export default function AdminCompliancePage() {
       document.body.removeChild(a);
     } catch (err) {
       console.error('Failed to export:', err);
-      alert('Kunde inte exportera rapport');
+      toast.error('Kunde inte exportera', 'Försök igen senare');
     } finally {
       setExporting(false);
     }

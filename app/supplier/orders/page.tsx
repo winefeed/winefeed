@@ -9,6 +9,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Package, Clock, Building2, Truck, CheckCircle, XCircle, ChevronRight, AlertCircle } from 'lucide-react';
 import { getErrorMessage } from '@/lib/utils';
+import { useToast } from '@/components/ui/toast';
 
 interface Order {
   id: string;
@@ -33,6 +34,9 @@ export default function SupplierOrdersPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showDeclineModal, setShowDeclineModal] = useState<string | null>(null);
   const [declineReason, setDeclineReason] = useState('');
+
+  // Toast notifications
+  const toast = useToast();
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -91,7 +95,7 @@ export default function SupplierOrdersPage() {
       await fetchOrders();
     } catch (error) {
       console.error('Failed to confirm order:', error);
-      alert(getErrorMessage(error, 'Kunde inte bekräfta ordern'));
+      toast.error('Kunde inte bekräfta', getErrorMessage(error, 'Kunde inte bekräfta ordern'));
     } finally {
       setActionLoading(null);
     }
@@ -119,7 +123,7 @@ export default function SupplierOrdersPage() {
       await fetchOrders();
     } catch (error) {
       console.error('Failed to decline order:', error);
-      alert(getErrorMessage(error, 'Kunde inte avböja ordern'));
+      toast.error('Kunde inte avböja', getErrorMessage(error, 'Kunde inte avböja ordern'));
     } finally {
       setActionLoading(null);
     }
