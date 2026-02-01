@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send, Plus, Building2, AlertCircle, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
+import { X, Wine, MapPin, Package, Calendar, CheckCircle, ArrowLeft, Send, Plus, Building2, AlertCircle, ChevronDown, ChevronUp, SlidersHorizontal, HelpCircle } from 'lucide-react';
 import { FormErrorSummary, inputErrorClass } from '@/components/ui/form-error';
+import { HelpTooltip, HelpText } from '@/components/ui/help-tooltip';
 
 // Wine color options - matches database enum (wine_color)
 // Valid values: red, white, rose, sparkling, orange, fortified
@@ -513,7 +514,10 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
       {/* Budget */}
       <div className="space-y-2">
-        <Label htmlFor="budget_max">Max budget per flaska (SEK ex moms)</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="budget_max">Max budget per flaska</Label>
+          <HelpTooltip content="Ange ditt maxpris per flaska exklusive moms (25%). Momsen läggs till vid fakturering." />
+        </div>
         <Input
           id="budget_max"
           type="number"
@@ -524,6 +528,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           onWheel={(e) => e.currentTarget.blur()}
           {...register('budget_max')}
         />
+        <HelpText>SEK ex moms. T.ex. 200 kr = ca 250 kr inkl moms.</HelpText>
         {errors.budget_max && (
           <p className="text-sm text-red-600 flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
@@ -534,7 +539,10 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
       {/* Quantity */}
       <div className="space-y-2">
-        <Label htmlFor="antal_flaskor">Antal flaskor</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="antal_flaskor">Antal flaskor</Label>
+          <HelpTooltip content="Hur många flaskor du vill beställa totalt. Vissa viner har minsta orderantal (MOQ) - du kan justera detta när du ser resultaten." />
+        </div>
         <Input
           id="antal_flaskor"
           type="number"
@@ -544,6 +552,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           onWheel={(e) => e.currentTarget.blur()}
           {...register('antal_flaskor')}
         />
+        <HelpText>Du kan justera antal för varje vin i nästa steg.</HelpText>
         {errors.antal_flaskor && (
           <p className="text-sm text-red-600 flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
@@ -554,7 +563,10 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
       {/* Delivery Location */}
       <div className="space-y-3">
-        <Label>Leveransort (valfritt)</Label>
+        <div className="flex items-center gap-1">
+          <Label>Leveransort (valfritt)</Label>
+          <HelpTooltip content="Ange stad för leverans så kan leverantörer beräkna fraktkostnad. Lämna tomt om du är osäker - du kan ange det senare." />
+        </div>
 
         {/* Saved addresses selector - Mobile: horizontal scroll */}
         {savedAddresses.length > 0 && (
