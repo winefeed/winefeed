@@ -23,6 +23,8 @@ import {
   Minus,
   Plus,
   Loader2,
+  AlertTriangle,
+  MessageSquare,
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -49,6 +51,12 @@ interface Order {
     namn: string;
   };
   lines: OrderLine[];
+  // Dispute fields
+  dispute_status: 'none' | 'reported' | 'investigating' | 'resolved';
+  dispute_reason?: string;
+  dispute_reported_at?: string;
+  // Payment fields
+  payment_status: 'pending' | 'invoiced' | 'paid' | 'overdue' | 'refunded';
 }
 
 type StatusFilter = 'all' | 'pending' | 'confirmed' | 'shipped' | 'delivered';
@@ -74,6 +82,7 @@ export default function RestaurantOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [reorderOrder, setReorderOrder] = useState<Order | null>(null);
+  const [disputeOrder, setDisputeOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -327,18 +336,41 @@ export default function RestaurantOrdersPage() {
 
               {/* Order Footer */}
               <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-                {/* Reorder button - available for confirmed, shipped, or delivered orders */}
-                {['CONFIRMED', 'confirmed', 'SHIPPED', 'shipped', 'DELIVERED', 'delivered'].includes(order.status) && order.lines?.length > 0 ? (
-                  <button
-                    onClick={() => setReorderOrder(order)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Beställ igen
-                  </button>
-                ) : (
-                  <div />
-                )}
+                <div className="flex items-center gap-2">
+                  {/* Reorder button - available for confirmed, shipped, or delivered orders */}
+                  {['CONFIRMED', 'confirmed', 'SHIPPED', 'shipped', 'DELIVERED', 'delivered'].includes(order.status) && order.lines?.length > 0 && (
+                    <button
+                      onClick={() => setReorderOrder(order)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Beställ igen
+                    </button>
+                  )}
+                  {/* Dispute button - show if not already disputed */}
+                  {order.dispute_status === 'none' && !['PENDING', 'pending', 'CANCELLED', 'cancelled'].includes(order.status) && (
+                    <button
+                      onClick={() => setDisputeOrder(order)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
+                    >
+                      <AlertTriangle className="h-4 w-4" />
+                      Rapportera problem
+                    </button>
+                  )}
+                  {/* Dispute status badge */}
+                  {order.dispute_status !== 'none' && (
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                      order.dispute_status === 'reported' ? 'bg-amber-100 text-amber-700' :
+                      order.dispute_status === 'investigating' ? 'bg-blue-100 text-blue-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      <MessageSquare className="h-3 w-3" />
+                      {order.dispute_status === 'reported' && 'Ärende rapporterat'}
+                      {order.dispute_status === 'investigating' && 'Under utredning'}
+                      {order.dispute_status === 'resolved' && 'Löst'}
+                    </span>
+                  )}
+                </div>
                 <button
                   onClick={() => setSelectedOrder(order)}
                   className="inline-flex items-center gap-1 text-sm font-medium text-wine hover:text-wine/80"
@@ -368,6 +400,18 @@ export default function RestaurantOrdersPage() {
           order={reorderOrder}
           onClose={() => setReorderOrder(null)}
           formatCurrency={formatCurrency}
+        />
+      )}
+
+      {/* Dispute Modal */}
+      {disputeOrder && (
+        <DisputeModal
+          order={disputeOrder}
+          onClose={() => setDisputeOrder(null)}
+          onSuccess={() => {
+            // Refresh orders list
+            window.location.reload();
+          }}
         />
       )}
     </div>
@@ -786,6 +830,164 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
           <p className="text-xs text-center text-gray-500 mt-3">
             Beställningen skickas direkt till {order.supplier?.namn}
           </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// DISPUTE MODAL
+// ============================================================================
+
+interface DisputeModalProps {
+  order: Order;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function DisputeModal({ order, onClose, onSuccess }: DisputeModalProps) {
+  const [reason, setReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async () => {
+    if (reason.trim().length < 10) {
+      setError('Beskriv problemet mer utförligt (minst 10 tecken)');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/restaurant/orders/${order.id}/dispute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Något gick fel');
+      }
+
+      setSuccess(true);
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Något gick fel');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Tack för din rapport
+          </h2>
+          <p className="text-gray-600">
+            Vi har tagit emot din reklamation och återkommer snarast.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl max-w-lg w-full">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-100 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Rapportera problem</h2>
+              <p className="text-sm text-gray-500">{order.supplier?.namn}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <p className="text-sm text-gray-600 mb-4">
+            Beskriv vad som är fel med leveransen. Vi kontaktar leverantören och återkommer till dig.
+          </p>
+
+          <div className="space-y-4">
+            {/* Quick options */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                'Fel produkt levererad',
+                'Skadade flaskor',
+                'Saknas i leveransen',
+                'Kvalitetsproblem',
+              ].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setReason(prev => prev ? `${prev}\n${option}` : option)}
+                  className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            {/* Text area */}
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={4}
+              placeholder="Beskriv problemet i detalj..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+            />
+
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {error}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-200 bg-gray-50 flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
+          >
+            Avbryt
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting || reason.trim().length < 10}
+            className="flex-1 px-4 py-2.5 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Skickar...
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="h-4 w-4" />
+                Skicka rapport
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

@@ -24,6 +24,9 @@ import {
   MessageSquare,
   Save,
   ExternalLink,
+  AlertTriangle,
+  CreditCard,
+  FileText,
 } from 'lucide-react';
 
 interface Order {
@@ -44,6 +47,14 @@ interface Order {
   handled_by_winefeed: boolean;
   concierge_notes: string | null;
   concierge_handled_at: string | null;
+  // Dispute fields
+  dispute_status: 'none' | 'reported' | 'investigating' | 'resolved';
+  dispute_reason: string | null;
+  dispute_reported_at: string | null;
+  // Payment fields
+  payment_status: 'pending' | 'invoiced' | 'paid' | 'overdue' | 'refunded';
+  payment_due_date: string | null;
+  invoice_number: string | null;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Package; color: string }> = {
@@ -54,12 +65,29 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof Package; color
   CANCELLED: { label: 'Avbruten', icon: XCircle, color: 'bg-red-100 text-red-800' },
 };
 
+const PAYMENT_CONFIG: Record<string, { label: string; color: string }> = {
+  pending: { label: 'Ej fakturerad', color: 'bg-gray-100 text-gray-700' },
+  invoiced: { label: 'Fakturerad', color: 'bg-blue-100 text-blue-700' },
+  paid: { label: 'Betald', color: 'bg-green-100 text-green-700' },
+  overdue: { label: 'Förfallen', color: 'bg-red-100 text-red-700' },
+  refunded: { label: 'Återbetald', color: 'bg-purple-100 text-purple-700' },
+};
+
+const DISPUTE_CONFIG: Record<string, { label: string; color: string }> = {
+  none: { label: 'Ingen', color: 'bg-gray-100 text-gray-500' },
+  reported: { label: 'Rapporterad', color: 'bg-amber-100 text-amber-700' },
+  investigating: { label: 'Utreds', color: 'bg-blue-100 text-blue-700' },
+  resolved: { label: 'Löst', color: 'bg-green-100 text-green-700' },
+};
+
 export default function AdminOrdersPage() {
   const toast = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [conciergeFilter, setConciergeFilter] = useState<string>('ALL');
+  const [disputeFilter, setDisputeFilter] = useState<string>('ALL');
+  const [paymentFilter, setPaymentFilter] = useState<string>('ALL');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [notesValue, setNotesValue] = useState('');
@@ -164,14 +192,67 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const updatePaymentStatus = async (orderId: string, newStatus: string) => {
+    setSaving(orderId);
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_status: newStatus }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update');
+
+      setOrders(prev =>
+        prev.map(o => (o.id === orderId ? { ...o, payment_status: newStatus as Order['payment_status'] } : o))
+      );
+
+      toast.success('Betalningsstatus uppdaterad');
+    } catch (error) {
+      toast.error('Kunde inte uppdatera betalningsstatus');
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const updateDisputeStatus = async (orderId: string, newStatus: string) => {
+    setSaving(orderId);
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dispute_status: newStatus,
+          ...(newStatus === 'resolved' ? { dispute_resolved_at: new Date().toISOString() } : {})
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update');
+
+      setOrders(prev =>
+        prev.map(o => (o.id === orderId ? { ...o, dispute_status: newStatus as Order['dispute_status'] } : o))
+      );
+
+      toast.success('Reklamationsstatus uppdaterad');
+    } catch (error) {
+      toast.error('Kunde inte uppdatera reklamationsstatus');
+    } finally {
+      setSaving(null);
+    }
+  };
+
   // Filter orders
   const filteredOrders = orders.filter(order => {
     if (conciergeFilter === 'CONCIERGE' && !order.handled_by_winefeed) return false;
     if (conciergeFilter === 'NORMAL' && order.handled_by_winefeed) return false;
+    if (disputeFilter !== 'ALL' && order.dispute_status !== disputeFilter) return false;
+    if (paymentFilter !== 'ALL' && order.payment_status !== paymentFilter) return false;
     return true;
   });
 
   const conciergeCount = orders.filter(o => o.handled_by_winefeed).length;
+  const disputeCount = orders.filter(o => o.dispute_status !== 'none').length;
+  const unpaidCount = orders.filter(o => o.payment_status === 'pending' || o.payment_status === 'overdue').length;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -194,20 +275,22 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Totalt</p>
           <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Concierge-ordrar</p>
+          <p className="text-sm text-gray-500">Concierge</p>
           <p className="text-2xl font-bold text-wine">{conciergeCount}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Under hantering</p>
-          <p className="text-2xl font-bold text-yellow-600">
-            {orders.filter(o => o.status === 'IN_FULFILLMENT').length}
-          </p>
+        <div className={`bg-white rounded-lg border p-4 ${disputeCount > 0 ? 'border-amber-300 bg-amber-50' : 'border-gray-200'}`}>
+          <p className="text-sm text-gray-500">Reklamationer</p>
+          <p className={`text-2xl font-bold ${disputeCount > 0 ? 'text-amber-600' : 'text-gray-400'}`}>{disputeCount}</p>
+        </div>
+        <div className={`bg-white rounded-lg border p-4 ${unpaidCount > 0 ? 'border-blue-300 bg-blue-50' : 'border-gray-200'}`}>
+          <p className="text-sm text-gray-500">Ej betalda</p>
+          <p className={`text-2xl font-bold ${unpaidCount > 0 ? 'text-blue-600' : 'text-gray-400'}`}>{unpaidCount}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Levererade</p>
@@ -246,6 +329,34 @@ export default function AdminOrdersPage() {
             <option value="NORMAL">Vanliga ordrar</option>
           </select>
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Reklamation</label>
+          <select
+            value={disputeFilter}
+            onChange={(e) => setDisputeFilter(e.target.value)}
+            className={`px-3 py-2 border rounded-lg text-sm ${disputeFilter !== 'ALL' ? 'border-amber-300 bg-amber-50' : 'border-gray-300'}`}
+          >
+            <option value="ALL">Alla</option>
+            <option value="reported">Rapporterade</option>
+            <option value="investigating">Under utredning</option>
+            <option value="resolved">Lösta</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Betalning</label>
+          <select
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value)}
+            className={`px-3 py-2 border rounded-lg text-sm ${paymentFilter !== 'ALL' ? 'border-blue-300 bg-blue-50' : 'border-gray-300'}`}
+          >
+            <option value="ALL">Alla</option>
+            <option value="pending">Ej fakturerad</option>
+            <option value="invoiced">Fakturerad</option>
+            <option value="paid">Betald</option>
+            <option value="overdue">Förfallen</option>
+            <option value="refunded">Återbetald</option>
+          </select>
+        </div>
       </div>
 
       {/* Orders list */}
@@ -272,7 +383,7 @@ export default function AdminOrdersPage() {
                   onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {/* Concierge badge */}
                       {order.handled_by_winefeed && (
                         <div className="flex items-center gap-1 px-2 py-1 bg-wine/10 text-wine rounded-full text-xs font-medium">
@@ -285,6 +396,20 @@ export default function AdminOrdersPage() {
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}>
                         <StatusIcon className="h-3 w-3" />
                         {statusConfig.label}
+                      </span>
+
+                      {/* Dispute badge */}
+                      {order.dispute_status !== 'none' && (
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${DISPUTE_CONFIG[order.dispute_status].color}`}>
+                          <AlertTriangle className="h-3 w-3" />
+                          {DISPUTE_CONFIG[order.dispute_status].label}
+                        </span>
+                      )}
+
+                      {/* Payment badge */}
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${PAYMENT_CONFIG[order.payment_status || 'pending'].color}`}>
+                        <CreditCard className="h-3 w-3" />
+                        {PAYMENT_CONFIG[order.payment_status || 'pending'].label}
                       </span>
                     </div>
 
@@ -345,6 +470,65 @@ export default function AdminOrdersPage() {
                           }`}
                         />
                       </button>
+                    </div>
+
+                    {/* Dispute section */}
+                    {order.dispute_status !== 'none' && (
+                      <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-600" />
+                            <p className="font-medium text-gray-900">Reklamation</p>
+                          </div>
+                          <select
+                            value={order.dispute_status}
+                            onChange={(e) => updateDisputeStatus(order.id, e.target.value)}
+                            disabled={isSaving}
+                            className="px-2 py-1 text-xs border border-amber-300 rounded-lg bg-white"
+                          >
+                            <option value="reported">Rapporterad</option>
+                            <option value="investigating">Under utredning</option>
+                            <option value="resolved">Löst</option>
+                          </select>
+                        </div>
+                        <p className="text-sm text-gray-700 bg-white p-2 rounded border border-amber-100">
+                          {order.dispute_reason || 'Ingen beskrivning'}
+                        </p>
+                        {order.dispute_reported_at && (
+                          <p className="text-xs text-gray-500 mt-2">
+                            Rapporterad: {new Date(order.dispute_reported_at).toLocaleString('sv-SE')}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Payment section */}
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4 text-gray-600" />
+                          <p className="font-medium text-gray-900">Betalning</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={order.payment_status || 'pending'}
+                            onChange={(e) => updatePaymentStatus(order.id, e.target.value)}
+                            disabled={isSaving}
+                            className="px-2 py-1 text-xs border border-gray-300 rounded-lg"
+                          >
+                            <option value="pending">Ej fakturerad</option>
+                            <option value="invoiced">Fakturerad</option>
+                            <option value="paid">Betald</option>
+                            <option value="overdue">Förfallen</option>
+                            <option value="refunded">Återbetald</option>
+                          </select>
+                        </div>
+                      </div>
+                      {order.invoice_number && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Fakturanr: {order.invoice_number}
+                        </p>
+                      )}
                     </div>
 
                     {/* Concierge notes */}

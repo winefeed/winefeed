@@ -121,7 +121,15 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { handled_by_winefeed, concierge_notes, status } = body;
+    const {
+      handled_by_winefeed,
+      concierge_notes,
+      status,
+      payment_status,
+      dispute_status,
+      dispute_resolved_at,
+      invoice_number,
+    } = body;
 
     // Verify order exists
     const { data: existingOrder, error: fetchError } = await supabase
@@ -168,6 +176,41 @@ export async function PATCH(
         );
       }
       updates.status = status;
+    }
+
+    // Handle payment status
+    if (payment_status) {
+      const validPaymentStatuses = ['pending', 'invoiced', 'paid', 'overdue', 'refunded'];
+      if (!validPaymentStatuses.includes(payment_status)) {
+        return NextResponse.json(
+          { error: `Invalid payment status. Must be one of: ${validPaymentStatuses.join(', ')}` },
+          { status: 400 }
+        );
+      }
+      updates.payment_status = payment_status;
+      if (payment_status === 'paid') {
+        updates.payment_paid_at = new Date().toISOString();
+      }
+    }
+
+    // Handle invoice number
+    if (invoice_number !== undefined) {
+      updates.invoice_number = invoice_number;
+    }
+
+    // Handle dispute status
+    if (dispute_status) {
+      const validDisputeStatuses = ['none', 'reported', 'investigating', 'resolved'];
+      if (!validDisputeStatuses.includes(dispute_status)) {
+        return NextResponse.json(
+          { error: `Invalid dispute status. Must be one of: ${validDisputeStatuses.join(', ')}` },
+          { status: 400 }
+        );
+      }
+      updates.dispute_status = dispute_status;
+      if (dispute_status === 'resolved') {
+        updates.dispute_resolved_at = dispute_resolved_at || new Date().toISOString();
+      }
     }
 
     // Update order
