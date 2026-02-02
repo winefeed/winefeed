@@ -574,6 +574,9 @@ export default function SupplierWinesPage() {
     }
   }, [supplierId]);
 
+  // Max file size: 5MB (Vercel limit is higher, but large files cause memory issues)
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -582,6 +585,18 @@ export default function SupplierWinesPage() {
       'text/csv': ['.csv'],
     },
     maxFiles: 1,
+    maxSize: MAX_FILE_SIZE,
+    onDropRejected: (fileRejections) => {
+      const rejection = fileRejections[0];
+      if (rejection?.errors[0]?.code === 'file-too-large') {
+        const sizeMB = (rejection.file.size / (1024 * 1024)).toFixed(1);
+        showToast(`Filen är för stor (${sizeMB} MB). Max 5 MB tillåtet.`, 'error');
+      } else if (rejection?.errors[0]?.code === 'file-invalid-type') {
+        showToast('Ogiltigt filformat. Använd Excel (.xlsx, .xls) eller CSV.', 'error');
+      } else {
+        showToast('Filen kunde inte laddas upp', 'error');
+      }
+    },
   });
 
   async function handleImport() {
@@ -1269,6 +1284,7 @@ export default function SupplierWinesPage() {
                     <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 mb-2">{isDragActive ? 'Släpp filen här...' : 'Dra och släpp en Excel- eller CSV-fil här'}</p>
                     <p className="text-sm text-gray-400">eller klicka för att välja fil</p>
+                    <p className="text-xs text-gray-400 mt-2">Max 5 MB • Excel (.xlsx, .xls) eller CSV</p>
                   </div>
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <h3 className="font-medium text-gray-900 mb-2">Kolumner som krävs:</h3>
