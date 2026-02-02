@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     // Build query
     let query = supabase
       .from('orders')
-      .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_case_id, total_lines, total_quantity, currency')
+      .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_case_id, total_lines, total_quantity, currency, dispute_status, dispute_reason, dispute_reported_at, payment_status')
       .eq('tenant_id', tenantId)
       .eq('restaurant_id', restaurantId)
       .order('created_at', { ascending: false })
@@ -132,7 +132,13 @@ export async function GET(request: NextRequest) {
           import_status: importStatus,
           lines_count: order.total_lines,
           total_quantity: order.total_quantity,
-          currency: order.currency
+          currency: order.currency,
+          // Dispute fields (restaurant can see but not manage)
+          dispute_status: order.dispute_status || 'none',
+          dispute_reason: order.dispute_reason || null,
+          dispute_reported_at: order.dispute_reported_at || null,
+          // Payment (restaurant only sees status, not details)
+          payment_status: order.payment_status || 'pending',
         };
       })
     );

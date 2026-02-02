@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     // Build query - admin sees all orders
     let query = supabase
       .from('orders')
-      .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_case_id, total_lines, total_quantity, currency, restaurant_id, handled_by_winefeed, concierge_notes, concierge_handled_at')
+      .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_case_id, total_lines, total_quantity, currency, restaurant_id, handled_by_winefeed, concierge_notes, concierge_handled_at, dispute_status, dispute_reason, dispute_reported_at, payment_status, payment_due_date, invoice_number')
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -138,6 +138,14 @@ export async function GET(request: NextRequest) {
           handled_by_winefeed: order.handled_by_winefeed || false,
           concierge_notes: order.concierge_notes || null,
           concierge_handled_at: order.concierge_handled_at || null,
+          // Dispute fields
+          dispute_status: order.dispute_status || 'none',
+          dispute_reason: order.dispute_reason || null,
+          dispute_reported_at: order.dispute_reported_at || null,
+          // Payment fields
+          payment_status: order.payment_status || 'pending',
+          payment_due_date: order.payment_due_date || null,
+          invoice_number: order.invoice_number || null,
         };
       })
     );
