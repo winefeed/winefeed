@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/toast';
 
 interface Restaurant {
   id: string;
@@ -50,6 +51,7 @@ interface NotificationSettings {
 type SettingsTab = 'account' | 'notifications' | 'addresses';
 
 export default function SettingsPage() {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [addresses, setAddresses] = useState<DeliveryAddress[]>([]);
@@ -129,8 +131,17 @@ export default function SettingsPage() {
         setAddresses(data.addresses || []);
       }
 
-      // TODO: Fetch notification settings from API
-      // For now using defaults
+      // Fetch notification settings
+      const notificationsRes = await fetch('/api/me/notifications');
+      if (notificationsRes.ok) {
+        const data = await notificationsRes.json();
+        setNotifications({
+          email_new_offer: data.email_new_offer ?? true,
+          email_offer_reminder: data.email_offer_reminder ?? true,
+          email_order_status: data.email_order_status ?? true,
+          email_frequency: data.email_frequency ?? 'immediate',
+        });
+      }
     } catch (err) {
       setError('Kunde inte ladda data');
     } finally {
@@ -162,11 +173,18 @@ export default function SettingsPage() {
   const handleSaveNotifications = async () => {
     setSavingNotifications(true);
     try {
-      // TODO: Save to API
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate save
-      // Show success
+      const res = await fetch('/api/me/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(notifications),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to save');
+      }
+      toast.success('Notis-inställningar sparade');
     } catch (err) {
-      // Handle error
+      toast.error('Kunde inte spara notis-inställningar');
     } finally {
       setSavingNotifications(false);
     }
