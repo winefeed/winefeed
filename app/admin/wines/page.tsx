@@ -11,7 +11,7 @@
 import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Wine, RefreshCw, Search, Filter, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Wine, RefreshCw, Search, Filter, X, ChevronUp, ChevronDown, Languages } from 'lucide-react';
 
 interface WineItem {
   id: string;
@@ -81,6 +81,8 @@ function AdminWinesPageContent() {
   const [selectedWine, setSelectedWine] = useState<WineItem | null>(null);
   const [sortColumn, setSortColumn] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [translating, setTranslating] = useState(false);
+  const [translateResult, setTranslateResult] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWines();
@@ -196,6 +198,38 @@ function AdminWinesPageContent() {
     }
   };
 
+  const translateDescriptions = async () => {
+    if (translating) return;
+
+    if (!confirm('Översätt alla engelska vinbeskrivningar till svenska?\n\nDetta kan ta några minuter.')) {
+      return;
+    }
+
+    try {
+      setTranslating(true);
+      setTranslateResult(null);
+
+      const response = await fetch('/api/admin/wines/translate-descriptions', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Translation failed');
+      }
+
+      setTranslateResult(`Översatte ${data.translated} av ${data.needsTranslation} beskrivningar`);
+      // Refresh wines to show updated descriptions
+      fetchWines();
+    } catch (err) {
+      console.error('Translation error:', err);
+      setTranslateResult(`Fel: ${getErrorMessage(err, 'Kunde inte översätta')}`);
+    } finally {
+      setTranslating(false);
+    }
+  };
+
   const handleSupplierChange = (supplierId: string) => {
     setSelectedSupplier(supplierId);
     // Update URL without reload
@@ -251,13 +285,28 @@ function AdminWinesPageContent() {
             {filteredWines.length} av {wines.length} viner
           </p>
         </div>
-        <button
-          onClick={fetchWines}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm font-medium"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Uppdatera
-        </button>
+        <div className="flex items-center gap-3">
+          {translateResult && (
+            <span className={`text-sm ${translateResult.startsWith('Fel') ? 'text-red-600' : 'text-green-600'}`}>
+              {translateResult}
+            </span>
+          )}
+          <button
+            onClick={translateDescriptions}
+            disabled={translating}
+            className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+          >
+            <Languages className={`h-4 w-4 ${translating ? 'animate-pulse' : ''}`} />
+            {translating ? 'Översätter...' : 'Översätt beskrivningar'}
+          </button>
+          <button
+            onClick={fetchWines}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm font-medium"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Uppdatera
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

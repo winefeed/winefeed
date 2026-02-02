@@ -23,6 +23,7 @@ export interface SupplierWine {
   moq: number;
   is_active: boolean;
   created_at?: string;
+  description?: string | null;  // Publik beskrivning som restauranger ser
 }
 
 interface WineCardProps {

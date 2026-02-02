@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { X, Wine, MapPin, Grape, Package, Tag, Edit2, Save, Loader2 } from 'lucide-react';
+import { X, Wine, MapPin, Grape, Package, Tag, Edit2, Save, Loader2, FileText } from 'lucide-react';
 import type { SupplierWine } from './WineCard';
 
 interface WineDetailModalProps {
@@ -57,6 +57,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
           stock_qty: editedWine.stock_qty,
           moq: editedWine.moq,
           is_active: editedWine.is_active,
+          description: editedWine.description,
         }),
       });
 
@@ -302,6 +303,32 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                   {wine.is_active ? 'Aktiv' : 'Inaktiv'}
                 </span>
               )}
+            </div>
+          </div>
+
+          {/* Description - visible to restaurants */}
+          <div className="pt-4 border-t border-gray-200">
+            <div className="flex items-start gap-3">
+              <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-500 mb-1">
+                  Beskrivning
+                  <span className="text-xs text-blue-600 ml-2">• Synlig för restauranger</span>
+                </p>
+                {isEditing ? (
+                  <textarea
+                    value={editedWine.description || ''}
+                    onChange={(e) => setEditedWine({ ...editedWine, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine/20 focus:border-wine resize-none"
+                    placeholder="T.ex. 'Fylligt rödvin med toner av körsbär och vanilj. Passar utmärkt till kött och vilt.'"
+                  />
+                ) : (
+                  <p className="text-sm text-gray-700">
+                    {wine.description || <span className="italic text-gray-400">Ingen beskrivning – lägg till via Redigera</span>}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

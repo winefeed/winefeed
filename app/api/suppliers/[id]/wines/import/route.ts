@@ -18,12 +18,16 @@
  * - price (price_ex_vat_sek in öre)
  * - quantity (stock_qty) - total bottles
  * - q_per_box (case_size) - bottles per case, for logistics
+ *
+ * OPTIONAL FIELDS:
+ * - moq (min_order) - minimum order quantity in bottles (defaults to case_size)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
 import { checkActionGate, createGatedResponse } from '@/lib/feature-gates';
+import { batchTranslateToSwedish } from '@/lib/ai/translate';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,6 +69,8 @@ interface WineImportRow {
   price?: number | string;   // list price
   quantity?: number | string; // stock quantity (total bottles)
   q_per_box?: number | string; // case_size (bottles per case)
+  moq?: number | string;       // minimum order quantity (defaults to case_size)
+  min_order?: number | string; // alternative name for moq
 
   // Optional fields
   region?: string;           // area/AOP
@@ -140,6 +146,15 @@ export async function POST(
     let updatedCount = 0;
     let errorCount = 0;
     const errors: { row: number; error: string }[] = [];
+
+    // Translate descriptions to Swedish if needed
+    const descriptions = wines.map(w => w.description?.trim() || '');
+    let translatedDescriptions: string[] = descriptions;
+    try {
+      translatedDescriptions = await batchTranslateToSwedish(descriptions);
+    } catch (translationError) {
+      console.warn('Translation failed, using original descriptions:', translationError);
+    }
 
     // If replace mode, deactivate all existing wines first
     if (mode === 'replace') {
@@ -222,6 +237,24 @@ export async function POST(
         }
       }
 
+      // Parse MOQ (minimum order quantity) - optional, defaults to case_size
+      let moq: number | undefined;
+      const moqInput = wine.moq ?? wine.min_order;
+      if (moqInput !== undefined && moqInput !== null && moqInput !== '') {
+        const parsed = parseInt(String(moqInput));
+        if (!isNaN(parsed) && parsed > 0) {
+          // Validate MOQ is reasonable (max 10x case_size or 100)
+          const maxMoq = caseSize ? Math.max(caseSize * 10, 100) : 100;
+          if (parsed > maxMoq) {
+            rowErrors.push(`MOQ ${parsed} verkar orimligt hög (max ${maxMoq})`);
+          } else {
+            moq = parsed;
+          }
+        } else {
+          rowErrors.push('Ogiltig MOQ (måste vara positivt heltal)');
+        }
+      }
+
       // Validate required fields
       if (!reference) rowErrors.push('Reference saknas');
       if (!producer) rowErrors.push('Producer saknas');
@@ -264,13 +297,13 @@ export async function POST(
         price_ex_vat_sek: price!,
         stock_qty: quantity!,
         case_size: caseSize!,
-        moq: caseSize!, // Default MOQ to case_size (1 full case)
+        moq: moq ?? caseSize!, // Use explicit MOQ or default to case_size
         region: wine.region?.trim() || null,
         grape: wine.grapes?.trim() || null,
         alcohol_pct: alcohol,
         organic,
         biodynamic,
-        description: wine.description?.trim() || null,
+        description: translatedDescriptions[i] || wine.description?.trim() || null,
         is_active: true,
         location: (wine.location as 'domestic' | 'eu' | 'non_eu') || 'domestic',
       };

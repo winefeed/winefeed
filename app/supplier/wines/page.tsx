@@ -31,8 +31,10 @@ import {
   Clock,
   Archive,
   Trash2,
+  Info,
 } from 'lucide-react';
 import { WinesTableSkeleton } from '@/components/ui/skeleton';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
 
 interface SupplierWine {
   id: string;
@@ -91,6 +93,13 @@ interface ImportRow {
   price: number;
   stock: number;
   moq: number;
+  // Additional fields from preview endpoint
+  name?: string;        // Alternative to wine_name
+  type?: string;        // Alternative to color
+  q_per_box?: number;   // case_size
+  case_size?: number;
+  volume?: number;
+  bottle_size_ml?: number;
 }
 
 const STATUS_OPTIONS = [
@@ -128,6 +137,8 @@ export default function SupplierWinesPage() {
   // Bulk selection state
   const [selectedWines, setSelectedWines] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [showBulkMoqInput, setShowBulkMoqInput] = useState(false);
+  const [bulkMoqValue, setBulkMoqValue] = useState('');
 
   // Status filter
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -449,6 +460,46 @@ export default function SupplierWinesPage() {
     }
   };
 
+  // Bulk update MOQ handler
+  const bulkUpdateMoq = async (newMoq: number) => {
+    if (!supplierId || selectedWines.size === 0 || newMoq <= 0) return;
+
+    // Optimistic update
+    const previousWines = [...wines];
+    setWines(prev => prev.map(w =>
+      selectedWines.has(w.id) ? { ...w, moq: newMoq, updated_at: new Date().toISOString() } : w
+    ));
+
+    setBulkUpdating(true);
+    try {
+      const response = await fetch(`/api/suppliers/${supplierId}/wines/bulk-update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wine_ids: Array.from(selectedWines),
+          updates: { moq: newMoq },
+        }),
+      });
+
+      if (response.ok) {
+        const { updated_count } = await response.json();
+        setSelectedWines(new Set());
+        setShowBulkMoqInput(false);
+        setBulkMoqValue('');
+        showToast(`MOQ uppdaterad för ${updated_count} viner`, 'success');
+      } else {
+        setWines(previousWines);
+        const error = await response.json();
+        showToast(error.error || 'Bulk-uppdatering misslyckades', 'error');
+      }
+    } catch (error) {
+      setWines(previousWines);
+      showToast('Ett fel uppstod', 'error');
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
+
   // Selection handlers
   const toggleSelectAll = () => {
     if (selectedWines.size === filteredAndSortedWines.length) {
@@ -743,23 +794,108 @@ export default function SupplierWinesPage() {
 
       {/* Bulk Actions Bar */}
       {selectedWines.size > 0 && (
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-4">
-          <span className="text-blue-800 font-medium">{selectedWines.size} viner valda</span>
-          <div className="flex gap-2">
-            {STATUS_OPTIONS.map(option => (
-              <button
-                key={option.value}
-                onClick={() => bulkUpdateStatus(option.value)}
-                disabled={bulkUpdating}
-                className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50"
-              >
-                {bulkUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : option.label}
-              </button>
-            ))}
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-4 flex-wrap">
+            <span className="text-blue-800 font-medium">{selectedWines.size} viner valda</span>
+
+            {/* Status buttons */}
+            <div className="flex gap-2 items-center">
+              <span className="text-sm text-gray-600">Status:</span>
+              {STATUS_OPTIONS.map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => bulkUpdateStatus(option.value)}
+                  disabled={bulkUpdating}
+                  className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50"
+                >
+                  {bulkUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : option.label}
+                </button>
+              ))}
+            </div>
+
+            {/* MOQ section */}
+            <div className="flex gap-2 items-center border-l border-blue-200 pl-4">
+              <span className="text-sm text-gray-600">MOQ:</span>
+              {!showBulkMoqInput ? (
+                <>
+                  <button
+                    onClick={() => bulkUpdateMoq(1)}
+                    disabled={bulkUpdating}
+                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50"
+                    title="Sampling - tillåt enstaka flaskor"
+                  >
+                    1 (sampling)
+                  </button>
+                  <button
+                    onClick={() => bulkUpdateMoq(6)}
+                    disabled={bulkUpdating}
+                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50"
+                  >
+                    6
+                  </button>
+                  <button
+                    onClick={() => bulkUpdateMoq(12)}
+                    disabled={bulkUpdating}
+                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50"
+                  >
+                    12
+                  </button>
+                  <button
+                    onClick={() => setShowBulkMoqInput(true)}
+                    disabled={bulkUpdating}
+                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 text-blue-600"
+                  >
+                    Annat...
+                  </button>
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={bulkMoqValue}
+                    onChange={(e) => setBulkMoqValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && bulkMoqValue) {
+                        const val = parseInt(bulkMoqValue);
+                        if (val > 0) bulkUpdateMoq(val);
+                      }
+                      if (e.key === 'Escape') {
+                        setShowBulkMoqInput(false);
+                        setBulkMoqValue('');
+                      }
+                    }}
+                    placeholder="MOQ"
+                    className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-wine focus:border-wine"
+                    autoFocus
+                    min="1"
+                  />
+                  <button
+                    onClick={() => {
+                      const val = parseInt(bulkMoqValue);
+                      if (val > 0) bulkUpdateMoq(val);
+                    }}
+                    disabled={bulkUpdating || !bulkMoqValue || parseInt(bulkMoqValue) <= 0}
+                    className="px-3 py-1 text-sm font-medium bg-wine text-white rounded-lg hover:bg-wine-hover disabled:opacity-50"
+                  >
+                    {bulkUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sätt'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkMoqInput(false);
+                      setBulkMoqValue('');
+                    }}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button onClick={() => setSelectedWines(new Set())} className="ml-auto text-blue-600 hover:underline text-sm">
+              Avmarkera alla
+            </button>
           </div>
-          <button onClick={() => setSelectedWines(new Set())} className="ml-auto text-blue-600 hover:underline text-sm">
-            Avmarkera alla
-          </button>
         </div>
       )}
 
@@ -888,11 +1024,20 @@ export default function SupplierWinesPage() {
                   />
                 </th>
                 <SortableHeader label="Vin" field="name" currentField={sortField} direction={sortDirection} onSort={handleSort} />
-                <SortableHeader label="Pris" field="price_ex_vat_sek" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" />
+                <SortableHeader label="Pris" field="price_ex_vat_sek" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" tooltip="Pris exklusive moms (25%)" />
                 <th className="p-4 font-medium text-gray-600 text-sm text-right hidden lg:table-cell">Årgång</th>
-                <SortableHeader label="Status" field="status" currentField={sortField} direction={sortDirection} onSort={handleSort} className="hidden md:table-cell" />
-                <th className="p-4 font-medium text-gray-600 text-sm hidden xl:table-cell">Anteckning</th>
-                <SortableHeader label="Offerter" field="offer_count" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" className="hidden lg:table-cell" />
+                <SortableHeader label="Status" field="status" currentField={sortField} direction={sortDirection} onSort={handleSort} className="hidden md:table-cell" tooltip="Aktiv = synlig för restauranger. Tillfälligt slut = pausad. Årgång slut = arkiverad." />
+                <th className="p-4 font-medium text-gray-600 text-sm hidden xl:table-cell">
+                  <span className="inline-flex items-center gap-1">
+                    Intern notering
+                    <HelpTooltip
+                      content="Intern anteckning – syns endast för dig, inte för restauranger. Använd för att notera t.ex. 'Sista partiet' eller 'Kampanjpris'."
+                      icon="info"
+                      side="bottom"
+                    />
+                  </span>
+                </th>
+                <SortableHeader label="Offerter" field="offer_count" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" className="hidden lg:table-cell" tooltip="Antal aktiva offerter där detta vin ingår" />
                 <th className="p-4 font-medium text-gray-600 text-sm w-12"></th>
               </tr>
             </thead>
@@ -1035,7 +1180,7 @@ export default function SupplierWinesPage() {
                           }}
                           onBlur={handleBlur}
                           maxLength={140}
-                          placeholder="Anteckning (max 140 tecken)"
+                          placeholder="T.ex. 'Sista partiet' eller 'Kampanjpris'"
                           className="w-48 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-wine"
                           autoFocus
                         />
@@ -1135,37 +1280,126 @@ export default function SupplierWinesPage() {
                 </>
               ) : (
                 <>
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-600 mb-2">Fil: <strong>{preview.filename}</strong></p>
-                    <div className="flex gap-4">
-                      <div className="flex items-center gap-2 text-green-600"><CheckCircle className="h-4 w-4" /><span className="text-sm">{preview.valid.length} giltiga</span></div>
-                      {preview.invalid.length > 0 && <div className="flex items-center gap-2 text-red-600"><AlertCircle className="h-4 w-4" /><span className="text-sm">{preview.invalid.length} ogiltiga</span></div>}
+                  {/* Summary Header */}
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm text-gray-600">Fil: <strong>{preview.filename}</strong></p>
+                      <span className="text-xs text-gray-400">{preview.valid.length + preview.invalid.length} rader totalt</span>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className={`flex-1 p-3 rounded-lg border ${preview.valid.length > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-100 border-gray-200'}`}>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className={`h-5 w-5 ${preview.valid.length > 0 ? 'text-green-600' : 'text-gray-400'}`} />
+                          <div>
+                            <p className={`text-lg font-semibold ${preview.valid.length > 0 ? 'text-green-700' : 'text-gray-500'}`}>{preview.valid.length}</p>
+                            <p className="text-xs text-gray-500">Redo att importeras</p>
+                          </div>
+                        </div>
+                      </div>
+                      {preview.invalid.length > 0 && (
+                        <div className="flex-1 p-3 rounded-lg border bg-red-50 border-red-200">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="h-5 w-5 text-red-600" />
+                            <div>
+                              <p className="text-lg font-semibold text-red-700">{preview.invalid.length}</p>
+                              <p className="text-xs text-gray-500">Kan ej importeras</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
+                  {/* Preview Table - Enhanced */}
                   {preview.valid.length > 0 && (
                     <div className="mb-4">
-                      <h3 className="font-medium text-gray-900 mb-2">Förhandsvisning:</h3>
-                      <div className="border rounded-lg overflow-hidden max-h-48 overflow-y-auto">
+                      <h3 className="font-medium text-gray-900 mb-2 flex items-center justify-between">
+                        <span>Förhandsvisning</span>
+                        <span className="text-xs font-normal text-gray-400">Visar {Math.min(10, preview.valid.length)} av {preview.valid.length}</span>
+                      </h3>
+                      <div className="border rounded-lg overflow-hidden max-h-64 overflow-y-auto">
                         <table className="w-full text-sm">
-                          <thead className="bg-gray-50 sticky top-0"><tr><th className="text-left p-2">Vin</th><th className="text-left p-2">Producent</th><th className="text-left p-2">År</th><th className="text-right p-2">Pris</th></tr></thead>
+                          <thead className="bg-gray-50 sticky top-0 z-10">
+                            <tr>
+                              <th className="text-left p-2 font-medium text-gray-600">Vin</th>
+                              <th className="text-left p-2 font-medium text-gray-600">Producent</th>
+                              <th className="text-left p-2 font-medium text-gray-600 hidden sm:table-cell">Land</th>
+                              <th className="text-left p-2 font-medium text-gray-600 hidden md:table-cell">Färg</th>
+                              <th className="text-center p-2 font-medium text-gray-600">År</th>
+                              <th className="text-right p-2 font-medium text-gray-600">Pris</th>
+                              <th className="text-right p-2 font-medium text-gray-600 hidden sm:table-cell">MOQ</th>
+                            </tr>
+                          </thead>
                           <tbody>
-                            {preview.valid.slice(0, 5).map((wine, i) => (<tr key={i} className="border-t"><td className="p-2">{wine.wine_name}</td><td className="p-2">{wine.producer}</td><td className="p-2">{wine.vintage}</td><td className="p-2 text-right">{wine.price} kr</td></tr>))}
+                            {preview.valid.slice(0, 10).map((wine, i) => (
+                              <tr key={i} className="border-t hover:bg-gray-50">
+                                <td className="p-2 font-medium">{wine.wine_name || wine.name}</td>
+                                <td className="p-2 text-gray-600">{wine.producer}</td>
+                                <td className="p-2 text-gray-600 hidden sm:table-cell">{wine.country || '—'}</td>
+                                <td className="p-2 hidden md:table-cell">
+                                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${
+                                    wine.color === 'red' ? 'bg-red-100 text-red-700' :
+                                    wine.color === 'white' ? 'bg-yellow-100 text-yellow-700' :
+                                    wine.color === 'rose' ? 'bg-pink-100 text-pink-700' :
+                                    wine.color === 'sparkling' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {colorLabels[wine.color || wine.type || ''] || wine.color || wine.type || '—'}
+                                  </span>
+                                </td>
+                                <td className="p-2 text-center">{wine.vintage || 'NV'}</td>
+                                <td className="p-2 text-right font-medium">{wine.price} kr</td>
+                                <td className="p-2 text-right text-gray-600 hidden sm:table-cell">{wine.moq || wine.q_per_box || '—'}</td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
-                        {preview.valid.length > 5 && <p className="text-sm text-gray-500 p-2 text-center bg-gray-50">... och {preview.valid.length - 5} till</p>}
+                        {preview.valid.length > 10 && (
+                          <p className="text-sm text-gray-500 p-3 text-center bg-gray-50 border-t">
+                            + {preview.valid.length - 10} fler viner
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
 
+                  {/* Invalid Rows - Expandable */}
                   {preview.invalid.length > 0 && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <h3 className="font-medium text-red-800 mb-2">Ogiltiga rader:</h3>
-                      <ul className="text-sm text-red-700 space-y-1">
-                        {preview.invalid.slice(0, 3).map((item, i) => (<li key={i}>Rad {item.row}: {item.errors.join(', ')}</li>))}
-                        {preview.invalid.length > 3 && <li>... och {preview.invalid.length - 3} till</li>}
-                      </ul>
-                    </div>
+                    <details className="mb-4 group">
+                      <summary className="p-3 bg-red-50 border border-red-200 rounded-lg cursor-pointer flex items-center justify-between hover:bg-red-100 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-red-600" />
+                          <span className="font-medium text-red-800">{preview.invalid.length} rader med fel</span>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-red-600 group-open:rotate-180 transition-transform" />
+                      </summary>
+                      <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg max-h-48 overflow-y-auto">
+                        <ul className="text-sm space-y-2">
+                          {preview.invalid.map((item, i) => (
+                            <li key={i} className="p-2 bg-white rounded border border-red-100">
+                              <div className="flex items-start gap-2">
+                                <span className="font-mono text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">Rad {item.row}</span>
+                                <div className="flex-1">
+                                  <ul className="text-red-700 space-y-0.5">
+                                    {item.errors.map((err, j) => (
+                                      <li key={j} className="flex items-start gap-1">
+                                        <span className="text-red-400">•</span>
+                                        <span>{err}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                  {item.data && (
+                                    <p className="text-xs text-gray-500 mt-1 truncate">
+                                      Data: {JSON.stringify(item.data).slice(0, 80)}...
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </details>
                   )}
 
                   {/* Progress Bar */}
@@ -1347,14 +1581,16 @@ interface SortableHeaderProps {
   onSort: (field: SortField) => void;
   align?: 'left' | 'right';
   className?: string;
+  tooltip?: string;
 }
 
-function SortableHeader({ label, field, currentField, direction, onSort, align = 'left', className = '' }: SortableHeaderProps) {
+function SortableHeader({ label, field, currentField, direction, onSort, align = 'left', className = '', tooltip }: SortableHeaderProps) {
   const isActive = currentField === field;
   return (
     <th className={`p-4 font-medium text-gray-600 text-sm cursor-pointer hover:bg-gray-100 transition-colors select-none ${align === 'right' ? 'text-right' : 'text-left'} ${className}`} onClick={() => onSort(field)}>
       <div className={`inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
         <span>{label}</span>
+        {tooltip && <HelpTooltip content={tooltip} side="bottom" />}
         <span className="text-gray-400">
           {isActive ? (direction === 'asc' ? <ChevronUp className="h-4 w-4 text-wine" /> : <ChevronDown className="h-4 w-4 text-wine" />) : <ChevronsUpDown className="h-3 w-3" />}
         </span>
