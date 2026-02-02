@@ -292,7 +292,7 @@ export default function RestaurantOrdersPage() {
                     <div>
                       <p className="font-medium text-wine">Winefeed hanterar din order</p>
                       <p className="text-xs text-gray-600">
-                        Vi sköter kontakten med leverantören åt dig. Frågor? <a href="mailto:support@winefeed.se" className="underline hover:text-wine">support@winefeed.se</a>
+                        Vi sköter kontakten med leverantören åt dig. Frågor? <a href="mailto:markus@vinkoll.se" className="underline hover:text-wine">markus@vinkoll.se</a>
                       </p>
                     </div>
                   </div>
