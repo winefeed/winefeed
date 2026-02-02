@@ -20,6 +20,7 @@
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { checkRateLimit, getRateLimitType, getRateLimitHeaders } from '@/lib/rate-limit';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -68,13 +69,38 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Static assets - skip auth
+  // Static assets - skip auth and rate limiting
   if (
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/favicon') ||
     pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|css|js|woff|woff2|ttf|eot)$/)
   ) {
     return NextResponse.next();
+  }
+
+  // Rate limiting for API routes
+  if (pathname.startsWith('/api/')) {
+    // Get client IP (Vercel provides this header)
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ??
+               request.headers.get('x-real-ip') ??
+               '127.0.0.1';
+
+    const rateLimitType = getRateLimitType(pathname);
+    const rateLimitResult = await checkRateLimit(ip, rateLimitType);
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Too many requests',
+          message: 'Rate limit exceeded. Please try again later.',
+          retryAfter: rateLimitResult.reset
+        },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimitResult),
+        }
+      );
+    }
   }
 
   // Check if path is public
