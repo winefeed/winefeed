@@ -143,7 +143,7 @@ export function RefinePanel({
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
               Budget per flaska
-              <HelpTooltip content={GLOSSARY.exMoms} />
+              <HelpTooltip content={GLOSSARY.exMoms} side="bottom" />
               {budget && <span className="text-green-600 ml-1">✓</span>}
             </label>
             {budget && (
@@ -205,7 +205,7 @@ export function RefinePanel({
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
               Antal flaskor
-              <HelpTooltip content="Totalt antal flaskor du vill beställa. Du kan justera per vin senare." />
+              <HelpTooltip content="Totalt antal flaskor du vill beställa. Du kan justera per vin senare." side="bottom" />
               {quantity && <span className="text-green-600 ml-1">✓</span>}
             </label>
             {quantity && (

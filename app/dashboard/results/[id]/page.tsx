@@ -1161,7 +1161,7 @@ export default function ResultsPage() {
                           }`}>
                             <div className="flex items-center justify-center gap-1 mb-1">
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Minimum</p>
-                              <HelpTooltip content={GLOSSARY.moq} side="top" />
+                              <HelpTooltip content={GLOSSARY.moq} side="bottom" />
                             </div>
                             {moq > 0 ? (
                               <>
@@ -1202,7 +1202,7 @@ export default function ResultsPage() {
                           <div className="text-center p-3 bg-background rounded-lg">
                             <div className="flex items-center justify-center gap-1 mb-1">
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Leveranstid</p>
-                              <HelpTooltip content={GLOSSARY.leadtime} side="top" />
+                              <HelpTooltip content={GLOSSARY.leadtime} side="bottom" />
                             </div>
                             {suggestion.wine.ledtid_dagar ? (
                               <p className="text-lg font-bold text-foreground">{suggestion.wine.ledtid_dagar} dagar</p>
@@ -1590,7 +1590,7 @@ export default function ResultsPage() {
                                 {hasProvorder && (
                                   <span className="text-xs mt-0.5 text-green-600 font-medium flex items-center gap-1">
                                     Provorder
-                                    <HelpTooltip content={GLOSSARY.provorder} side="top" />
+                                    <HelpTooltip content={GLOSSARY.provorder} side="bottom" />
                                   </span>
                                 )}
                               </div>
