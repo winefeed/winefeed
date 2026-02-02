@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require('@sentry/nextjs');
 
 // Parse allowed origins from environment variable or use defaults
 const getAllowedOrigins = () => {
@@ -22,7 +23,33 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: getAllowedOrigins(),
     },
+    // Enable instrumentation for Sentry
+    instrumentationHook: true,
   },
 };
 
-module.exports = nextConfig;
+// Sentry configuration options
+const sentryWebpackPluginOptions = {
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+
+  // Only upload source maps in production builds
+  silent: true,
+
+  // Suppresses source map uploading logs during build
+  hideSourceMaps: true,
+
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+
+  // Upload source maps to Sentry (requires SENTRY_AUTH_TOKEN)
+  // Set to false if you don't want to upload source maps
+  sourceMaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+};
+
+// Wrap with Sentry only if DSN is configured
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
+  : nextConfig;

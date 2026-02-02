@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 import { ErrorFallback } from '@/components/ui/ErrorFallback';
 
 /**
@@ -21,13 +22,11 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to console (and optionally to error tracking service)
+    // Log error to console
     console.error('Global error boundary caught:', error);
 
-    // TODO: Send to error tracking service (Sentry, etc.)
-    // if (typeof window !== 'undefined') {
-    //   Sentry.captureException(error);
-    // }
+    // Send to Sentry
+    Sentry.captureException(error);
   }, [error]);
 
   return (
