@@ -5,11 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
 import { useDraftList } from '@/lib/hooks/useDraftList';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine, HelpCircle } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine, HelpCircle, Send } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { FloatingDraftList } from '@/components/FloatingDraftList';
 import { Spinner } from '@/components/ui/spinner';
 import { HelpTooltip, InfoBox, GLOSSARY } from '@/components/ui/help-tooltip';
+import { RefinePanel, DeliveryTime } from '@/components/rfq/RefinePanel';
 
 interface Wine {
   id: string;
@@ -89,6 +90,11 @@ export default function ResultsPage() {
   const [requestedQuantity, setRequestedQuantity] = useState<number | null>(null);
   const [budgetMax, setBudgetMax] = useState<number | null>(null);
   const [wineQuantities, setWineQuantities] = useState<Record<string, number>>({});
+  const [deliveryCity, setDeliveryCity] = useState<string>('');
+  const [deliveryTime, setDeliveryTime] = useState<DeliveryTime>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [searchDescription, setSearchDescription] = useState<string>('');
+  const [wineType, setWineType] = useState<string>('all');
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
   const [justAdjustedToMoq, setJustAdjustedToMoq] = useState<string | null>(null);
   const [provorderWines, setProvorderWines] = useState<Set<string>>(new Set());
@@ -193,20 +199,57 @@ export default function ResultsPage() {
       }
     }
 
-    // Get search params from sessionStorage (more reliable than API call)
+    // Get RFQ draft from sessionStorage (new flow)
+    const rfqDraft = sessionStorage.getItem('rfq-draft');
+    if (rfqDraft) {
+      try {
+        const draft = JSON.parse(rfqDraft);
+        if (draft.budget) setBudgetMax(draft.budget);
+        if (draft.quantity) setRequestedQuantity(draft.quantity);
+        if (draft.deliveryCity) setDeliveryCity(draft.deliveryCity);
+        if (draft.deliveryTime) setDeliveryTime(draft.deliveryTime);
+        if (draft.freeText) setSearchDescription(draft.freeText);
+        if (draft.wineType) setWineType(draft.wineType);
+      } catch (e) {
+        console.error('Failed to parse RFQ draft:', e);
+      }
+    }
+
+    // Get search params from sessionStorage (legacy/fallback)
     const searchParams = sessionStorage.getItem('latest-search-params');
     if (searchParams) {
       try {
         const params = JSON.parse(searchParams);
-        if (params.antal_flaskor) {
+        if (params.antal_flaskor && !requestedQuantity) {
           setRequestedQuantity(params.antal_flaskor);
         }
-        if (params.budget_max) {
+        if (params.budget_max && !budgetMax) {
           setBudgetMax(params.budget_max);
+        }
+        if (params.deliveryCity && !deliveryCity) {
+          setDeliveryCity(params.deliveryCity);
+        }
+        if (params.freeText && !searchDescription) {
+          setSearchDescription(params.freeText);
+        }
+        if (params.color && wineType === 'all') {
+          setWineType(params.color);
         }
       } catch (e) {
         console.error('Failed to parse search params:', e);
       }
+    }
+
+    // Fetch user's default delivery city if none set
+    if (!rfqDraft || !JSON.parse(rfqDraft).deliveryCity) {
+      fetch('/api/me/restaurant')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.city && !deliveryCity) {
+            setDeliveryCity(data.city);
+          }
+        })
+        .catch(() => { /* ignore */ });
     }
 
     setLoading(false);
@@ -221,6 +264,23 @@ export default function ResultsPage() {
     // Also try API as fallback for quantity
     fetchRequestDetails();
   }, [fetchOfferCounts, fetchRequestDetails]);
+
+  // Autosave draft to sessionStorage
+  useEffect(() => {
+    // Skip initial render
+    if (loading) return;
+
+    const draft = {
+      freeText: searchDescription,
+      wineType,
+      deliveryCity,
+      deliveryTime,
+      budget: budgetMax,
+      quantity: requestedQuantity,
+    };
+    sessionStorage.setItem('rfq-draft', JSON.stringify(draft));
+    setLastSaved(new Date());
+  }, [budgetMax, requestedQuantity, deliveryCity, deliveryTime, loading, searchDescription, wineType]);
 
   // Extract unique values for filter dropdowns
   const filterOptions = useMemo(() => {
@@ -415,8 +475,13 @@ export default function ResultsPage() {
       toast.warning('Tom lista', 'Lägg till minst ett vin i din lista innan du skickar förfrågan');
       return;
     }
+
+    // Budget and quantity are optional - no gating
     setShowConfirmModal(true);
   };
+
+  // Can always send if there are items in the list
+  const canSend = draftList.items.length > 0;
 
   const handleConfirmAndSend = async () => {
     setSending(true);
@@ -597,6 +662,21 @@ export default function ResultsPage() {
             </div>
           </div>
         )}
+
+        {/* Refine Panel - Budget & Quantity (required for send) */}
+        <div id="refine-panel" className="mb-6">
+          <RefinePanel
+            budget={budgetMax}
+            quantity={requestedQuantity}
+            onBudgetChange={setBudgetMax}
+            onQuantityChange={setRequestedQuantity}
+            deliveryCity={deliveryCity}
+            onDeliveryCityChange={setDeliveryCity}
+            deliveryTime={deliveryTime}
+            onDeliveryTimeChange={setDeliveryTime}
+            lastSaved={lastSaved}
+          />
+        </div>
 
         {/* Quick Filters - Always Visible */}
         <div className="mb-4">
@@ -861,7 +941,7 @@ export default function ResultsPage() {
                         {isSelected ? (
                           <span className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-full flex items-center gap-1">
                             <CheckCircle2 className="h-3 w-3" />
-                            I din offert
+                            I förfrågan
                           </span>
                         ) : (
                           <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
@@ -920,11 +1000,11 @@ export default function ResultsPage() {
                       })()}
                       {isSelected ? (
                         <p className="text-xs text-green-600 font-medium mt-1">
-                          ✓ I offerten
+                          ✓ I förfrågan
                         </p>
                       ) : (
                         <p className="text-xs text-primary font-medium mt-1 opacity-70 group-hover:opacity-100">
-                          + Lägg till i offert
+                          + Lägg till i förfrågan
                         </p>
                       )}
                     </div>
@@ -1859,6 +1939,42 @@ export default function ResultsPage() {
       {/* Sticky action bar - shows when wines are in list */}
       {draftList.items.length > 0 && !sent && (
         <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-lg safe-area-inset-bottom">
+          {/* RFQ Summary Bar */}
+          <div className="max-w-4xl mx-auto px-4 pt-3 pb-1">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+              {searchDescription && (
+                <span className="truncate max-w-[200px]" title={searchDescription}>
+                  &quot;{searchDescription}&quot;
+                </span>
+              )}
+              {wineType && wineType !== 'all' && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+                  {wineType === 'red' ? 'Rött' : wineType === 'white' ? 'Vitt' : wineType === 'sparkling' ? 'Bubbel' : wineType === 'rose' ? 'Rosé' : wineType}
+                </span>
+              )}
+              {budgetMax && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="text-green-600">✓</span> {budgetMax} kr
+                </span>
+              )}
+              {requestedQuantity && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="text-green-600">✓</span> {requestedQuantity} fl
+                </span>
+              )}
+              {deliveryCity && (
+                <span className="inline-flex items-center gap-1">
+                  📍 {deliveryCity}
+                </span>
+              )}
+              {deliveryTime && (
+                <span className="inline-flex items-center gap-1">
+                  🕐 {deliveryTime === 'this_week' ? 'Denna vecka' : deliveryTime === 'two_weeks' ? '2 veckor' : 'Flexibel'}
+                </span>
+              )}
+            </div>
+          </div>
+          {/* Action Row */}
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 truncate">
@@ -1870,10 +1986,10 @@ export default function ResultsPage() {
             </div>
             <button
               onClick={handleRequestConfirmation}
-              className="flex-shrink-0 px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium shadow flex items-center gap-2"
+              className="flex-shrink-0 px-6 py-2.5 rounded-lg transition-colors font-medium shadow flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
             >
-              <ArrowRight className="h-4 w-4" />
-              Granska och skicka
+              <Send className="h-4 w-4" />
+              Skicka förfrågan
             </button>
           </div>
         </div>

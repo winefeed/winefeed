@@ -2,21 +2,91 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RequestForm } from '@/components/request-form';
+import { FreeTextEntry } from '@/components/rfq/FreeTextEntry';
 import { ChevronDown, ChevronUp, Globe2, TrendingUp, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FloatingDraftList } from '@/components/FloatingDraftList';
 
 export default function NewRequestPage() {
   const router = useRouter();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [defaultDeliveryCity, setDefaultDeliveryCity] = useState('');
 
-  const handleSuccess = (requestId: string) => {
-    router.push(`/dashboard/results/${requestId}`);
-  };
+  // Fetch user's default delivery city from profile
+  useEffect(() => {
+    async function fetchDefaultCity() {
+      try {
+        const res = await fetch('/api/me/restaurant');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.city) {
+            setDefaultDeliveryCity(data.city);
+          }
+        }
+      } catch (err) {
+        // Silently fail
+      }
+    }
+    fetchDefaultCity();
+  }, []);
 
   const handleOpenMenu = () => {
     window.dispatchEvent(new Event('openMobileMenu'));
+  };
+
+  const handleSubmit = async (data: { freeText: string; wineType: string; deliveryCity?: string }) => {
+    setIsLoading(true);
+
+    try {
+      // Build request for suggestions API
+      // Note: We don't require budget/quantity here - just get initial suggestions
+      const requestData = {
+        description: data.freeText || undefined,
+        fritext: data.freeText || undefined,
+        color: data.wineType !== 'all' ? data.wineType : undefined,
+        leverans_ort: data.deliveryCity || undefined,
+        // Set reasonable defaults for initial search (these can be refined later)
+        budget_max: 500, // Default max to get a broad range
+      };
+
+      const response = await fetch('/api/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Något gick fel');
+      }
+
+      const result = await response.json();
+
+      // Store the draft data for the results page
+      sessionStorage.setItem('rfq-draft', JSON.stringify({
+        freeText: data.freeText,
+        wineType: data.wineType,
+        deliveryCity: data.deliveryCity,
+        budget: null, // Will be set on results page
+        quantity: null, // Will be set on results page
+      }));
+
+      // Store suggestions for display
+      sessionStorage.setItem('latest-suggestions', JSON.stringify(result.suggestions));
+      sessionStorage.setItem('latest-search-params', JSON.stringify({
+        freeText: data.freeText,
+        color: data.wineType,
+        deliveryCity: data.deliveryCity,
+      }));
+
+      // Navigate to results
+      router.push(`/dashboard/results/${result.request_id}`);
+    } catch (err: any) {
+      console.error('Error fetching suggestions:', err);
+      alert(err.message || 'Något gick fel. Försök igen.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Hide global hamburger menu on this page
@@ -66,16 +136,12 @@ export default function NewRequestPage() {
 
             {/* Main Heading */}
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
-              Beställ vinoffert på 30 sekunder
+              Hitta rätt vin
             </h1>
 
             {/* Tagline */}
-            <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-2">
-              Winefeed ger dig marknadsgenomgång för smartare vinköp
-            </p>
-
-            <p className="text-sm sm:text-base text-white/75 max-w-xl mx-auto">
-              Jämför priser från flera leverantörer automatiskt
+            <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto">
+              Beskriv vad du söker så hittar vi matchande viner
             </p>
           </div>
         </div>
@@ -89,7 +155,7 @@ export default function NewRequestPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12 pb-12">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12 pb-12">
         {/* Form Card - Premium Glassmorphism */}
         <div className="relative group">
           {/* Glow Effect */}
@@ -100,8 +166,12 @@ export default function NewRequestPage() {
             {/* Subtle gradient header */}
             <div className="h-2" style={{ background: 'linear-gradient(to right, #93092b, #f1b4b0, #93092b)' }} />
 
-            <div className="p-6 sm:p-8 lg:p-10">
-              <RequestForm onSuccess={handleSuccess} />
+            <div className="p-6 sm:p-8">
+              <FreeTextEntry
+                onSubmit={handleSubmit}
+                isLoading={isLoading}
+                defaultDeliveryCity={defaultDeliveryCity}
+              />
             </div>
           </div>
         </div>
@@ -120,7 +190,6 @@ export default function NewRequestPage() {
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   Beställ direkt från franska, italienska och spanska producenter.
-                  Vi hanterar all regelefterlevnad.
                 </p>
               </div>
             </div>
@@ -137,8 +206,7 @@ export default function NewRequestPage() {
                   Smart prisöversikt
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  Winefeed genomsöker marknaden och ger dig bästa möjliga priser
-                  från verifierade leverantörer.
+                  Jämför priser från flera leverantörer automatiskt.
                 </p>
               </div>
             </div>
@@ -180,10 +248,10 @@ export default function NewRequestPage() {
                       <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
                         1
                       </div>
-                      <div className="text-3xl mb-3">📝</div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Beskriv behov</h4>
+                      <div className="text-3xl mb-3">💬</div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Beskriv fritt</h4>
                       <p className="text-sm text-gray-600 leading-relaxed">
-                        Fyll i vilka viner du söker, budget och antal flaskor
+                        Skriv vad du söker med egna ord - &quot;italienskt till lamm&quot;
                       </p>
                     </div>
 
@@ -193,9 +261,9 @@ export default function NewRequestPage() {
                         2
                       </div>
                       <div className="text-3xl mb-3">🔍</div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Winefeed genomsöker</h4>
+                      <h4 className="font-semibold text-gray-900 mb-2">Se förslag</h4>
                       <p className="text-sm text-gray-600 leading-relaxed">
-                        Matchar automatiskt mot tillgängliga viner från leverantörer
+                        Få matchande viner direkt - förfina med budget och antal
                       </p>
                     </div>
 
@@ -204,10 +272,10 @@ export default function NewRequestPage() {
                       <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
                         3
                       </div>
-                      <div className="text-3xl mb-3">💰</div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Jämför & välj</h4>
+                      <div className="text-3xl mb-3">📨</div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Skicka förfrågan</h4>
                       <p className="text-sm text-gray-600 leading-relaxed">
-                        Få tydlig prisöversikt och offert av leverantörer direkt
+                        Välj viner och skicka till leverantörer för offert
                       </p>
                     </div>
                   </div>
@@ -217,9 +285,6 @@ export default function NewRequestPage() {
           </div>
         </div>
       </div>
-
-      {/* Floating draft list */}
-      <FloatingDraftList />
     </div>
   );
 }
