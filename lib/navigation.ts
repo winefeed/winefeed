@@ -28,6 +28,7 @@ import {
   Shield,
   Sparkles,
   CreditCard,
+  Handshake,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -173,6 +174,11 @@ export const ADMIN_NAVIGATION: NavSection[] = [
         label: 'Dashboard',
         href: '/admin',
         icon: LayoutDashboard,
+      },
+      {
+        label: 'Ordrar',
+        href: '/admin/orders',
+        icon: Handshake,
       },
       {
         label: 'Viner',
