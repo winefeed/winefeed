@@ -310,7 +310,7 @@ export default function SupplierDashboard() {
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm text-gray-600 flex items-center gap-1">
                       Win rate
-                      <HelpTooltip content={GLOSSARY.winRate} side="right" />
+                      <HelpTooltip content={GLOSSARY.winRate} side="bottom" />
                     </span>
                     <span className="text-sm font-semibold text-gray-900">
                       {stats?.winRate || 0}%
@@ -331,7 +331,7 @@ export default function SupplierDashboard() {
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm text-gray-600 flex items-center gap-1">
                       Svarsfrekvens
-                      <HelpTooltip content={GLOSSARY.responseRate} side="right" />
+                      <HelpTooltip content={GLOSSARY.responseRate} side="bottom" />
                     </span>
                     <span className="text-sm font-semibold text-gray-900">
                       {stats?.responseRate || 0}%

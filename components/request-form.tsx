@@ -516,7 +516,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       <div className="space-y-2">
         <div className="flex items-center gap-1">
           <Label htmlFor="budget_max">Max budget per flaska</Label>
-          <HelpTooltip content="Ange ditt maxpris per flaska exklusive moms (25%). Momsen läggs till vid fakturering." />
+          <HelpTooltip content="Ange ditt maxpris per flaska exklusive moms (25%). Momsen läggs till vid fakturering." side="bottom" />
         </div>
         <Input
           id="budget_max"
@@ -541,7 +541,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       <div className="space-y-2">
         <div className="flex items-center gap-1">
           <Label htmlFor="antal_flaskor">Antal flaskor</Label>
-          <HelpTooltip content="Hur många flaskor du vill beställa totalt. Vissa viner har minsta orderantal (MOQ) - du kan justera detta när du ser resultaten." />
+          <HelpTooltip content="Hur många flaskor du vill beställa totalt. Vissa viner har minsta orderantal (MOQ) - du kan justera detta när du ser resultaten." side="bottom" />
         </div>
         <Input
           id="antal_flaskor"
@@ -565,7 +565,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
       <div className="space-y-3">
         <div className="flex items-center gap-1">
           <Label>Leveransort (valfritt)</Label>
-          <HelpTooltip content="Ange stad för leverans så kan leverantörer beräkna fraktkostnad. Lämna tomt om du är osäker - du kan ange det senare." />
+          <HelpTooltip content="Ange stad för leverans så kan leverantörer beräkna fraktkostnad. Lämna tomt om du är osäker - du kan ange det senare." side="bottom" />
         </div>
 
         {/* Saved addresses selector - Mobile: horizontal scroll */}
