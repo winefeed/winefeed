@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     // Build query - admin sees all orders
     let query = supabase
       .from('orders')
-      .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_case_id, total_lines, total_quantity, currency, restaurant_id')
+      .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_case_id, total_lines, total_quantity, currency, restaurant_id, handled_by_winefeed, concierge_notes, concierge_handled_at')
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -134,7 +134,10 @@ export async function GET(request: NextRequest) {
           import_status: importStatus,
           lines_count: order.total_lines,
           total_quantity: order.total_quantity,
-          currency: order.currency
+          currency: order.currency,
+          handled_by_winefeed: order.handled_by_winefeed || false,
+          concierge_notes: order.concierge_notes || null,
+          concierge_handled_at: order.concierge_handled_at || null,
         };
       })
     );
