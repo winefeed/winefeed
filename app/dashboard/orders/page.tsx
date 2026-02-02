@@ -25,6 +25,7 @@ import {
   Loader2,
   AlertTriangle,
   MessageSquare,
+  Handshake,
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -57,6 +58,8 @@ interface Order {
   dispute_reported_at?: string;
   // Payment fields
   payment_status: 'pending' | 'invoiced' | 'paid' | 'overdue' | 'refunded';
+  // Concierge
+  handled_by_winefeed: boolean;
 }
 
 type StatusFilter = 'all' | 'pending' | 'confirmed' | 'shipped' | 'delivered';
@@ -278,6 +281,23 @@ export default function RestaurantOrdersPage() {
                 </div>
                 {getStatusBadge(order.status)}
               </div>
+
+              {/* Concierge Banner */}
+              {order.handled_by_winefeed && (
+                <div className="px-4 py-3 bg-wine/5 border-b border-wine/10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-wine/10 rounded-lg">
+                      <Handshake className="h-5 w-5 text-wine" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-wine">Winefeed hanterar din order</p>
+                      <p className="text-xs text-gray-600">
+                        Vi sköter kontakten med leverantören åt dig. Frågor? <a href="mailto:support@winefeed.se" className="underline hover:text-wine">support@winefeed.se</a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Order Content */}
               <div className="p-4">
