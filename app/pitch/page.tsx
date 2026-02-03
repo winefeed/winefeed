@@ -12,11 +12,11 @@ import { Metadata } from 'next';
  */
 
 export const metadata: Metadata = {
-  title: 'Winefeed – Importer Pilot',
+  title: 'Vinimport utan friktion',
   description: 'Sluta jaga Excel-filer och mejltrådar. Winefeed ger dig och dina restaurangkunder ett gemensamt flöde från offert till leverans – med compliance-status i realtid.',
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
   },
   openGraph: {
     title: 'Winefeed – Från offert till leverans utan friktion',
