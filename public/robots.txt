@@ -1,0 +1,16 @@
+# Winefeed robots.txt
+User-agent: *
+Allow: /
+Allow: /pitch
+Allow: /login
+Allow: /signup
+
+# Block authenticated pages
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /supplier
+Disallow: /ior
+Disallow: /api
+
+# Sitemap
+Sitemap: https://winefeed.se/sitemap.xml
