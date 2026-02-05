@@ -10,6 +10,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireIORContext, isGuardError, guardErrorResponse } from '@/lib/ior-route-guard';
 import { iorPortfolioService } from '@/lib/ior-portfolio-service';
 
+// Transform snake_case product to camelCase for UI
+function transformProduct(p: Record<string, unknown>) {
+  return {
+    id: p.id,
+    name: p.name,
+    vintage: p.vintage,
+    sku: p.sku,
+    wineType: p.wine_type,
+    bottleSizeMl: p.bottle_size_ml,
+    caseSize: p.case_size,
+    appellation: p.appellation,
+    grapeVarieties: p.grape_varieties,
+    alcoholPct: p.alcohol_pct,
+    isActive: p.is_active,
+    tastingNotes: p.tasting_notes,
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -46,7 +66,13 @@ export async function GET(
       sortOrder,
     });
 
-    return NextResponse.json(result);
+    // Transform to camelCase for UI
+    return NextResponse.json({
+      items: result.items.map(p => transformProduct(p as unknown as Record<string, unknown>)),
+      page: result.page,
+      pageSize: result.pageSize,
+      total: result.total,
+    });
   } catch (error) {
     console.error('[API] GET /api/ior/producers/[id]/products error:', error);
     return NextResponse.json(
@@ -76,7 +102,10 @@ export async function POST(
       producer_id: producerId,
     });
 
-    return NextResponse.json({ product }, { status: 201 });
+    // Transform to camelCase for UI
+    return NextResponse.json({
+      product: transformProduct(product as unknown as Record<string, unknown>),
+    }, { status: 201 });
   } catch (error) {
     console.error('[API] POST /api/ior/producers/[id]/products error:', error);
     return NextResponse.json(
