@@ -505,9 +505,11 @@ const wineTypeLabels: Record<string, string> = {
   RED: 'Rött',
   WHITE: 'Vitt',
   ROSE: 'Rosé',
+  ORANGE: 'Orange',
   SPARKLING: 'Mousserande',
   DESSERT: 'Dessertvin',
   FORTIFIED: 'Starkvin',
+  OTHER: 'Övrigt',
 };
 
 function CatalogTab({ producerId }: { producerId: string }) {
