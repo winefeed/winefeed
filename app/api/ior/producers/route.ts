@@ -15,12 +15,21 @@ export async function GET(request: NextRequest) {
     if (isGuardError(guard)) return guardErrorResponse(guard);
 
     const { searchParams } = new URL(request.url);
-    const includeStats = searchParams.get('include_stats') === 'true';
-    const activeOnly = searchParams.get('active_only') === 'true';
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
+    const q = searchParams.get('q') || undefined;
+    const country = searchParams.get('country') || undefined;
+    const includeInactive = searchParams.get('inactive') === 'true';
 
-    const producers = await iorPortfolioService.listProducers(guard.ctx, { includeStats, activeOnly });
+    const result = await iorPortfolioService.listProducers(guard.ctx, {
+      page,
+      pageSize,
+      search: q,
+      country,
+      includeInactive,
+    });
 
-    return NextResponse.json({ producers });
+    return NextResponse.json(result);
   } catch (error) {
     console.error('[API] GET /api/ior/producers error:', error);
     return NextResponse.json(
