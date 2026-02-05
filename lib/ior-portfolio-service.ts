@@ -671,7 +671,7 @@ class IORPortfolioService {
     const now = new Date();
     let cases = (data || []).map(c => ({
       ...c,
-      is_overdue: c.due_at && new Date(c.due_at) < now && !['RESOLVED', 'CLOSED'].includes(c.status),
+      is_overdue: !!(c.due_at && new Date(c.due_at) < now && !['RESOLVED', 'CLOSED'].includes(c.status)),
     })) as IORCommunicationCase[];
 
     // Filter overdue only if requested (client-side for now)
@@ -1163,7 +1163,7 @@ class IORPortfolioService {
     const actionRequiredCases = cases
       .map(c => ({
         ...c,
-        is_overdue: c.due_at && new Date(c.due_at) < now,
+        is_overdue: !!(c.due_at && new Date(c.due_at) < now),
       }))
       .filter(c =>
         c.priority === 'HIGH' ||
@@ -1287,7 +1287,7 @@ class IORPortfolioService {
     // Compute overdue
     return (data || []).map(c => ({
       ...c,
-      is_overdue: c.due_at && new Date(c.due_at) < new Date(now),
+      is_overdue: !!(c.due_at && new Date(c.due_at) < new Date(now)),
     })) as IORCommunicationCase[];
   }
 
