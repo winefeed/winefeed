@@ -32,6 +32,8 @@ import {
   AlertTriangle,
   Pencil,
   MessageSquarePlus,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -344,7 +346,7 @@ export default function ProducerWorkspacePage() {
       {/* Tab content */}
       <div className="px-4 lg:px-6">
         {activeTab === 'overview' && (
-          <OverviewTab producer={producer} stats={stats} />
+          <OverviewTab producer={producer} stats={stats} onDeleted={() => router.push('/ior/producers')} />
         )}
         {activeTab === 'catalog' && (
           <CatalogTab producerId={producerId} />
@@ -365,7 +367,30 @@ export default function ProducerWorkspacePage() {
 
 // Tab components (simplified for v1)
 
-function OverviewTab({ producer, stats }: { producer: Producer; stats: ProducerStats | null }) {
+function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats: ProducerStats | null; onDeleted: () => void }) {
+  const [showDeleteProducer, setShowDeleteProducer] = useState(false);
+  const [deletingProducer, setDeletingProducer] = useState(false);
+
+  const handleDeleteProducer = async () => {
+    setDeletingProducer(true);
+    try {
+      const response = await fetch(`/api/ior/producers/${producer.id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        onDeleted();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Kunde inte ta bort producenten');
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Ett fel uppstod');
+    } finally {
+      setDeletingProducer(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Contact info */}
@@ -485,6 +510,77 @@ function OverviewTab({ producer, stats }: { producer: Producer; stats: ProducerS
           </div>
         </div>
       )}
+
+      {/* Danger zone */}
+      <div className="md:col-span-2 mt-8 border-2 border-red-200 rounded-xl overflow-hidden">
+        <div className="bg-red-50 px-6 py-4 border-b-2 border-red-200">
+          <h3 className="font-semibold text-red-800 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Farozon
+          </h3>
+        </div>
+        <div className="p-6 bg-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900">Ta bort producent</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Tar bort {producer.name} och alla {stats?.productCount || 0} produkter permanent.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowDeleteProducer(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-red-300 text-red-600 font-medium hover:bg-red-50 hover:border-red-400 transition-all"
+            >
+              <Trash2 className="h-4 w-4" />
+              Ta bort producent
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete producer confirmation modal */}
+      {showDeleteProducer && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-full">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Ta bort producent?</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Detta kommer ta bort <strong>{producer.name}</strong> och alla{' '}
+              <strong>{stats?.productCount || 0} produkter</strong> permanent. Åtgärden kan inte ångras.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteProducer(false)}
+                disabled={deletingProducer}
+                className="px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={handleDeleteProducer}
+                disabled={deletingProducer}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                {deletingProducer ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Tar bort...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    Ja, ta bort
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -516,6 +612,8 @@ function CatalogTab({ producerId }: { producerId: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -535,6 +633,28 @@ function CatalogTab({ producerId }: { producerId: string }) {
     fetchProducts();
   }, [producerId]);
 
+  const handleDeleteCatalog = async () => {
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/ior/producers/${producerId}?productsOnly=true`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setProducts([]);
+        setTotal(0);
+        setShowDeleteConfirm(false);
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Kunde inte rensa katalogen');
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Ett fel uppstod');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="bg-white border-2 border-gray-200 rounded-xl shadow-sm overflow-hidden">
       <div className="flex items-center justify-between p-6 border-b-2 border-gray-100 bg-gradient-to-r from-wine/5 to-transparent">
@@ -545,14 +665,69 @@ function CatalogTab({ producerId }: { producerId: string }) {
           </h3>
           <p className="text-sm text-gray-500 mt-0.5">{total} produkter totalt</p>
         </div>
-        <Link
-          href={`/ior/producers/${producerId}/products/new`}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-wine text-white text-sm font-medium hover:bg-wine/90 shadow-sm transition-all hover:shadow"
-        >
-          <Plus className="h-4 w-4" />
-          Lägg till produkt
-        </Link>
+        <div className="flex items-center gap-2">
+          {total > 0 && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 hover:border-red-300 transition-all"
+            >
+              <Trash2 className="h-4 w-4" />
+              Rensa katalog
+            </button>
+          )}
+          <Link
+            href={`/ior/producers/${producerId}/products/new`}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-wine text-white text-sm font-medium hover:bg-wine/90 shadow-sm transition-all hover:shadow"
+          >
+            <Plus className="h-4 w-4" />
+            Lägg till produkt
+          </Link>
+        </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-full">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Rensa katalog?</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Detta kommer ta bort alla <strong>{total} produkter</strong> permanent.
+              Producenten behålls men katalogen töms helt. Åtgärden kan inte ångras.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={handleDeleteCatalog}
+                disabled={deleting}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Rensar...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    Ja, rensa katalog
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="p-6">
