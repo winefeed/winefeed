@@ -454,19 +454,127 @@ function OverviewTab({ producer, stats }: { producer: Producer; stats: ProducerS
   );
 }
 
+interface Product {
+  id: string;
+  name: string;
+  vintage?: number;
+  wineType?: string;
+  bottleSizeMl: number;
+  appellation?: string;
+  grapeVarieties?: string[];
+  alcoholPct?: number;
+  isActive: boolean;
+}
+
+const wineTypeLabels: Record<string, string> = {
+  RED: 'Rött',
+  WHITE: 'Vitt',
+  ROSE: 'Rosé',
+  SPARKLING: 'Mousserande',
+  DESSERT: 'Dessertvin',
+  FORTIFIED: 'Starkvin',
+};
+
 function CatalogTab({ producerId }: { producerId: string }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch(`/api/ior/producers/${producerId}/products?pageSize=100`);
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data.items || []);
+          setTotal(data.total || 0);
+        }
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, [producerId]);
+
   return (
-    <div className="bg-white border rounded-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="font-medium text-gray-900">Produktkatalog</h3>
-        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">
+    <div className="bg-white border rounded-lg">
+      <div className="flex items-center justify-between p-6 border-b">
+        <div>
+          <h3 className="font-medium text-gray-900">Produktkatalog</h3>
+          <p className="text-sm text-gray-500 mt-0.5">{total} produkter</p>
+        </div>
+        <Link
+          href={`/ior/producers/${producerId}/products/new`}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-wine text-white text-sm font-medium hover:bg-wine/90"
+        >
           <Plus className="h-4 w-4" />
           Lägg till produkt
-        </button>
+        </Link>
       </div>
-      <p className="text-sm text-gray-500">
-        Produktkatalogen laddas här. Implementeras i nästa iteration.
-      </p>
+
+      {loading ? (
+        <div className="p-6">
+          <div className="animate-pulse space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-12 bg-gray-100 rounded" />
+            ))}
+          </div>
+        </div>
+      ) : products.length === 0 ? (
+        <div className="p-12 text-center">
+          <Wine className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 mb-4">Inga produkter ännu</p>
+          <Link
+            href={`/ior/producers/${producerId}/products/new`}
+            className="inline-flex items-center gap-2 text-wine hover:text-wine/80 font-medium"
+          >
+            <Plus className="h-4 w-4" />
+            Lägg till din första produkt
+          </Link>
+        </div>
+      ) : (
+        <div className="divide-y">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className={cn(
+                'flex items-center gap-4 p-4 hover:bg-gray-50',
+                !product.isActive && 'opacity-60'
+              )}
+            >
+              <div className="p-2 bg-wine/10 rounded-lg">
+                <Wine className="h-5 w-5 text-wine" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-900 truncate">
+                    {product.name}
+                  </span>
+                  {product.vintage && product.vintage > 0 && (
+                    <span className="text-gray-500">{product.vintage}</span>
+                  )}
+                  {!product.isActive && (
+                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-500">
+                      Inaktiv
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mt-0.5 text-sm text-gray-500">
+                  {product.wineType && (
+                    <span>{wineTypeLabels[product.wineType] || product.wineType}</span>
+                  )}
+                  <span>{product.bottleSizeMl} ml</span>
+                  {product.appellation && (
+                    <span className="truncate">{product.appellation}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
