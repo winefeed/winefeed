@@ -29,6 +29,7 @@ import {
   Sparkles,
   CreditCard,
   Handshake,
+  MessageSquarePlus,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -400,6 +401,11 @@ export const IOR_NAVIGATION: NavSection[] = [
         label: 'Hjälp',
         href: '/ior/help',
         icon: HelpCircle,
+      },
+      {
+        label: 'Feedback',
+        href: '/ior/feedback',
+        icon: MessageSquarePlus,
       },
     ],
   },

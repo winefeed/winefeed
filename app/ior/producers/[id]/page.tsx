@@ -31,6 +31,7 @@ import {
   ExternalLink,
   AlertTriangle,
   Pencil,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -246,6 +247,17 @@ export default function ProducerWorkspacePage() {
             <div className="flex flex-col items-end gap-4">
               {/* Action buttons */}
               <div className="flex items-center gap-2">
+                <Link
+                  href={`/ior/feedback/new?from=/ior/producers/${producerId}&producerId=${producerId}`}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg',
+                    'text-gray-500 text-sm',
+                    'hover:text-wine hover:bg-wine/5 transition-colors'
+                  )}
+                >
+                  <MessageSquarePlus className="h-4 w-4" />
+                  Feedback
+                </Link>
                 <Link
                   href={`/ior/producers/${producerId}/edit`}
                   className={cn(

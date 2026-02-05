@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Wine, FileText, Building2, DollarSign, Plus, CheckCircle } from 'lucide-react';
+import { Wine, FileText, Building2, DollarSign, Plus, CheckCircle, MessageSquarePlus } from 'lucide-react';
 import { HorizontalCarousel, CarouselItem } from '@/components/ior/HorizontalCarousel';
 import { ProducerCard } from '@/components/ior/ProducerCard';
 import { ActionRequiredCard } from '@/components/ior/ActionRequiredCard';
@@ -118,6 +118,17 @@ export default function IORDashboardPage() {
 
   return (
     <div className="py-4 space-y-2">
+      {/* Header with feedback link */}
+      <div className="px-4 lg:px-6 flex items-center justify-end mb-2">
+        <Link
+          href="/ior/feedback/new?from=/ior"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-wine hover:bg-wine/5 rounded-lg transition-colors"
+        >
+          <MessageSquarePlus className="h-4 w-4" />
+          Ge feedback
+        </Link>
+      </div>
+
       {/* Row 1: Kräver åtgärd */}
       <HorizontalCarousel
         title="Kräver åtgärd"
