@@ -25,6 +25,7 @@ function transformProducer(p: Record<string, unknown>) {
     isActive: p.is_active,
     onboardedAt: p.onboarded_at,
     lastActivityAt: p.last_activity_at,
+    combiTag: p.combi_tag ?? p.combiTag ?? null,
   };
 }
 

@@ -21,6 +21,7 @@ import {
   ChevronRight,
   X,
   Upload,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ interface Producer {
   overdueCasesCount: number;
   isActive: boolean;
   onboardedAt?: string;
+  combiTag?: string;
 }
 
 interface ProducersResponse {
@@ -70,8 +72,14 @@ export default function IORProducersPage() {
   // Filter state
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCountry, setSelectedCountry] = useState(searchParams.get('country') || '');
+  const [selectedCombi, setSelectedCombi] = useState(searchParams.get('combi') || '');
   const [showInactive, setShowInactive] = useState(searchParams.get('inactive') === 'true');
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
+
+  // Extract unique combi tags from data
+  const uniqueCombiTags = data?.items
+    ? [...new Set(data.items.map(p => p.combiTag).filter(Boolean) as string[])].sort()
+    : [];
 
   const fetchProducers = useCallback(async () => {
     setLoading(true);
@@ -109,6 +117,7 @@ export default function IORProducersPage() {
     if (selectedCountry && selectedCountry !== 'Alla länder') {
       params.set('country', selectedCountry);
     }
+    if (selectedCombi) params.set('combi', selectedCombi);
     if (showInactive) params.set('inactive', 'true');
     if (page > 1) params.set('page', String(page));
 
@@ -116,16 +125,17 @@ export default function IORProducersPage() {
     router.replace(`/ior/producers${queryString ? `?${queryString}` : ''}`, {
       scroll: false,
     });
-  }, [searchQuery, selectedCountry, showInactive, page, router]);
+  }, [searchQuery, selectedCountry, selectedCombi, showInactive, page, router]);
 
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCountry('');
+    setSelectedCombi('');
     setShowInactive(false);
     setPage(1);
   };
 
-  const hasActiveFilters = searchQuery || selectedCountry || showInactive;
+  const hasActiveFilters = searchQuery || selectedCountry || selectedCombi || showInactive;
 
   return (
     <div className="py-6 px-4 lg:px-6">
@@ -204,6 +214,31 @@ export default function IORProducersPage() {
             </option>
           ))}
         </select>
+
+        {/* Combi filter */}
+        {uniqueCombiTags.length > 0 && (
+          <select
+            value={selectedCombi}
+            onChange={(e) => {
+              setSelectedCombi(e.target.value);
+              setPage(1);
+            }}
+            className={cn(
+              'px-3 py-2.5 border-2 rounded-lg bg-white',
+              selectedCombi
+                ? 'border-purple-300 bg-purple-50 text-purple-700'
+                : 'border-gray-200',
+              'focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500'
+            )}
+          >
+            <option value="">Alla combi</option>
+            {uniqueCombiTags.map((tag) => (
+              <option key={tag} value={tag}>
+                {tag}
+              </option>
+            ))}
+          </select>
+        )}
 
         {/* Show inactive toggle */}
         <label className="inline-flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg hover:bg-white transition-colors">
@@ -285,7 +320,9 @@ export default function IORProducersPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {data.items.map((producer) => (
+              {data.items
+                .filter(p => !selectedCombi || p.combiTag === selectedCombi)
+                .map((producer) => (
                 <Link
                   key={producer.id}
                   href={`/ior/producers/${producer.id}`}
@@ -343,6 +380,12 @@ export default function IORProducersPage() {
                           <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 rounded text-amber-700 font-medium text-xs">
                             <MessageSquare className="h-3.5 w-3.5" />
                             {producer.openCasesCount} öppna
+                          </span>
+                        )}
+                        {producer.combiTag && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 rounded text-purple-700 font-medium text-xs">
+                            <Users className="h-3.5 w-3.5" />
+                            {producer.combiTag}
                           </span>
                         )}
                       </div>

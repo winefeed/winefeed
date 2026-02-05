@@ -9,7 +9,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Wine, MessageSquare, AlertTriangle, MapPin, Clock } from 'lucide-react';
+import { Wine, MessageSquare, AlertTriangle, MapPin, Clock, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -25,6 +25,7 @@ interface ProducerCardProps {
   overdueCasesCount?: number;
   isActive?: boolean;
   lastActivityAt?: string;
+  combiTag?: string;
 }
 
 // Country flag emoji mapping (common wine countries)
@@ -58,6 +59,7 @@ export function ProducerCard({
   overdueCasesCount = 0,
   isActive = true,
   lastActivityAt,
+  combiTag,
 }: ProducerCardProps) {
   const [imgError, setImgError] = useState(false);
   const hasOverdue = overdueCasesCount > 0;
@@ -93,6 +95,16 @@ export function ProducerCard({
             <span className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
               <AlertTriangle className="h-3 w-3" />
               {overdueCasesCount}
+            </span>
+          </div>
+        )}
+
+        {/* Combi tag */}
+        {combiTag && (
+          <div className="absolute top-2 left-2">
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+              <Users className="h-3 w-3" />
+              {combiTag}
             </span>
           </div>
         )}
