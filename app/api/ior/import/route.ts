@@ -15,6 +15,7 @@ const supabase = createClient(
 );
 
 // Map Combi wine types to our enum
+// Enum: RED, WHITE, ROSE, ORANGE, SPARKLING, DESSERT, FORTIFIED, OTHER
 const WINE_TYPE_MAP: Record<string, string> = {
   'Red': 'RED',
   'White': 'WHITE',
@@ -24,6 +25,8 @@ const WINE_TYPE_MAP: Record<string, string> = {
   'Orange': 'ORANGE',
   'Dessert': 'DESSERT',
   'Fortified': 'FORTIFIED',
+  'Natural': 'OTHER',
+  'Other': 'OTHER',
 };
 
 interface CombiProduct {
