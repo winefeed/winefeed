@@ -30,6 +30,7 @@ import {
   Plus,
   ExternalLink,
   AlertTriangle,
+  Pencil,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -243,19 +244,33 @@ export default function ProducerWorkspacePage() {
 
             {/* Quick stats + action */}
             <div className="flex flex-col items-end gap-4">
-              {/* New message button */}
-              <Link
-                href={`/ior/cases/new?producerId=${producerId}`}
-                className={cn(
-                  'inline-flex items-center gap-2 px-4 py-2 rounded-lg',
-                  'bg-wine text-white font-medium text-sm',
-                  'hover:bg-wine/90 transition-colors',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2'
-                )}
-              >
-                <MessageSquare className="h-4 w-4" />
-                Nytt meddelande
-              </Link>
+              {/* Action buttons */}
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/ior/producers/${producerId}/edit`}
+                  className={cn(
+                    'inline-flex items-center gap-2 px-4 py-2 rounded-lg',
+                    'border border-gray-300 text-gray-700 font-medium text-sm',
+                    'hover:bg-gray-50 transition-colors',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2'
+                  )}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Redigera
+                </Link>
+                <Link
+                  href={`/ior/cases/new?producerId=${producerId}`}
+                  className={cn(
+                    'inline-flex items-center gap-2 px-4 py-2 rounded-lg',
+                    'bg-wine text-white font-medium text-sm',
+                    'hover:bg-wine/90 transition-colors',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2'
+                  )}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Nytt meddelande
+                </Link>
+              </div>
 
               {/* Stats badges */}
               {stats && (
