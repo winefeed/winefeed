@@ -9,6 +9,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireIORContext, isGuardError, guardErrorResponse } from '@/lib/ior-route-guard';
 import { iorPortfolioService } from '@/lib/ior-portfolio-service';
 
+// Transform snake_case message to camelCase for UI
+function transformMessage(m: Record<string, unknown>) {
+  return {
+    id: m.id,
+    content: m.content,
+    contentHtml: m.content_html,
+    direction: m.direction,
+    senderType: m.sender_type,
+    senderName: m.sender_name,
+    senderEmail: m.sender_email,
+    templateId: m.template_id,
+    attachments: m.attachments,
+    createdAt: m.created_at,
+  };
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -42,7 +58,12 @@ export async function POST(
       template_variables: body.template_variables,
     });
 
-    return NextResponse.json(result, { status: 201 });
+    // Transform to camelCase for UI
+    return NextResponse.json({
+      message: transformMessage(result.message as unknown as Record<string, unknown>),
+      emailSent: result.emailSent,
+      caseStatus: 'WAITING_PRODUCER',
+    }, { status: 201 });
   } catch (error) {
     console.error('[API] POST /api/ior/cases/[id]/messages error:', error);
 

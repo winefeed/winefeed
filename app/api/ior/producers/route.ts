@@ -9,6 +9,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireIORContext, isGuardError, guardErrorResponse } from '@/lib/ior-route-guard';
 import { iorPortfolioService } from '@/lib/ior-portfolio-service';
 
+// Transform snake_case producer to camelCase for UI
+function transformProducer(p: Record<string, unknown>) {
+  return {
+    id: p.id,
+    name: p.name,
+    country: p.country,
+    region: p.region,
+    logoUrl: p.logo_url,
+    contactName: p.contact_name,
+    contactEmail: p.contact_email,
+    productCount: p.product_count ?? p.productCount ?? 0,
+    openCasesCount: p.open_cases_count ?? p.openCasesCount ?? 0,
+    overdueCasesCount: p.overdue_cases_count ?? p.overdueCasesCount ?? 0,
+    isActive: p.is_active,
+    onboardedAt: p.onboarded_at,
+    lastActivityAt: p.last_activity_at,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const guard = await requireIORContext(request);
@@ -29,7 +48,13 @@ export async function GET(request: NextRequest) {
       includeInactive,
     });
 
-    return NextResponse.json(result);
+    // Transform to camelCase for UI
+    return NextResponse.json({
+      items: result.items.map(p => transformProducer(p as unknown as Record<string, unknown>)),
+      page: result.page,
+      pageSize: result.pageSize,
+      total: result.total,
+    });
   } catch (error) {
     console.error('[API] GET /api/ior/producers error:', error);
     return NextResponse.json(
