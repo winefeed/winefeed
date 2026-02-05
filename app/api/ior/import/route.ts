@@ -41,6 +41,8 @@ interface CombiProduct {
   Volume?: { value: string };
   volume?: { value: string };
   price?: { value: string };
+  Combi?: { value: string };
+  combi?: { value: string };
 }
 
 interface CombiDataset {
@@ -67,8 +69,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Group products by producer
+    // Group products by producer and extract combi tags
     const productsByProducer = new Map<string, CombiProduct[]>();
+    const combiTagByProducer = new Map<string, string>();
 
     for (const item of body.data) {
       const producerName = item.producer?.value || 'Unknown Producer';
@@ -76,6 +79,12 @@ export async function POST(request: NextRequest) {
         productsByProducer.set(producerName, []);
       }
       productsByProducer.get(producerName)!.push(item);
+
+      // Extract combi tag (use first non-empty value found for producer)
+      const combiTag = item.Combi?.value || item.combi?.value;
+      if (combiTag && !combiTagByProducer.has(producerName)) {
+        combiTagByProducer.set(producerName, combiTag);
+      }
     }
 
     const results = {
@@ -88,10 +97,12 @@ export async function POST(request: NextRequest) {
 
     // Process each producer
     for (const [producerName, products] of productsByProducer) {
+      const combiTag = combiTagByProducer.get(producerName) || null;
+
       // Check if producer exists
       const { data: existingProducer } = await supabase
         .from('ior_producers')
-        .select('id')
+        .select('id, combi_tag')
         .eq('importer_id', ctx.importerId)
         .eq('name', producerName)
         .single();
@@ -101,8 +112,16 @@ export async function POST(request: NextRequest) {
       if (existingProducer) {
         producerId = existingProducer.id;
         results.producersExisting++;
+
+        // Update combi_tag if we have one and producer doesn't
+        if (combiTag && !existingProducer.combi_tag) {
+          await supabase
+            .from('ior_producers')
+            .update({ combi_tag: combiTag })
+            .eq('id', producerId);
+        }
       } else {
-        // Create producer
+        // Create producer with combi_tag
         const { data: newProducer, error: producerError } = await supabase
           .from('ior_producers')
           .insert({
@@ -111,6 +130,7 @@ export async function POST(request: NextRequest) {
             name: producerName,
             country: 'France', // Default, can be updated later
             is_active: true,
+            combi_tag: combiTag,
           })
           .select('id')
           .single();
