@@ -177,13 +177,20 @@ export async function POST(request: NextRequest) {
         const appellation = product.Appellation?.value || product.appellation?.value || null;
 
         // Check if product already exists (by name + vintage + producer)
-        const { data: existingProduct } = await supabase
+        // Note: For NULL vintage (NV wines), we need .is() not .eq()
+        let existingProductQuery = supabase
           .from('ior_products')
           .select('id')
           .eq('producer_id', producerId)
-          .eq('name', productName)
-          .eq('vintage', vintage)
-          .single();
+          .eq('name', productName);
+
+        if (vintage === null) {
+          existingProductQuery = existingProductQuery.is('vintage', null);
+        } else {
+          existingProductQuery = existingProductQuery.eq('vintage', vintage);
+        }
+
+        const { data: existingProduct } = await existingProductQuery.single();
 
         if (existingProduct) {
           results.productsSkipped++;
