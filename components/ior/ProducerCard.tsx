@@ -7,6 +7,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Wine, MessageSquare, AlertTriangle, MapPin, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -58,8 +59,10 @@ export function ProducerCard({
   isActive = true,
   lastActivityAt,
 }: ProducerCardProps) {
+  const [imgError, setImgError] = useState(false);
   const hasOverdue = overdueCasesCount > 0;
   const flag = countryFlags[country] || '🍷';
+  const showLogo = logoUrl && !imgError;
 
   return (
     <Link
@@ -73,11 +76,12 @@ export function ProducerCard({
     >
       {/* Logo/Header area */}
       <div className="h-24 bg-gradient-to-br from-wine/5 to-wine/10 flex items-center justify-center relative">
-        {logoUrl ? (
+        {showLogo ? (
           <img
             src={logoUrl}
             alt={`${name} logo`}
             className="h-16 w-auto object-contain"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="text-4xl">{flag}</div>
