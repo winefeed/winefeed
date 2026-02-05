@@ -2,15 +2,15 @@
  * IOR PORTAL LAYOUT
  *
  * Layout for IOR (Importer-of-Record) pages
- * Uses the same SupplierShell for consistent navigation
+ * Uses IORShell for IOR-specific navigation
  */
 
-import { SupplierShell } from '@/components/navigation/SupplierShell';
+import { IORShell } from '@/components/ior/IORShell';
 
 export default function IORLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <SupplierShell>{children}</SupplierShell>;
+  return <IORShell>{children}</IORShell>;
 }

@@ -353,6 +353,59 @@ export const SUPPLIER_NAVIGATION: NavSection[] = [
 ];
 
 /**
+ * IOR navigation
+ * Shown in IOR portal (/ior/* pages)
+ *
+ * Netflix-style dashboard with producer portfolio management
+ */
+export const IOR_NAVIGATION: NavSection[] = [
+  {
+    items: [
+      {
+        label: 'Dashboard',
+        href: '/ior',
+        icon: LayoutDashboard,
+      },
+      {
+        label: 'Producenter',
+        href: '/ior/producers',
+        icon: Building2,
+      },
+      {
+        label: 'Ärenden',
+        href: '/ior/cases',
+        icon: Mail,
+      },
+    ],
+  },
+  {
+    title: 'Importordrar',
+    items: [
+      {
+        label: 'IOR Ordrar',
+        href: '/ior/orders',
+        icon: Globe,
+      },
+    ],
+  },
+  {
+    title: 'Inställningar',
+    items: [
+      {
+        label: 'Företagsprofil',
+        href: '/ior/settings',
+        icon: Settings,
+      },
+      {
+        label: 'Hjälp',
+        href: '/ior/help',
+        icon: HelpCircle,
+      },
+    ],
+  },
+];
+
+/**
  * Filter navigation items based on user roles
  *
  * @param sections - Navigation sections to filter
