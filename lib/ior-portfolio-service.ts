@@ -245,34 +245,53 @@ class IORPortfolioService {
    */
   async listProducers(
     ctx: IORContext,
-    options?: { includeStats?: boolean; activeOnly?: boolean }
-  ): Promise<IORProducer[]> {
+    options?: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      country?: string;
+      includeInactive?: boolean;
+    }
+  ): Promise<PaginatedResponse<IORProducer & { productCount?: number; openCasesCount?: number; overdueCasesCount?: number }>> {
+    const page = options?.page || 1;
+    const pageSize = options?.pageSize || 50;
+    const offset = (page - 1) * pageSize;
+
     let query = this.supabase
       .from('ior_producers')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('importer_id', ctx.importerId)
-      .eq('tenant_id', ctx.tenantId)
-      .order('name');
+      .order('name')
+      .range(offset, offset + pageSize - 1);
 
-    if (options?.activeOnly) {
+    if (!options?.includeInactive) {
       query = query.eq('is_active', true);
     }
 
-    const { data, error } = await query;
+    if (options?.country) {
+      query = query.eq('country', options.country);
+    }
+
+    if (options?.search) {
+      query = query.ilike('name', `%${options.search}%`);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       console.error('[IOR Portfolio] Error listing producers:', error);
       throw new Error('Failed to list producers');
     }
 
-    let producers = data as IORProducer[];
+    // Enrich with stats
+    const producers = await this.enrichProducersWithStats(data as IORProducer[], ctx.importerId);
 
-    // Add stats if requested
-    if (options?.includeStats && producers.length > 0) {
-      producers = await this.enrichProducersWithStats(producers, ctx.importerId);
-    }
-
-    return producers;
+    return {
+      items: producers,
+      page,
+      pageSize,
+      total: count || 0,
+    };
   }
 
   /**
