@@ -10,6 +10,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireIORContext, isGuardError, guardErrorResponse } from '@/lib/ior-route-guard';
 import { iorPortfolioService } from '@/lib/ior-portfolio-service';
 
+// Transform snake_case case to camelCase for UI
+function transformCase(c: Record<string, unknown>) {
+  const producer = c.producer as Record<string, unknown> | undefined;
+  return {
+    id: c.id,
+    subject: c.subject,
+    category: c.category,
+    status: c.status,
+    priority: c.priority,
+    producerId: c.producer_id,
+    producerName: producer?.name || '',
+    dueAt: c.due_at,
+    isOverdue: c.is_overdue,
+    lastMessageAt: c.last_message_at,
+    messageCount: c.message_count ?? 0,
+    createdAt: c.created_at,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const guard = await requireIORContext(request);
@@ -43,7 +62,13 @@ export async function GET(request: NextRequest) {
       { page, pageSize }
     );
 
-    return NextResponse.json(result);
+    // Transform to camelCase for UI
+    return NextResponse.json({
+      items: result.items.map(c => transformCase(c as unknown as Record<string, unknown>)),
+      page: result.page,
+      pageSize: result.pageSize,
+      total: result.total,
+    });
   } catch (error) {
     console.error('[API] GET /api/ior/cases error:', error);
     return NextResponse.json(
