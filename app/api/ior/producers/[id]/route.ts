@@ -9,6 +9,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireIORContext, isGuardError, guardErrorResponse } from '@/lib/ior-route-guard';
 import { iorPortfolioService } from '@/lib/ior-portfolio-service';
 
+// Transform snake_case producer to camelCase for UI
+function transformProducer(p: Record<string, unknown>) {
+  return {
+    id: p.id,
+    name: p.name,
+    legalName: p.legal_name,
+    country: p.country,
+    region: p.region,
+    logoUrl: p.logo_url,
+    websiteUrl: p.website_url,
+    contactName: p.contact_name,
+    contactEmail: p.contact_email,
+    contactPhone: p.contact_phone,
+    isActive: p.is_active,
+    onboardedAt: p.onboarded_at,
+    notes: p.notes,
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -24,7 +45,10 @@ export async function GET(
       return NextResponse.json({ error: 'Producer not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ producer });
+    // Transform to camelCase for UI
+    return NextResponse.json({
+      producer: transformProducer(producer as unknown as Record<string, unknown>),
+    });
   } catch (error) {
     console.error('[API] GET /api/ior/producers/[id] error:', error);
     return NextResponse.json(
@@ -46,7 +70,10 @@ export async function PATCH(
     const body = await request.json();
     const producer = await iorPortfolioService.updateProducer(guard.ctx, producerId, body);
 
-    return NextResponse.json({ producer });
+    // Transform to camelCase for UI
+    return NextResponse.json({
+      producer: transformProducer(producer as unknown as Record<string, unknown>),
+    });
   } catch (error) {
     console.error('[API] PATCH /api/ior/producers/[id] error:', error);
     return NextResponse.json(
