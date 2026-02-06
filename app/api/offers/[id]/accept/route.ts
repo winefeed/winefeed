@@ -94,6 +94,24 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       }
     }
 
+    // Check if restaurant has org_number (required for orders/invoicing)
+    const { data: restaurant } = await supabase
+      .from('restaurants')
+      .select('org_number')
+      .eq('id', offerRestaurantId)
+      .single();
+
+    if (!restaurant?.org_number) {
+      return NextResponse.json(
+        {
+          errorCode: 'ORG_NUMBER_REQUIRED',
+          error: 'Organisationsnummer krävs för att acceptera offert',
+          details: 'Du måste lägga till organisationsnummer innan du kan lägga en beställning.'
+        },
+        { status: 400 }
+      );
+    }
+
     // Validate assignment is valid and not expired
     const { data: assignment, error: assignmentError } = await supabase
       .from('quote_request_assignments')

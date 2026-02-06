@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 import { ButtonSpinner, Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast';
-import { Wine, LayoutGrid, List, Check } from 'lucide-react';
+import { Wine, LayoutGrid, List, Check, Building2, Loader2 } from 'lucide-react';
 
 // Types matching API response
 interface Wine {
@@ -132,6 +132,12 @@ export default function OffersPage() {
   const [acceptedOffer, setAcceptedOffer] = useState<AcceptResponse | null>(null);
   const [acceptError, setAcceptError] = useState<ErrorResponse | null>(null);
 
+  // Org number modal state
+  const [showOrgNumberModal, setShowOrgNumberModal] = useState(false);
+  const [orgNumber, setOrgNumber] = useState('');
+  const [pendingOfferId, setPendingOfferId] = useState<string | null>(null);
+  const [savingOrgNumber, setSavingOrgNumber] = useState(false);
+
   const fetchOffers = useCallback(async () => {
     try {
       setLoading(true);
@@ -172,7 +178,13 @@ export default function OffersPage() {
 
       if (!response.ok) {
         // Handle specific error codes
-        setAcceptError(data as ErrorResponse);
+        const errorData = data as ErrorResponse;
+        setAcceptError(errorData);
+
+        // If org number required, save the offer ID for retry after adding
+        if (errorData.errorCode === 'ORG_NUMBER_REQUIRED') {
+          setPendingOfferId(offerId);
+        }
         return;
       }
 
@@ -190,6 +202,52 @@ export default function OffersPage() {
       });
     } finally {
       setAccepting(null);
+    }
+  };
+
+  // Format org number as user types (XXXXXX-XXXX)
+  const formatOrgNumber = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 6) return digits;
+    return `${digits.slice(0, 6)}-${digits.slice(6, 10)}`;
+  };
+
+  const handleOrgNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatOrgNumber(e.target.value);
+    setOrgNumber(formatted);
+  };
+
+  const handleSaveOrgNumber = async () => {
+    if (orgNumber.length !== 11) {
+      toast.error('Ogiltigt format', 'Organisationsnummer måste vara XXXXXX-XXXX');
+      return;
+    }
+
+    setSavingOrgNumber(true);
+    try {
+      const response = await fetch('/api/me/restaurant', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ org_number: orgNumber })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Kunde inte spara organisationsnummer');
+      }
+
+      toast.success('Sparat!', 'Organisationsnummer har lagts till');
+      setShowOrgNumberModal(false);
+      setAcceptError(null);
+
+      // Retry the offer acceptance
+      if (pendingOfferId) {
+        handleAcceptOffer(pendingOfferId);
+      }
+    } catch (err) {
+      toast.error('Fel', err instanceof Error ? err.message : 'Kunde inte spara');
+    } finally {
+      setSavingOrgNumber(false);
     }
   };
 
@@ -445,16 +503,39 @@ export default function OffersPage() {
             </div>
 
             {acceptError && (
-              <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-xl">
+              <div className={`mb-4 p-4 rounded-xl border ${
+                acceptError.errorCode === 'ORG_NUMBER_REQUIRED'
+                  ? 'bg-amber-50 border-amber-200'
+                  : 'bg-destructive/10 border-destructive/20'
+              }`}>
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">⚠️</span>
+                  <span className="text-2xl">
+                    {acceptError.errorCode === 'ORG_NUMBER_REQUIRED' ? '📋' : '⚠️'}
+                  </span>
                   <div className="flex-1">
-                    <p className="font-medium text-destructive mb-1">
+                    <p className={`font-medium mb-1 ${
+                      acceptError.errorCode === 'ORG_NUMBER_REQUIRED'
+                        ? 'text-amber-800'
+                        : 'text-destructive'
+                    }`}>
                       {acceptError.errorCode === 'ALREADY_ACCEPTED' && 'Offert redan accepterad'}
                       {acceptError.errorCode === 'OFFER_EXPIRED' && 'Offert har gått ut'}
+                      {acceptError.errorCode === 'ORG_NUMBER_REQUIRED' && 'Organisationsnummer krävs'}
                       {!acceptError.errorCode && 'Kunde inte acceptera offert'}
                     </p>
-                    <p className="text-sm text-destructive/80">{acceptError.details || acceptError.error}</p>
+                    <p className={`text-sm ${
+                      acceptError.errorCode === 'ORG_NUMBER_REQUIRED'
+                        ? 'text-amber-700'
+                        : 'text-destructive/80'
+                    }`}>{acceptError.details || acceptError.error}</p>
+                    {acceptError.errorCode === 'ORG_NUMBER_REQUIRED' && (
+                      <button
+                        onClick={() => setShowOrgNumberModal(true)}
+                        className="mt-3 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+                      >
+                        Lägg till organisationsnummer
+                      </button>
+                    )}
                     {acceptError.expiresAt && (
                       <p className="text-xs text-muted-foreground mt-1">
                         Utgick: {new Date(acceptError.expiresAt).toLocaleString('sv-SE')}
@@ -463,7 +544,10 @@ export default function OffersPage() {
                   </div>
                   <button
                     onClick={() => setAcceptError(null)}
-                    className="text-destructive hover:text-destructive/80"
+                    className={acceptError.errorCode === 'ORG_NUMBER_REQUIRED'
+                      ? 'text-amber-600 hover:text-amber-800'
+                      : 'text-destructive hover:text-destructive/80'
+                    }
                   >
                     ✕
                   </button>
@@ -874,6 +958,73 @@ export default function OffersPage() {
         </div>
         )}
       </div>
+
+      {/* Org number modal */}
+      {showOrgNumberModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <Building2 className="h-6 w-6 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Lägg till organisationsnummer
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Krävs för fakturering av beställningar
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label htmlFor="org_number_modal" className="block text-sm font-medium text-gray-700 mb-1">
+                Organisationsnummer
+              </label>
+              <input
+                id="org_number_modal"
+                type="text"
+                value={orgNumber}
+                onChange={handleOrgNumberChange}
+                maxLength={11}
+                placeholder="XXXXXX-XXXX"
+                autoFocus
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg tracking-wider focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Format: 123456-7890
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowOrgNumberModal(false);
+                  setOrgNumber('');
+                }}
+                disabled={savingOrgNumber}
+                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={handleSaveOrgNumber}
+                disabled={savingOrgNumber || orgNumber.length !== 11}
+                className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {savingOrgNumber ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Sparar...
+                  </>
+                ) : (
+                  'Spara och fortsätt'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
