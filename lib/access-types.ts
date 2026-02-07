@@ -5,6 +5,12 @@
  */
 
 // ============================================================================
+// Enums / unions
+// ============================================================================
+
+export type WineStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+
+// ============================================================================
 // Database row types
 // ============================================================================
 
@@ -32,8 +38,25 @@ export interface AccessWine {
   description: string | null;
   price_indication: string | null;
   image_url: string | null;
+  status: WineStatus;
   created_at: string;
   updated_at: string;
+}
+
+export interface WineInput {
+  name: string;
+  wine_type: string;
+  vintage: number | null;
+  country: string;
+  region: string;
+  grape?: string | null;
+  appellation?: string | null;
+  description?: string | null;
+  price_sek?: number | null;
+  volume_ml?: number;
+  image_url?: string | null;
+  status?: WineStatus;
+  producer_id?: string | null;
 }
 
 export interface AccessLot {
