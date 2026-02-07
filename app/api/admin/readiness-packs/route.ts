@@ -110,8 +110,8 @@ export async function POST(request: NextRequest) {
     // POLICY: Service will verify access_request is in ACCEPTED state
     const pack = await readinessPackService.createPack(
       {
-        userId: auth.userId,
-        userName: auth.email,
+        userId: auth.subjectId,
+        userName: (auth.metadata?.email as string) || 'Admin',
       },
       parseResult.data
     );
