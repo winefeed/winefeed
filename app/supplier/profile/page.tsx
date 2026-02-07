@@ -415,7 +415,7 @@ export default function SupplierProfilePage() {
           <p className="text-sm text-gray-500">
             Behöver du ändra företagsnamn, organisationsnummer eller licensnummer?{' '}
             <a
-              href={`mailto:markus@esima.se?subject=Uppdatera företagsuppgifter: ${encodeURIComponent(profile.supplierName)}&body=Hej,%0A%0AJag vill uppdatera följande uppgifter för ${encodeURIComponent(profile.supplierName)}:%0A%0A`}
+              href={`mailto:hej@winefeed.se?subject=Uppdatera företagsuppgifter: ${encodeURIComponent(profile.supplierName)}&body=Hej,%0A%0AJag vill uppdatera följande uppgifter för ${encodeURIComponent(profile.supplierName)}:%0A%0A`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-wine hover:underline font-medium"

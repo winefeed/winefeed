@@ -15,7 +15,7 @@ interface SupplierContext {
   userEmail: string;
 }
 
-const SUPPORT_EMAIL = 'markus@esima.se';
+const SUPPORT_EMAIL = 'hej@winefeed.se';
 
 export default function ContactPage() {
   const [context, setContext] = useState<SupplierContext | null>(null);

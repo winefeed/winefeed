@@ -354,7 +354,7 @@ Proprietär - Winefeed AB
 
 ## Kontakt
 
-- **Email:** markus@esima.se
+- **Email:** hej@winefeed.se
 - **GitHub:** [@winefeed](https://github.com/winefeed)
 
 ## Acknowledgments

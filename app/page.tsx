@@ -344,7 +344,7 @@ export default function LandingPage() {
             Ansök om företagskonto
           </Link>
           <Link
-            href="mailto:markus@esima.se"
+            href="mailto:hej@winefeed.se"
             className="bg-transparent text-white px-8 py-4 rounded-lg font-semibold border-2 border-white/30 hover:border-white hover:bg-white/10 transition-all"
           >
             Kontakta oss
@@ -371,7 +371,7 @@ export default function LandingPage() {
             För leverantörer
           </Link>
           <Link
-            href="mailto:markus@esima.se"
+            href="mailto:hej@winefeed.se"
             className="text-white/70 hover:text-white text-sm transition-colors"
           >
             Kontakt
