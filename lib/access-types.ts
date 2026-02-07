@@ -151,6 +151,7 @@ export interface AdminRequestView extends AccessRequest {
   consumer: Pick<AccessConsumer, 'id' | 'name' | 'email' | 'phone'>;
   wine: Pick<AccessWine, 'id' | 'name' | 'wine_type' | 'vintage' | 'country' | 'region' | 'grape'> | null;
   importer: { id: string | null; name: string; contact_email: string | null } | null;
+  lot_price_sek: number | null;
 }
 
 export interface ImporterResponseData {
