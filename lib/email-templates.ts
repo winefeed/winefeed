@@ -610,6 +610,678 @@ Winefeed - Din B2B-marknadsplats för vin
 /**
  * Template: Order Confirmation (sent to both restaurant and supplier)
  */
+/**
+ * Template: Access Magic Link (sent to consumer for login)
+ */
+export interface AccessMagicLinkEmailParams {
+  name: string | null;
+  loginUrl: string;
+}
+
+export function accessMagicLinkEmail(params: AccessMagicLinkEmailParams): { subject: string; html: string; text: string } {
+  const { name, loginUrl } = params;
+  const greeting = name ? `Hej ${name}` : 'Hej';
+
+  const subject = 'Din inloggningslänk till Vinkoll Access';
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">Vinkoll Access</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Hitta ditt drömvin via Vinkoll</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>${greeting},</p>
+
+    <p>Klicka på knappen nedan för att logga in på Vinkoll Access. Länken är giltig i 30 minuter.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${loginUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Logga in
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      Om du inte begärde denna länk, ignorera detta mail.<br>
+      Länken fungerar bara en gång.
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll Access - Hitta ditt nästa favoritvin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+${greeting},
+
+Klicka på länken nedan för att logga in på Vinkoll Access.
+Länken är giltig i 30 minuter och fungerar bara en gång.
+
+Logga in: ${loginUrl}
+
+Om du inte begärde denna länk, ignorera detta mail.
+
+---
+Vinkoll Access - Hitta ditt nästa favoritvin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+/**
+ * Template: Access Request Confirmation (sent to consumer after request)
+ */
+export interface AccessRequestConfirmationEmailParams {
+  name: string | null;
+  wineName: string;
+  importerName: string;
+  quantity: number;
+}
+
+export function accessRequestConfirmationEmail(params: AccessRequestConfirmationEmailParams): { subject: string; html: string; text: string } {
+  const { name, wineName, importerName, quantity } = params;
+  const greeting = name ? `Hej ${name}` : 'Hej';
+
+  const subject = 'Din förfrågan har skickats';
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">Vinkoll Access</h1>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>${greeting},</p>
+
+    <p>Din förfrågan har registrerats! Importören kommer att kontakta dig.</p>
+
+    <div style="background: #f9fafb; border-left: 4px solid #722F37; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0;"><strong>Vin:</strong> ${wineName}</p>
+      <p style="margin: 0 0 10px 0;"><strong>Importör:</strong> ${importerName}</p>
+      <p style="margin: 0;"><strong>Antal:</strong> ${quantity} flaskor</p>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280;">
+      Förfrågan är giltig i 14 dagar. Du kan se status under Mina sidor.
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll Access - Hitta ditt nästa favoritvin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+${greeting},
+
+Din förfrågan har registrerats! Importören kommer att kontakta dig.
+
+Vin: ${wineName}
+Importör: ${importerName}
+Antal: ${quantity} flaskor
+
+Förfrågan är giltig i 14 dagar. Du kan se status under Mina sidor.
+
+---
+Vinkoll Access - Hitta ditt nästa favoritvin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+// ============================================================================
+// VINKOLL ACCESS — Importer Order Confirmation Email
+// ============================================================================
+
+export interface ImporterConfirmEmailParams {
+  importerContactName: string | null;
+  wineName: string;
+  vintage: number | null;
+  referenceCode: string;
+  quantity: number;
+  priceSek: number | null;
+  consumerMessage: string | null;
+  confirmUrl: string;
+}
+
+export function renderImporterConfirmEmail(params: ImporterConfirmEmailParams): { subject: string; html: string; text: string } {
+  const {
+    importerContactName,
+    wineName,
+    vintage,
+    referenceCode,
+    quantity,
+    priceSek,
+    consumerMessage,
+    confirmUrl,
+  } = params;
+
+  const greeting = importerContactName ? `Hej ${importerContactName}` : 'Hej';
+  const vintageStr = vintage ? ` ${vintage}` : '';
+  const subject = `Bekräfta mottagen beställning \u2014 ${referenceCode}`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Bekräfta mottagen beställning</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>${greeting},</p>
+
+    <p>En kund har gått vidare med sin beställning via Vinkoll. Vi ber er bekräfta att ni har mottagit beställningen.</p>
+
+    <div style="background: #f9fafb; border-left: 4px solid #722F37; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 8px 0;"><strong>Referenskod:</strong> ${referenceCode}</p>
+      <p style="margin: 0 0 8px 0;"><strong>Vin:</strong> ${wineName}${vintageStr}</p>
+      <p style="margin: 0 0 8px 0;"><strong>Antal:</strong> ${quantity} flaskor</p>
+      ${priceSek ? `<p style="margin: 0 0 8px 0;"><strong>Pris:</strong> ${priceSek} kr/fl</p>` : ''}
+      ${consumerMessage ? `<p style="margin: 8px 0 0 0; padding-top: 8px; border-top: 1px solid #e5e7eb;"><strong>Kundmeddelande:</strong> ${consumerMessage}</p>` : ''}
+    </div>
+
+    <p>Klicka på knappen nedan för att bekräfta att ni mottagit beställningen.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${confirmUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Bekräfta beställning
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på info@vinkoll.se.
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+${greeting},
+
+En kund har gått vidare med sin beställning via Vinkoll. Vi ber er bekräfta att ni har mottagit beställningen.
+
+Referenskod: ${referenceCode}
+Vin: ${wineName}${vintageStr}
+Antal: ${quantity} flaskor
+${priceSek ? `Pris: ${priceSek} kr/fl` : ''}
+${consumerMessage ? `Kundmeddelande: ${consumerMessage}` : ''}
+
+Bekräfta beställning: ${confirmUrl}
+
+Länken är giltig i 7 dagar.
+
+---
+Vinkoll - Hitta ditt nästa favoritvin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+// ============================================================================
+// VINKOLL ACCESS — Consumer Order Confirmed Email (handoff)
+// ============================================================================
+
+export interface ConsumerOrderConfirmedEmailParams {
+  consumerName: string | null;
+  wineName: string;
+  vintage: number | null;
+  referenceCode: string;
+  quantity: number;
+  priceSek: number | null;
+}
+
+export function renderConsumerOrderConfirmedEmail(params: ConsumerOrderConfirmedEmailParams): { subject: string; html: string; text: string } {
+  const { consumerName, wineName, vintage, referenceCode, quantity, priceSek } = params;
+  const greeting = consumerName ? `Hej ${consumerName}` : 'Hej';
+  const vintageStr = vintage && !wineName.includes(String(vintage)) ? ` ${vintage}` : '';
+  const subject = `Beställning bekräftad — ${referenceCode}`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9fafb;">
+  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 20px; font-weight: 500;">Beställningen är bekräftad!</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>${greeting},</p>
+
+    <p>Importören har bekräftat att de mottagit din beställning av <strong>${wineName}${vintageStr}</strong> med referenskod <strong>${referenceCode}</strong>.</p>
+
+    <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 8px 0;"><strong>Vin:</strong> ${wineName}${vintageStr}</p>
+      <p style="margin: 0 0 8px 0;"><strong>Antal:</strong> ${quantity} flaskor</p>
+      ${priceSek ? `<p style="margin: 0 0 8px 0;"><strong>Pris:</strong> ${priceSek} kr/fl</p>` : ''}
+      <p style="margin: 0;"><strong>Referenskod:</strong> ${referenceCode}</p>
+    </div>
+
+    <h3 style="color: #722F37; margin-top: 25px; font-size: 16px;">Vad händer nu?</h3>
+    <p style="color: #4b5563; font-size: 14px;">
+      Från och med nu hanteras din beställning av <strong>Systembolaget</strong> och importören. Vinkoll är inte längre inblandad i processen och hanterar inga betalningar.
+    </p>
+
+    <ol style="color: #4b5563; padding-left: 20px; font-size: 14px;">
+      <li style="margin-bottom: 8px;">Systembolaget skickar dig en <strong>offert</strong> baserad på importörens uppgifter.</li>
+      <li style="margin-bottom: 8px;"><strong>Acceptera offerten</strong> via mail eller på <a href="https://www.systembolaget.se" style="color: #722F37;">Mina Sidor</a> på systembolaget.se.</li>
+      <li style="margin-bottom: 8px;"><strong>Betalning</strong> sker enligt Systembolagets vanliga villkor.</li>
+      <li style="margin-bottom: 8px;">Du får <strong>meddelande</strong> när vinet finns att hämta i din butik.</li>
+    </ol>
+
+    <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 12px 15px; margin: 20px 0; border-radius: 6px; font-size: 13px; color: #6b7280;">
+      <strong>Kontakt vid frågor om leverans eller betalning:</strong><br>
+      Kontakta Systembolagets kundservice eller importören direkt. Vinkoll har inte tillgång till status på beställningar efter detta steg.
+    </div>
+
+    <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">Tack för att du använde Vinkoll! Vi hoppas du hittar fler viner hos oss.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="https://vinkoll.se" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Utforska fler viner
+      </a>
+    </div>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+${greeting},
+
+Importören har bekräftat att de mottagit din beställning av ${wineName}${vintageStr} med referenskod ${referenceCode}.
+
+Vin: ${wineName}${vintageStr}
+Antal: ${quantity} flaskor
+${priceSek ? `Pris: ${priceSek} kr/fl` : ''}
+Referenskod: ${referenceCode}
+
+VAD HÄNDER NU?
+
+Från och med nu hanteras din beställning av Systembolaget och importören. Vinkoll är inte längre inblandad i processen och hanterar inga betalningar.
+
+1. Systembolaget skickar dig en offert baserad på importörens uppgifter.
+2. Acceptera offerten via mail eller på Mina Sidor på systembolaget.se.
+3. Betalning sker enligt Systembolagets vanliga villkor.
+4. Du får meddelande när vinet finns att hämta i din butik.
+
+Vid frågor om leverans eller betalning: kontakta Systembolagets kundservice eller importören direkt. Vinkoll har inte tillgång till status på beställningar efter detta steg.
+
+Tack för att du använde Vinkoll!
+
+Utforska fler viner: https://vinkoll.se
+
+---
+Vinkoll - Hitta ditt nästa favoritvin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+// ============================================================================
+// VINKOLL ACCESS — Mediation Engine Email Templates
+// ============================================================================
+
+export interface ImporterForwardEmailParams {
+  importerContactName: string | null;
+  wineName: string;
+  wineType: string;
+  vintage: number | null;
+  grape: string | null;
+  region: string | null;
+  country: string | null;
+  quantity: number;
+  priceSek: number | null;
+  consumerMessage: string | null; // already PII-sanitized
+  respondUrl: string;
+}
+
+export function renderImporterForwardEmail(params: ImporterForwardEmailParams): { subject: string; html: string; text: string } {
+  const {
+    importerContactName,
+    wineName,
+    wineType,
+    vintage,
+    grape,
+    region,
+    country,
+    quantity,
+    priceSek,
+    consumerMessage,
+    respondUrl,
+  } = params;
+
+  const greeting = importerContactName ? `Hej ${importerContactName}` : 'Hej';
+  const vintageStr = vintage ? ` ${vintage}` : '';
+  const subject = `Ny förfrågan via Vinkoll: ${wineName}${vintageStr}`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Ny vinförfrågan</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>${greeting},</p>
+
+    <p>En kund har visat intresse för ett vin i ert sortiment via Vinkoll. Vi skulle uppskatta om ni kan svara på förfrågan.</p>
+
+    <div style="background: #f9fafb; border-left: 4px solid #722F37; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 8px 0;"><strong>Vin:</strong> ${wineName}${vintageStr}</p>
+      <p style="margin: 0 0 8px 0;"><strong>Typ:</strong> ${wineType}</p>
+      ${grape ? `<p style="margin: 0 0 8px 0;"><strong>Druva:</strong> ${grape}</p>` : ''}
+      ${region ? `<p style="margin: 0 0 8px 0;"><strong>Region:</strong> ${region}${country ? ', ' + country : ''}</p>` : ''}
+      <p style="margin: 0 0 8px 0;"><strong>Önskat antal:</strong> ${quantity} flaskor</p>
+      ${priceSek ? `<p style="margin: 0 0 8px 0;"><strong>Angivet pris:</strong> ${priceSek} kr/fl</p>` : ''}
+      ${consumerMessage ? `<p style="margin: 8px 0 0 0; padding-top: 8px; border-top: 1px solid #e5e7eb;"><strong>Meddelande:</strong> ${consumerMessage}</p>` : ''}
+    </div>
+
+    <p>Klicka på knappen nedan för att svara. Det tar bara en minut.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${respondUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Svara på förfrågan
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på info@vinkoll.se.
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+${greeting},
+
+En kund har visat intresse för ett vin i ert sortiment via Vinkoll.
+
+Vin: ${wineName}${vintageStr}
+Typ: ${wineType}
+${grape ? `Druva: ${grape}` : ''}
+${region ? `Region: ${region}${country ? ', ' + country : ''}` : ''}
+Önskat antal: ${quantity} flaskor
+${priceSek ? `Angivet pris: ${priceSek} kr/fl` : ''}
+${consumerMessage ? `Meddelande: ${consumerMessage}` : ''}
+
+Svara på förfrågan: ${respondUrl}
+
+Länken är giltig i 7 dagar.
+
+---
+Vinkoll - Hitta ditt nästa favoritvin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+export interface ConsumerResponseEmailParams {
+  consumerName: string | null;
+  wineName: string;
+  vintage: number | null;
+  accepted: boolean;
+  priceSek: number | null;
+  quantity: number | null;
+  deliveryDays: number | null;
+  importerNote: string | null;
+  browseUrl: string;
+  referenceCode: string;
+}
+
+export function renderConsumerResponseEmail(params: ConsumerResponseEmailParams): { subject: string; html: string; text: string } {
+  const {
+    consumerName,
+    wineName,
+    vintage,
+    accepted,
+    priceSek,
+    quantity,
+    deliveryDays,
+    importerNote,
+    browseUrl,
+    referenceCode,
+  } = params;
+
+  const greeting = consumerName ? `Hej ${consumerName}` : 'Hej';
+  const vintageStr = vintage ? ` ${vintage}` : '';
+
+  if (accepted) {
+    const subject = `Goda nyheter! ${wineName}${vintageStr} kan levereras`;
+
+    const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9fafb;">
+  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <div style="display: inline-block; background: white; border-radius: 16px; padding: 12px 28px; margin-bottom: 14px;">
+      <img src="${browseUrl.split('/').slice(0, 3).join('/')}/vinkoll-logo.png" alt="Vinkoll" style="height: 50px; display: block;" />
+    </div>
+    <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 20px; font-weight: 500;">Goda nyheter om din vinförfrågan!</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>${greeting},</p>
+
+    <p>Vi har fått svar på din förfrågan om <strong>${wineName}${vintageStr}</strong> — och importören kan leverera!</p>
+
+    <div style="background: #fdf2f3; border-left: 4px solid #722F37; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 8px 0;"><strong>Vin:</strong> ${wineName}${vintageStr}</p>
+      ${priceSek ? `<p style="margin: 0 0 8px 0;"><strong>Pris:</strong> ${priceSek} kr/flaska</p>` : ''}
+      ${quantity ? `<p style="margin: 0 0 8px 0;"><strong>Antal tillgängligt:</strong> ${quantity} flaskor</p>` : ''}
+      ${deliveryDays ? `<p style="margin: 0 0 8px 0;"><strong>Leveranstid:</strong> ca ${deliveryDays} dagar</p>` : ''}
+      ${importerNote ? `<p style="margin: 8px 0 0 0; padding-top: 8px; border-top: 1px solid #f5c6cb;"><strong>Kommentar:</strong> ${importerNote}</p>` : ''}
+    </div>
+
+    <div style="background: #fefce8; border: 1px solid #fde68a; padding: 15px; margin: 20px 0; border-radius: 6px; text-align: center;">
+      <p style="margin: 0 0 5px 0; font-size: 12px; color: #92400e; text-transform: uppercase; letter-spacing: 1px;">Din referenskod</p>
+      <p style="margin: 0; font-size: 24px; font-weight: 700; color: #78350f; letter-spacing: 2px;">${referenceCode}</p>
+      <p style="margin: 5px 0 0 0; font-size: 12px; color: #92400e;">Ange denna kod vid beställning</p>
+    </div>
+
+    <h3 style="color: #722F37; margin-top: 25px; font-size: 16px;">Så här beställer du via privatimport</h3>
+    <p style="color: #4b5563; font-size: 14px; margin-bottom: 15px;">
+      Privatimport innebär att du beställer via Systembolagets webbplats och hämtar ut vinet i din närmaste Systembolagsbutik. Så här gör du:
+    </p>
+    <ol style="color: #4b5563; padding-left: 20px; font-size: 14px;">
+      <li style="margin-bottom: 8px;"><strong>Logga in</strong> på <a href="https://www.systembolaget.se" style="color: #722F37;">systembolaget.se</a> (skapa konto om du inte har ett).</li>
+      <li style="margin-bottom: 8px;">Gå direkt till <a href="https://www.systembolaget.se/bestalla-och-handla/privatimport/forfragan/" style="color: #722F37; font-weight: 600;">Systembolagets privatimport-formulär</a> och registrera en ny förfrågan.</li>
+      <li style="margin-bottom: 8px;"><strong>Välj säljare/leverantör</strong> — den importör vi kopplat dig till.</li>
+      <li style="margin-bottom: 8px;"><strong>Fyll i dryckesinformation:</strong> vinnamn, typ, årgång, volym (750 ml) och antal flaskor.</li>
+      <li style="margin-bottom: 8px;"><strong>Ange referenskod ${referenceCode}</strong> i kommentarsfältet så importören vet vilken order det gäller.</li>
+      <li style="margin-bottom: 8px;"><strong>Skicka förfrågan.</strong> Systembolaget skickar den vidare till importören.</li>
+      <li style="margin-bottom: 8px;"><strong>Acceptera offerten</strong> som du får via mail och på Mina Sidor.</li>
+      <li style="margin-bottom: 8px;"><strong>Hämta i butik</strong> — du får meddelande när vinet finns att hämta.</li>
+    </ol>
+
+    <div style="background: #fdf2f3; border: 1px solid #f5c6cb; padding: 12px 15px; margin: 20px 0; border-radius: 6px; font-size: 13px; color: #722F37;">
+      <strong>Tips:</strong> Ange alltid referenskod <strong>${referenceCode}</strong> i kommentarsfältet på Systembolaget. Det säkerställer att importören kopplar din beställning till rätt erbjudande.
+    </div>
+
+    <p style="color: #6b7280; font-size: 13px;">Har du frågor? Svara på detta mail så hjälper vi dig.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="https://www.systembolaget.se/bestalla-och-handla/privatimport/forfragan/" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Registrera privatimport
+      </a>
+    </div>
+
+    <div style="text-align: center; margin: 20px 0;">
+      <a href="${browseUrl}" style="color: #722F37; font-size: 14px; text-decoration: underline;">
+        Utforska fler viner på Vinkoll
+      </a>
+    </div>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
+  </div>
+</body>
+</html>
+    `;
+
+    const text = `
+${greeting},
+
+Vi har fått svar på din förfrågan om ${wineName}${vintageStr} — och importören kan leverera!
+
+Vin: ${wineName}${vintageStr}
+${priceSek ? `Pris: ${priceSek} kr/flaska` : ''}
+${quantity ? `Antal tillgängligt: ${quantity} flaskor` : ''}
+${deliveryDays ? `Leveranstid: ca ${deliveryDays} dagar` : ''}
+${importerNote ? `Kommentar: ${importerNote}` : ''}
+
+DIN REFERENSKOD: ${referenceCode}
+
+SÅ HÄR BESTÄLLER DU VIA PRIVATIMPORT:
+
+Privatimport innebär att du beställer via Systembolagets webbplats och hämtar ut vinet i din närmaste butik.
+
+1. Logga in på systembolaget.se (skapa konto om du inte har ett).
+2. Gå till privatimport-formuläret: https://www.systembolaget.se/bestalla-och-handla/privatimport/forfragan/
+3. Välj säljare/leverantör — den importör vi kopplat dig till.
+4. Fyll i dryckesinformation: vinnamn, typ, årgång, volym (750 ml) och antal.
+5. Ange referenskod ${referenceCode} i kommentarsfältet.
+6. Skicka förfrågan. Systembolaget skickar den till importören.
+7. Acceptera offerten du får via mail och på Mina Sidor.
+8. Hämta i butik — du får meddelande när vinet finns att hämta.
+
+TIPS: Ange alltid referenskod ${referenceCode} i kommentarsfältet på Systembolaget. Det säkerställer att importören kopplar din beställning till rätt erbjudande.
+
+Har du frågor? Svara på detta mail så hjälper vi dig.
+
+Utforska fler viner: ${browseUrl}
+
+---
+Vinkoll - Hitta ditt nästa favoritvin
+    `.trim();
+
+    return { subject, html, text };
+  }
+
+  // Declined
+  const subject = `Uppdatering om ${wineName}${vintageStr}`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Uppdatering om din förfrågan</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>${greeting},</p>
+
+    <p>Tyvärr kan importören inte leverera <strong>${wineName}${vintageStr}</strong> just nu.</p>
+
+    ${importerNote ? `
+    <div style="background: #f9fafb; border-left: 4px solid #d1d5db; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0;"><strong>Anledning:</strong> ${importerNote}</p>
+    </div>
+    ` : ''}
+
+    <p>Men ge inte upp — vi har fler viner som kan passa dig!</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${browseUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Utforska fler viner
+      </a>
+    </div>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+${greeting},
+
+Tyvärr kan importören inte leverera ${wineName}${vintageStr} just nu.
+
+${importerNote ? `Anledning: ${importerNote}` : ''}
+
+Men ge inte upp — vi har fler viner som kan passa dig!
+
+Utforska fler viner: ${browseUrl}
+
+---
+Vinkoll - Hitta ditt nästa favoritvin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+/**
+ * Template: Order Confirmation (sent to both restaurant and supplier)
+ */
 export function orderConfirmationEmail(params: OrderConfirmationEmailParams): { subject: string; html: string; text: string } {
   const {
     recipientName,

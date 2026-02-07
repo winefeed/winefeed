@@ -45,6 +45,12 @@ export async function middleware(request: NextRequest) {
     '/forgot-password',  // Forgot password page
     '/pitch',            // Public pitch page
     '/api/health',       // Health check (monitoring + smoke tests)
+    '/api/admin/access', // Vinkoll Access API (has own cookie auth)
+    '/access/admin',     // Vinkoll Access admin (separate from Winefeed)
+    '/access/importer/respond',       // Importer respond page (token-based auth)
+    '/access/importer/confirm',       // Importer confirm page (token-based auth)
+    '/api/access/importer/respond',   // Importer respond API (token-based auth)
+    '/api/access/importer/confirm',   // Importer confirm API (token-based auth)
   ];
 
   // Exact match for root landing page

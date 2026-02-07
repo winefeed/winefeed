@@ -36,6 +36,7 @@ export interface SendEmailParams {
   subject: string;
   html: string;
   text: string;
+  reply_to?: string;
 }
 
 export interface EmailEventPayload {
@@ -50,7 +51,7 @@ export interface EmailEventPayload {
  * Fail-safe: Returns success even if email fails (logs error)
  */
 export async function sendEmail(params: SendEmailParams): Promise<{ success: boolean; error?: string }> {
-  const { to, subject, html, text } = params;
+  const { to, subject, html, text, reply_to } = params;
 
   // Dev mode: Console log instead of sending
   if (!EMAIL_ENABLED) {
@@ -74,7 +75,8 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
       to,
       subject,
       html,
-      text
+      text,
+      ...(reply_to ? { reply_to } : {}),
     });
 
     if (error) {
