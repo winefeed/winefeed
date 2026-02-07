@@ -111,8 +111,8 @@ export async function PATCH(
     // Update pack
     const pack = await readinessPackService.updatePack(
       {
-        userId: auth.userId,
-        userName: auth.email,
+        userId: auth.subjectId,
+        userName: (auth.metadata?.email as string) || 'Admin',
       },
       id,
       parseResult.data
