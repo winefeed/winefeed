@@ -30,6 +30,7 @@ import {
   CreditCard,
   Handshake,
   MessageSquarePlus,
+  Search,
   type LucideIcon,
 } from 'lucide-react';
 
