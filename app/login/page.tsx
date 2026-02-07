@@ -204,7 +204,7 @@ function LoginForm() {
         {/* Help Text */}
         <p className="mt-6 text-center text-xs text-gray-500">
           Har du problem att logga in?{' '}
-          <a href="mailto:markus@esima.se" className="text-primary hover:underline">
+          <a href="mailto:hej@winefeed.se" className="text-primary hover:underline">
             Kontakta support
           </a>
         </p>

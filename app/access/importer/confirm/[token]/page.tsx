@@ -114,7 +114,7 @@ export default function ImporterConfirmPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Länken har gått ut</h2>
           <p className="text-gray-600 text-sm">
             Denna länk är inte längre giltig. Om du behöver bekräfta beställningen, kontakta oss på{' '}
-            <a href="mailto:info@vinkoll.se" className="text-[#722F37] underline">info@vinkoll.se</a>.
+            <a href="mailto:hej@winefeed.se" className="text-[#722F37] underline">hej@winefeed.se</a>.
           </p>
         </div>
       </PageWrapper>
@@ -129,7 +129,7 @@ export default function ImporterConfirmPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Något gick fel</h2>
           <p className="text-gray-600 text-sm">
             Försök ladda om sidan. Om problemet kvarstår, kontakta{' '}
-            <a href="mailto:info@vinkoll.se" className="text-[#722F37] underline">info@vinkoll.se</a>.
+            <a href="mailto:hej@winefeed.se" className="text-[#722F37] underline">hej@winefeed.se</a>.
           </p>
         </div>
       </PageWrapper>
