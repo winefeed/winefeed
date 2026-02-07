@@ -25,6 +25,12 @@ export default function AccessAdminLayout({
           >
             Förfrågningar
           </Link>
+          <Link
+            href="/access/admin/wines"
+            className="text-sm text-gray-700 hover:text-[#722F37] font-medium"
+          >
+            Viner
+          </Link>
           <a
             href="/api/auth/logout"
             className="text-sm text-gray-400 hover:text-gray-600"

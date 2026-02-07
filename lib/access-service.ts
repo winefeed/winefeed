@@ -10,6 +10,7 @@ import type {
   AccessConsumer,
   AccessWatchlist,
   AccessRequest,
+  AccessWine,
   WineWithProducer,
   WineDetail,
   LotPublic,
@@ -19,6 +20,8 @@ import type {
   WatchlistWithTarget,
   AdminRequestView,
   ImporterResponseData,
+  WineInput,
+  WineStatus,
 } from './access-types';
 
 // ============================================================================
@@ -91,6 +94,9 @@ export async function searchWines(params: WineSearchParams): Promise<PaginatedRe
       lots:access_lots(id)
     `, { count: 'exact' });
 
+  // Only show active wines in public search
+  query = query.eq('status', 'ACTIVE');
+
   if (q) {
     query = query.or(`name.ilike.%${q}%,grape.ilike.%${q}%,region.ilike.%${q}%,appellation.ilike.%${q}%`);
   }
@@ -161,6 +167,100 @@ export async function getWineFilters(): Promise<{ types: string[]; countries: st
   const countries = [...new Set((countriesRes.data || []).map((r: any) => r.country).filter(Boolean))];
 
   return { types, countries };
+}
+
+// ============================================================================
+// WINES — ADMIN CRUD
+// ============================================================================
+
+export async function searchWinesAdmin(params: {
+  q?: string;
+  status?: WineStatus;
+  limit?: number;
+  offset?: number;
+}): Promise<{ data: AccessWine[]; total: number }> {
+  const supabase = getSupabaseAdmin();
+  const { q, status, limit = 50, offset = 0 } = params;
+
+  let query = supabase
+    .from('access_wines')
+    .select('*', { count: 'exact' });
+
+  if (status) query = query.eq('status', status);
+  if (q) {
+    query = query.or(`name.ilike.%${q}%,grape.ilike.%${q}%,region.ilike.%${q}%,country.ilike.%${q}%`);
+  }
+
+  query = query
+    .order('updated_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+
+  if (error) throw new Error(`Admin wine search failed: ${error.message}`);
+
+  return { data: (data || []) as AccessWine[], total: count || 0 };
+}
+
+export async function createWine(input: WineInput): Promise<AccessWine> {
+  const supabase = getSupabaseAdmin();
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from('access_wines')
+    .insert({
+      name: input.name.trim(),
+      wine_type: input.wine_type.trim(),
+      vintage: input.vintage,
+      country: input.country.trim(),
+      region: input.region.trim(),
+      grape: input.grape?.trim() || null,
+      appellation: input.appellation?.trim() || null,
+      description: input.description?.trim() || null,
+      price_indication: input.price_sek ? `${input.price_sek} kr` : null,
+      image_url: input.image_url?.trim() || null,
+      status: input.status || 'DRAFT',
+      producer_id: input.producer_id || null,
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create wine: ${error.message}`);
+  return data as AccessWine;
+}
+
+export async function updateWine(id: string, input: Partial<WineInput>): Promise<AccessWine> {
+  const supabase = getSupabaseAdmin();
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (input.name !== undefined) updates.name = input.name.trim();
+  if (input.wine_type !== undefined) updates.wine_type = input.wine_type.trim();
+  if (input.vintage !== undefined) updates.vintage = input.vintage;
+  if (input.country !== undefined) updates.country = input.country.trim();
+  if (input.region !== undefined) updates.region = input.region.trim();
+  if (input.grape !== undefined) updates.grape = input.grape?.trim() || null;
+  if (input.appellation !== undefined) updates.appellation = input.appellation?.trim() || null;
+  if (input.description !== undefined) updates.description = input.description?.trim() || null;
+  if (input.price_sek !== undefined) updates.price_indication = input.price_sek ? `${input.price_sek} kr` : null;
+  if (input.image_url !== undefined) updates.image_url = input.image_url?.trim() || null;
+  if (input.status !== undefined) updates.status = input.status;
+  if (input.producer_id !== undefined) updates.producer_id = input.producer_id || null;
+
+  const { data, error } = await supabase
+    .from('access_wines')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to update wine: ${error.message}`);
+  return data as AccessWine;
+}
+
+export async function archiveWine(id: string): Promise<AccessWine> {
+  return updateWine(id, { status: 'ARCHIVED' });
 }
 
 // ============================================================================
