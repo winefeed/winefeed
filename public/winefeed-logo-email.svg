@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 70" width="330" height="70">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;700&amp;display=swap');</style>
+  </defs>
+  <polygon points="25,5 45,25 25,45 5,25" fill="#E8DFC4" opacity="0.8"/>
+  <polygon points="38,2 60,24 38,46 16,24" fill="#E8B4B8" opacity="0.75"/>
+  <polygon points="53,5 73,25 53,45 33,25" fill="#C93050" opacity="0.95"/>
+  <line x1="33" y1="25" x2="55" y2="25" stroke="#E8B4B8" stroke-width="1" stroke-linecap="round" opacity="0.4" stroke-dasharray="2.5 2"/>
+  <text x="86" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="32" fill="#f5e8e0" dominant-baseline="middle">
+    <tspan font-weight="700">wine</tspan><tspan font-weight="300">feed</tspan>
+  </text>
+  <text x="86" y="50" font-family="'Plus Jakarta Sans', sans-serif" font-size="8" fill="rgba(245,232,224,0.4)" letter-spacing="2.5" font-weight="400">SOURCE &amp; SERVE</text>
+</svg>
