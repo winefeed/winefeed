@@ -212,14 +212,17 @@ export function welcomeEmail(params: WelcomeEmailParams): { subject: string; htm
   <title>${subject}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <!-- Header -->
-    <div style="text-align: center; margin-bottom: 30px;">
-      <h1 style="color: #722F37; margin: 0; font-size: 28px;">Winefeed</h1>
+  <div style="max-width: 600px; margin: 0 auto;">
+    <!-- Header with wine background -->
+    <div style="background: linear-gradient(135deg, #722F37 0%, #5a252c 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+      <h1 style="color: #f5e8e0; margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
+        <span style="font-weight: 700;">wine</span><span style="font-weight: 300;">feed</span>
+      </h1>
+      <p style="color: rgba(245,232,224,0.6); margin: 8px 0 0 0; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">Source & Serve</p>
     </div>
 
     <!-- Main Content -->
-    <div style="background: white; border-radius: 8px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div style="background: white; border-radius: 0 0 8px 8px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
       <h2 style="color: #111827; margin: 0 0 20px 0; font-size: 20px;">
         Välkommen, ${restaurantName}!
       </h2>
@@ -251,8 +254,8 @@ export function welcomeEmail(params: WelcomeEmailParams): { subject: string; htm
     </div>
 
     <!-- Footer -->
-    <div style="text-align: center; margin-top: 30px; color: #9ca3af; font-size: 12px;">
-      <p>Winefeed - Din B2B-marknadsplats för vin</p>
+    <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+      <p style="margin: 0;">Winefeed - Din B2B-marknadsplats för vin</p>
     </div>
   </div>
 </body>
