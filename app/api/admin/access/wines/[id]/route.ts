@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getWineById, updateWine, archiveWine } from '@/lib/access-service';
+import { getWineById, updateWine, archiveWine, getOrCreateProducer } from '@/lib/access-service';
 
 export async function GET(
   request: NextRequest,
@@ -69,6 +69,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Validation failed', errors }, { status: 400 });
     }
 
+    // Resolve producer_name → producer_id
+    let producerId = body.producer_id;
+    if (producerId === undefined && body.producer_name !== undefined) {
+      producerId = body.producer_name?.trim()
+        ? await getOrCreateProducer(body.producer_name)
+        : null;
+    }
+
     const wine = await updateWine(id, {
       ...(body.name !== undefined && { name: body.name }),
       ...(body.wine_type !== undefined && { wine_type: body.wine_type }),
@@ -81,7 +89,7 @@ export async function PUT(
       ...(body.price_sek !== undefined && { price_sek: body.price_sek !== null ? Number(body.price_sek) : null }),
       ...(body.image_url !== undefined && { image_url: body.image_url || null }),
       ...(body.status !== undefined && { status: body.status }),
-      ...(body.producer_id !== undefined && { producer_id: body.producer_id || null }),
+      ...(producerId !== undefined && { producer_id: producerId }),
     });
 
     return NextResponse.json({ wine });

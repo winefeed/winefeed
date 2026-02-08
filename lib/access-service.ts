@@ -170,6 +170,46 @@ export async function getWineFilters(): Promise<{ types: string[]; countries: st
 }
 
 // ============================================================================
+// PRODUCERS
+// ============================================================================
+
+export async function getProducers(): Promise<{ id: string; name: string }[]> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from('access_producers')
+    .select('id, name')
+    .order('name');
+
+  if (error) throw new Error(`Failed to fetch producers: ${error.message}`);
+  return data || [];
+}
+
+export async function getOrCreateProducer(name: string): Promise<string> {
+  const supabase = getSupabaseAdmin();
+  const trimmed = name.trim();
+
+  // Look for existing (case-insensitive)
+  const { data: existing } = await supabase
+    .from('access_producers')
+    .select('id')
+    .ilike('name', trimmed)
+    .limit(1)
+    .single();
+
+  if (existing) return existing.id;
+
+  // Create new
+  const { data: created, error } = await supabase
+    .from('access_producers')
+    .insert({ name: trimmed })
+    .select('id')
+    .single();
+
+  if (error) throw new Error(`Failed to create producer: ${error.message}`);
+  return created.id;
+}
+
+// ============================================================================
 // WINES — ADMIN CRUD
 // ============================================================================
 
@@ -184,7 +224,7 @@ export async function searchWinesAdmin(params: {
 
   let query = supabase
     .from('access_wines')
-    .select('*', { count: 'exact' });
+    .select('*, producer:access_producers!producer_id(id, name)', { count: 'exact' });
 
   if (status) query = query.eq('status', status);
   if (q) {
@@ -199,7 +239,7 @@ export async function searchWinesAdmin(params: {
 
   if (error) throw new Error(`Admin wine search failed: ${error.message}`);
 
-  return { data: (data || []) as AccessWine[], total: count || 0 };
+  return { data: (data || []) as any[], total: count || 0 };
 }
 
 export async function createWine(input: WineInput): Promise<AccessWine> {
