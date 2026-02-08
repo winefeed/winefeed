@@ -95,7 +95,7 @@ export async function POST(
       subject,
       html,
       text,
-      reply_to: 'access@vinkoll.se',
+      reply_to: 'hej@vinkoll.se',
     });
 
     // Log event

@@ -816,7 +816,7 @@ export function renderImporterConfirmEmail(params: ImporterConfirmEmailParams): 
     </div>
 
     <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-      Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på info@vinkoll.se.
+      Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på hej@vinkoll.se.
     </p>
   </div>
 
@@ -1034,7 +1034,7 @@ export function renderImporterForwardEmail(params: ImporterForwardEmailParams): 
     </div>
 
     <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-      Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på info@vinkoll.se.
+      Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på hej@vinkoll.se.
     </p>
   </div>
 

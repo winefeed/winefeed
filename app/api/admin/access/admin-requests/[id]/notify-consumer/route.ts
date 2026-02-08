@@ -71,7 +71,7 @@ export async function POST(
     });
 
     // Send email. reply_to = Vinkoll (never the importer). Keeps separation.
-    const emailResult = await sendEmail({ to: req.consumer.email, subject, html, text, reply_to: 'access@vinkoll.se' });
+    const emailResult = await sendEmail({ to: req.consumer.email, subject, html, text, reply_to: 'hej@vinkoll.se' });
 
     // Mark as notified
     await markConsumerNotified(id);
