@@ -287,10 +287,10 @@ export default function MyRequestsPage() {
       ) : (
         <div className="space-y-4">
           {filteredRequests.map((req) => {
-            // Navigate to offers if offers exist, otherwise to results
+            // Navigate to offers if offers exist, otherwise to status page
             const targetUrl = req.offers_count > 0
               ? `/dashboard/offers/${req.id}`
-              : `/dashboard/results/${req.id}`;
+              : `/dashboard/my-requests/${req.id}`;
 
             const isAccepted = req.status === 'ACCEPTED' || req.accepted_offer_id;
             const wineType = getWineType(req);
@@ -400,7 +400,7 @@ export default function MyRequestsPage() {
                             ? 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground'
                             : 'text-muted-foreground group-hover:text-primary'
                         }`}>
-                          {req.offers_count > 0 ? 'Se offerter' : 'Se matchningar'}
+                          {req.offers_count > 0 ? 'Se offerter' : 'Se status'}
                         </span>
 
                         {/* Arrow */}
