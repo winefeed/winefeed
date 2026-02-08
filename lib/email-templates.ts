@@ -213,16 +213,16 @@ export function welcomeEmail(params: WelcomeEmailParams): { subject: string; htm
 </head>
 <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto;">
-    <!-- Header with wine background (grafisk profil) -->
-    <div style="background: #5A1220; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-      <h1 style="color: #E8DFC4; margin: 0; font-size: 32px; letter-spacing: -0.5px; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;">
+    <!-- Header with light background (grafisk profil - ljus variant) -->
+    <div style="background: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; border-bottom: 1px solid #f0f0f0;">
+      <h1 style="color: #7A1B2D; margin: 0; font-size: 32px; letter-spacing: -0.5px; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;">
         <span style="font-weight: 700;">wine</span><span style="font-weight: 300;">feed</span>
       </h1>
       <p style="color: #b89a9e; margin: 8px 0 0 0; font-size: 10px; letter-spacing: 2.8px; text-transform: uppercase;">SOURCE &amp; SERVE</p>
     </div>
 
     <!-- Main Content -->
-    <div style="background: white; border-radius: 0 0 8px 8px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div style="background: white; border-radius: 0 0 8px 8px; padding: 30px;">
       <h2 style="color: #111827; margin: 0 0 20px 0; font-size: 20px;">
         Välkommen, ${restaurantName}!
       </h2>
