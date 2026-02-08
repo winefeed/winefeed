@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { searchWines, searchWinesAdmin, createWine, getWineFilters } from '@/lib/access-service';
+import { searchWines, searchWinesAdmin, createWine, getWineFilters, getProducers, getOrCreateProducer } from '@/lib/access-service';
 import type { WineStatus } from '@/lib/access-types';
 
 function validateWineInput(body: any): { valid: boolean; errors?: string[] } {
@@ -43,14 +43,17 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const result = await searchWinesAdmin({
-        q: searchParams.get('q') || undefined,
-        status: (searchParams.get('status') as WineStatus) || undefined,
-        limit: Math.min(parseInt(searchParams.get('limit') || '50'), 100),
-        offset: parseInt(searchParams.get('offset') || '0'),
-      });
+      const [result, producers] = await Promise.all([
+        searchWinesAdmin({
+          q: searchParams.get('q') || undefined,
+          status: (searchParams.get('status') as WineStatus) || undefined,
+          limit: Math.min(parseInt(searchParams.get('limit') || '50'), 100),
+          offset: parseInt(searchParams.get('offset') || '0'),
+        }),
+        getProducers(),
+      ]);
 
-      return NextResponse.json(result);
+      return NextResponse.json({ ...result, producers });
     }
 
     // Public mode
@@ -93,6 +96,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Validation failed', errors: validation.errors }, { status: 400 });
     }
 
+    // Resolve producer: name → id (lookup or create)
+    let producerId = body.producer_id || null;
+    if (!producerId && body.producer_name?.trim()) {
+      producerId = await getOrCreateProducer(body.producer_name);
+    }
+
     const wine = await createWine({
       name: body.name,
       wine_type: body.wine_type,
@@ -105,7 +114,7 @@ export async function POST(request: NextRequest) {
       price_sek: body.price_sek !== null && body.price_sek !== undefined ? Number(body.price_sek) : null,
       image_url: body.image_url || null,
       status: body.status || 'DRAFT',
-      producer_id: body.producer_id || null,
+      producer_id: producerId,
     });
 
     return NextResponse.json({ wine }, { status: 201 });

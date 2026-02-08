@@ -10,6 +10,7 @@ type WineStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
 
 interface Wine {
   id: string;
+  producer_id: string | null;
   name: string;
   wine_type: string;
   vintage: number | null;
@@ -21,12 +22,19 @@ interface Wine {
   price_indication: string | null;
   image_url: string | null;
   status: WineStatus;
+  producer?: { id: string; name: string } | null;
   created_at: string;
   updated_at: string;
 }
 
+interface Producer {
+  id: string;
+  name: string;
+}
+
 interface WineFormData {
   name: string;
+  producer_name: string;
   wine_type: string;
   vintage: string; // string for form, converted to number|null
   country: string;
@@ -66,6 +74,48 @@ const STATUS_COLORS: Record<WineStatus, string> = {
 };
 
 // ============================================================================
+// Suggestion data
+// ============================================================================
+
+const COUNTRIES = [
+  'Argentina', 'Australien', 'Chile', 'Frankrike', 'Georgien',
+  'Grekland', 'Italien', 'Nya Zeeland', 'Portugal', 'Spanien',
+  'Sydafrika', 'Tyskland', 'Ungern', 'USA', 'Österrike',
+];
+
+const REGIONS_BY_COUNTRY: Record<string, string[]> = {
+  'Frankrike': ['Bordeaux', 'Bourgogne', 'Rhône', 'Loire', 'Alsace', 'Champagne', 'Languedoc', 'Provence', 'Jura', 'Savoie', 'Sud-Ouest'],
+  'Italien': ['Toscana', 'Piemonte', 'Veneto', 'Sicilien', 'Puglia', 'Lombardiet', 'Abruzzo', 'Sardinien', 'Friuli', 'Kampanien', 'Emilia-Romagna'],
+  'Spanien': ['Rioja', 'Ribera del Duero', 'Priorat', 'Galicien', 'Penedès', 'Jerez', 'Rueda', 'Navarra', 'Toro', 'Jumilla'],
+  'Portugal': ['Douro', 'Alentejo', 'Dão', 'Vinho Verde', 'Bairrada', 'Lisboa'],
+  'Tyskland': ['Mosel', 'Rheingau', 'Pfalz', 'Baden', 'Franken', 'Nahe', 'Rheinhessen'],
+  'Österrike': ['Wachau', 'Kamptal', 'Kremstal', 'Burgenland', 'Steiermark', 'Wien'],
+  'Australien': ['Barossa Valley', 'McLaren Vale', 'Hunter Valley', 'Margaret River', 'Yarra Valley', 'Adelaide Hills'],
+  'Nya Zeeland': ['Marlborough', 'Central Otago', 'Hawke\'s Bay', 'Martinborough', 'Waipara'],
+  'Chile': ['Maipo Valley', 'Colchagua', 'Casablanca', 'Maule', 'Bío-Bío', 'Aconcagua'],
+  'Argentina': ['Mendoza', 'Salta', 'Patagonia', 'San Juan', 'Uco Valley'],
+  'Sydafrika': ['Stellenbosch', 'Swartland', 'Franschhoek', 'Constantia', 'Walker Bay', 'Elgin'],
+  'USA': ['Napa Valley', 'Sonoma', 'Willamette Valley', 'Paso Robles', 'Santa Barbara', 'Finger Lakes'],
+  'Georgien': ['Kakheti', 'Kartli', 'Imereti'],
+  'Grekland': ['Santorini', 'Naoussa', 'Nemea', 'Kreta', 'Makedonien'],
+  'Ungern': ['Tokaj', 'Eger', 'Villány', 'Szekszárd'],
+};
+
+const GRAPES = [
+  // Röda
+  'Cabernet Sauvignon', 'Merlot', 'Pinot Noir', 'Syrah', 'Grenache',
+  'Tempranillo', 'Sangiovese', 'Nebbiolo', 'Gamay', 'Malbec',
+  'Mourvèdre', 'Barbera', 'Zinfandel', 'Carignan', 'Primitivo',
+  'Cabernet Franc', 'Petit Verdot', 'Touriga Nacional', 'Mencía', 'Nero d\'Avola',
+  'Aglianico', 'Corvina', 'Dolcetto', 'Pinotage', 'Tannat',
+  // Vita
+  'Chardonnay', 'Sauvignon Blanc', 'Riesling', 'Pinot Grigio', 'Gewürztraminer',
+  'Chenin Blanc', 'Viognier', 'Sémillon', 'Grüner Veltliner', 'Albariño',
+  'Muscadet', 'Torrontés', 'Marsanne', 'Roussanne', 'Verdejo',
+  'Trebbiano', 'Garganega', 'Fiano', 'Vermentino', 'Assyrtiko',
+];
+
+// ============================================================================
 // Helpers
 // ============================================================================
 
@@ -80,6 +130,7 @@ function formatDate(dateStr: string): string {
 function emptyForm(): WineFormData {
   return {
     name: '',
+    producer_name: '',
     wine_type: 'red',
     vintage: '',
     country: '',
@@ -97,6 +148,7 @@ function wineToForm(w: Wine): WineFormData {
   const priceParts = w.price_indication?.match(/(\d+)/);
   return {
     name: w.name,
+    producer_name: w.producer?.name || '',
     wine_type: w.wine_type,
     vintage: w.vintage !== null ? String(w.vintage) : 'NV',
     country: w.country || '',
@@ -116,6 +168,7 @@ function wineToForm(w: Wine): WineFormData {
 
 export default function AdminWinesPage() {
   const [wines, setWines] = useState<Wine[]>([]);
+  const [producers, setProducers] = useState<Producer[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -153,6 +206,7 @@ export default function AdminWinesPage() {
       const data = await res.json();
       setWines(data.data || []);
       setTotal(data.total || 0);
+      if (data.producers) setProducers(data.producers);
       setError(null);
     } catch (err: any) {
       setError(err.message);
@@ -223,6 +277,7 @@ export default function AdminWinesPage() {
 
     const body = {
       name: form.name.trim(),
+      producer_name: form.producer_name.trim() || null,
       wine_type: form.wine_type,
       vintage: form.vintage === 'NV' || !form.vintage ? null : Number(form.vintage),
       country: form.country.trim(),
@@ -417,7 +472,9 @@ export default function AdminWinesPage() {
                 >
                   <td className="px-4 py-3">
                     <div className="font-medium text-gray-900">{wine.name}</div>
-                    {wine.grape && <div className="text-xs text-gray-500">{wine.grape}</div>}
+                    <div className="text-xs text-gray-500">
+                      {[wine.producer?.name, wine.grape].filter(Boolean).join(' · ')}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-gray-700">
                     {wine.vintage || 'NV'}
@@ -476,6 +533,7 @@ export default function AdminWinesPage() {
           editing={!!editingWine}
           saving={saving}
           errors={formErrors}
+          producers={producers}
           onSave={handleSave}
           onCancel={closeModal}
         />
@@ -505,12 +563,73 @@ function StatCard({ label, value, color, onClick }: {
   );
 }
 
-function WineModal({ form, setForm, editing, saving, errors, onSave, onCancel }: {
+function ComboInput({ value, onChange, suggestions, placeholder, label, required }: {
+  value: string;
+  onChange: (v: string) => void;
+  suggestions: string[];
+  placeholder?: string;
+  label: string;
+  required?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const filtered = value
+    ? suggestions.filter(s => s.toLowerCase().includes(value.toLowerCase()) && s.toLowerCase() !== value.toLowerCase())
+    : suggestions;
+
+  const showDropdown = open && focused && filtered.length > 0;
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label}{required && ' *'}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => { setFocused(true); setOpen(true); }}
+        onBlur={() => setFocused(false)}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37]"
+        placeholder={placeholder}
+        autoComplete="off"
+      />
+      {showDropdown && (
+        <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          {filtered.slice(0, 12).map(s => (
+            <li
+              key={s}
+              onMouseDown={(e) => { e.preventDefault(); onChange(s); setOpen(false); }}
+              className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
+            >
+              {s}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function WineModal({ form, setForm, editing, saving, errors, producers, onSave, onCancel }: {
   form: WineFormData;
   setForm: (f: WineFormData) => void;
   editing: boolean;
   saving: boolean;
   errors: string[];
+  producers: Producer[];
   onSave: () => void;
   onCancel: () => void;
 }) {
@@ -544,6 +663,15 @@ function WineModal({ form, setForm, editing, saving, errors, onSave, onCancel }:
             />
           </div>
 
+          {/* Producer */}
+          <ComboInput
+            label="Producent"
+            value={form.producer_name}
+            onChange={(v) => setForm({ ...form, producer_name: v })}
+            suggestions={producers.map(p => p.name)}
+            placeholder="t.ex. Domaine de la Romanée-Conti"
+          />
+
           {/* Type + Vintage row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -575,26 +703,22 @@ function WineModal({ form, setForm, editing, saving, errors, onSave, onCancel }:
 
           {/* Country + Region row */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Land *</label>
-              <input
-                type="text"
-                value={form.country}
-                onChange={(e) => setForm({ ...form, country: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37]"
-                placeholder="t.ex. Frankrike"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Region *</label>
-              <input
-                type="text"
-                value={form.region}
-                onChange={(e) => setForm({ ...form, region: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37]"
-                placeholder="t.ex. Bordeaux"
-              />
-            </div>
+            <ComboInput
+              label="Land"
+              required
+              value={form.country}
+              onChange={(v) => setForm({ ...form, country: v, region: '' })}
+              suggestions={COUNTRIES}
+              placeholder="t.ex. Frankrike"
+            />
+            <ComboInput
+              label="Region"
+              required
+              value={form.region}
+              onChange={(v) => setForm({ ...form, region: v })}
+              suggestions={REGIONS_BY_COUNTRY[form.country] || []}
+              placeholder="t.ex. Bordeaux"
+            />
           </div>
 
           {/* Grape */}
@@ -605,7 +729,7 @@ function WineModal({ form, setForm, editing, saving, errors, onSave, onCancel }:
               value={form.grape}
               onChange={(e) => setForm({ ...form, grape: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37]"
-              placeholder="t.ex. Cabernet Sauvignon"
+              placeholder="t.ex. Cabernet Sauvignon, Merlot"
             />
           </div>
 
