@@ -249,8 +249,8 @@ function WineCard({ wine }: { wine: WineWithProducer }) {
       </div>
 
       <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
-        {wine.price_indication ? (
-          <span className="text-sm font-medium text-foreground">{wine.price_indication}</span>
+        {wine.price_sek ? (
+          <span className="text-sm font-medium text-foreground">{wine.price_sek} kr</span>
         ) : (
           <span className="text-sm text-muted-foreground">Pris på förfrågan</span>
         )}

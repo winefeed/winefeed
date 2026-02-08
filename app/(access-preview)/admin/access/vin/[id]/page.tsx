@@ -194,10 +194,10 @@ export default function WineDetailPage() {
               <p className="text-sm font-medium text-foreground">{wine.country}</p>
             </div>
           )}
-          {wine.price_indication && (
+          {wine.price_sek && (
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Prisindikation</p>
-              <p className="text-sm font-medium text-foreground">{wine.price_indication}</p>
+              <p className="text-xs text-muted-foreground mb-1">Pris</p>
+              <p className="text-sm font-medium text-foreground">{wine.price_sek} kr</p>
             </div>
           )}
         </div>

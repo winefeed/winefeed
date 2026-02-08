@@ -19,7 +19,7 @@ interface Wine {
   grape: string | null;
   appellation: string | null;
   description: string | null;
-  price_indication: string | null;
+  price_sek: number | null;
   image_url: string | null;
   status: WineStatus;
   producer?: { id: string; name: string } | null;
@@ -145,7 +145,6 @@ function emptyForm(): WineFormData {
 }
 
 function wineToForm(w: Wine): WineFormData {
-  const priceParts = w.price_indication?.match(/(\d+)/);
   return {
     name: w.name,
     producer_name: w.producer?.name || '',
@@ -156,7 +155,7 @@ function wineToForm(w: Wine): WineFormData {
     grape: w.grape || '',
     appellation: w.appellation || '',
     description: w.description || '',
-    price_sek: priceParts ? priceParts[1] : '',
+    price_sek: w.price_sek !== null && w.price_sek !== undefined ? String(w.price_sek) : '',
     image_url: w.image_url || '',
     status: w.status,
   };
@@ -182,6 +181,7 @@ export default function AdminWinesPage() {
   const [form, setForm] = useState<WineFormData>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -463,63 +463,20 @@ export default function AdminWinesPage() {
               </tr>
             </thead>
             <tbody>
-              {wines.map((wine) => (
-                <tr
-                  key={wine.id}
-                  className={`border-t border-gray-100 hover:bg-gray-50 transition-colors ${
-                    wine.status === 'ARCHIVED' ? 'opacity-60' : ''
-                  }`}
-                >
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900">{wine.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {[wine.producer?.name, wine.grape].filter(Boolean).join(' · ')}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {wine.vintage || 'NV'}
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {WINE_TYPE_LABELS[wine.wine_type] || wine.wine_type}
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {[wine.country, wine.region].filter(Boolean).join(' / ') || '—'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[wine.status]}`}>
-                      {STATUS_LABELS[wine.status]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">
-                    {formatDate(wine.updated_at)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openEdit(wine)}
-                        className="text-xs text-[#722F37] hover:underline font-medium"
-                      >
-                        Redigera
-                      </button>
-                      {wine.status !== 'ARCHIVED' ? (
-                        <button
-                          onClick={() => handleArchive(wine)}
-                          className="text-xs text-gray-500 hover:text-red-600 hover:underline"
-                        >
-                          Arkivera
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleRestore(wine)}
-                          className="text-xs text-blue-600 hover:underline"
-                        >
-                          Återställ
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {wines.map((wine) => {
+                const isExpanded = expandedId === wine.id;
+                return (
+                  <WineRow
+                    key={wine.id}
+                    wine={wine}
+                    isExpanded={isExpanded}
+                    onToggle={() => setExpandedId(isExpanded ? null : wine.id)}
+                    onEdit={() => openEdit(wine)}
+                    onArchive={() => handleArchive(wine)}
+                    onRestore={() => handleRestore(wine)}
+                  />
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -560,6 +517,162 @@ function StatCard({ label, value, color, onClick }: {
       <div className="text-2xl font-bold">{value}</div>
       <div className="text-xs font-medium mt-1">{label}</div>
     </div>
+  );
+}
+
+function WineRow({ wine, isExpanded, onToggle, onEdit, onArchive, onRestore }: {
+  wine: Wine;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+  onArchive: () => void;
+  onRestore: () => void;
+}) {
+  return (
+    <>
+      <tr
+        onClick={onToggle}
+        className={`border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
+          wine.status === 'ARCHIVED' ? 'opacity-60' : ''
+        }`}
+      >
+        <td className="px-4 py-3">
+          <div className="font-medium text-gray-900">{wine.name}</div>
+          <div className="text-xs text-gray-500">
+            {[wine.producer?.name, wine.grape].filter(Boolean).join(' · ')}
+          </div>
+        </td>
+        <td className="px-4 py-3 text-gray-700">
+          {wine.vintage || 'NV'}
+        </td>
+        <td className="px-4 py-3 text-gray-700">
+          {WINE_TYPE_LABELS[wine.wine_type] || wine.wine_type}
+        </td>
+        <td className="px-4 py-3 text-gray-700">
+          {[wine.country, wine.region].filter(Boolean).join(' / ') || '—'}
+        </td>
+        <td className="px-4 py-3">
+          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[wine.status]}`}>
+            {STATUS_LABELS[wine.status]}
+          </span>
+        </td>
+        <td className="px-4 py-3 text-gray-500 text-xs">
+          {formatDate(wine.updated_at)}
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex gap-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              className="text-xs text-[#722F37] hover:underline font-medium"
+            >
+              Redigera
+            </button>
+            {wine.status !== 'ARCHIVED' ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); onArchive(); }}
+                className="text-xs text-gray-500 hover:text-red-600 hover:underline"
+              >
+                Arkivera
+              </button>
+            ) : (
+              <button
+                onClick={(e) => { e.stopPropagation(); onRestore(); }}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                Återställ
+              </button>
+            )}
+          </div>
+        </td>
+      </tr>
+
+      {isExpanded && (
+        <tr>
+          <td colSpan={7} className="px-4 py-4 bg-gray-50 border-t border-gray-100">
+            <div className="flex gap-6">
+              {/* Image */}
+              {wine.image_url && (
+                <ImageThumb src={wine.image_url} alt={wine.name} />
+              )}
+
+              {/* Details */}
+              <div className="flex-1 grid md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                <div>
+                  <span className="text-gray-500">Producent:</span>{' '}
+                  <span className="text-gray-900">{wine.producer?.name || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Typ:</span>{' '}
+                  <span className="text-gray-900">{WINE_TYPE_LABELS[wine.wine_type] || wine.wine_type}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Druva:</span>{' '}
+                  <span className="text-gray-900">{wine.grape || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Årgång:</span>{' '}
+                  <span className="text-gray-900">{wine.vintage || 'NV'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Land / Region:</span>{' '}
+                  <span className="text-gray-900">{[wine.country, wine.region].filter(Boolean).join(' / ') || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Appellation:</span>{' '}
+                  <span className="text-gray-900">{wine.appellation || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Pris (inkl. moms, per flaska):</span>{' '}
+                  <span className="text-gray-900">{wine.price_sek ? `${wine.price_sek} kr` : '—'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Skapad:</span>{' '}
+                  <span className="text-gray-900">{formatDate(wine.created_at)}</span>
+                </div>
+                {wine.description && (
+                  <div className="md:col-span-2">
+                    <span className="text-gray-500">Beskrivning:</span>{' '}
+                    <span className="text-gray-700">{wine.description}</span>
+                  </div>
+                )}
+                {wine.image_url && !wine.image_url.startsWith('http') ? null : wine.image_url && (
+                  <div className="md:col-span-2 text-xs text-gray-400 truncate">
+                    Bild: {wine.image_url}
+                  </div>
+                )}
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+function ImageThumb({ src, alt }: { src: string; alt: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div className="shrink-0 cursor-pointer" onClick={(e) => { e.stopPropagation(); setOpen(true); }}>
+        <img
+          src={src}
+          alt={alt}
+          className="w-20 h-28 object-contain rounded-lg border border-gray-200 bg-white hover:opacity-80 transition-opacity"
+        />
+      </div>
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setOpen(false)}
+        >
+          <img
+            src={src}
+            alt={alt}
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+          />
+        </div>
+      )}
+    </>
   );
 }
 
@@ -633,7 +746,8 @@ function WineModal({ form, setForm, editing, saving, errors, producers, onSave, 
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const vintageOptions = ['NV', ...Array.from({ length: 61 }, (_, i) => String(2030 - i))];
+  const currentYear = new Date().getFullYear();
+  const vintageOptions = ['NV', ...Array.from({ length: currentYear - 1970 + 1 }, (_, i) => String(currentYear - i))];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -735,7 +849,7 @@ function WineModal({ form, setForm, editing, saving, errors, producers, onSave, 
 
           {/* Price */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Pris (kr)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Pris per flaska, inkl. moms (kr)</label>
             <input
               type="text"
               inputMode="numeric"

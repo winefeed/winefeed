@@ -189,14 +189,13 @@ export async function getOrCreateProducer(name: string): Promise<string> {
   const trimmed = name.trim();
 
   // Look for existing (case-insensitive)
-  const { data: existing } = await supabase
+  const { data: rows } = await supabase
     .from('access_producers')
     .select('id')
     .ilike('name', trimmed)
-    .limit(1)
-    .single();
+    .limit(1);
 
-  if (existing) return existing.id;
+  if (rows && rows.length > 0) return rows[0].id;
 
   // Create new
   const { data: created, error } = await supabase
@@ -257,7 +256,7 @@ export async function createWine(input: WineInput): Promise<AccessWine> {
       grape: input.grape?.trim() || null,
       appellation: input.appellation?.trim() || null,
       description: input.description?.trim() || null,
-      price_indication: input.price_sek ? `${input.price_sek} kr` : null,
+      price_sek: input.price_sek ?? null,
       image_url: input.image_url?.trim() || null,
       status: input.status || 'DRAFT',
       producer_id: input.producer_id || null,
@@ -283,7 +282,7 @@ export async function updateWine(id: string, input: Partial<WineInput>): Promise
   if (input.grape !== undefined) updates.grape = input.grape?.trim() || null;
   if (input.appellation !== undefined) updates.appellation = input.appellation?.trim() || null;
   if (input.description !== undefined) updates.description = input.description?.trim() || null;
-  if (input.price_sek !== undefined) updates.price_indication = input.price_sek ? `${input.price_sek} kr` : null;
+  if (input.price_sek !== undefined) updates.price_sek = input.price_sek ?? null;
   if (input.image_url !== undefined) updates.image_url = input.image_url?.trim() || null;
   if (input.status !== undefined) updates.status = input.status;
   if (input.producer_id !== undefined) updates.producer_id = input.producer_id || null;
