@@ -96,14 +96,32 @@ export function DashboardShell({ children }: DashboardShellProps) {
       {/* Main content with margin to compensate for fixed sidebar */}
       <main
         className={cn(
-          'flex-1 transition-all duration-300',
+          'flex-1 flex flex-col transition-all duration-300',
           // Desktop: Add margin for sidebar
           // Mobile: No margin (sidebar is overlay)
           'lg:ml-64', // Default expanded (256px)
           collapsed && 'lg:ml-16' // Collapsed (64px)
         )}
       >
-        {children}
+        <div className="flex-1">{children}</div>
+
+        {/* Support footer */}
+        <footer className="border-t border-gray-200 bg-gray-50 py-4 px-6">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-gray-500">
+            <p>
+              Behöver du hjälp?{' '}
+              <a
+                href="mailto:hej@winefeed.se?subject=Support%20-%20Winefeed%20Dashboard"
+                className="text-wine hover:underline font-medium"
+              >
+                Kontakta oss
+              </a>
+            </p>
+            <p className="text-gray-400">
+              Winefeed Pilot 2026
+            </p>
+          </div>
+        </footer>
       </main>
     </div>
   );
