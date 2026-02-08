@@ -668,7 +668,13 @@ export default function ResultsPage() {
           <RefinePanel
             budget={budgetMax}
             quantity={requestedQuantity}
-            onBudgetChange={setBudgetMax}
+            onBudgetChange={(budget) => {
+              setBudgetMax(budget);
+              // Auto-enable "within budget" filter when budget is selected
+              if (budget) {
+                setQuickFilters(f => ({ ...f, withinBudget: true }));
+              }
+            }}
             onQuantityChange={setRequestedQuantity}
             deliveryCity={deliveryCity}
             onDeliveryCityChange={setDeliveryCity}
