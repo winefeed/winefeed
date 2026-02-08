@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Building2, MapPin, Plus, Pencil, Trash2, Star, Check, X, Bell, Mail, User, Shield, Save } from 'lucide-react';
+import { Building2, MapPin, Plus, Pencil, Trash2, Star, Check, X, Bell, Mail, User, Shield, Save, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +26,14 @@ interface Restaurant {
   address: string;
   postal_code: string;
   contact_person?: string;
+  // Billing fields
+  billing_email?: string;
+  billing_contact_person?: string;
+  billing_contact_phone?: string;
+  billing_address?: string;
+  billing_postal_code?: string;
+  billing_city?: string;
+  billing_reference?: string;
 }
 
 interface DeliveryAddress {
@@ -71,6 +79,20 @@ export default function SettingsPage() {
     city: '',
   });
   const [savingRestaurant, setSavingRestaurant] = useState(false);
+
+  // Billing edit state
+  const [editingBilling, setEditingBilling] = useState(false);
+  const [billingForm, setBillingForm] = useState({
+    billing_email: '',
+    billing_contact_person: '',
+    billing_contact_phone: '',
+    billing_address: '',
+    billing_postal_code: '',
+    billing_city: '',
+    billing_reference: '',
+    use_same_address: true,
+  });
+  const [savingBilling, setSavingBilling] = useState(false);
 
   // Notification settings
   const [notifications, setNotifications] = useState<NotificationSettings>({
@@ -124,6 +146,18 @@ export default function SettingsPage() {
           postal_code: data.postal_code || '',
           city: data.city || '',
         });
+        // Initialize billing form
+        const hasBillingAddress = data.billing_address || data.billing_postal_code || data.billing_city;
+        setBillingForm({
+          billing_email: data.billing_email || '',
+          billing_contact_person: data.billing_contact_person || '',
+          billing_contact_phone: data.billing_contact_phone || '',
+          billing_address: data.billing_address || '',
+          billing_postal_code: data.billing_postal_code || '',
+          billing_city: data.billing_city || '',
+          billing_reference: data.billing_reference || '',
+          use_same_address: !hasBillingAddress,
+        });
       }
 
       if (addressesRes.ok) {
@@ -162,11 +196,54 @@ export default function SettingsPage() {
         const data = await res.json();
         setRestaurant(data);
         setEditingRestaurant(false);
+        toast.success('Restauranginformation sparad');
       }
     } catch (err) {
-      // Handle error
+      toast.error('Kunde inte spara');
     } finally {
       setSavingRestaurant(false);
+    }
+  };
+
+  const handleSaveBilling = async () => {
+    setSavingBilling(true);
+    try {
+      const billingData = billingForm.use_same_address
+        ? {
+            billing_email: billingForm.billing_email,
+            billing_contact_person: billingForm.billing_contact_person,
+            billing_contact_phone: billingForm.billing_contact_phone,
+            billing_reference: billingForm.billing_reference,
+            billing_address: null,
+            billing_postal_code: null,
+            billing_city: null,
+          }
+        : {
+            billing_email: billingForm.billing_email,
+            billing_contact_person: billingForm.billing_contact_person,
+            billing_contact_phone: billingForm.billing_contact_phone,
+            billing_reference: billingForm.billing_reference,
+            billing_address: billingForm.billing_address,
+            billing_postal_code: billingForm.billing_postal_code,
+            billing_city: billingForm.billing_city,
+          };
+
+      const res = await fetch('/api/me/restaurant', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(billingData),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRestaurant(data);
+        setEditingBilling(false);
+        toast.success('Faktureringsuppgifter sparade');
+      }
+    } catch (err) {
+      toast.error('Kunde inte spara faktureringsuppgifter');
+    } finally {
+      setSavingBilling(false);
     }
   };
 
@@ -459,6 +536,151 @@ export default function SettingsPage() {
               </div>
             ) : (
               <p className="text-muted-foreground">Ingen restauranginformation hittades.</p>
+            )}
+          </div>
+
+          {/* Billing Info */}
+          <div className="bg-card rounded-lg border border-border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Receipt className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Faktureringsuppgifter</h2>
+              </div>
+              {!editingBilling && (
+                <Button variant="outline" size="sm" onClick={() => setEditingBilling(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Redigera
+                </Button>
+              )}
+            </div>
+
+            {editingBilling ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2 space-y-2">
+                    <Label htmlFor="billing_email">E-post för fakturor *</Label>
+                    <Input
+                      id="billing_email"
+                      type="email"
+                      placeholder="faktura@restaurang.se"
+                      value={billingForm.billing_email}
+                      onChange={(e) => setBillingForm({ ...billingForm, billing_email: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">Hit skickas alla fakturor</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="billing_contact">Kontaktperson ekonomi</Label>
+                    <Input
+                      id="billing_contact"
+                      placeholder="Erik Ekonomsson"
+                      value={billingForm.billing_contact_person}
+                      onChange={(e) => setBillingForm({ ...billingForm, billing_contact_person: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="billing_phone">Telefon ekonomi</Label>
+                    <Input
+                      id="billing_phone"
+                      placeholder="08-123 45 67"
+                      value={billingForm.billing_contact_phone}
+                      onChange={(e) => setBillingForm({ ...billingForm, billing_contact_phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label htmlFor="billing_reference">Er referens / Kostnadsställe</Label>
+                    <Input
+                      id="billing_reference"
+                      placeholder="T.ex. PO-nummer, projektkod"
+                      value={billingForm.billing_reference}
+                      onChange={(e) => setBillingForm({ ...billingForm, billing_reference: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">Visas på fakturan om angivet</p>
+                  </div>
+                </div>
+
+                {/* Billing address toggle */}
+                <div className="pt-4 border-t">
+                  <label className="flex items-center gap-2 cursor-pointer mb-4">
+                    <input
+                      type="checkbox"
+                      checked={billingForm.use_same_address}
+                      onChange={(e) => setBillingForm({ ...billingForm, use_same_address: e.target.checked })}
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-sm">Samma fakturaadress som restaurangadress</span>
+                  </label>
+
+                  {!billingForm.use_same_address && (
+                    <div className="grid grid-cols-2 gap-4 pl-6 border-l-2 border-primary/20">
+                      <div className="col-span-2 space-y-2">
+                        <Label htmlFor="billing_address">Fakturaadress</Label>
+                        <Input
+                          id="billing_address"
+                          placeholder="Ekonomigatan 1"
+                          value={billingForm.billing_address}
+                          onChange={(e) => setBillingForm({ ...billingForm, billing_address: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="billing_postal">Postnummer</Label>
+                        <Input
+                          id="billing_postal"
+                          placeholder="123 45"
+                          value={billingForm.billing_postal_code}
+                          onChange={(e) => setBillingForm({ ...billingForm, billing_postal_code: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="billing_city">Stad</Label>
+                        <Input
+                          id="billing_city"
+                          placeholder="Stockholm"
+                          value={billingForm.billing_city}
+                          onChange={(e) => setBillingForm({ ...billingForm, billing_city: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 justify-end pt-4 border-t">
+                  <Button variant="ghost" onClick={() => setEditingBilling(false)}>
+                    Avbryt
+                  </Button>
+                  <Button onClick={handleSaveBilling} disabled={savingBilling}>
+                    {savingBilling ? 'Sparar...' : 'Spara ändringar'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="col-span-2">
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">E-post för fakturor</span>
+                  <p className="font-medium">{restaurant?.billing_email || restaurant?.email || '–'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Kontaktperson ekonomi</span>
+                  <p className="font-medium">{restaurant?.billing_contact_person || '–'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Telefon ekonomi</span>
+                  <p className="font-medium">{restaurant?.billing_contact_phone || '–'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Er referens</span>
+                  <p className="font-medium">{restaurant?.billing_reference || '–'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Fakturaadress</span>
+                  <p className="font-medium">
+                    {restaurant?.billing_address
+                      ? `${restaurant.billing_address}, ${restaurant.billing_postal_code} ${restaurant.billing_city}`
+                      : restaurant?.address
+                      ? `${restaurant.address}, ${restaurant.postal_code} ${restaurant.city} (samma som restaurang)`
+                      : '–'}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
 

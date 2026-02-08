@@ -40,10 +40,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch restaurant details
+    // Fetch restaurant details including billing fields
     const { data: restaurant, error } = await supabase
       .from('restaurants')
-      .select('id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code')
+      .select(`
+        id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code, contact_person,
+        billing_email, billing_contact_person, billing_contact_phone,
+        billing_address, billing_postal_code, billing_city, billing_reference
+      `)
       .eq('id', actor.restaurant_id)
       .single();
 
@@ -63,6 +67,15 @@ export async function GET(request: NextRequest) {
       city: restaurant.city,
       address: restaurant.address_line1,
       postal_code: restaurant.postal_code,
+      contact_person: restaurant.contact_person,
+      // Billing fields
+      billing_email: restaurant.billing_email,
+      billing_contact_person: restaurant.billing_contact_person,
+      billing_contact_phone: restaurant.billing_contact_phone,
+      billing_address: restaurant.billing_address,
+      billing_postal_code: restaurant.billing_postal_code,
+      billing_city: restaurant.billing_city,
+      billing_reference: restaurant.billing_reference,
     });
 
   } catch (error: any) {
@@ -120,12 +133,26 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Add other allowed fields
+    // Add other allowed fields (map API names to DB column names)
+    if (body.name !== undefined) updates.name = body.name || null;
     if (body.city !== undefined) updates.city = body.city || null;
+    if (body.address !== undefined) updates.address_line1 = body.address || null;
     if (body.address_line1 !== undefined) updates.address_line1 = body.address_line1 || null;
     if (body.postal_code !== undefined) updates.postal_code = body.postal_code || null;
+    if (body.email !== undefined) updates.contact_email = body.email || null;
     if (body.contact_email !== undefined) updates.contact_email = body.contact_email || null;
+    if (body.phone !== undefined) updates.contact_phone = body.phone || null;
     if (body.contact_phone !== undefined) updates.contact_phone = body.contact_phone || null;
+    if (body.contact_person !== undefined) updates.contact_person = body.contact_person || null;
+
+    // Billing fields
+    if (body.billing_email !== undefined) updates.billing_email = body.billing_email || null;
+    if (body.billing_contact_person !== undefined) updates.billing_contact_person = body.billing_contact_person || null;
+    if (body.billing_contact_phone !== undefined) updates.billing_contact_phone = body.billing_contact_phone || null;
+    if (body.billing_address !== undefined) updates.billing_address = body.billing_address || null;
+    if (body.billing_postal_code !== undefined) updates.billing_postal_code = body.billing_postal_code || null;
+    if (body.billing_city !== undefined) updates.billing_city = body.billing_city || null;
+    if (body.billing_reference !== undefined) updates.billing_reference = body.billing_reference || null;
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
@@ -139,7 +166,11 @@ export async function PATCH(request: NextRequest) {
       .from('restaurants')
       .update(updates)
       .eq('id', actor.restaurant_id)
-      .select('id, name, org_number, city')
+      .select(`
+        id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code, contact_person,
+        billing_email, billing_contact_person, billing_contact_phone,
+        billing_address, billing_postal_code, billing_city, billing_reference
+      `)
       .single();
 
     if (error) {
@@ -150,14 +181,24 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // Return full restaurant data (mapped to API names)
     return NextResponse.json({
-      message: 'Restaurant updated',
-      restaurant: {
-        id: restaurant.id,
-        name: restaurant.name,
-        org_number: restaurant.org_number,
-        city: restaurant.city,
-      }
+      id: restaurant.id,
+      name: restaurant.name,
+      email: restaurant.contact_email,
+      phone: restaurant.contact_phone,
+      org_number: restaurant.org_number,
+      city: restaurant.city,
+      address: restaurant.address_line1,
+      postal_code: restaurant.postal_code,
+      contact_person: restaurant.contact_person,
+      billing_email: restaurant.billing_email,
+      billing_contact_person: restaurant.billing_contact_person,
+      billing_contact_phone: restaurant.billing_contact_phone,
+      billing_address: restaurant.billing_address,
+      billing_postal_code: restaurant.billing_postal_code,
+      billing_city: restaurant.billing_city,
+      billing_reference: restaurant.billing_reference,
     });
 
   } catch (error: any) {
