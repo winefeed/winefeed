@@ -20,7 +20,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Menu, X, ChevronLeft, ChevronRight, Wine } from 'lucide-react';
+import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { WinefeedLogoDiamonds } from '@/components/ui/WinefeedLogo';
 import { cn } from '@/lib/utils';
 import { NavLink } from './NavLink';
 import { UserMenu } from './UserMenu';
@@ -112,17 +113,10 @@ export function Sidebar({ sections, userEmail, userRoles, isAdmin = false, brand
         )}>
           {!collapsed && (
             <div className="flex items-center gap-3">
-              <div className={cn(
-                'h-10 w-10 rounded-xl flex items-center justify-center',
-                isAdmin
-                  ? 'bg-gradient-to-br from-red-500 to-red-700'
-                  : 'bg-gradient-to-br from-primary to-primary/80'
-              )}>
-                <Wine className="h-5 w-5 text-white" />
-              </div>
+              <WinefeedLogoDiamonds />
               <div>
-                <h2 className="text-lg font-bold tracking-tight text-foreground">
-                  Winefeed
+                <h2 className="text-lg tracking-tight text-foreground" style={{ color: '#7A1B2D' }}>
+                  <span className="font-bold">wine</span><span className="font-light">feed</span>
                 </h2>
                 <p className="text-[11px] text-muted-foreground truncate max-w-[140px]">
                   {isAdmin ? 'Admin Console' : brandSubtitle || 'Din vininköpare'}
@@ -132,14 +126,7 @@ export function Sidebar({ sections, userEmail, userRoles, isAdmin = false, brand
           )}
 
           {collapsed && (
-            <div className={cn(
-              'h-10 w-10 rounded-xl flex items-center justify-center',
-              isAdmin
-                ? 'bg-gradient-to-br from-red-500 to-red-700'
-                : 'bg-gradient-to-br from-primary to-primary/80'
-            )}>
-              <Wine className="h-5 w-5 text-white" />
-            </div>
+            <WinefeedLogoDiamonds />
           )}
 
           {/* Mobile Close Button */}

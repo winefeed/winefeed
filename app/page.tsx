@@ -1,18 +1,12 @@
 import Link from "next/link";
+import { WinefeedLogo } from "@/components/ui/WinefeedLogo";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-cream">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 px-8 py-5 flex justify-between items-center bg-cream/95 backdrop-blur-md z-50 border-b border-wine-dark/10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-wine-dark rounded-[10px] flex items-center justify-center text-white text-xl">
-            W
-          </div>
-          <span className="font-serif text-2xl font-semibold text-wine-dark">
-            Winefeed
-          </span>
-        </div>
+        <WinefeedLogo size="md" />
         <nav className="hidden md:flex items-center gap-8">
           <Link
             href="#features"
