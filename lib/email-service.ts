@@ -28,14 +28,23 @@ function getResendClient(): Resend | null {
 
 // Email configuration
 const EMAIL_ENABLED = process.env.EMAIL_NOTIFICATIONS_ENABLED === 'true';
-const FROM_EMAIL = process.env.EMAIL_FROM || 'hej@winefeed.se';
 const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+// Brand-specific from addresses
+export const WINEFEED_FROM = 'Winefeed <hej@winefeed.se>';
+export const WINEFEED_NOREPLY = 'Winefeed <noreply@winefeed.se>';
+export const VINKOLL_FROM = 'Vinkoll <hej@vinkoll.se>';
+export const VINKOLL_NOREPLY = 'Vinkoll <noreply@vinkoll.se>';
+
+// Default (for backwards compatibility)
+const DEFAULT_FROM = process.env.EMAIL_FROM || WINEFEED_FROM;
 
 export interface SendEmailParams {
   to: string;
   subject: string;
   html: string;
   text: string;
+  from?: string;  // Optional: override default from address
   reply_to?: string;
 }
 
@@ -51,7 +60,8 @@ export interface EmailEventPayload {
  * Fail-safe: Returns success even if email fails (logs error)
  */
 export async function sendEmail(params: SendEmailParams): Promise<{ success: boolean; error?: string }> {
-  const { to, subject, html, text, reply_to } = params;
+  const { to, subject, html, text, from, reply_to } = params;
+  const fromAddress = from || DEFAULT_FROM;
 
   // Dev mode: Console log instead of sending
   if (!EMAIL_ENABLED) {
@@ -71,7 +81,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
 
   try {
     const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromAddress,
       to,
       subject,
       html,

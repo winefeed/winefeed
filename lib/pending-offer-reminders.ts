@@ -11,7 +11,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail, getRestaurantRecipients } from './email-service';
+import { sendEmail, getRestaurantRecipients, WINEFEED_FROM } from './email-service';
 import { offerPendingReminderEmail } from './email-templates';
 
 const supabase = createClient(
@@ -117,6 +117,7 @@ export async function processPendingOfferReminders(tenantId: string): Promise<Re
         // Send to first recipient (primary contact)
         const emailResult = await sendEmail({
           to: recipients[0],
+          from: WINEFEED_FROM,
           subject: emailContent.subject,
           html: emailContent.html,
           text: emailContent.text
