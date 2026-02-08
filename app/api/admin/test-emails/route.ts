@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sendEmail } from '@/lib/email-service';
+import { sendEmail, WINEFEED_FROM } from '@/lib/email-service';
 import {
   offerCreatedEmail,
   offerAcceptedEmail,
@@ -16,6 +16,7 @@ import {
   orderStatusUpdatedEmail,
   newQuoteRequestEmail,
   orderConfirmationEmail,
+  welcomeEmail,
 } from '@/lib/email-templates';
 
 export async function POST(request: NextRequest) {
@@ -28,6 +29,15 @@ export async function POST(request: NextRequest) {
 
     const results: Array<{ template: string; success: boolean; error?: string }> = [];
 
+    // 0. Welcome Email (new)
+    const welcome = welcomeEmail({
+      restaurantName: 'Restaurang Victoria',
+      email: email,
+      city: 'Stockholm',
+    });
+    const r0 = await sendEmail({ to: email, from: WINEFEED_FROM, ...welcome });
+    results.push({ template: 'welcome', ...r0 });
+
     // 1. Offer Created
     const offerCreated = offerCreatedEmail({
       restaurantName: 'Restaurang Testkrogen',
@@ -38,7 +48,7 @@ export async function POST(request: NextRequest) {
       supplierName: 'Vinimportören AB',
       linesCount: 8,
     });
-    const r1 = await sendEmail({ to: email, ...offerCreated });
+    const r1 = await sendEmail({ to: email, from: WINEFEED_FROM, ...offerCreated });
     results.push({ template: 'offer_created', ...r1 });
 
     // 2. Offer Accepted
@@ -50,7 +60,7 @@ export async function POST(request: NextRequest) {
       offerTitle: 'Premium Burgundy Selection',
       acceptedAt: new Date().toISOString(),
     });
-    const r2 = await sendEmail({ to: email, ...offerAccepted });
+    const r2 = await sendEmail({ to: email, from: WINEFEED_FROM, ...offerAccepted });
     results.push({ template: 'offer_accepted', ...r2 });
 
     // 3. User Invite (Restaurant)
@@ -61,7 +71,7 @@ export async function POST(request: NextRequest) {
       inviteToken: 'test-token-abc123',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     });
-    const r3 = await sendEmail({ to: email, ...inviteRestaurant });
+    const r3 = await sendEmail({ to: email, from: WINEFEED_FROM, ...inviteRestaurant });
     results.push({ template: 'invite_restaurant', ...r3 });
 
     // 4. User Invite (Supplier)
@@ -72,7 +82,7 @@ export async function POST(request: NextRequest) {
       inviteToken: 'test-token-xyz789',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     });
-    const r4 = await sendEmail({ to: email, ...inviteSupplier });
+    const r4 = await sendEmail({ to: email, from: WINEFEED_FROM, ...inviteSupplier });
     results.push({ template: 'invite_supplier', ...r4 });
 
     // 5. Order Status - Confirmed
@@ -81,7 +91,7 @@ export async function POST(request: NextRequest) {
       orderId: 'ord-789-test-abcdef123456',
       newStatus: 'CONFIRMED',
     });
-    const r5 = await sendEmail({ to: email, ...statusConfirmed });
+    const r5 = await sendEmail({ to: email, from: WINEFEED_FROM, ...statusConfirmed });
     results.push({ template: 'order_status_confirmed', ...r5 });
 
     // 6. Order Status - Shipped
@@ -90,7 +100,7 @@ export async function POST(request: NextRequest) {
       orderId: 'ord-789-test-abcdef123456',
       newStatus: 'SHIPPED',
     });
-    const r6 = await sendEmail({ to: email, ...statusShipped });
+    const r6 = await sendEmail({ to: email, from: WINEFEED_FROM, ...statusShipped });
     results.push({ template: 'order_status_shipped', ...r6 });
 
     // 7. Order Status - Delivered
@@ -99,7 +109,7 @@ export async function POST(request: NextRequest) {
       orderId: 'ord-789-test-abcdef123456',
       newStatus: 'DELIVERED',
     });
-    const r7 = await sendEmail({ to: email, ...statusDelivered });
+    const r7 = await sendEmail({ to: email, from: WINEFEED_FROM, ...statusDelivered });
     results.push({ template: 'order_status_delivered', ...r7 });
 
     // 8. New Quote Request
@@ -116,7 +126,7 @@ export async function POST(request: NextRequest) {
       hasProvorder: true,
       provorderFeeTotal: 500,
     });
-    const r8 = await sendEmail({ to: email, ...quoteRequest });
+    const r8 = await sendEmail({ to: email, from: WINEFEED_FROM, ...quoteRequest });
     results.push({ template: 'new_quote_request', ...r8 });
 
     // 9. Order Confirmation
@@ -135,7 +145,7 @@ export async function POST(request: NextRequest) {
         { wineName: 'Bourgogne Chardonnay 2022', quantity: 24, priceSek: 180, provorder: true, provorderFee: 500 },
       ],
     });
-    const r9 = await sendEmail({ to: email, ...orderConfirmation });
+    const r9 = await sendEmail({ to: email, from: WINEFEED_FROM, ...orderConfirmation });
     results.push({ template: 'order_confirmation', ...r9 });
 
     const successCount = results.filter(r => r.success).length;
