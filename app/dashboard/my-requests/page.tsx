@@ -400,7 +400,7 @@ export default function MyRequestsPage() {
                             ? 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground'
                             : 'text-muted-foreground group-hover:text-primary'
                         }`}>
-                          {req.offers_count > 0 ? 'Se offerter' : 'Visa status'}
+                          {req.offers_count > 0 ? 'Se offerter' : 'Se matchningar'}
                         </span>
 
                         {/* Arrow */}
