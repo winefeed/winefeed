@@ -77,6 +77,24 @@ export interface OrderConfirmationEmailParams {
   }>;
 }
 
+export interface OfferDeclinedEmailParams {
+  supplierName: string;
+  restaurantName: string;
+  offerId: string;
+  requestTitle: string;
+  declinedAt: string;
+  reason?: string;
+}
+
+export interface OfferPendingReminderEmailParams {
+  restaurantName: string;
+  offerId: string;
+  offerTitle: string;
+  supplierName: string;
+  hoursWaiting: number;
+  linesCount: number;
+}
+
 export interface WelcomeEmailParams {
   restaurantName: string;
   email: string;
@@ -1495,6 +1513,201 @@ ${items.length > 0 ? `Orderrader:\n${itemsText}` : ''}
 Visa order: ${orderUrl}
 
 Du får ett nytt mail när ordern skickas.
+
+---
+Winefeed - Din B2B-marknadsplats för vin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+/**
+ * Template: Offer Declined (sent to supplier)
+ * PILOT-CRITICAL: Suppliers need to know when offers are rejected
+ */
+export function offerDeclinedEmail(params: OfferDeclinedEmailParams): { subject: string; html: string; text: string } {
+  const {
+    supplierName,
+    restaurantName,
+    offerId,
+    requestTitle,
+    declinedAt,
+    reason
+  } = params;
+
+  const dashboardUrl = getAppUrl('/supplier/requests');
+
+  const declinedDate = new Date(declinedAt).toLocaleString('sv-SE', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  const subject = 'Offert avböjd';
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">Offert avböjd</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Restaurangen valde en annan leverantör</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>Hej ${supplierName},</p>
+
+    <p>Vi vill informera dig om att <strong>${restaurantName}</strong> har avböjt din offert.</p>
+
+    <div style="background: #f9fafb; border-left: 4px solid #6b7280; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0;"><strong>Förfrågan:</strong> ${requestTitle}</p>
+      <p style="margin: 0 0 10px 0;"><strong>Restaurang:</strong> ${restaurantName}</p>
+      <p style="margin: 0;"><strong>Avböjd:</strong> ${declinedDate}</p>
+    </div>
+
+    ${reason ? `
+    <div style="background: #fef3c7; border: 1px solid #fcd34d; padding: 15px; margin: 20px 0; border-radius: 6px;">
+      <p style="margin: 0; color: #92400e;"><strong>Anledning:</strong> ${reason}</p>
+    </div>
+    ` : ''}
+
+    <p>Detta är helt normalt – restauranger får ofta flera offerter och väljer den som passar bäst för deras behov. Vi hoppas att nästa affär går i lås!</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${dashboardUrl}" style="display: inline-block; background: #722F37; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+        Se nya förfrågningar
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      Tips: Snabba svar och konkurrenskraftiga priser ökar chansen att vinna affären.
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Winefeed - Din B2B-marknadsplats för vin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+Offert avböjd
+
+Hej ${supplierName},
+
+Vi vill informera dig om att ${restaurantName} har avböjt din offert.
+
+Förfrågan: ${requestTitle}
+Restaurang: ${restaurantName}
+Avböjd: ${declinedDate}
+
+${reason ? `Anledning: ${reason}` : ''}
+
+Detta är helt normalt – restauranger får ofta flera offerter och väljer den som passar bäst för deras behov. Vi hoppas att nästa affär går i lås!
+
+Se nya förfrågningar: ${dashboardUrl}
+
+Tips: Snabba svar och konkurrenskraftiga priser ökar chansen att vinna affären.
+
+---
+Winefeed - Din B2B-marknadsplats för vin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+/**
+ * Template: Offer Pending Reminder (sent to restaurant)
+ * PILOT-CRITICAL: Nudge restaurants to review offers waiting > 48h
+ */
+export function offerPendingReminderEmail(params: OfferPendingReminderEmailParams): { subject: string; html: string; text: string } {
+  const {
+    restaurantName,
+    offerId,
+    offerTitle,
+    supplierName,
+    hoursWaiting,
+    linesCount
+  } = params;
+
+  const offerUrl = getAppUrl(`/dashboard/offers/${offerId}`);
+
+  const daysWaiting = Math.floor(hoursWaiting / 24);
+  const waitingText = daysWaiting >= 1
+    ? `${daysWaiting} ${daysWaiting === 1 ? 'dag' : 'dagar'}`
+    : `${hoursWaiting} timmar`;
+
+  const subject = `Påminnelse: Offert från ${supplierName} väntar på ditt svar`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">⏰ Påminnelse</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">En offert väntar på ditt svar</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>Hej ${restaurantName},</p>
+
+    <p>Du har en offert som har väntat på granskning i <strong>${waitingText}</strong>.</p>
+
+    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0;"><strong>Offert:</strong> ${offerTitle || 'Offert'}</p>
+      <p style="margin: 0 0 10px 0;"><strong>Från:</strong> ${supplierName}</p>
+      <p style="margin: 0;"><strong>Antal rader:</strong> ${linesCount} ${linesCount === 1 ? 'vin' : 'viner'}</p>
+    </div>
+
+    <p>Leverantörer uppskattar snabba svar. Granska offerten och acceptera eller avböj så att de kan planera sin verksamhet.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${offerUrl}" style="display: inline-block; background: #f59e0b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Granska offert
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      Har du redan hanterat denna offert? Ignorera detta meddelande.
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Winefeed - Din B2B-marknadsplats för vin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+Påminnelse: Offert väntar på ditt svar
+
+Hej ${restaurantName},
+
+Du har en offert som har väntat på granskning i ${waitingText}.
+
+Offert: ${offerTitle || 'Offert'}
+Från: ${supplierName}
+Antal rader: ${linesCount} ${linesCount === 1 ? 'vin' : 'viner'}
+
+Leverantörer uppskattar snabba svar. Granska offerten och acceptera eller avböj så att de kan planera sin verksamhet.
+
+Granska offert: ${offerUrl}
+
+Har du redan hanterat denna offert? Ignorera detta meddelande.
 
 ---
 Winefeed - Din B2B-marknadsplats för vin

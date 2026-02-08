@@ -17,6 +17,8 @@ import {
   OfferStatus,
   InvalidStatusTransitionError,
 } from '@/lib/state-machine';
+import { sendEmail, getSupplierEmail, logEmailEvent } from '@/lib/email-service';
+import { offerDeclinedEmail } from '@/lib/email-templates';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,7 +56,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         status,
         supplier_id,
         request_id,
-        requests!inner(restaurant_id)
+        declined_email_sent_at,
+        requests!inner(restaurant_id, fritext)
       `)
       .eq('id', offerId)
       .single();
@@ -125,6 +128,60 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       actor_name: actor.user_email || 'Unknown',
       metadata: { reason: reason || null },
     });
+
+    // PILOT: Send decline email to supplier (idempotent)
+    // Only send if not already sent (check declined_email_sent_at)
+    if (offer.supplier_id && !offer.declined_email_sent_at) {
+      try {
+        const supplierEmail = await getSupplierEmail(offer.supplier_id, tenantId);
+
+        if (supplierEmail) {
+          // Fetch supplier and restaurant names for email
+          const [supplierResult, restaurantResult] = await Promise.all([
+            supabase.from('suppliers').select('namn').eq('id', offer.supplier_id).single(),
+            supabase.from('restaurants').select('name').eq('id', requestRestaurantId).single()
+          ]);
+
+          const requestData = offer.requests as any;
+          const emailContent = offerDeclinedEmail({
+            supplierName: supplierResult.data?.namn || 'Leverantör',
+            restaurantName: restaurantResult.data?.name || 'Restaurang',
+            offerId: offerId,
+            requestTitle: requestData?.fritext?.substring(0, 50) || 'Förfrågan',
+            declinedAt: new Date().toISOString(),
+            reason: reason || undefined
+          });
+
+          const emailResult = await sendEmail({
+            to: supplierEmail,
+            subject: emailContent.subject,
+            html: emailContent.html,
+            text: emailContent.text
+          });
+
+          // Mark email as sent (idempotency)
+          await supabase
+            .from('offers')
+            .update({ declined_email_sent_at: new Date().toISOString() })
+            .eq('id', offerId);
+
+          // Log email event
+          await logEmailEvent(tenantId, offerId, {
+            type: 'OFFER_DECLINED',
+            to: supplierEmail,
+            success: emailResult.success,
+            error: emailResult.error
+          });
+
+          if (!emailResult.success) {
+            console.warn(`⚠️  Failed to send decline email: ${emailResult.error}`);
+          }
+        }
+      } catch (emailError: any) {
+        console.error('Error sending decline email:', emailError);
+        // Don't throw - email is not critical
+      }
+    }
 
     return NextResponse.json({
       success: true,

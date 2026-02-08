@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
+import { processPendingOfferReminders } from '@/lib/pending-offer-reminders';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -133,6 +134,12 @@ export async function GET(request: NextRequest) {
       status: offer.status,
       timestamp: offer.updated_at || offer.created_at,
     }));
+
+    // PILOT: "Poor man's cron" - Process pending offer reminders
+    // Fire and forget - don't block stats response
+    processPendingOfferReminders(tenantId).catch((err) => {
+      console.error('Reminder processing error:', err);
+    });
 
     return NextResponse.json({
       activeRequests: activeRequestsResult.count || 0,
