@@ -93,7 +93,7 @@ export async function POST(
     });
 
     // reply_to = Vinkoll (never the consumer). Prevents accidental PII leak via headers.
-    const emailResult = await sendEmail({ to: importerEmail, subject, html, text, reply_to: 'access@vinkoll.se' });
+    const emailResult = await sendEmail({ to: importerEmail, subject, html, text, reply_to: 'hej@vinkoll.se' });
 
     // Mark as forwarded
     await forwardRequestToImporter(id, {
