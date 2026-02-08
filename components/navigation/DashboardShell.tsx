@@ -111,7 +111,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <p>
               Behöver du hjälp?{' '}
               <a
-                href="mailto:hej@winefeed.se?subject=Support%20-%20Winefeed%20Dashboard"
+                href="mailto:hej@winefeed.se?subject=Support%20%E2%80%93%20Winefeed%20Pilot%20%E2%80%93%20Dashboard"
                 className="text-wine hover:underline font-medium"
               >
                 Kontakta oss
