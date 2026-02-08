@@ -17,7 +17,7 @@ import {
   OfferStatus,
   InvalidStatusTransitionError,
 } from '@/lib/state-machine';
-import { sendEmail, getSupplierEmail, logEmailEvent } from '@/lib/email-service';
+import { sendEmail, getSupplierEmail, logEmailEvent, WINEFEED_FROM } from '@/lib/email-service';
 import { offerDeclinedEmail } from '@/lib/email-templates';
 
 const supabase = createClient(
@@ -154,6 +154,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
           const emailResult = await sendEmail({
             to: supplierEmail,
+            from: WINEFEED_FROM,
             subject: emailContent.subject,
             html: emailContent.html,
             text: emailContent.text

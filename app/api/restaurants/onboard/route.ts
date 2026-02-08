@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail } from '@/lib/email-service';
+import { sendEmail, WINEFEED_FROM } from '@/lib/email-service';
 import { welcomeEmail } from '@/lib/email-templates';
 
 const supabase = createClient(
@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
 
       const emailResult = await sendEmail({
         to: email,
+        from: WINEFEED_FROM,
         subject: emailContent.subject,
         html: emailContent.html,
         text: emailContent.text
