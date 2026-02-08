@@ -36,7 +36,7 @@ export interface AccessWine {
   region: string | null;
   appellation: string | null;
   description: string | null;
-  price_indication: string | null;
+  price_sek: number | null;
   image_url: string | null;
   status: WineStatus;
   created_at: string;

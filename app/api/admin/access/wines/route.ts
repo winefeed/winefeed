@@ -101,6 +101,9 @@ export async function POST(request: NextRequest) {
     if (!producerId && body.producer_name?.trim()) {
       producerId = await getOrCreateProducer(body.producer_name);
     }
+    if (!producerId) {
+      return NextResponse.json({ error: 'Validation failed', errors: ['Producent krävs'] }, { status: 400 });
+    }
 
     const wine = await createWine({
       name: body.name,
@@ -121,7 +124,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Wine create error:', error);
     return NextResponse.json(
-      { error: 'Failed to create wine', message: error.message },
+      { error: 'Failed to create wine', errors: [error.message] },
       { status: 500 }
     );
   }
