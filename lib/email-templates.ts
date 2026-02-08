@@ -213,9 +213,17 @@ export function welcomeEmail(params: WelcomeEmailParams): { subject: string; htm
 </head>
 <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto;">
-    <!-- Header with full logo -->
+    <!-- Header with text logo -->
     <div style="background: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-      <img src="https://winefeed.se/winefeed-logo-light.png" alt="Winefeed" width="200" height="42" style="display: block; margin: 0 auto;" />
+      <div style="display: inline-block;">
+        <span style="display: inline-block; width: 12px; height: 12px; background: #E8DFC4; transform: rotate(45deg); margin-right: -4px;"></span>
+        <span style="display: inline-block; width: 14px; height: 14px; background: #E8B4B8; transform: rotate(45deg); margin-right: -4px; opacity: 0.85;"></span>
+        <span style="display: inline-block; width: 12px; height: 12px; background: #7A1B2D; transform: rotate(45deg); margin-right: 12px;"></span>
+        <span style="font-size: 28px; color: #7A1B2D; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; vertical-align: middle;">
+          <span style="font-weight: 700;">wine</span><span style="font-weight: 300;">feed</span>
+        </span>
+      </div>
+      <p style="color: #b89a9e; margin: 6px 0 0 0; font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;">SOURCE &amp; SERVE</p>
     </div>
 
     <!-- Accent line (grafisk profil) -->
