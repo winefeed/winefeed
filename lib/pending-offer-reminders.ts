@@ -44,7 +44,6 @@ export async function processPendingOfferReminders(tenantId: string): Promise<Re
       .from('offers')
       .select(`
         id,
-        title,
         created_at,
         supplier_id,
         request_id,
@@ -109,7 +108,7 @@ export async function processPendingOfferReminders(tenantId: string): Promise<Re
         const emailContent = offerPendingReminderEmail({
           restaurantName: restaurant?.name || 'Kära kund',
           offerId: offer.id,
-          offerTitle: offer.title || requestData?.fritext?.substring(0, 50) || 'Offert',
+          offerTitle: requestData?.fritext?.substring(0, 50) || 'Offert',
           supplierName: supplierData?.namn || 'Leverantör',
           hoursWaiting,
           linesCount: linesCount || 1
