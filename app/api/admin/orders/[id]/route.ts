@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail, getRestaurantRecipients, WINEFEED_FROM } from '@/lib/email-service';
+import { orderStatusUpdatedEmail } from '@/lib/email-templates';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -257,6 +259,47 @@ export async function PATCH(
 
     if (events.length > 0) {
       await supabase.from('order_events').insert(events);
+    }
+
+    // Send email notification on status change (fail-safe)
+    if (status && status !== existingOrder.status) {
+      try {
+        // Get restaurant info for email
+        const { data: order } = await supabase
+          .from('orders')
+          .select('buyer_restaurant_id')
+          .eq('id', orderId)
+          .single();
+
+        if (order?.buyer_restaurant_id) {
+          const { data: restaurant } = await supabase
+            .from('restaurants')
+            .select('name')
+            .eq('id', order.buyer_restaurant_id)
+            .single();
+
+          const recipients = await getRestaurantRecipients(order.buyer_restaurant_id, tenantId);
+
+          for (const email of recipients) {
+            const emailContent = orderStatusUpdatedEmail({
+              restaurantName: restaurant?.name || 'Restaurang',
+              orderId,
+              newStatus: status,
+            });
+
+            await sendEmail({
+              to: email,
+              from: WINEFEED_FROM,
+              ...emailContent,
+            });
+          }
+
+          console.log(`📧 Order status update email sent for order ${orderId} (${status})`);
+        }
+      } catch (emailError) {
+        console.error('Error sending order status email:', emailError);
+        // Don't fail the request - email is not critical
+      }
     }
 
     return NextResponse.json({
