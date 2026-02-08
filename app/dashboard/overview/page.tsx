@@ -191,26 +191,26 @@ export default function RestaurantOverview() {
           href="/dashboard/my-requests"
         />
         <StatCard
-          title="Nya offerter"
+          title="Åtgärd krävs"
           value={stats?.pendingOffers || 0}
-          subtitle="Att granska"
+          subtitle="Offerter att granska"
           icon={Mail}
           color="amber"
           href="/dashboard/offers"
           highlight={stats?.pendingOffers ? stats.pendingOffers > 0 : false}
         />
         <StatCard
-          title="Pågående ordrar"
+          title="Pågående ärenden"
           value={stats?.pendingOrders || 0}
-          subtitle="Under leverans"
+          subtitle="Under hantering"
           icon={Package}
           color="purple"
           href="/dashboard/orders"
         />
         <StatCard
-          title="Denna månad"
+          title="Estimerad månadsutgift"
           value={formatCurrency(stats?.totalSpentThisMonth || 0)}
-          subtitle={`${stats?.completedOrders || 0} levererade`}
+          subtitle="Baserat på accepterade offerter"
           icon={TrendingUp}
           color="green"
           href="/dashboard/analytics"
@@ -245,97 +245,93 @@ export default function RestaurantOverview() {
 
               <div className="divide-y divide-gray-100">
                 {pendingOffers.slice(0, 4).map((offer) => (
-                  <a
+                  <div
                     key={offer.id}
-                    href={`/dashboard/offers/${offer.id}`}
-                    className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                    className="px-4 py-3 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-gray-900 truncate">
-                            {offer.title || 'Offert'}
-                          </span>
-                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                            Ny
+                            {offer.supplier_name}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">
-                          Från {offer.supplier_name} • {offer.lines_count} {offer.lines_count === 1 ? 'rad' : 'rader'}
+                          {offer.lines_count} {offer.lines_count === 1 ? 'vin' : 'viner'} • {formatCurrency(offer.total_amount)}
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
-                          {formatDistanceToNow(new Date(offer.created_at), { addSuffix: true, locale: sv })}
+                          Mottagen {formatDistanceToNow(new Date(offer.created_at), { addSuffix: false, locale: sv })} sedan
                         </p>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="font-semibold text-gray-900">
-                          {formatCurrency(offer.total_amount)}
-                        </p>
-                        <ArrowRight className="h-4 w-4 text-gray-400 mt-1 ml-auto" />
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <a
+                          href={`/dashboard/offers/${offer.id}`}
+                          className="px-3 py-1.5 bg-wine text-white text-sm font-medium rounded-lg hover:bg-wine-hover transition-colors"
+                        >
+                          Granska
+                        </a>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (confirm('Vill du avfärda denna offert?')) {
+                              fetch(`/api/offers/${offer.id}/reject`, { method: 'POST' })
+                                .then(() => window.location.reload())
+                                .catch(err => console.error('Failed to reject:', err));
+                            }
+                          }}
+                          className="px-3 py-1.5 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          Avfärda
+                        </button>
                       </div>
                     </div>
-                  </a>
+                  </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Quick Actions for new users */}
+          {/* 3 Steps to First Order - for new users */}
           {!hasActivity && (
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-amber-500" />
-                Kom igång
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-amber-500" />
+                  3 steg till första beställning
+                </h2>
+                <span className="text-sm text-gray-500">0/3 klart</span>
+              </div>
+              {/* Progress bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                <div className="bg-wine h-2 rounded-full" style={{ width: '0%' }}></div>
+              </div>
               <div className="space-y-3">
-                <QuickAction
+                <OnboardingStep
+                  number={1}
                   title="Skapa din första förfrågan"
                   description="Berätta vad du söker så matchar vi rätt leverantörer"
                   href="/dashboard/new-request"
-                  icon={FileText}
-                  primary
+                  completed={false}
+                  current
                 />
-                <QuickAction
-                  title="Lägg till leveransadresser"
-                  description="Spara dina vanliga leveransadresser"
-                  href="/dashboard/settings"
-                  icon={Building2}
+                <OnboardingStep
+                  number={2}
+                  title="Granska din första offert"
+                  description="Jämför priser och villkor från leverantörer"
+                  href="/dashboard/offers"
+                  completed={false}
                 />
-                <QuickAction
-                  title="Se hur det fungerar"
-                  description="Guide till att använda Winefeed"
-                  href="/dashboard/help"
-                  icon={AlertCircle}
+                <OnboardingStep
+                  number={3}
+                  title="Skapa din första beställning"
+                  description="Acceptera en offert för att lägga beställning"
+                  href="/dashboard/offers"
+                  completed={false}
                 />
               </div>
             </div>
           )}
 
-          {/* How it works */}
-          {hasActivity && (
-            <div className="bg-gradient-to-br from-wine/5 to-amber-50 rounded-lg border border-wine/20 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Så fungerar det
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <StepCard
-                  number={1}
-                  title="Skapa förfrågan"
-                  description="Beskriv vad du letar efter"
-                />
-                <StepCard
-                  number={2}
-                  title="Få offerter"
-                  description="Leverantörer skickar prisförslag"
-                />
-                <StepCard
-                  number={3}
-                  title="Beställ"
-                  description="Välj bästa offerten och beställ"
-                />
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Right Column - 1/3 width */}
@@ -348,7 +344,10 @@ export default function RestaurantOverview() {
 
             {stats?.recentActivity && stats.recentActivity.length > 0 ? (
               <div className="space-y-3">
-                {stats.recentActivity.map((activity) => (
+                {stats.recentActivity
+                  .filter((a) => ['offer', 'order'].includes(a.type)) // Only important events
+                  .slice(0, 8) // Max 8 items
+                  .map((activity) => (
                   <div
                     key={activity.id}
                     className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-0"
@@ -401,23 +400,17 @@ export default function RestaurantOverview() {
                 <span className="font-semibold text-gray-900">{stats?.acceptedOffers || 0}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Levererade ordrar</span>
+                <span className="text-sm text-gray-600">Avslutade ärenden</span>
                 <span className="font-semibold text-gray-900">{stats?.completedOrders || 0}</span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                <span className="text-sm font-medium text-gray-700">Totalt inköp</span>
+                <span className="text-sm font-medium text-gray-700">Estimerat inköp</span>
                 <span className="font-bold text-wine">
                   {formatCurrency(stats?.totalSpentThisMonth || 0)}
                 </span>
               </div>
             </div>
-            <a
-              href="/dashboard/analytics"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-wine hover:underline"
-            >
-              <TrendingUp className="h-4 w-4" />
-              Se fullständig statistik
-            </a>
+            <p className="text-xs text-gray-400 mt-2">Baserat på accepterade offerter</p>
           </div>
 
           {/* Help */}
@@ -514,20 +507,45 @@ function QuickAction({ title, description, href, icon: Icon, primary }: QuickAct
   );
 }
 
-interface StepCardProps {
+interface OnboardingStepProps {
   number: number;
   title: string;
   description: string;
+  href: string;
+  completed: boolean;
+  current?: boolean;
 }
 
-function StepCard({ number, title, description }: StepCardProps) {
+function OnboardingStep({ number, title, description, href, completed, current }: OnboardingStepProps) {
   return (
-    <div className="text-center">
-      <div className="w-8 h-8 bg-wine text-white rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-2">
-        {number}
+    <a
+      href={href}
+      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+        current
+          ? 'border-wine bg-wine/5 hover:bg-wine/10'
+          : completed
+          ? 'border-green-200 bg-green-50'
+          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+      }`}
+    >
+      <div
+        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+          completed
+            ? 'bg-green-500 text-white'
+            : current
+            ? 'bg-wine text-white'
+            : 'bg-gray-200 text-gray-600'
+        }`}
+      >
+        {completed ? <CheckCircle className="h-5 w-5" /> : number}
       </div>
-      <h3 className="font-medium text-gray-900">{title}</h3>
-      <p className="text-sm text-gray-500">{description}</p>
-    </div>
+      <div className="flex-1">
+        <p className={`text-sm font-medium ${current ? 'text-wine' : completed ? 'text-green-700' : 'text-gray-900'}`}>
+          {title}
+        </p>
+        <p className="text-xs text-gray-500">{description}</p>
+      </div>
+      {current && <ArrowRight className="h-4 w-4 text-wine flex-shrink-0" />}
+    </a>
   );
 }
