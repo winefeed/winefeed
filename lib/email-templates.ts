@@ -213,12 +213,12 @@ export function welcomeEmail(params: WelcomeEmailParams): { subject: string; htm
 </head>
 <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto;">
-    <!-- Header with wine background -->
-    <div style="background: linear-gradient(135deg, #722F37 0%, #5a252c 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-      <h1 style="color: #f5e8e0; margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
+    <!-- Header with wine background (grafisk profil) -->
+    <div style="background: #5A1220; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+      <h1 style="color: #E8DFC4; margin: 0; font-size: 32px; letter-spacing: -0.5px; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;">
         <span style="font-weight: 700;">wine</span><span style="font-weight: 300;">feed</span>
       </h1>
-      <p style="color: rgba(245,232,224,0.6); margin: 8px 0 0 0; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">Source & Serve</p>
+      <p style="color: #b89a9e; margin: 8px 0 0 0; font-size: 10px; letter-spacing: 2.8px; text-transform: uppercase;">SOURCE &amp; SERVE</p>
     </div>
 
     <!-- Main Content -->
@@ -243,13 +243,13 @@ export function welcomeEmail(params: WelcomeEmailParams): { subject: string; htm
       </div>
 
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${dashboardUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+        <a href="${dashboardUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
           Skapa din första förfrågan
         </a>
       </div>
 
       <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
-        Frågor? Kontakta oss på <a href="mailto:hej@winefeed.se" style="color: #722F37;">hej@winefeed.se</a>
+        Frågor? Kontakta oss på <a href="mailto:hej@winefeed.se" style="color: #7A1B2D;">hej@winefeed.se</a>
       </p>
     </div>
 
