@@ -40,7 +40,7 @@ export interface SendEmailParams {
 }
 
 export interface EmailEventPayload {
-  type: 'OFFER_CREATED' | 'OFFER_ACCEPTED' | 'ORDER_STATUS_UPDATED';
+  type: 'OFFER_CREATED' | 'OFFER_ACCEPTED' | 'ORDER_STATUS_UPDATED' | 'ORDER_CONFIRMATION';
   to: string;
   success: boolean;
   error?: string;

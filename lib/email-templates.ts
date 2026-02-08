@@ -77,6 +77,12 @@ export interface OrderConfirmationEmailParams {
   }>;
 }
 
+export interface WelcomeEmailParams {
+  restaurantName: string;
+  email: string;
+  city?: string;
+}
+
 /**
  * Template: Offer Created (sent to restaurant)
  */
@@ -160,6 +166,94 @@ Granska offerten och acceptera om den passar era behov.
 Visa offert: ${offerUrl}
 
 Se alla offerter för din förfrågan: ${requestUrl}
+
+---
+Winefeed - Din B2B-marknadsplats för vin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+/**
+ * Template: Welcome Email (sent to restaurant on signup)
+ */
+export function welcomeEmail(params: WelcomeEmailParams): { subject: string; html: string; text: string } {
+  const { restaurantName, email, city } = params;
+
+  const dashboardUrl = getAppUrl('/dashboard/new-request');
+  const helpUrl = getAppUrl('/dashboard/help');
+
+  const subject = `🍷 Välkommen till Winefeed, ${restaurantName}!`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <h1 style="color: #722F37; margin: 0; font-size: 28px;">Winefeed</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div style="background: white; border-radius: 8px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h2 style="color: #111827; margin: 0 0 20px 0; font-size: 20px;">
+        Välkommen, ${restaurantName}!
+      </h2>
+
+      <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px 0;">
+        Ditt konto är nu aktiverat. Du kan börja hitta viner direkt genom att beskriva vad du söker – vi matchar dig med rätt leverantörer.
+      </p>
+
+      <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <h3 style="color: #111827; margin: 0 0 15px 0; font-size: 16px;">
+          Så här fungerar det:
+        </h3>
+        <ol style="color: #4b5563; margin: 0; padding-left: 20px; line-height: 1.8;">
+          <li>Beskriv vilken typ av vin du letar efter</li>
+          <li>Få matchade förslag och offerter från leverantörer</li>
+          <li>Jämför och acceptera – vi sköter resten</li>
+        </ol>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${dashboardUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          Skapa din första förfrågan
+        </a>
+      </div>
+
+      <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
+        Frågor? Kontakta oss på <a href="mailto:hej@winefeed.se" style="color: #722F37;">hej@winefeed.se</a>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 30px; color: #9ca3af; font-size: 12px;">
+      <p>Winefeed - Din B2B-marknadsplats för vin</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+Välkommen till Winefeed, ${restaurantName}!
+
+Ditt konto är nu aktiverat. Du kan börja hitta viner direkt genom att beskriva vad du söker – vi matchar dig med rätt leverantörer.
+
+Så här fungerar det:
+1. Beskriv vilken typ av vin du letar efter
+2. Få matchade förslag och offerter från leverantörer
+3. Jämför och acceptera – vi sköter resten
+
+Kom igång: ${dashboardUrl}
+
+Frågor? Kontakta oss på hej@winefeed.se
 
 ---
 Winefeed - Din B2B-marknadsplats för vin

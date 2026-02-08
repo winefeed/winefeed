@@ -9,6 +9,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '@/lib/email-service';
+import { welcomeEmail } from '@/lib/email-templates';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -123,6 +125,29 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error('Restaurant update error:', updateError);
       // Don't fail - the basic record was created
+    }
+
+    // Send welcome email (fail-safe: doesn't block signup)
+    try {
+      const emailContent = welcomeEmail({
+        restaurantName: name,
+        email: email,
+        city: city
+      });
+
+      const emailResult = await sendEmail({
+        to: email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text
+      });
+
+      if (!emailResult.success) {
+        console.warn(`⚠️  Failed to send welcome email: ${emailResult.error}`);
+      }
+    } catch (emailError) {
+      console.error('Error sending welcome email:', emailError);
+      // Don't fail - email is not critical for signup
     }
 
     // Sign in the user to create a session

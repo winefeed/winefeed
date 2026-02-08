@@ -26,8 +26,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { offerService } from '@/lib/offer-service';
 import { orderService } from '@/lib/order-service';
-import { sendEmail, getSupplierEmail, logEmailEvent } from '@/lib/email-service';
-import { offerAcceptedEmail } from '@/lib/email-templates';
+import { sendEmail, getSupplierEmail, getRestaurantEmail, logEmailEvent, logOrderEmailEvent } from '@/lib/email-service';
+import { offerAcceptedEmail, orderConfirmationEmail } from '@/lib/email-templates';
 import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
 
@@ -158,6 +158,76 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       console.error('⚠️  Failed to create order from accepted offer:', orderError);
       // Don't throw - order creation is important but not critical for acceptance
       // IOR can still manually create order later if needed
+    }
+
+    // PILOT: Send order confirmation email to restaurant
+    // Fail-safe: Email failure doesn't block acceptance
+    if (orderId) {
+      try {
+        const { offer } = result;
+        const restaurantEmail = await getRestaurantEmail(offer.restaurant_id, tenantId);
+
+        if (restaurantEmail) {
+          // Fetch order details for email
+          const orderDetails = await orderService.getOrder(orderId, tenantId);
+
+          if (orderDetails) {
+            const { data: restaurantData } = await supabase
+              .from('restaurants')
+              .select('name, city')
+              .eq('id', offer.restaurant_id)
+              .single();
+
+            const { data: supplierData } = await supabase
+              .from('suppliers')
+              .select('namn')
+              .eq('id', offer.supplier_id || '')
+              .single();
+
+            // Build items for email
+            const items = orderDetails.lines?.map((line: any) => ({
+              wineName: line.wine_name || 'Vin',
+              quantity: line.quantity || 0,
+              priceSek: line.price_sek ? Math.round(line.price_sek / 100) : undefined,
+              provorder: line.provorder || false,
+              provorderFee: line.provorder_fee || undefined
+            })) || [];
+
+            const totalBottles = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+
+            const emailContent = orderConfirmationEmail({
+              recipientName: restaurantData?.name || 'Kära kund',
+              orderId: orderId,
+              restaurantName: restaurantData?.name || 'Er restaurang',
+              supplierName: supplierData?.namn || 'Leverantör',
+              totalBottles,
+              deliveryAddress: restaurantData?.city || undefined,
+              items
+            });
+
+            const emailResult = await sendEmail({
+              to: restaurantEmail,
+              subject: emailContent.subject,
+              html: emailContent.html,
+              text: emailContent.text
+            });
+
+            await logOrderEmailEvent(tenantId, orderId, {
+              type: 'ORDER_CONFIRMATION',
+              to: restaurantEmail,
+              success: emailResult.success,
+              error: emailResult.error
+            });
+
+            if (!emailResult.success) {
+              console.warn(`⚠️  Failed to send order confirmation email: ${emailResult.error}`);
+            }
+          }
+        }
+      } catch (emailError: any) {
+        console.error('Error sending order confirmation email:', emailError);
+        // Don't throw - email is not critical
+      }
     }
 
     // PILOT LOOP 1.0: Send email notification to supplier
