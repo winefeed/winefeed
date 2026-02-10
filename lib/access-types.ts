@@ -59,20 +59,32 @@ export interface WineInput {
   producer_id?: string | null;
 }
 
+export interface LotInput {
+  wine_id: string;
+  importer_id?: string | null;
+  note_public?: string | null;
+  note_private?: string | null;
+  price_sek?: number | null;
+  min_quantity?: number;
+  contact_email?: string | null;
+  available?: boolean;
+}
+
 export interface AccessLot {
   id: string;
   wine_id: string;
   importer_id: string | null;
-  importer_name: string;
-  importer_description: string | null;
+  available: boolean;
+  quantity_bucket: string | null;
   note_public: string | null;
   note_private: string | null;
   price_sek: number | null;
   min_quantity: number;
-  is_available: boolean;
-  logo_url: string | null;
+  contact_email: string | null;
   created_at: string;
   updated_at: string;
+  // Joined from access_importers (not stored on lot row)
+  importer?: { id: string; name: string; description: string | null } | null;
 }
 
 export interface AccessConsumer {
@@ -151,11 +163,11 @@ export interface WineDetail extends AccessWine {
   lots: LotPublic[];
 }
 
-export interface LotPublic extends Omit<AccessLot, 'note_private'> {}
+export interface LotPublic extends Omit<AccessLot, 'note_private' | 'contact_email'> {}
 
 export interface LotWithImporter extends AccessLot {
   importer: {
-    id: string | null;
+    id: string;
     name: string;
     description: string | null;
   };

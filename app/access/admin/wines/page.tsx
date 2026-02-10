@@ -23,13 +23,47 @@ interface Wine {
   image_url: string | null;
   status: WineStatus;
   producer?: { id: string; name: string } | null;
+  lot_count?: number;
+  available_lot_count?: number;
   created_at: string;
   updated_at: string;
+}
+
+interface Lot {
+  id: string;
+  wine_id: string;
+  importer_id: string | null;
+  available: boolean;
+  note_public: string | null;
+  note_private: string | null;
+  price_sek: number | null;
+  min_quantity: number;
+  contact_email: string | null;
+  created_at: string;
+  updated_at: string;
+  importer?: { id: string; name: string; description: string | null } | null;
+}
+
+interface LotFormData {
+  importer_id: string;
+  note_public: string;
+  note_private: string;
+  price_sek: string;
+  min_quantity: string;
+  contact_email: string;
+  available: boolean;
 }
 
 interface Producer {
   id: string;
   name: string;
+}
+
+interface Importer {
+  id: string;
+  name: string;
+  description: string | null;
+  contact_email: string | null;
 }
 
 interface WineFormData {
@@ -161,6 +195,30 @@ function wineToForm(w: Wine): WineFormData {
   };
 }
 
+function emptyLotForm(): LotFormData {
+  return {
+    importer_id: '',
+    note_public: '',
+    note_private: '',
+    price_sek: '',
+    min_quantity: '1',
+    contact_email: '',
+    available: true,
+  };
+}
+
+function lotToForm(lot: Lot): LotFormData {
+  return {
+    importer_id: lot.importer_id || '',
+    note_public: lot.note_public || '',
+    note_private: lot.note_private || '',
+    price_sek: lot.price_sek !== null ? String(lot.price_sek) : '',
+    min_quantity: String(lot.min_quantity),
+    contact_email: lot.contact_email || '',
+    available: lot.available,
+  };
+}
+
 // ============================================================================
 // Component
 // ============================================================================
@@ -168,6 +226,7 @@ function wineToForm(w: Wine): WineFormData {
 export default function AdminWinesPage() {
   const [wines, setWines] = useState<Wine[]>([]);
   const [producers, setProducers] = useState<Producer[]>([]);
+  const [importers, setImporters] = useState<Importer[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -207,6 +266,7 @@ export default function AdminWinesPage() {
       setWines(data.data || []);
       setTotal(data.total || 0);
       if (data.producers) setProducers(data.producers);
+      if (data.importers) setImporters(data.importers);
       setError(null);
     } catch (err: any) {
       setError(err.message);
@@ -470,10 +530,13 @@ export default function AdminWinesPage() {
                     key={wine.id}
                     wine={wine}
                     isExpanded={isExpanded}
+                    importers={importers}
                     onToggle={() => setExpandedId(isExpanded ? null : wine.id)}
                     onEdit={() => openEdit(wine)}
                     onArchive={() => handleArchive(wine)}
                     onRestore={() => handleRestore(wine)}
+                    onToast={showToast}
+                    onLotsChanged={() => fetchWines(search, statusFilter)}
                   />
                 );
               })}
@@ -520,13 +583,16 @@ function StatCard({ label, value, color, onClick }: {
   );
 }
 
-function WineRow({ wine, isExpanded, onToggle, onEdit, onArchive, onRestore }: {
+function WineRow({ wine, isExpanded, importers, onToggle, onEdit, onArchive, onRestore, onToast, onLotsChanged }: {
   wine: Wine;
   isExpanded: boolean;
+  importers: Importer[];
   onToggle: () => void;
   onEdit: () => void;
   onArchive: () => void;
   onRestore: () => void;
+  onToast: (msg: string) => void;
+  onLotsChanged: () => void;
 }) {
   return (
     <>
@@ -537,7 +603,15 @@ function WineRow({ wine, isExpanded, onToggle, onEdit, onArchive, onRestore }: {
         }`}
       >
         <td className="px-4 py-3">
-          <div className="font-medium text-gray-900">{wine.name}</div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-gray-900">{wine.name}</span>
+            {(wine.available_lot_count ?? 0) > 0 && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                {wine.available_lot_count} {wine.available_lot_count === 1 ? 'parti' : 'partier'}
+              </span>
+            )}
+          </div>
           <div className="text-xs text-gray-500">
             {[wine.producer?.name, wine.grape].filter(Boolean).join(' · ')}
           </div>
@@ -641,6 +715,11 @@ function WineRow({ wine, isExpanded, onToggle, onEdit, onArchive, onRestore }: {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Lots section */}
+            <div className="mt-4 border-t border-gray-200 pt-4">
+              <LotsSection wineId={wine.id} importers={importers} onToast={onToast} onLotsChanged={onLotsChanged} />
             </div>
           </td>
         </tr>
@@ -921,6 +1000,395 @@ function WineModal({ form, setForm, editing, saving, errors, producers, onSave, 
             className="px-4 py-2 text-sm bg-[#722F37] text-white rounded-lg hover:bg-[#5c2630] disabled:opacity-50 transition-colors font-medium"
           >
             {saving ? 'Sparar...' : editing ? 'Spara ändringar' : 'Skapa vin'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Lot sub-components
+// ============================================================================
+
+function LotsSection({ wineId, importers, onToast, onLotsChanged }: { wineId: string; importers: Importer[]; onToast: (msg: string) => void; onLotsChanged: () => void }) {
+  const [lots, setLots] = useState<Lot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingLot, setEditingLot] = useState<Lot | null>(null);
+
+  const fetchLots = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/admin/access/wines/${wineId}/lots`);
+      if (!res.ok) throw new Error('Failed to fetch lots');
+      const data = await res.json();
+      setLots(data.lots || []);
+    } catch {
+      // silent — lots section is secondary
+    } finally {
+      setLoading(false);
+    }
+  }, [wineId]);
+
+  useEffect(() => {
+    fetchLots();
+  }, [fetchLots]);
+
+  function openCreate() {
+    setEditingLot(null);
+    setModalOpen(true);
+  }
+
+  function openEdit(lot: Lot) {
+    setEditingLot(lot);
+    setModalOpen(true);
+  }
+
+  async function handleToggle(lot: Lot) {
+    try {
+      const res = await fetch(`/api/admin/access/lots/${lot.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ available: !lot.available }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      onToast(lot.available ? 'Parti dolt' : 'Parti synligt');
+      await fetchLots();
+      onLotsChanged();
+    } catch {
+      onToast('Kunde inte uppdatera parti');
+    }
+  }
+
+  async function handleDelete(lot: Lot) {
+    if (!confirm(`Ta bort parti från "${lot.importer?.name || 'okänd importör'}"?`)) return;
+    try {
+      const res = await fetch(`/api/admin/access/lots/${lot.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      onToast('Parti borttaget');
+      await fetchLots();
+      onLotsChanged();
+    } catch {
+      onToast('Kunde inte ta bort parti');
+    }
+  }
+
+  async function handleSave(formData: LotFormData) {
+    const body = {
+      importer_id: formData.importer_id || null,
+      note_public: formData.note_public.trim() || null,
+      note_private: formData.note_private.trim() || null,
+      price_sek: formData.price_sek ? Number(formData.price_sek) : null,
+      min_quantity: formData.min_quantity ? Number(formData.min_quantity) : 1,
+      contact_email: formData.contact_email.trim() || null,
+      available: formData.available,
+    };
+
+    if (editingLot) {
+      const res = await fetch(`/api/admin/access/lots/${editingLot.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.errors?.join(', ') || 'Kunde inte uppdatera');
+      }
+      onToast('Parti uppdaterat');
+    } else {
+      const res = await fetch(`/api/admin/access/wines/${wineId}/lots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.errors?.join(', ') || 'Kunde inte skapa');
+      }
+      onToast('Parti skapat');
+    }
+
+    setModalOpen(false);
+    setEditingLot(null);
+    await fetchLots();
+    onLotsChanged();
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-gray-700">
+          Partier ({lots.length})
+        </h3>
+        <button
+          onClick={(e) => { e.stopPropagation(); openCreate(); }}
+          className="text-xs px-3 py-1.5 bg-[#722F37] text-white rounded-lg hover:bg-[#5c2630] transition-colors font-medium"
+        >
+          + Nytt parti
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-xs text-gray-400 py-2">Laddar partier...</div>
+      ) : lots.length === 0 ? (
+        <div className="text-xs text-gray-400 py-2">Inga partier ännu</div>
+      ) : (
+        <div className="space-y-2">
+          {lots.map((lot) => (
+            <LotCard
+              key={lot.id}
+              lot={lot}
+              onEdit={() => openEdit(lot)}
+              onToggle={() => handleToggle(lot)}
+              onDelete={() => handleDelete(lot)}
+            />
+          ))}
+        </div>
+      )}
+
+      {modalOpen && (
+        <LotModal
+          lot={editingLot}
+          importers={importers}
+          onSave={handleSave}
+          onCancel={() => { setModalOpen(false); setEditingLot(null); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function LotCard({ lot, onEdit, onToggle, onDelete }: {
+  lot: Lot;
+  onEdit: () => void;
+  onToggle: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div
+      className={`border rounded-lg px-4 py-3 text-sm transition-opacity ${
+        lot.available
+          ? 'bg-white border-gray-200'
+          : 'bg-gray-100 border-gray-200 opacity-60'
+      }`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="font-medium text-gray-900">{lot.importer?.name || 'Ingen importör'}</span>
+          {lot.price_sek !== null && (
+            <span className="text-gray-600">{lot.price_sek} kr</span>
+          )}
+          <span className="text-gray-500">Min {lot.min_quantity} fl</span>
+          <span className={`text-xs ${lot.available ? 'text-green-600' : 'text-gray-400'}`}>
+            {lot.available ? 'Tillgänglig' : 'Dold'}
+          </span>
+        </div>
+        <div className="flex gap-2 shrink-0 ml-4">
+          <button
+            onClick={onEdit}
+            className="text-xs text-[#722F37] hover:underline font-medium"
+          >
+            Redigera
+          </button>
+          <button
+            onClick={onToggle}
+            className="text-xs text-gray-500 hover:underline"
+          >
+            {lot.available ? 'Dölj' : 'Visa'}
+          </button>
+          <button
+            onClick={onDelete}
+            className="text-xs text-gray-500 hover:text-red-600 hover:underline"
+          >
+            Ta bort
+          </button>
+        </div>
+      </div>
+      {(lot.note_private || lot.importer?.description) && (
+        <div className="mt-1 text-xs text-gray-500">
+          {lot.importer?.description && (
+            <span>{lot.importer.description}</span>
+          )}
+          {lot.importer?.description && lot.note_private && <span> · </span>}
+          {lot.note_private && (
+            <span className="italic">Intern: {lot.note_private}</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LotModal({ lot, importers, onSave, onCancel }: {
+  lot: Lot | null;
+  importers: Importer[];
+  onSave: (form: LotFormData) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState<LotFormData>(lot ? lotToForm(lot) : emptyLotForm());
+  const [errors, setErrors] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit() {
+    const errs: string[] = [];
+    if (form.price_sek && (isNaN(Number(form.price_sek)) || Number(form.price_sek) < 0)) {
+      errs.push('Pris måste vara >= 0');
+    }
+    if (form.min_quantity && (isNaN(Number(form.min_quantity)) || Number(form.min_quantity) < 1)) {
+      errs.push('Min antal måste vara >= 1');
+    }
+    if (errs.length) {
+      setErrors(errs);
+      return;
+    }
+
+    setSaving(true);
+    setErrors([]);
+    try {
+      await onSave(form);
+    } catch (err: any) {
+      setErrors([err.message || 'Något gick fel']);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-bold text-gray-900">
+            {lot ? 'Redigera parti' : 'Nytt parti'}
+          </h2>
+        </div>
+
+        <div className="px-6 py-4 space-y-4">
+          {errors.length > 0 && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+              {errors.map((e, i) => <div key={i}>{e}</div>)}
+            </div>
+          )}
+
+          {!form.available && (
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 rounded-lg text-sm">
+              Detta parti är dolt och syns inte för konsumenter.
+            </div>
+          )}
+
+          {/* Importer */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Importör</label>
+            <select
+              value={form.importer_id}
+              onChange={(e) => setForm({ ...form, importer_id: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37] bg-white"
+            >
+              <option value="">Ingen importör vald</option>
+              {importers.map(imp => (
+                <option key={imp.id} value={imp.id}>{imp.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Price + Min quantity row */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Pris (kr)</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={form.price_sek}
+                onChange={(e) => setForm({ ...form, price_sek: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37]"
+                placeholder="t.ex. 210"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Min antal (fl)</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={form.min_quantity}
+                onChange={(e) => setForm({ ...form, min_quantity: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37]"
+                placeholder="1"
+              />
+            </div>
+          </div>
+
+          {/* Contact email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Kontakt-email</label>
+            <input
+              type="email"
+              value={form.contact_email}
+              onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37]"
+              placeholder="kontakt@importor.se"
+            />
+          </div>
+
+          {/* Public note */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Publik notering</label>
+            <textarea
+              value={form.note_public}
+              onChange={(e) => setForm({ ...form, note_public: e.target.value })}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37] resize-none"
+              placeholder="Synlig för konsument..."
+            />
+          </div>
+
+          {/* Private note */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Intern notering</label>
+            <textarea
+              value={form.note_private}
+              onChange={(e) => setForm({ ...form, note_private: e.target.value })}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]/30 focus:border-[#722F37] resize-none"
+              placeholder="Bara för admin..."
+            />
+          </div>
+
+          {/* Available toggle */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, available: !form.available })}
+              className={`relative w-10 h-6 rounded-full transition-colors ${
+                form.available ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  form.available ? 'translate-x-4' : ''
+                }`}
+              />
+            </button>
+            <span className="text-sm text-gray-700">
+              {form.available ? 'Tillgänglig' : 'Dold'}
+            </span>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Avbryt
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="px-4 py-2 text-sm bg-[#722F37] text-white rounded-lg hover:bg-[#5c2630] disabled:opacity-50 transition-colors font-medium"
+          >
+            {saving ? 'Sparar...' : lot ? 'Spara ändringar' : 'Skapa parti'}
           </button>
         </div>
       </div>

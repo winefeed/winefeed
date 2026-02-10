@@ -8,6 +8,7 @@
 import { getSupabaseAdmin } from './supabase-server';
 import type {
   AccessConsumer,
+  AccessLot,
   AccessWatchlist,
   AccessRequest,
   AccessWine,
@@ -21,6 +22,7 @@ import type {
   AdminRequestView,
   ImporterResponseData,
   WineInput,
+  LotInput,
   WineStatus,
 } from './access-types';
 
@@ -136,17 +138,25 @@ export async function getWineById(id: string): Promise<WineDetail | null> {
     .from('access_wines')
     .select(`
       *,
-      producer:access_producers(*),
-      lots:access_lots(id, wine_id, importer_id, importer_name, importer_description, note_public, price_sek, min_quantity, is_available, logo_url, created_at, updated_at)
+      producer:access_producers(*)
     `)
     .eq('id', id)
     .single();
 
   if (error || !wine) return null;
 
-  const publicLots: LotPublic[] = ((wine as any).lots || [])
-    .filter((lot: any) => lot.is_available)
-    .map((lot: any) => ({ ...lot }));
+  // Fetch lots separately with importer join (avoids PostgREST nested FK issues)
+  const { data: lotsData } = await supabase
+    .from('access_lots')
+    .select('*, importer:access_importers!importer_id(id, name, description)')
+    .eq('wine_id', id)
+    .eq('available', true)
+    .order('created_at', { ascending: false });
+
+  const publicLots: LotPublic[] = (lotsData || []).map((lot: any) => {
+    const { note_private, contact_email, ...rest } = lot;
+    return rest;
+  });
 
   return {
     ...wine,
@@ -223,7 +233,7 @@ export async function searchWinesAdmin(params: {
 
   let query = supabase
     .from('access_wines')
-    .select('*, producer:access_producers!producer_id(id, name)', { count: 'exact' });
+    .select('*, producer:access_producers!producer_id(id, name), lots:access_lots(id)', { count: 'exact' });
 
   if (status) query = query.eq('status', status);
   if (q) {
@@ -238,7 +248,29 @@ export async function searchWinesAdmin(params: {
 
   if (error) throw new Error(`Admin wine search failed: ${error.message}`);
 
-  return { data: (data || []) as any[], total: count || 0 };
+  // Fetch available lot counts in one query
+  const wineIds = (data || []).map((w: any) => w.id);
+  let availableCounts = new Map<string, number>();
+  if (wineIds.length > 0) {
+    const { data: availLots } = await supabase
+      .from('access_lots')
+      .select('wine_id')
+      .in('wine_id', wineIds)
+      .eq('available', true);
+
+    for (const lot of availLots || []) {
+      availableCounts.set(lot.wine_id, (availableCounts.get(lot.wine_id) || 0) + 1);
+    }
+  }
+
+  const wines = (data || []).map((w: any) => ({
+    ...w,
+    lot_count: w.lots?.length || 0,
+    available_lot_count: availableCounts.get(w.id) || 0,
+    lots: undefined,
+  }));
+
+  return { data: wines as any[], total: count || 0 };
 }
 
 export async function createWine(input: WineInput): Promise<AccessWine> {
@@ -300,6 +332,88 @@ export async function updateWine(id: string, input: Partial<WineInput>): Promise
 
 export async function archiveWine(id: string): Promise<AccessWine> {
   return updateWine(id, { status: 'ARCHIVED' });
+}
+
+// ============================================================================
+// LOTS — ADMIN CRUD
+// ============================================================================
+
+export async function getLotsByWineId(wineId: string): Promise<AccessLot[]> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from('access_lots')
+    .select('*, importer:access_importers!importer_id(id, name, description)')
+    .eq('wine_id', wineId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(`Failed to fetch lots: ${error.message}`);
+  return (data || []) as AccessLot[];
+}
+
+export async function createLot(input: LotInput): Promise<AccessLot> {
+  const supabase = getSupabaseAdmin();
+
+  const { data, error } = await supabase
+    .from('access_lots')
+    .insert({
+      wine_id: input.wine_id,
+      importer_id: input.importer_id || null,
+      note_public: input.note_public?.trim() || null,
+      note_private: input.note_private?.trim() || null,
+      price_sek: input.price_sek ?? null,
+      min_quantity: input.min_quantity ?? 1,
+      contact_email: input.contact_email?.trim() || null,
+      available: input.available ?? true,
+    })
+    .select('*, importer:access_importers!importer_id(id, name, description)')
+    .single();
+
+  if (error) throw new Error(`Failed to create lot: ${error.message}`);
+  return data as AccessLot;
+}
+
+export async function updateLot(id: string, input: Partial<LotInput>): Promise<AccessLot> {
+  const supabase = getSupabaseAdmin();
+
+  const updates: Record<string, unknown> = {};
+  if (input.importer_id !== undefined) updates.importer_id = input.importer_id || null;
+  if (input.note_public !== undefined) updates.note_public = input.note_public?.trim() || null;
+  if (input.note_private !== undefined) updates.note_private = input.note_private?.trim() || null;
+  if (input.price_sek !== undefined) updates.price_sek = input.price_sek ?? null;
+  if (input.min_quantity !== undefined) updates.min_quantity = input.min_quantity;
+  if (input.contact_email !== undefined) updates.contact_email = input.contact_email?.trim() || null;
+  if (input.available !== undefined) updates.available = input.available;
+
+  const { data, error } = await supabase
+    .from('access_lots')
+    .update(updates)
+    .eq('id', id)
+    .select('*, importer:access_importers!importer_id(id, name, description)')
+    .single();
+
+  if (error) throw new Error(`Failed to update lot: ${error.message}`);
+  return data as AccessLot;
+}
+
+export async function deleteLot(id: string): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from('access_lots')
+    .update({ available: false })
+    .eq('id', id);
+
+  if (error) throw new Error(`Failed to disable lot: ${error.message}`);
+}
+
+export async function getImporters(): Promise<{ id: string; name: string; description: string | null; contact_email: string | null }[]> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from('access_importers')
+    .select('id, name, description, contact_email')
+    .order('name');
+
+  if (error) throw new Error(`Failed to fetch importers: ${error.message}`);
+  return data || [];
 }
 
 // ============================================================================

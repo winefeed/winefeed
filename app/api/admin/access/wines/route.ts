@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { searchWines, searchWinesAdmin, createWine, getWineFilters, getProducers, getOrCreateProducer } from '@/lib/access-service';
+import { searchWines, searchWinesAdmin, createWine, getWineFilters, getProducers, getOrCreateProducer, getImporters } from '@/lib/access-service';
 import type { WineStatus } from '@/lib/access-types';
 
 function validateWineInput(body: any): { valid: boolean; errors?: string[] } {
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const [result, producers] = await Promise.all([
+      const [result, producers, importers] = await Promise.all([
         searchWinesAdmin({
           q: searchParams.get('q') || undefined,
           status: (searchParams.get('status') as WineStatus) || undefined,
@@ -51,9 +51,10 @@ export async function GET(request: NextRequest) {
           offset: parseInt(searchParams.get('offset') || '0'),
         }),
         getProducers(),
+        getImporters(),
       ]);
 
-      return NextResponse.json({ ...result, producers });
+      return NextResponse.json({ ...result, producers, importers });
     }
 
     // Public mode

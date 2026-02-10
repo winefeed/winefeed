@@ -67,7 +67,7 @@ export default function WineDetailPage() {
           wine_id: wine!.id,
           lot_id: lot.id,
           importer_id: lot.importer_id,
-          importer_name: lot.importer_name,
+          importer_name: lot.importer?.name || null,
           quantity,
           message: message || undefined,
         }),
@@ -83,7 +83,7 @@ export default function WineDetailPage() {
         throw new Error(data.error || 'Kunde inte skicka förfrågan');
       }
 
-      setSubmitSuccess(lot.importer_name);
+      setSubmitSuccess(lot.importer?.name || 'Importören');
       setRequestedLotIds(prev => new Set(prev).add(lot.id));
       setRequestingLotId(null);
       setQuantity(6);
@@ -243,15 +243,11 @@ export default function WineDetailPage() {
             <div key={lot.id} className="bg-card border border-border rounded-lg p-5">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  {lot.logo_url ? (
-                    <img src={lot.logo_url} alt={lot.importer_name} className="w-10 h-10 rounded-lg object-contain shrink-0 bg-gray-50 p-1" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-[#722F37]/10 flex items-center justify-center shrink-0">
-                      <span className="text-[#722F37] font-bold text-sm">{lot.importer_name.charAt(0)}</span>
-                    </div>
-                  )}
+                  <div className="w-10 h-10 rounded-lg bg-[#722F37]/10 flex items-center justify-center shrink-0">
+                    <span className="text-[#722F37] font-bold text-sm">{(lot.importer?.name || 'I').charAt(0)}</span>
+                  </div>
                   <div>
-                  <h3 className="font-semibold text-foreground">{lot.importer_name}</h3>
+                  <h3 className="font-semibold text-foreground">{lot.importer?.name || 'Importör'}</h3>
                   {lot.note_public && (
                     <p className="text-sm text-muted-foreground mt-1">{lot.note_public}</p>
                   )}
