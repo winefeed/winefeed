@@ -21,7 +21,9 @@
     "test:importcase": "bash scripts/mvp-importcase-smoke.sh",
     "test:matching:mvp": "bash scripts/matching-mvp-verify.sh",
     "test:offer:mvp": "bash scripts/mvp-offer-loop-smoke.sh",
-    "test:pilotloop:mvp": "bash scripts/mvp-request-offer-accept-smoke.sh"
+    "test:pilotloop:mvp": "bash scripts/mvp-request-offer-accept-smoke.sh",
+    "security:scan": "npx tsx scripts/run-security-agent.ts",
+    "dependency:scan": "npx tsx scripts/run-dependency-agent.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
