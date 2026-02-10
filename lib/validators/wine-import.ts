@@ -480,6 +480,29 @@ export function validateWineRows(rows: RawWineRow[]): ImportPreview {
   };
 }
 
+// Column name aliases — exported for use by catalog-agent column mapper
+export const COLUMN_ALIASES: Record<string, string[]> = {
+  wine_name: ['wine_name', 'wine name', 'winename', 'name', 'vinnamn', 'produkt', 'product'],
+  producer: ['producer', 'producent', 'winery', 'vingård', 'chateau', 'domaine'],
+  region: ['region', 'område', 'area'],
+  color: ['color', 'colour', 'färg', 'wine_type', 'vintyp'],
+  vintage: ['vintage', 'årgång', 'year', 'år'],
+  grape: ['grape', 'grapes', 'druva', 'druvor', 'variety', 'varieties', 'cepage'],
+  price: ['price', 'pris', 'price_per_bottle', 'bottle_price', 'flaskpris', 'sek'],
+  moq: ['moq', 'min_order', 'min_qty', 'minimum', 'minimum_order', 'minsta_order'],
+  alcohol_pct: ['alcohol_pct', 'alcohol', 'abv', 'alk', 'alkohol', 'alcohol_%', 'vol'],
+  bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'size', 'ml', 'storlek', 'flaskstorlek', 'volume', 'volym'],
+  organic: ['organic', 'ekologisk', 'eko', 'bio'],
+  biodynamic: ['biodynamic', 'biodynamisk'],
+  description: ['description', 'beskrivning', 'notes', 'smakbeskrivning', 'tasting_notes'],
+  sku: ['sku', 'article', 'artikelnr', 'artikelnummer', 'article_number', 'product_code'],
+  case_size: ['case_size', 'kartong', 'case', 'per_case', 'bottles_per_case'],
+  appellation: ['appellation', 'aoc', 'doc', 'docg', 'igt'],
+  country: ['country', 'land'],
+  packaging_type: ['packaging_type', 'packaging', 'format', 'förpackning', 'typ_förpackning'],
+  location: ['location', 'warehouse', 'lager', 'lagerplats', 'origin', 'ursprung'],
+};
+
 /**
  * Map column headers to standard field names
  * Handles variations like "Wine Name", "wine_name", "Vinnamn", etc.
@@ -487,27 +510,7 @@ export function validateWineRows(rows: RawWineRow[]): ImportPreview {
 export function normalizeColumnHeaders(headers: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
 
-  const aliases: Record<string, string[]> = {
-    wine_name: ['wine_name', 'wine name', 'winename', 'name', 'vinnamn', 'produkt', 'product'],
-    producer: ['producer', 'producent', 'winery', 'vingård', 'chateau', 'domaine'],
-    region: ['region', 'område', 'area'],
-    color: ['color', 'colour', 'färg', 'wine_type', 'vintyp'],
-    vintage: ['vintage', 'årgång', 'year', 'år'],
-    grape: ['grape', 'grapes', 'druva', 'druvor', 'variety', 'varieties', 'cepage'],
-    price: ['price', 'pris', 'price_per_bottle', 'bottle_price', 'flaskpris', 'sek'],
-    moq: ['moq', 'min_order', 'min_qty', 'minimum', 'minimum_order', 'minsta_order'],
-    alcohol_pct: ['alcohol_pct', 'alcohol', 'abv', 'alk', 'alkohol', 'alcohol_%', 'vol'],
-    bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'size', 'ml', 'storlek', 'flaskstorlek', 'volume', 'volym'],
-    organic: ['organic', 'ekologisk', 'eko', 'bio'],
-    biodynamic: ['biodynamic', 'biodynamisk'],
-    description: ['description', 'beskrivning', 'notes', 'smakbeskrivning', 'tasting_notes'],
-    sku: ['sku', 'article', 'artikelnr', 'artikelnummer', 'article_number', 'product_code'],
-    case_size: ['case_size', 'kartong', 'case', 'per_case', 'bottles_per_case'],
-    appellation: ['appellation', 'aoc', 'doc', 'docg', 'igt'],
-    country: ['country', 'land'],
-    packaging_type: ['packaging_type', 'packaging', 'format', 'förpackning', 'typ_förpackning'],
-    location: ['location', 'warehouse', 'lager', 'lagerplats', 'origin', 'ursprung'],
-  };
+  const aliases = COLUMN_ALIASES;
 
   for (const header of headers) {
     const normalized = header.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');

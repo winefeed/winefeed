@@ -32,9 +32,16 @@ import {
   Archive,
   Trash2,
   Info,
+  Sparkles,
+  Eye,
+  EyeOff,
+  Shield,
+  TriangleAlert,
+  Zap,
 } from 'lucide-react';
 import { WinesTableSkeleton } from '@/components/ui/skeleton';
 import { HelpTooltip } from '@/components/ui/help-tooltip';
+import type { QualityReport, AnomalyWarning, EnrichmentResult, DescriptionMeta } from '@/lib/catalog-agent/types';
 
 interface SupplierWine {
   id: string;
@@ -151,6 +158,14 @@ export default function SupplierWinesPage() {
   // Delete confirmation
   const [deleteConfirm, setDeleteConfirm] = useState<SupplierWine | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Catalog Agent state
+  const [catalogAgentEnabled, setCatalogAgentEnabled] = useState(false);
+  const [qualityReport, setQualityReport] = useState<QualityReport | null>(null);
+  const [enrichments, setEnrichments] = useState<EnrichmentResult[]>([]);
+  const [anomalies, setAnomalies] = useState<AnomalyWarning[]>([]);
+  const [descriptionMeta, setDescriptionMeta] = useState<Record<number, DescriptionMeta>>({});
+  const [showOriginalDesc, setShowOriginalDesc] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     fetchSupplierAndWines();
@@ -552,8 +567,13 @@ export default function SupplierWinesPage() {
     const formData = new FormData();
     formData.append('file', file);
 
+    // Use enhanced endpoint if catalog agent is enabled
+    const endpoint = catalogAgentEnabled
+      ? `/api/suppliers/${supplierId}/wines/preview-enhanced`
+      : `/api/suppliers/${supplierId}/wines/preview`;
+
     try {
-      const response = await fetch(`/api/suppliers/${supplierId}/wines/preview`, {
+      const response = await fetch(endpoint, {
         method: 'POST',
         body: formData,
       });
@@ -565,6 +585,19 @@ export default function SupplierWinesPage() {
           invalid: data.invalid || [],
           filename: file.name,
         });
+
+        // Store catalog agent data if available
+        if (data.qualityReport) {
+          setQualityReport(data.qualityReport);
+          setEnrichments(data.enrichments || []);
+          setAnomalies(data.anomalies || []);
+          setDescriptionMeta(data.descriptionMeta || {});
+        } else {
+          setQualityReport(null);
+          setEnrichments([]);
+          setAnomalies([]);
+          setDescriptionMeta({});
+        }
       } else {
         const error = await response.json();
         setImportResult({ success: false, message: error.error || 'Kunde inte läsa filen' });
@@ -572,7 +605,7 @@ export default function SupplierWinesPage() {
     } catch (error) {
       setImportResult({ success: false, message: 'Ett fel uppstod vid filuppladdning' });
     }
-  }, [supplierId]);
+  }, [supplierId, catalogAgentEnabled]);
 
   // Max file size: 5MB (Vercel limit is higher, but large files cause memory issues)
   const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -618,7 +651,10 @@ export default function SupplierWinesPage() {
       const response = await fetch(`/api/suppliers/${supplierId}/wines/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wines: preview.valid }),
+        body: JSON.stringify({
+          wines: preview.valid,
+          ...(Object.keys(descriptionMeta).length > 0 ? { descriptionMeta } : {}),
+        }),
       });
 
       clearInterval(progressInterval);
@@ -1271,7 +1307,7 @@ export default function SupplierWinesPage() {
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Importera viner</h2>
-              <button onClick={() => { setShowUpload(false); setPreview(null); }} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => { setShowUpload(false); setPreview(null); setQualityReport(null); setEnrichments([]); setAnomalies([]); setDescriptionMeta({}); }} className="text-gray-400 hover:text-gray-600">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -1279,6 +1315,31 @@ export default function SupplierWinesPage() {
             <div className="p-6">
               {!preview ? (
                 <>
+                  {/* Catalog Agent Toggle */}
+                  <div className="mb-4 p-4 border border-gray-200 rounded-lg">
+                    <label className="flex items-center justify-between cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <Sparkles className={`h-5 w-5 ${catalogAgentEnabled ? 'text-amber-500' : 'text-gray-400'}`} />
+                        <div>
+                          <span className="font-medium text-gray-900">Catalog Agent</span>
+                          <p className="text-xs text-gray-500">Smart mappning, databerikning & anomalidetektion</p>
+                        </div>
+                      </div>
+                      <div
+                        role="switch"
+                        aria-checked={catalogAgentEnabled}
+                        onClick={() => setCatalogAgentEnabled(!catalogAgentEnabled)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          catalogAgentEnabled ? 'bg-wine' : 'bg-gray-300'
+                        }`}
+                      >
+                        <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                          catalogAgentEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`} />
+                      </div>
+                    </label>
+                  </div>
+
                   <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-wine bg-wine/5' : 'border-gray-300 hover:border-gray-400'}`}>
                     <input {...getInputProps()} />
                     <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -1326,6 +1387,118 @@ export default function SupplierWinesPage() {
                     </div>
                   </div>
 
+                  {/* Catalog Agent Quality Report */}
+                  {qualityReport && (
+                    <div className="mb-6 p-4 border border-amber-200 bg-amber-50 rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="h-5 w-5 text-amber-500" />
+                        <h3 className="font-medium text-gray-900">Catalog Agent — Kvalitetsrapport</h3>
+                        <span className={`ml-auto text-sm font-semibold px-2 py-0.5 rounded-full ${
+                          qualityReport.score >= 80 ? 'bg-green-100 text-green-700' :
+                          qualityReport.score >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {qualityReport.score}/100
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3 text-sm">
+                        {/* Enrichment */}
+                        <div className="p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Zap className="h-4 w-4 text-blue-500" />
+                            <span className="font-medium text-gray-700">Berikning</span>
+                          </div>
+                          {qualityReport.enrichment.totalEnriched > 0 ? (
+                            <div className="space-y-1">
+                              {Object.entries(qualityReport.enrichment.byField).map(([field, count]) => (
+                                <p key={field} className="text-xs text-gray-600">
+                                  <Sparkles className="h-3 w-3 inline text-amber-400 mr-1" />
+                                  {field}: {count} rader
+                                </p>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-gray-400">Ingen berikning behövdes</p>
+                          )}
+                        </div>
+
+                        {/* Anomalies */}
+                        <div className="p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Shield className="h-4 w-4 text-orange-500" />
+                            <span className="font-medium text-gray-700">Anomalier</span>
+                          </div>
+                          {qualityReport.anomalies.total > 0 ? (
+                            <div className="space-y-1">
+                              {qualityReport.anomalies.bySeverity.warning > 0 && (
+                                <p className="text-xs text-yellow-700">
+                                  <TriangleAlert className="h-3 w-3 inline mr-1" />
+                                  {qualityReport.anomalies.bySeverity.warning} varningar
+                                </p>
+                              )}
+                              {qualityReport.anomalies.bySeverity.info > 0 && (
+                                <p className="text-xs text-gray-600">
+                                  <Info className="h-3 w-3 inline mr-1" />
+                                  {qualityReport.anomalies.bySeverity.info} info
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-green-600">Inga anomalier hittade</p>
+                          )}
+                        </div>
+
+                        {/* Column Mapping */}
+                        <div className="p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <FileSpreadsheet className="h-4 w-4 text-purple-500" />
+                            <span className="font-medium text-gray-700">Kolumner</span>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs text-gray-600">
+                              {qualityReport.columnMapping.aliasMapped} mappade
+                            </p>
+                            {qualityReport.columnMapping.aiMapped > 0 && (
+                              <p className="text-xs text-blue-600">
+                                <Sparkles className="h-3 w-3 inline text-amber-400 mr-1" />
+                                {qualityReport.columnMapping.aiMapped} AI-mappade
+                              </p>
+                            )}
+                            {qualityReport.columnMapping.unmapped > 0 && (
+                              <p className="text-xs text-red-600">
+                                {qualityReport.columnMapping.unmapped} ej mappade
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Anomaly Details (expandable) */}
+                      {anomalies.length > 0 && (
+                        <details className="mt-3">
+                          <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                            Visa {anomalies.length} anomalier i detalj
+                          </summary>
+                          <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                            {anomalies.map((a, i) => (
+                              <div key={i} className={`text-xs p-2 rounded ${
+                                a.severity === 'warning' ? 'bg-yellow-50 text-yellow-800' :
+                                a.severity === 'error' ? 'bg-red-50 text-red-800' :
+                                'bg-gray-50 text-gray-600'
+                              }`}>
+                                {a.severity === 'warning' && <TriangleAlert className="h-3 w-3 inline mr-1" />}
+                                {a.severity === 'info' && <Info className="h-3 w-3 inline mr-1" />}
+                                {a.message}
+                                {a.suggestion && <span className="ml-1 text-gray-500">— {a.suggestion}</span>}
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                  )}
+
                   {/* Preview Table - Enhanced */}
                   {preview.valid.length > 0 && (
                     <div className="mb-4">
@@ -1347,11 +1520,24 @@ export default function SupplierWinesPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {preview.valid.slice(0, 10).map((wine, i) => (
+                            {preview.valid.slice(0, 10).map((wine, i) => {
+                              const rowEnrichment = enrichments.find(e => e.rowIndex === i);
+                              const isEnriched = (field: string) =>
+                                rowEnrichment?.enrichedFields.some(f => f.field === field);
+                              const rowDescMeta = descriptionMeta[i];
+
+                              return (
                               <tr key={i} className="border-t hover:bg-gray-50">
                                 <td className="p-2 font-medium">{wine.wine_name || wine.name}</td>
                                 <td className="p-2 text-gray-600">{wine.producer}</td>
-                                <td className="p-2 text-gray-600 hidden sm:table-cell">{wine.country || '—'}</td>
+                                <td className="p-2 text-gray-600 hidden sm:table-cell">
+                                  <span className="inline-flex items-center gap-1">
+                                    {wine.country || '—'}
+                                    {isEnriched('country') && (
+                                      <span title="Berikat från region"><Sparkles className="h-3 w-3 text-amber-400" /></span>
+                                    )}
+                                  </span>
+                                </td>
                                 <td className="p-2 hidden md:table-cell">
                                   <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${
                                     wine.color === 'red' ? 'bg-red-100 text-red-700' :
@@ -1365,9 +1551,17 @@ export default function SupplierWinesPage() {
                                 </td>
                                 <td className="p-2 text-center">{wine.vintage || 'NV'}</td>
                                 <td className="p-2 text-right font-medium">{wine.price} kr</td>
-                                <td className="p-2 text-right text-gray-600 hidden sm:table-cell">{wine.moq || wine.q_per_box || '—'}</td>
+                                <td className="p-2 text-right text-gray-600 hidden sm:table-cell">
+                                  <span className="inline-flex items-center gap-1">
+                                    {wine.moq || wine.q_per_box || '—'}
+                                    {isEnriched('grape') && (
+                                      <span title="Druva berikad från region"><Sparkles className="h-3 w-3 text-amber-400" /></span>
+                                    )}
+                                  </span>
+                                </td>
                               </tr>
-                            ))}
+                              );
+                            })}
                           </tbody>
                         </table>
                         {preview.valid.length > 10 && (

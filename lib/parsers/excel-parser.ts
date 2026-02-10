@@ -243,6 +243,34 @@ export function parseWineFile(buffer: Buffer, filename: string): ParseResult {
 }
 
 /**
+ * Get sample rows from a file buffer (for AI column mapping context).
+ * Returns up to 3 rows of raw data as key-value objects.
+ */
+export function getSampleRows(buffer: Buffer, filename: string, count: number = 3): Record<string, any>[] {
+  try {
+    const isCSV = filename.toLowerCase().endsWith('.csv');
+    let workbook: XLSX.WorkBook;
+
+    if (isCSV) {
+      const csvText = decodeCSVBuffer(buffer);
+      workbook = XLSX.read(csvText, { type: 'string', raw: false });
+    } else {
+      workbook = XLSX.read(buffer, { type: 'buffer', cellDates: true, cellNF: false, cellText: false });
+    }
+
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) return [];
+
+    const sheet = workbook.Sheets[sheetName];
+    const rawData = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '', raw: false });
+
+    return rawData.slice(0, count);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Parse CSV string directly (assumes string is already properly decoded)
  */
 export function parseCSVString(csvContent: string): ParseResult {

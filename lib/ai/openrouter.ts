@@ -7,8 +7,13 @@
 
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-const PRIMARY_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
-const FALLBACK_MODEL = 'qwen/qwen3-coder:free';
+// Ordered by quality — tries each until one succeeds
+const MODELS = [
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'google/gemma-3-27b-it:free',
+  'qwen/qwen3-coder:free',
+  'google/gemma-3-4b-it:free',
+];
 
 export async function callOpenRouter(
   prompt: string,
@@ -16,15 +21,20 @@ export async function callOpenRouter(
 ): Promise<string> {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (apiKey) {
-    headers['Authorization'] = `Bearer ${apiKey}`;
+  if (!apiKey) {
+    throw new Error('OPENROUTER_API_KEY is not configured. Get a free key at https://openrouter.ai/keys');
   }
 
-  // Try primary model, fall back to secondary
-  for (const model of [PRIMARY_MODEL, FALLBACK_MODEL]) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`,
+  };
+
+  // Try each model in order until one succeeds
+  for (let i = 0; i < MODELS.length; i++) {
+    const model = MODELS[i];
+    const isLast = i === MODELS.length - 1;
+
     try {
       const response = await fetch(OPENROUTER_BASE_URL, {
         method: 'POST',
@@ -39,34 +49,30 @@ export async function callOpenRouter(
       if (!response.ok) {
         const status = response.status;
         if (status === 401) {
-          console.error('❌ OpenRouter: Invalid API key (401)');
-        } else if (status === 429) {
-          console.error(`❌ OpenRouter: Rate limited (429) on ${model}`);
-        } else if (status === 503) {
-          console.error(`❌ OpenRouter: Model unavailable (503) on ${model}`);
-        } else {
-          console.error(`❌ OpenRouter: HTTP ${status} on ${model}`);
+          throw new Error('OpenRouter: Invalid API key (401)');
         }
-        // Try fallback model
-        if (model === PRIMARY_MODEL) continue;
-        throw new Error(`OpenRouter API error: ${status}`);
+        console.warn(`⚠️  OpenRouter: ${model} → ${status}, trying next...`);
+        if (isLast) throw new Error(`OpenRouter API error: ${status}`);
+        continue;
       }
 
       const data = await response.json();
       const text = data?.choices?.[0]?.message?.content;
 
       if (!text) {
-        if (model === PRIMARY_MODEL) continue;
-        throw new Error('Empty response from OpenRouter');
+        console.warn(`⚠️  OpenRouter: ${model} → empty response, trying next...`);
+        if (isLast) throw new Error('Empty response from OpenRouter');
+        continue;
       }
 
       return text.trim();
     } catch (error: any) {
-      if (model === PRIMARY_MODEL) {
-        console.warn(`⚠️  OpenRouter: ${model} failed, trying fallback...`);
+      if (error.message?.includes('Invalid API key')) throw error;
+      if (!isLast) {
+        console.warn(`⚠️  OpenRouter: ${model} failed, trying next...`);
         continue;
       }
-      console.error('❌ OpenRouter API error:', error?.message || error);
+      console.error('❌ OpenRouter: All models failed:', error?.message || error);
       throw error;
     }
   }
