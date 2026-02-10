@@ -811,3 +811,220 @@ export async function markOrderConfirmed(requestId: string): Promise<boolean> {
   }
   return true;
 }
+
+// ============================================================================
+// CRON: Automated reminders & expiration
+// ============================================================================
+
+export interface ProcessAccessRemindersResult {
+  reminded: number;
+  expired: number;
+  summary_sent: boolean;
+  errors: string[];
+}
+
+export async function processAccessReminders(): Promise<ProcessAccessRemindersResult> {
+  const { createAuthToken } = await import('./access-auth');
+  const { sendEmail, getAppUrl, VINKOLL_FROM } = await import('./email-service');
+  const {
+    renderImporterReminderEmail,
+    renderAdminDailySummaryEmail,
+  } = await import('./email-templates');
+
+  const supabase = getSupabaseAdmin();
+  const now = new Date();
+  const errors: string[] = [];
+  let reminded = 0;
+  let expired = 0;
+
+  // ── Step 1: Send reminders (forwarded >5 days, no response, no reminder yet) ──
+
+  const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: remindableRequests, error: remindErr } = await supabase
+    .from('access_requests')
+    .select(`
+      id, quantity, status, forwarded_at, reminder_sent_at, expires_at,
+      wine:access_wines!wine_id(id, name, wine_type, vintage),
+      lot:access_lots!lot_id(id, importer_id)
+    `)
+    .in('status', ['pending', 'seen'])
+    .not('forwarded_at', 'is', null)
+    .is('responded_at', null)
+    .is('reminder_sent_at', null)
+    .lt('forwarded_at', fiveDaysAgo);
+
+  if (remindErr) {
+    errors.push(`Reminder query failed: ${remindErr.message}`);
+  }
+
+  // Fetch all importers once for contact emails
+  const { data: allImporters } = await supabase
+    .from('access_importers')
+    .select('id, name, contact_email');
+  const importerMap = new Map((allImporters || []).map((i: any) => [i.id, i]));
+
+  // Fetch lot→importer mappings
+  const lotIds = (remindableRequests || []).map((r: any) => r.lot?.id).filter(Boolean);
+  let lotImporterMap = new Map<string, string>();
+  if (lotIds.length > 0) {
+    const { data: lotRows } = await supabase.rpc('get_lot_importer_ids', { lot_ids: lotIds });
+    if (lotRows) {
+      lotImporterMap = new Map(lotRows.map((r: any) => [r.lot_id, r.importer_id]));
+    }
+  }
+
+  for (const req of remindableRequests || []) {
+    try {
+      // Skip if already expired
+      if (req.expires_at && new Date(req.expires_at) <= now) continue;
+
+      // Resolve importer contact email
+      const lotId = (req as any).lot?.id;
+      const importerId = lotId ? lotImporterMap.get(lotId) : null;
+      const importer = importerId ? importerMap.get(importerId) : null;
+      const importerEmail = importer?.contact_email;
+
+      if (!importerEmail) {
+        errors.push(`No importer email for request ${req.id}`);
+        continue;
+      }
+
+      // Create new 7-day respond token
+      const token = await createAuthToken(
+        'importer_response',
+        importerId || req.id,
+        { request_id: req.id, importer_name: importer?.name, reminder: true },
+        10080
+      );
+
+      const respondUrl = getAppUrl(`/access/importer/respond/${token}`);
+      const daysSinceForward = Math.floor(
+        (now.getTime() - new Date(req.forwarded_at!).getTime()) / (24 * 60 * 60 * 1000)
+      );
+
+      const wine = (req as any).wine;
+      const { subject, html, text } = renderImporterReminderEmail({
+        importerContactName: null,
+        wineName: wine?.name || 'Okänt vin',
+        wineType: wine?.wine_type || 'Rött',
+        vintage: wine?.vintage || null,
+        quantity: req.quantity,
+        respondUrl,
+        daysSinceForward,
+      });
+
+      await sendEmail({
+        to: importerEmail,
+        subject,
+        html,
+        text,
+        from: VINKOLL_FROM,
+        reply_to: 'hej@vinkoll.se',
+      });
+
+      // Mark reminder as sent
+      await supabase
+        .from('access_requests')
+        .update({ reminder_sent_at: now.toISOString(), updated_at: now.toISOString() })
+        .eq('id', req.id);
+
+      await logAccessEvent('REMINDER_SENT', null, {
+        request_id: req.id,
+        importer_email: importerEmail,
+        days_since_forward: daysSinceForward,
+      });
+
+      reminded++;
+    } catch (err: any) {
+      errors.push(`Reminder failed for ${req.id}: ${err.message}`);
+    }
+  }
+
+  // ── Step 2: Expire requests (forwarded >7 days, no response) ──
+
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: expirableRequests, error: expireErr } = await supabase
+    .from('access_requests')
+    .select('id')
+    .in('status', ['pending', 'seen'])
+    .not('forwarded_at', 'is', null)
+    .is('responded_at', null)
+    .lt('forwarded_at', sevenDaysAgo);
+
+  if (expireErr) {
+    errors.push(`Expiration query failed: ${expireErr.message}`);
+  }
+
+  for (const req of expirableRequests || []) {
+    try {
+      const { error: updateErr } = await supabase
+        .from('access_requests')
+        .update({ status: 'expired', updated_at: now.toISOString() })
+        .eq('id', req.id);
+
+      if (updateErr) {
+        errors.push(`Failed to expire ${req.id}: ${updateErr.message}`);
+        continue;
+      }
+
+      await logAccessEvent('REQUEST_EXPIRED_AUTO', null, { request_id: req.id });
+      expired++;
+    } catch (err: any) {
+      errors.push(`Expire failed for ${req.id}: ${err.message}`);
+    }
+  }
+
+  // ── Step 3: Admin daily summary ──
+
+  let summary_sent = false;
+  try {
+    // New: pending, not forwarded
+    const { count: newCount } = await supabase
+      .from('access_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending')
+      .is('forwarded_at', null);
+
+    // Waiting: forwarded, no response
+    const { count: waitingCount } = await supabase
+      .from('access_requests')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['pending', 'seen'])
+      .not('forwarded_at', 'is', null)
+      .is('responded_at', null);
+
+    // Responded but consumer not notified
+    const { count: respondedCount } = await supabase
+      .from('access_requests')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['accepted', 'declined'])
+      .is('consumer_notified_at', null);
+
+    const adminUrl = getAppUrl('/access/admin/requests');
+
+    const { subject, html, text } = renderAdminDailySummaryEmail({
+      newCount: newCount || 0,
+      waitingCount: waitingCount || 0,
+      respondedCount: respondedCount || 0,
+      remindedCount: reminded,
+      expiredCount: expired,
+      adminUrl,
+    });
+
+    await sendEmail({
+      to: 'hej@vinkoll.se',
+      subject,
+      html,
+      text,
+      from: VINKOLL_FROM,
+    });
+
+    summary_sent = true;
+  } catch (err: any) {
+    errors.push(`Admin summary failed: ${err.message}`);
+  }
+
+  return { reminded, expired, summary_sent, errors };
+}

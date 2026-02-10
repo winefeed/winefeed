@@ -51,6 +51,7 @@ export async function middleware(request: NextRequest) {
     '/access/importer/confirm',       // Importer confirm page (token-based auth)
     '/api/access/importer/respond',   // Importer respond API (token-based auth)
     '/api/access/importer/confirm',   // Importer confirm API (token-based auth)
+    '/api/cron',                      // Vercel Cron jobs (own CRON_SECRET auth)
   ];
 
   // Exact match for root landing page

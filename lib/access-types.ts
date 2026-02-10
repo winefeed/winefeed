@@ -133,6 +133,7 @@ export interface AccessRequest {
   forwarded_at: string | null;
   consumer_notified_at: string | null;
   order_confirmed_at: string | null;
+  reminder_sent_at: string | null;
   response_price_sek: number | null;
   response_quantity: number | null;
   response_delivery_days: number | null;

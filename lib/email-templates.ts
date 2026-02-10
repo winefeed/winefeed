@@ -1728,3 +1728,216 @@ Winefeed - Din B2B-marknadsplats för vin
 
   return { subject, html, text };
 }
+
+// ============================================================================
+// VINKOLL ACCESS — Importer Reminder Email (cron: 5 days after forward)
+// ============================================================================
+
+export interface ImporterReminderEmailParams {
+  importerContactName: string | null;
+  wineName: string;
+  wineType: string;
+  vintage: number | null;
+  quantity: number;
+  respondUrl: string;
+  daysSinceForward: number;
+}
+
+export function renderImporterReminderEmail(params: ImporterReminderEmailParams): { subject: string; html: string; text: string } {
+  const {
+    importerContactName,
+    wineName,
+    wineType,
+    vintage,
+    quantity,
+    respondUrl,
+    daysSinceForward,
+  } = params;
+
+  const greeting = importerContactName ? `Hej ${importerContactName}` : 'Hej';
+  const vintageStr = vintage ? ` ${vintage}` : '';
+  const subject = `Påminnelse: Förfrågan via Vinkoll väntar på ditt svar`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Påminnelse om vinförfrågan</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>${greeting},</p>
+
+    <p>Vi skickade en förfrågan till er för <strong>${daysSinceForward} dagar sedan</strong> och har ännu inte fått svar. En kund väntar på besked om:</p>
+
+    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+      <p style="margin: 0 0 8px 0;"><strong>Vin:</strong> ${wineName}${vintageStr}</p>
+      <p style="margin: 0 0 8px 0;"><strong>Typ:</strong> ${wineType}</p>
+      <p style="margin: 0;"><strong>Önskat antal:</strong> ${quantity} flaskor</p>
+    </div>
+
+    <p>Om ni kan leverera eller inte — vi uppskattar ett svar oavsett. Det tar bara en minut.</p>
+
+    <p style="color: #b45309; font-weight: 500;">Förfrågan stängs automatiskt om 2 dagar om inget svar inkommer.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${respondUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Svara på förfrågan
+      </a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på hej@vinkoll.se.
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+${greeting},
+
+Vi skickade en förfrågan till er för ${daysSinceForward} dagar sedan och har ännu inte fått svar.
+
+Vin: ${wineName}${vintageStr}
+Typ: ${wineType}
+Önskat antal: ${quantity} flaskor
+
+Om ni kan leverera eller inte — vi uppskattar ett svar oavsett. Det tar bara en minut.
+
+Förfrågan stängs automatiskt om 2 dagar om inget svar inkommer.
+
+Svara på förfrågan: ${respondUrl}
+
+Länken är giltig i 7 dagar.
+
+---
+Vinkoll - Hitta ditt nästa favoritvin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+// ============================================================================
+// VINKOLL ACCESS — Admin Daily Summary Email (cron)
+// ============================================================================
+
+export interface AdminDailySummaryEmailParams {
+  newCount: number;
+  waitingCount: number;
+  respondedCount: number;
+  remindedCount: number;
+  expiredCount: number;
+  adminUrl: string;
+}
+
+export function renderAdminDailySummaryEmail(params: AdminDailySummaryEmailParams): { subject: string; html: string; text: string } {
+  const {
+    newCount,
+    waitingCount,
+    respondedCount,
+    remindedCount,
+    expiredCount,
+    adminUrl,
+  } = params;
+
+  const today = new Date().toLocaleDateString('sv-SE', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const subject = `Vinkoll Access — Daglig sammanfattning ${today}`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Daglig sammanfattning</p>
+  </div>
+
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p>Hej,</p>
+
+    <p>Här är dagens översikt för Vinkoll Access:</p>
+
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px 8px; font-weight: 600;">Nya förfrågningar (ej vidarebefordrade)</td>
+        <td style="padding: 12px 8px; text-align: right; font-size: 20px; font-weight: 700; color: ${newCount > 0 ? '#722F37' : '#9ca3af'};">${newCount}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px 8px; font-weight: 600;">Väntar på importörsvar</td>
+        <td style="padding: 12px 8px; text-align: right; font-size: 20px; font-weight: 700; color: ${waitingCount > 0 ? '#f59e0b' : '#9ca3af'};">${waitingCount}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px 8px; font-weight: 600;">Besvarade (konsument ej meddelad)</td>
+        <td style="padding: 12px 8px; text-align: right; font-size: 20px; font-weight: 700; color: ${respondedCount > 0 ? '#10b981' : '#9ca3af'};">${respondedCount}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px 8px; font-weight: 600;">Påminda importörer idag</td>
+        <td style="padding: 12px 8px; text-align: right; font-size: 20px; font-weight: 700; color: ${remindedCount > 0 ? '#f59e0b' : '#9ca3af'};">${remindedCount}</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 8px; font-weight: 600;">Utgångna idag</td>
+        <td style="padding: 12px 8px; text-align: right; font-size: 20px; font-weight: 700; color: ${expiredCount > 0 ? '#ef4444' : '#9ca3af'};">${expiredCount}</td>
+      </tr>
+    </table>
+
+    ${(newCount > 0 || respondedCount > 0) ? `
+    <div style="background: #fdf2f3; border: 1px solid #f5c6cb; padding: 12px 15px; margin: 20px 0; border-radius: 6px; font-size: 14px; color: #722F37;">
+      <strong>Kräver åtgärd:</strong> ${newCount > 0 ? `${newCount} nya förfrågningar att vidarebefordra` : ''}${newCount > 0 && respondedCount > 0 ? ' + ' : ''}${respondedCount > 0 ? `${respondedCount} besvarade att meddela konsument` : ''}
+    </div>
+    ` : ''}
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${adminUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Öppna admin
+      </a>
+    </div>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+Vinkoll Access — Daglig sammanfattning ${today}
+
+Nya förfrågningar (ej vidarebefordrade): ${newCount}
+Väntar på importörsvar: ${waitingCount}
+Besvarade (konsument ej meddelad): ${respondedCount}
+Påminda importörer idag: ${remindedCount}
+Utgångna idag: ${expiredCount}
+
+${(newCount > 0 || respondedCount > 0) ? `KRÄVER ÅTGÄRD: ${newCount > 0 ? `${newCount} nya förfrågningar att vidarebefordra` : ''}${newCount > 0 && respondedCount > 0 ? ' + ' : ''}${respondedCount > 0 ? `${respondedCount} besvarade att meddela konsument` : ''}` : ''}
+
+Öppna admin: ${adminUrl}
+
+---
+Vinkoll - Hitta ditt nästa favoritvin
+  `.trim();
+
+  return { subject, html, text };
+}
