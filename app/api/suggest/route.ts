@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { rankWinesWithClaude } from '@/lib/ai/rank-wines';
 import { actorService } from '@/lib/actor-service';
+import { runMatchingAgentPipeline } from '@/lib/matching-agent/pipeline';
 
 // Create admin client lazily to avoid startup errors
 function getSupabaseAdmin() {
@@ -143,104 +143,22 @@ export async function POST(request: NextRequest) {
 
     request_id = savedRequest.id;
 
-    // MVP: Don't filter by is_active - wines in catalog may have is_active=false or null
-    // Fetch all available wine fields
-    let query = getSupabaseAdmin()
-      .from('supplier_wines')
-      .select('*');
+    // Run Matching Agent pipeline (AI parse → lookup → smart query → pre-score → AI re-rank)
+    const result = await runMatchingAgentPipeline({
+      fritext: fritext || description || '',
+      structuredFilters: {
+        color,
+        budget_min,
+        budget_max: effectiveBudgetMax,
+        country,
+        grape,
+        certifications: effectiveCertifications,
+        antal_flaskor,
+        leverans_ort,
+      },
+    });
 
-    // Filter by color (if specified)
-    if (color && color !== 'all') {
-      query = query.eq('color', color);
-    }
-
-    // Filter by budget range
-    // Note: price_ex_vat_sek is stored in öre (1 SEK = 100 öre)
-    // Allow generous range to find matches
-    if (effectiveBudgetMax) {
-      const budgetMaxOre = effectiveBudgetMax * 100;
-      // Allow up to 50% over budget to find matches
-      query = query.lte('price_ex_vat_sek', budgetMaxOre * 1.5);
-    }
-
-    if (budget_min) {
-      const budgetMinOre = budget_min * 100;
-      // Allow 50% under min to find matches
-      query = query.gte('price_ex_vat_sek', budgetMinOre * 0.5);
-    }
-
-    // Filter by country (if specified)
-    if (country && country !== 'all' && country !== 'other') {
-      query = query.eq('country', country);
-    }
-
-    // Filter by grape (if specified) - use ilike for partial match
-    if (grape && grape !== 'all' && grape !== 'other') {
-      query = query.ilike('grape', `%${grape}%`);
-    }
-
-    // MVP: Certification filtering disabled - columns don't exist in current schema
-
-    let wines;
-    let winesError;
-
-    try {
-      const result = await query.limit(50);
-      wines = result.data;
-      winesError = result.error;
-
-      // If filtered query fails or returns nothing, try with relaxed filters (keep color!)
-      if (winesError || !wines || wines.length === 0) {
-        let fallbackQuery = getSupabaseAdmin()
-          .from('supplier_wines')
-          .select('*');
-
-        // Keep color filter in fallback - user explicitly selected wine type
-        if (color && color !== 'all') {
-          fallbackQuery = fallbackQuery.eq('color', color);
-        }
-
-        const fallbackResult = await fallbackQuery.limit(50);
-
-        if (!fallbackResult.error && fallbackResult.data && fallbackResult.data.length > 0) {
-          wines = fallbackResult.data;
-          winesError = null;
-        }
-      }
-    } catch (queryError: any) {
-      console.error('Query execution error:', queryError);
-      // Try a simple fallback - still keep color filter
-      try {
-        let fallbackQuery = getSupabaseAdmin()
-          .from('supplier_wines')
-          .select('*');
-
-        // Keep color filter even in error fallback
-        if (color && color !== 'all') {
-          fallbackQuery = fallbackQuery.eq('color', color);
-        }
-
-        const fallbackResult = await fallbackQuery.limit(50);
-        wines = fallbackResult.data;
-        winesError = fallbackResult.error;
-      } catch (fallbackError: any) {
-        console.error('Fallback query also failed:', fallbackError);
-        return NextResponse.json(
-          { error: 'Kunde inte hämta viner', details: queryError.message || 'Query failed' },
-          { status: 500 }
-        );
-      }
-    }
-
-    if (winesError) {
-      console.error('Supabase error fetching wines:', winesError);
-      return NextResponse.json(
-        { error: 'Kunde inte hämta viner', details: winesError.message },
-        { status: 500 }
-      );
-    }
-
-    if (!wines || wines.length === 0) {
+    if (result.wines.length === 0) {
       return NextResponse.json({
         request_id,
         suggestions: [],
@@ -248,103 +166,46 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Fetch supplier info separately (relation may not work)
-    const supplierIds = [...new Set(wines.map(w => w.supplier_id).filter(Boolean))];
-    let suppliersMap: Record<string, any> = {};
-
-    if (supplierIds.length > 0) {
-      const { data: suppliers } = await getSupabaseAdmin()
-        .from('suppliers')
-        .select('id, namn, kontakt_email, min_order_bottles, provorder_enabled, provorder_fee_sek')
-        .in('id', supplierIds);
-
-      if (suppliers) {
-        suppliers.forEach(s => {
-          suppliersMap[s.id] = s;
-        });
-      }
-    }
-
-    // Transform wines for AI ranking
-    const winesForRanking = wines.map(wine => ({
-      id: wine.id,
-      namn: wine.name,
-      producent: wine.producer,
-      land: wine.country,
-      region: wine.region,
-      appellation: wine.appellation,
-      druva: wine.grape,
-      color: wine.color,
-      argang: wine.vintage,
-      alkohol: wine.alcohol_pct,
-      volym_ml: wine.volume_ml,
-      pris_sek: wine.price_ex_vat_sek ? Math.round(wine.price_ex_vat_sek / 100) : 0,
-      beskrivning: wine.description,
-      sku: wine.sku,
-      lager: wine.stock_qty,
-      moq: wine.moq,
-      kartong: wine.case_size,
-      ledtid_dagar: wine.lead_time_days,
-      supplier_id: wine.supplier_id,
-      supplier: suppliersMap[wine.supplier_id] || null,
-    }));
-
-    // Build context for AI ranking
-    const searchContext = buildSearchContext({
-      color,
-      country,
-      grape,
-      budget_min,
-      budget_max: effectiveBudgetMax,
-      certifications: effectiveCertifications,
-      description,
-      fritext,
-    });
-
-    // Rank with Claude AI
-    const ranked = await rankWinesWithClaude(winesForRanking, searchContext);
-
-    // Build suggestions response with all available wine details
-    const suggestions = ranked.slice(0, 10).map((wine) => {
-      const originalWine = wines.find(w => w.id === wine.id);
-      const supplier = originalWine ? suppliersMap[originalWine.supplier_id] : null;
+    // Build suggestions response — same format as before for results page compatibility
+    const suggestions = result.wines.map((sw) => {
+      const wine = sw.wine;
+      const supplier = result.suppliersMap[wine.supplier_id];
       return {
         wine: {
           id: wine.id,
-          namn: wine.namn,
-          producent: wine.producent,
-          land: wine.land,
+          namn: wine.name,
+          producent: wine.producer,
+          land: wine.country,
           region: wine.region,
           appellation: wine.appellation,
-          druva: wine.druva,
+          druva: wine.grape,
           color: wine.color,
-          argang: wine.argang,
-          pris_sek: wine.pris_sek,
-          // Extended details
-          alkohol: wine.alkohol,
-          volym_ml: wine.volym_ml,
-          beskrivning: wine.beskrivning,
+          argang: wine.vintage,
+          pris_sek: wine.price_ex_vat_sek ? Math.round(wine.price_ex_vat_sek / 100) : 0,
+          alkohol: wine.alcohol_pct,
+          volym_ml: wine.bottle_size_ml,
+          beskrivning: wine.description,
           sku: wine.sku,
-          lager: wine.lager,
+          lager: wine.stock_qty,
           moq: wine.moq,
-          kartong: wine.kartong,
-          ledtid_dagar: wine.ledtid_dagar,
+          kartong: wine.case_size,
+          ledtid_dagar: wine.lead_time_days,
         },
         supplier: supplier ? {
           id: supplier.id,
           namn: supplier.namn,
           kontakt_email: supplier.kontakt_email,
           min_order_bottles: supplier.min_order_bottles,
-          provorder_enabled: supplier.provorder_enabled || false,
-          provorder_fee_sek: supplier.provorder_fee_sek || 500,
+          provorder_enabled: supplier.provorder_enabled,
+          provorder_fee_sek: supplier.provorder_fee_sek,
         } : {
           namn: 'Okänd leverantör',
           kontakt_email: null,
           provorder_enabled: false,
           provorder_fee_sek: 500,
         },
-        motivering: wine.ai_reason || wine.beskrivning || 'Ett utmärkt val för din restaurang.',
-        ranking_score: wine.score,
+        motivering: wine.description || 'Ett utmärkt val för din restaurang.',
+        ranking_score: sw.score / 100, // Normalize to 0-1 for compatibility
       };
     });
 
@@ -358,7 +219,8 @@ export async function POST(request: NextRequest) {
         grape: grape || 'all',
         certifications: effectiveCertifications || [],
       },
-      total_matches: wines.length,
+      total_matches: result.totalDbMatches,
+      pipeline_timing: result.timing,
     });
 
   } catch (error: any) {
@@ -374,63 +236,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Build search context string for AI ranking
-function buildSearchContext(params: {
-  color?: string;
-  country?: string;
-  grape?: string;
-  budget_min?: number;
-  budget_max?: number;
-  certifications?: string[];
-  description?: string;
-  fritext?: string;
-}): string {
-  const parts: string[] = [];
-
-  // Wine type
-  const colorLabels: Record<string, string> = {
-    red: 'rött vin',
-    white: 'vitt vin',
-    rose: 'rosévin',
-    sparkling: 'mousserande vin',
-    orange: 'orange vin',
-    fortified: 'starkvin',
-  };
-
-  if (params.color && params.color !== 'all') {
-    parts.push(`Söker ${colorLabels[params.color] || params.color}`);
-  } else {
-    parts.push('Söker vin (alla typer)');
-  }
-
-  // Country
-  if (params.country && params.country !== 'all') {
-    parts.push(`från ${params.country}`);
-  }
-
-  // Grape
-  if (params.grape && params.grape !== 'all') {
-    parts.push(`druva: ${params.grape}`);
-  }
-
-  // Budget
-  if (params.budget_min && params.budget_max) {
-    parts.push(`budget ${params.budget_min}-${params.budget_max} kr/flaska`);
-  } else if (params.budget_max) {
-    parts.push(`budget max ${params.budget_max} kr/flaska`);
-  }
-
-  // Certifications
-  if (params.certifications && params.certifications.length > 0) {
-    parts.push(`krav: ${params.certifications.join(', ')}`);
-  }
-
-  // Free text description
-  if (params.description) {
-    parts.push(`Önskemål: ${params.description}`);
-  } else if (params.fritext) {
-    parts.push(`Beskrivning: ${params.fritext}`);
-  }
-
-  return parts.join('. ');
-}
