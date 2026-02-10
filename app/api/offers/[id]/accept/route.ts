@@ -140,8 +140,19 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       );
     }
 
+    // Parse optional acceptedLineIds for partial acceptance
+    let acceptedLineIds: string[] | undefined;
+    try {
+      const body = await request.json();
+      if (body.acceptedLineIds && Array.isArray(body.acceptedLineIds)) {
+        acceptedLineIds = body.acceptedLineIds;
+      }
+    } catch {
+      // No body or invalid JSON — accept all lines (full acceptance)
+    }
+
     // Accept offer via service (lock + snapshot + event)
-    const result = await offerService.acceptOffer(tenantId, offerId, userId);
+    const result = await offerService.acceptOffer(tenantId, offerId, userId, acceptedLineIds);
 
     // EU-SELLER → IOR FLOW: Create order from accepted offer
     // Fail-safe: Order creation failure doesn't block acceptance (logged but not thrown)

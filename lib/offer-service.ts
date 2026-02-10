@@ -446,12 +446,19 @@ class OfferService {
   }
 
   /**
-   * Accept offer (lock + snapshot + event)
+   * Accept offer — supports partial line acceptance
+   *
+   * Multi-accept: Multiple offers (from different suppliers) can be accepted per request.
+   * Partial acceptance: Restaurant can choose which lines to accept via acceptedLineIds.
+   *
+   * @param acceptedLineIds - if provided, only these offer_lines are accepted (partial)
+   *                          if omitted or empty, ALL lines are accepted
    */
   async acceptOffer(
     tenantId: string,
     offerId: string,
-    actorUserId?: string
+    actorUserId?: string,
+    acceptedLineIds?: string[]
   ): Promise<{ offer: any; snapshot: any }> {
     // Load offer + lines
     const data = await this.getOffer(tenantId, offerId);
@@ -462,7 +469,7 @@ class OfferService {
 
     const { offer, lines } = data;
 
-    // Validate not already accepted
+    // Validate not already fully accepted
     if (offer.status === 'ACCEPTED') {
       throw new Error('Offer already accepted');
     }
@@ -471,38 +478,58 @@ class OfferService {
       throw new Error('Offer is already locked');
     }
 
-    // PILOT LOOP 1.0: If offer is linked to a request, validate request can be accepted
-    // NOTE: requests table doesn't have tenant_id, single-tenant scoping for MVP
-    if (offer.request_id) {
-      const { data: request, error: requestError } = await supabase
-        .from('requests')
-        .select('id, accepted_offer_id, status')
-        .eq('id', offer.request_id)
-        .single();
+    // Determine which lines to accept
+    const isPartial = acceptedLineIds && acceptedLineIds.length > 0 && acceptedLineIds.length < lines.length;
+    const lineIdsToAccept = acceptedLineIds && acceptedLineIds.length > 0
+      ? new Set(acceptedLineIds)
+      : new Set(lines.map(l => l.id)); // All lines if none specified
 
-      if (requestError) {
-        throw new Error(`Failed to load request: ${requestError.message}`);
-      }
-
-      // Check if request already has an accepted offer (and it's not this one)
-      if (request.accepted_offer_id && request.accepted_offer_id !== offerId) {
-        throw new Error('Request already has an accepted offer. Only one offer can be accepted per request.');
+    // Validate all requested lineIds actually exist in this offer
+    for (const lineId of lineIdsToAccept) {
+      if (!lines.find(l => l.id === lineId)) {
+        throw new Error(`Line ${lineId} not found in this offer`);
       }
     }
 
-    // Create immutable snapshot
+    // Validate MOQ if partial acceptance
+    if (isPartial && offer.min_total_quantity) {
+      const acceptedQuantity = lines
+        .filter(l => lineIdsToAccept.has(l.id))
+        .reduce((sum, l) => sum + (l.quantity || 0), 0);
+      if (acceptedQuantity < offer.min_total_quantity) {
+        throw new Error(
+          `Total quantity (${acceptedQuantity}) is below minimum (${offer.min_total_quantity}). ` +
+          'Select more wines or accept the full offer.'
+        );
+      }
+    }
+
+    // Mark lines as accepted/rejected
+    for (const line of lines) {
+      const accepted = lineIdsToAccept.has(line.id);
+      await supabase
+        .from('offer_lines')
+        .update({ accepted })
+        .eq('id', line.id);
+    }
+
+    // Build snapshot with accepted lines only
+    const acceptedLines = lines.filter(l => lineIdsToAccept.has(l.id));
     const snapshot = {
       offer: { ...offer },
-      lines: lines.map((line) => ({ ...line })),
-      accepted_at: new Date().toISOString()
+      lines: acceptedLines.map((line) => ({ ...line, accepted: true })),
+      rejected_lines: lines.filter(l => !lineIdsToAccept.has(l.id)).map(l => ({ ...l, accepted: false })),
+      accepted_at: new Date().toISOString(),
+      is_partial: isPartial,
     };
 
     // Update offer: lock + status + snapshot
     const now = new Date().toISOString();
+    const newStatus = isPartial ? 'PARTIALLY_ACCEPTED' : 'ACCEPTED';
     const { data: updated, error: updateError } = await supabase
       .from('offers')
       .update({
-        status: 'ACCEPTED',
+        status: newStatus,
         accepted_at: now,
         locked_at: now,
         snapshot: snapshot
@@ -516,20 +543,29 @@ class OfferService {
       throw new Error(`Failed to accept offer: ${updateError.message}`);
     }
 
-    // PILOT LOOP 1.0: Update request if linked
-    // NOTE: requests table doesn't have tenant_id, single-tenant scoping for MVP
+    // Write accepted_offer_id on quote_request_assignments (NOT on requests)
+    // This allows multiple suppliers to be accepted per request
+    if (offer.request_id && offer.supplier_id) {
+      const { error: assignmentUpdateError } = await supabase
+        .from('quote_request_assignments')
+        .update({ accepted_offer_id: offerId })
+        .eq('quote_request_id', offer.request_id)
+        .eq('supplier_id', offer.supplier_id);
+
+      if (assignmentUpdateError) {
+        console.error('Failed to update assignment:', assignmentUpdateError);
+      }
+    }
+
+    // Also update requests.accepted_offer_id for backwards compat (last one wins)
     if (offer.request_id) {
       const { error: requestUpdateError } = await supabase
         .from('requests')
-        .update({
-          accepted_offer_id: offerId,
-          status: 'ACCEPTED'
-        })
+        .update({ accepted_offer_id: offerId })
         .eq('id', offer.request_id);
 
       if (requestUpdateError) {
         console.error('Failed to update request:', requestUpdateError);
-        // Don't throw - offer is already accepted, log error but continue
       }
     }
 
@@ -539,7 +575,14 @@ class OfferService {
       offer_id: offerId,
       event_type: 'ACCEPTED',
       actor_user_id: actorUserId || null,
-      payload: { accepted_at: now, request_id: offer.request_id }
+      payload: {
+        accepted_at: now,
+        request_id: offer.request_id,
+        is_partial: isPartial,
+        accepted_line_count: acceptedLines.length,
+        total_line_count: lines.length,
+        accepted_line_ids: [...lineIdsToAccept],
+      }
     });
 
     return {

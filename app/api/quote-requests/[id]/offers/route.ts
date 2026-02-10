@@ -9,30 +9,35 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 /**
  * POST /api/quote-requests/[id]/offers
  *
- * Creates an offer for a specific quote request.
- * Authenticated endpoint - requires supplier user auth.
+ * Creates a multi-line offer for a specific quote request.
+ * One offer per supplier, containing all wines (lines).
  *
- * Request body:
+ * NEW body (multi-line):
  * {
- *   supplierId: string;  // Must match authenticated supplier
- *   supplierWineId: string;  // Wine from supplier's catalog
- *   offeredPriceExVatSek: number;  // May differ from catalog price
- *   quantity: number;  // Number of bottles
- *   deliveryDate: string;  // ISO date
+ *   supplierId: string;
+ *   deliveryDate: string;
  *   leadTimeDays: number;
+ *   is_franco?: boolean;
+ *   shipping_cost_sek?: number;
+ *   shipping_notes?: string;
  *   notes?: string;
- *   expiresAt?: string;  // ISO datetime, default: 7 days
+ *   expiresAt?: string;
+ *   minTotalQuantity?: number;  // Supplier MOQ for whole offer
+ *   lines: [{
+ *     supplierWineId: string;
+ *     offeredPriceExVatSek: number;
+ *     quantity: number;
+ *   }]
  * }
  *
- * Response:
+ * LEGACY body (single-wine, backwards compat):
  * {
- *   offer: Offer;
+ *   supplierId, supplierWineId, offeredPriceExVatSek, quantity, deliveryDate, leadTimeDays, ...
  * }
  */
 export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
-    // Auth check
     const tenantId = req.headers.get('x-tenant-id');
     const userId = req.headers.get('x-user-id');
 
@@ -45,40 +50,45 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     const requestId = params.id;
     const body = await req.json();
+    const { supplierId, deliveryDate, leadTimeDays } = body;
 
-    // Validate required fields
-    const {
-      supplierId,
-      supplierWineId,
-      offeredPriceExVatSek,
-      quantity,
-      deliveryDate,
-      leadTimeDays,
-      // Shipping fields
-      is_franco,
-      shipping_cost_sek,
-      shipping_notes,
-    } = body;
+    // Backwards compat: convert single-wine body to lines[]
+    let lines: Array<{ supplierWineId: string; offeredPriceExVatSek: number; quantity: number }>;
 
-    if (!supplierId || !supplierWineId || !offeredPriceExVatSek ||
-        !quantity || !deliveryDate || leadTimeDays === undefined) {
+    if (body.lines && Array.isArray(body.lines)) {
+      lines = body.lines;
+    } else if (body.supplierWineId) {
+      // Legacy single-wine format
+      lines = [{
+        supplierWineId: body.supplierWineId,
+        offeredPriceExVatSek: body.offeredPriceExVatSek,
+        quantity: body.quantity,
+      }];
+    } else {
+      return NextResponse.json(
+        { error: 'Missing required fields: either lines[] or supplierWineId' },
+        { status: 400 }
+      );
+    }
+
+    if (!supplierId || !deliveryDate || leadTimeDays === undefined) {
       return NextResponse.json(
         {
           error: 'Missing required fields',
-          required: [
-            'supplierId',
-            'supplierWineId',
-            'offeredPriceExVatSek',
-            'quantity',
-            'deliveryDate',
-            'leadTimeDays',
-          ],
+          required: ['supplierId', 'deliveryDate', 'leadTimeDays', 'lines[]'],
         },
         { status: 400 }
       );
     }
 
-    // Verify supplierId matches authenticated user's supplier
+    if (!lines.length) {
+      return NextResponse.json(
+        { error: 'lines[] must contain at least one wine' },
+        { status: 400 }
+      );
+    }
+
+    // Auth: verify supplier ownership
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
     if (!actor.supplier_id || actor.supplier_id !== supplierId) {
       return NextResponse.json(
@@ -87,41 +97,15 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       );
     }
 
-    // Parse shipping
-    const isFranco = is_franco === true;
-
-    // Validate numeric fields
-    if (offeredPriceExVatSek <= 0) {
-      return NextResponse.json(
-        { error: 'Offered price must be greater than 0' },
-        { status: 400 }
-      );
-    }
-
-    if (quantity <= 0) {
-      return NextResponse.json(
-        { error: 'Quantity must be greater than 0' },
-        { status: 400 }
-      );
-    }
-
+    // Validate lead time and date
     if (leadTimeDays < 0) {
-      return NextResponse.json(
-        { error: 'Lead time must be non-negative' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lead time must be non-negative' }, { status: 400 });
     }
-
-    // Validate date format
     const deliveryDateObj = new Date(deliveryDate);
     if (isNaN(deliveryDateObj.getTime())) {
-      return NextResponse.json(
-        { error: 'Invalid delivery date format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid delivery date format' }, { status: 400 });
     }
 
-    // Create Supabase client
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
@@ -134,10 +118,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       .single();
 
     if (requestError || !quoteRequest) {
-      return NextResponse.json(
-        { error: 'Quote request not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Quote request not found' }, { status: 404 });
     }
 
     // 2. Verify supplier exists and is active
@@ -148,58 +129,61 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       .single();
 
     if (supplierError || !supplier) {
-      return NextResponse.json(
-        { error: 'Supplier not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Supplier not found' }, { status: 404 });
     }
-
     if (!supplier.is_active) {
-      return NextResponse.json(
-        { error: 'Supplier is not active' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Supplier is not active' }, { status: 403 });
     }
 
-    // 3. Verify wine belongs to this supplier
-    const { data: supplierWine, error: wineError } = await supabase
+    // 3. Validate all wines belong to this supplier
+    const wineIds = lines.map(l => l.supplierWineId);
+    const { data: supplierWines, error: winesError } = await supabase
       .from('supplier_wines')
-      .select('id, supplier_id, name, price_ex_vat_sek, vat_rate, moq')
-      .eq('id', supplierWineId)
-      .single();
+      .select('id, supplier_id, name, producer, price_ex_vat_sek, vat_rate, moq, vintage, country, region')
+      .in('id', wineIds);
 
-    if (wineError || !supplierWine) {
-      return NextResponse.json(
-        { error: 'Wine not found in catalog' },
-        { status: 404 }
-      );
+    if (winesError || !supplierWines) {
+      return NextResponse.json({ error: 'Failed to fetch wines' }, { status: 500 });
     }
 
-    if (supplierWine.supplier_id !== supplierId) {
-      return NextResponse.json(
-        { error: 'Wine does not belong to this supplier (tenant isolation violation)' },
-        { status: 403 }
-      );
+    const wineMap = new Map(supplierWines.map(w => [w.id, w]));
+
+    // Validate each line
+    for (const line of lines) {
+      const wine = wineMap.get(line.supplierWineId);
+      if (!wine) {
+        return NextResponse.json(
+          { error: `Wine not found in catalog: ${line.supplierWineId}` },
+          { status: 404 }
+        );
+      }
+      if (wine.supplier_id !== supplierId) {
+        return NextResponse.json(
+          { error: `Wine ${wine.name} does not belong to this supplier` },
+          { status: 403 }
+        );
+      }
+      if (line.offeredPriceExVatSek <= 0) {
+        return NextResponse.json(
+          { error: `Price must be > 0 for ${wine.name}` },
+          { status: 400 }
+        );
+      }
+      if (line.quantity <= 0) {
+        return NextResponse.json(
+          { error: `Quantity must be > 0 for ${wine.name}` },
+          { status: 400 }
+        );
+      }
+      if (wine.moq && line.quantity < wine.moq) {
+        return NextResponse.json(
+          { error: `Quantity for ${wine.name} must be at least ${wine.moq} (MOQ)` },
+          { status: 400 }
+        );
+      }
     }
 
-    // 4. Validate minimum order quantity
-    if (quantity < supplierWine.moq) {
-      return NextResponse.json(
-        {
-          error: `Quantity must be at least ${supplierWine.moq} (minimum order quantity)`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // 5. Compliance validation: SWEDISH_IMPORTER cannot have EU-specific fields
-    if (supplier.type === 'SWEDISH_IMPORTER') {
-      // For Swedish importers, ensure no EU compliance fields are included
-      // (For now, this is a placeholder - EU fields would be added to schema later)
-      // Example: if (body.emcsArcNumber) { return error }
-    }
-
-    // NEW: 5.5. Validate assignment exists and is not expired (ACCESS CONTROL)
+    // 4. Validate assignment exists and is not expired
     const { data: assignment, error: assignmentError } = await supabase
       .from('quote_request_assignments')
       .select('*')
@@ -209,80 +193,51 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     if (assignmentError || !assignment) {
       return NextResponse.json(
-        {
-          error: 'No valid assignment found',
-          details: 'You can only create offers for quote requests you have been assigned to.',
-        },
+        { error: 'No valid assignment found', details: 'You can only create offers for assigned quote requests.' },
         { status: 403 }
       );
     }
 
-    // Check if assignment is expired
-    const assignmentExpired = new Date(assignment.expires_at) < new Date();
-    if (assignmentExpired || assignment.status === 'EXPIRED') {
+    if (new Date(assignment.expires_at) < new Date() || assignment.status === 'EXPIRED') {
       return NextResponse.json(
-        {
-          error: 'Assignment has expired',
-          expiresAt: assignment.expires_at,
-          details: 'The deadline to respond to this quote request has passed.',
-        },
+        { error: 'Assignment has expired', expiresAt: assignment.expires_at },
         { status: 403 }
       );
     }
 
-    // 6. Set default expiration (7 days from now)
+    // 5. Parse shipping
+    const isFranco = body.is_franco === true;
     const expiresAt = body.expiresAt
       ? new Date(body.expiresAt)
       : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    // 7. Create the offer
-    // Build insert object (shipping fields are optional - may not exist in DB yet)
-    const insertData: Record<string, any> = {
+    // 6. Create the offer (header)
+    const offerInsert: Record<string, any> = {
+      tenant_id: tenantId,
+      restaurant_id: quoteRequest.restaurant_id,
       request_id: requestId,
       supplier_id: supplierId,
-      supplier_wine_id: supplierWineId,
-      offered_price_ex_vat_sek: Math.round(offeredPriceExVatSek * 100), // Convert to öre
-      vat_rate: supplierWine.vat_rate,
-      quantity,
-      delivery_date: deliveryDateObj.toISOString().split('T')[0], // Date only
+      supplier_wine_id: null, // Multi-line: no single wine
+      delivery_date: deliveryDateObj.toISOString().split('T')[0],
       lead_time_days: leadTimeDays,
       notes: body.notes || null,
       status: 'pending',
       expires_at: expiresAt.toISOString(),
+      is_franco: isFranco,
+      min_total_quantity: body.minTotalQuantity || null,
     };
 
-    // Only add shipping fields if explicitly provided (columns may not exist in older DBs)
-    if (is_franco !== undefined) {
-      insertData.is_franco = isFranco;
+    if (body.shipping_cost_sek !== undefined && !isFranco) {
+      offerInsert.shipping_cost_sek = body.shipping_cost_sek;
     }
-    if (shipping_cost_sek !== undefined && !isFranco) {
-      insertData.shipping_cost_sek = shipping_cost_sek;
-    }
-    if (shipping_notes !== undefined) {
-      insertData.shipping_notes = shipping_notes;
+    if (body.shipping_notes !== undefined) {
+      offerInsert.shipping_notes = body.shipping_notes;
     }
 
     const { data: offer, error: offerError } = await supabase
       .from('offers')
-      .insert(insertData)
-      .select(`
-        id,
-        request_id,
-        supplier_id,
-        supplier_wine_id,
-        offered_price_ex_vat_sek,
-        vat_rate,
-        quantity,
-        delivery_date,
-        lead_time_days,
-        notes,
-        status,
-        expires_at,
-        created_at,
-        is_franco,
-        shipping_cost_sek,
-        shipping_notes
-      `)
+      .insert(offerInsert)
+      .select('*')
       .single();
 
     if (offerError) {
@@ -293,7 +248,40 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       );
     }
 
-    // NEW: 7.5. Auto-update assignment status to RESPONDED
+    // 7. Create offer_lines
+    const offerLines = lines.map((line, index) => {
+      const wine = wineMap.get(line.supplierWineId)!;
+      return {
+        tenant_id: tenantId,
+        offer_id: offer.id,
+        line_no: index + 1,
+        name: wine.name,
+        vintage: wine.vintage || null,
+        producer: wine.producer || null,
+        country: wine.country || null,
+        region: wine.region || null,
+        quantity: line.quantity,
+        offered_unit_price_ore: Math.round(line.offeredPriceExVatSek * 100),
+        price_ex_vat_sek: line.offeredPriceExVatSek,
+        supplier_wine_id: line.supplierWineId,
+      };
+    });
+
+    const { error: linesError } = await supabase
+      .from('offer_lines')
+      .insert(offerLines);
+
+    if (linesError) {
+      // Rollback: delete the offer header
+      await supabase.from('offers').delete().eq('id', offer.id);
+      console.error('Failed to create offer lines:', linesError);
+      return NextResponse.json(
+        { error: 'Failed to create offer lines', details: linesError.message },
+        { status: 500 }
+      );
+    }
+
+    // 8. Auto-update assignment status to RESPONDED
     if (assignment.status !== 'RESPONDED') {
       await supabase
         .from('quote_request_assignments')
@@ -304,12 +292,23 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
         .eq('id', assignment.id);
     }
 
-    // 8. Return offer with wine details and shipping
-    const priceExVat = offer.offered_price_ex_vat_sek / 100;
-    const totalWinePrice = priceExVat * offer.quantity;
-    const offerIsFranco = offer.is_franco ?? false;
-    const offerShippingCost = offer.shipping_cost_sek ?? null;
-    const shippingCost = offerIsFranco ? 0 : (offerShippingCost || 0);
+    // 9. Build response
+    const responseLines = lines.map((line, index) => {
+      const wine = wineMap.get(line.supplierWineId)!;
+      const totalExVat = line.offeredPriceExVatSek * line.quantity;
+      return {
+        lineNo: index + 1,
+        supplierWineId: line.supplierWineId,
+        wineName: wine.name,
+        producer: wine.producer,
+        offeredPriceExVatSek: line.offeredPriceExVatSek,
+        quantity: line.quantity,
+        totalExVatSek: parseFloat(totalExVat.toFixed(2)),
+      };
+    });
+
+    const totalWinePrice = responseLines.reduce((sum, l) => sum + l.totalExVatSek, 0);
+    const shippingCost = isFranco ? 0 : (body.shipping_cost_sek || 0);
     const totalWithShipping = totalWinePrice + shippingCost;
 
     return NextResponse.json(
@@ -318,24 +317,19 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
           id: offer.id,
           requestId: offer.request_id,
           supplierId: offer.supplier_id,
-          supplierWineId: offer.supplier_wine_id,
-          wineName: supplierWine.name,
-          offeredPriceExVatSek: priceExVat, // Convert back to SEK
-          vatRate: offer.vat_rate,
-          quantity: offer.quantity,
           deliveryDate: offer.delivery_date,
           leadTimeDays: offer.lead_time_days,
           notes: offer.notes,
           status: offer.status,
           expiresAt: offer.expires_at,
           createdAt: offer.created_at,
-          // Shipping info
-          isFranco: offerIsFranco,
-          shippingCostSek: offerShippingCost,
+          isFranco,
+          shippingCostSek: body.shipping_cost_sek ?? null,
           shippingNotes: offer.shipping_notes ?? null,
-          // Calculated totals
-          totalWinePrice,
-          totalWithShipping,
+          minTotalQuantity: offer.min_total_quantity,
+          lines: responseLines,
+          totalWinePrice: parseFloat(totalWinePrice.toFixed(2)),
+          totalWithShipping: parseFloat(totalWithShipping.toFixed(2)),
         },
         message: 'Offer created successfully',
       },
@@ -354,26 +348,25 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 /**
  * GET /api/quote-requests/[id]/offers
  *
- * Lists all offers for a specific quote request with comparison data.
- * **ACCESS CONTROL:** Only restaurant that owns the quote request can see offers.
- *
- * Response includes:
- * - Supplier details
- * - Pricing with VAT calculations
- * - Match score and reasons from assignment
- * - Assignment status (SENT/VIEWED/RESPONDED/EXPIRED)
- * - Sorted by match score (best first)
+ * Lists all offers for a quote request, grouped per supplier with nested lines.
+ * Handles both new multi-line offers and legacy single-wine offers.
  *
  * Response:
  * {
- *   offers: Array<OfferWithComparison>;
+ *   offers: Array<{
+ *     id, supplierId, supplierName, supplierEmail,
+ *     deliveryDate, leadTimeDays, isFranco, shippingCostSek,
+ *     matchScore, matchReasons, minTotalQuantity,
+ *     lines: Array<{ supplierWineId, wineName, producer, offeredPriceExVatSek, quantity, totalExVatSek, accepted }>,
+ *     totalExVatSek, totalIncVatSek, totalWithShippingExVat,
+ *     ...
+ *   }>;
  *   summary: { total, active, expired };
  * }
  */
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
-    // Auth check
     const tenantId = req.headers.get('x-tenant-id');
     const userId = req.headers.get('x-user-id');
 
@@ -400,13 +393,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       .single();
 
     if (requestError || !quoteRequest) {
-      return NextResponse.json(
-        { error: 'Quote request not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Quote request not found' }, { status: 404 });
     }
 
-    // ACCESS CONTROL - Restaurant owner or admin can see offers
+    // ACCESS CONTROL
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
     const isAdmin = actorService.hasRole(actor, 'ADMIN');
     const isOwner = actor.restaurant_id && actor.restaurant_id === quoteRequest.restaurant_id;
@@ -418,7 +408,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       );
     }
 
-    // Get all offers for this request
+    // Get all offers for this request WITH offer_lines join
     const { data: offers, error: offersError } = await supabase
       .from('offers')
       .select(`
@@ -438,16 +428,24 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         is_franco,
         shipping_cost_sek,
         shipping_notes,
+        min_total_quantity,
         suppliers (
           namn,
           kontakt_email
         ),
-        supplier_wines (
+        offer_lines (
+          id,
+          line_no,
           name,
+          vintage,
           producer,
           country,
           region,
-          vintage
+          quantity,
+          offered_unit_price_ore,
+          price_ex_vat_sek,
+          supplier_wine_id,
+          accepted
         )
       `)
       .eq('request_id', requestId)
@@ -461,8 +459,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       );
     }
 
-    // NEW: Get assignments for these offers to include match scores
-    const supplierIds = (offers || []).map(o => o.supplier_id);
+    // Get assignments for match scores
+    const supplierIds = [...new Set((offers || []).map(o => o.supplier_id).filter(Boolean))];
     const { data: assignments } = await supabase
       .from('quote_request_assignments')
       .select('*')
@@ -473,46 +471,113 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       (assignments || []).map(a => [a.supplier_id, a])
     );
 
-    // NEW: Get sponsored categories for each supplier
+    // Get sponsored categories
     const sponsoredCategoriesMap = new Map<string, string[]>();
-    for (const supplierId of supplierIds) {
+    for (const sid of supplierIds) {
       try {
-        const categories = await sponsoredSlotsService.getSupplierSponsoredCategories(supplierId);
-        sponsoredCategoriesMap.set(supplierId, categories);
+        const categories = await sponsoredSlotsService.getSupplierSponsoredCategories(sid);
+        sponsoredCategoriesMap.set(sid, categories);
       } catch {
-        sponsoredCategoriesMap.set(supplierId, []);
+        sponsoredCategoriesMap.set(sid, []);
       }
     }
 
-    // NEW: Transform data with comparison fields
+    // For legacy offers with supplier_wine_id but no offer_lines, fetch wine data
+    const legacyWineIds = (offers || [])
+      .filter(o => o.supplier_wine_id && (!o.offer_lines || (o.offer_lines as any[]).length === 0))
+      .map(o => o.supplier_wine_id)
+      .filter(Boolean);
+
+    let legacyWineMap = new Map<string, any>();
+    if (legacyWineIds.length > 0) {
+      const { data: legacyWines } = await supabase
+        .from('supplier_wines')
+        .select('id, name, producer, country, region, vintage')
+        .in('id', legacyWineIds);
+      if (legacyWines) {
+        legacyWineMap = new Map(legacyWines.map(w => [w.id, w]));
+      }
+    }
+
+    // Transform offers
     const transformedOffers = (offers || []).map(offer => {
       const assignment = assignmentMap.get(offer.supplier_id);
-      const priceExVatSek = offer.offered_price_ex_vat_sek / 100;
-      const vatAmount = priceExVatSek * (offer.vat_rate / 100);
-      const priceIncVatSek = priceExVatSek + vatAmount;
-      const totalExVat = priceExVatSek * offer.quantity;
-      const totalIncVat = priceIncVatSek * offer.quantity;
+      const offerLines = (offer.offer_lines as any[]) || [];
 
-      // Shipping calculations (shipping also has 25% VAT in Sweden)
+      // Build lines — either from offer_lines or from legacy single-wine fields
+      let linesData: Array<{
+        id: string | null;
+        supplierWineId: string | null;
+        wineName: string;
+        producer: string | null;
+        country: string | null;
+        region: string | null;
+        vintage: number | null;
+        offeredPriceExVatSek: number;
+        quantity: number;
+        totalExVatSek: number;
+        accepted: boolean | null;
+      }>;
+
+      if (offerLines.length > 0) {
+        // New multi-line offer
+        linesData = offerLines.map(line => {
+          const priceExVat = line.price_ex_vat_sek
+            ? parseFloat(line.price_ex_vat_sek)
+            : (line.offered_unit_price_ore ? line.offered_unit_price_ore / 100 : 0);
+          return {
+            id: line.id,
+            supplierWineId: line.supplier_wine_id,
+            wineName: line.name,
+            producer: line.producer,
+            country: line.country,
+            region: line.region,
+            vintage: line.vintage,
+            offeredPriceExVatSek: priceExVat,
+            quantity: line.quantity,
+            totalExVatSek: parseFloat((priceExVat * line.quantity).toFixed(2)),
+            accepted: line.accepted,
+          };
+        });
+      } else if (offer.supplier_wine_id) {
+        // Legacy single-wine offer — build virtual line
+        const wine = legacyWineMap.get(offer.supplier_wine_id);
+        const priceExVat = offer.offered_price_ex_vat_sek
+          ? offer.offered_price_ex_vat_sek / 100
+          : 0;
+        linesData = [{
+          id: null,
+          supplierWineId: offer.supplier_wine_id,
+          wineName: wine?.name || 'Okänt vin',
+          producer: wine?.producer || null,
+          country: wine?.country || null,
+          region: wine?.region || null,
+          vintage: wine?.vintage || null,
+          offeredPriceExVatSek: priceExVat,
+          quantity: offer.quantity || 0,
+          totalExVatSek: parseFloat((priceExVat * (offer.quantity || 0)).toFixed(2)),
+          accepted: offer.status === 'accepted' || offer.status === 'ACCEPTED' ? true : null,
+        }];
+      } else {
+        linesData = [];
+      }
+
+      // Calculate totals from lines
+      const totalExVat = linesData.reduce((sum, l) => sum + l.totalExVatSek, 0);
+      const vatRate = offer.vat_rate || 25;
+      const totalIncVat = totalExVat * (1 + vatRate / 100);
+
       const isFranco = offer.is_franco ?? false;
       const shippingCostSek = offer.shipping_cost_sek ?? null;
       const shippingCost = isFranco ? 0 : (shippingCostSek || 0);
-      const shippingCostIncVat = shippingCost * 1.25;
       const totalWithShippingExVat = totalExVat + shippingCost;
-      const totalWithShippingIncVat = totalIncVat + shippingCostIncVat;
-      const shippingNotes = offer.shipping_notes ?? null;
+      const totalWithShippingIncVat = totalIncVat + (shippingCost * 1.25);
 
-      // Calculate estimated delivery date
-      const estimatedDeliveryDate = new Date(offer.delivery_date);
-
-      // Check if expired
       const isExpired = assignment
         ? new Date(assignment.expires_at) < new Date() || assignment.status === 'EXPIRED'
         : false;
 
-      // Get sponsored categories for this supplier
       const sponsoredCategories = sponsoredCategoriesMap.get(offer.supplier_id) || [];
-      const isSponsored = sponsoredCategories.length > 0;
 
       return {
         id: offer.id,
@@ -520,40 +585,32 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         supplierId: offer.supplier_id,
         supplierName: (offer.suppliers as any)?.namn || 'Okänd leverantör',
         supplierEmail: (offer.suppliers as any)?.kontakt_email,
-        wine: {
-          id: offer.supplier_wine_id,
-          name: (offer.supplier_wines as any)?.name || 'Okänt vin',
-          producer: (offer.supplier_wines as any)?.producer,
-          country: (offer.supplier_wines as any)?.country,
-          region: (offer.supplier_wines as any)?.region,
-          vintage: (offer.supplier_wines as any)?.vintage,
-        },
-        // Pricing with comparisons
-        offeredPriceExVatSek: priceExVatSek,
-        vatRate: offer.vat_rate,
-        priceIncVatSek: parseFloat(priceIncVatSek.toFixed(2)),
-        quantity: offer.quantity,
+        // Lines
+        lines: linesData,
+        // Totals
         totalExVatSek: parseFloat(totalExVat.toFixed(2)),
         totalIncVatSek: parseFloat(totalIncVat.toFixed(2)),
-        // Shipping info
+        vatRate,
         isFranco,
         shippingCostSek,
-        shippingNotes,
+        shippingNotes: offer.shipping_notes ?? null,
         totalWithShippingExVat: parseFloat(totalWithShippingExVat.toFixed(2)),
         totalWithShippingIncVat: parseFloat(totalWithShippingIncVat.toFixed(2)),
         // Delivery
         deliveryDate: offer.delivery_date,
-        estimatedDeliveryDate: estimatedDeliveryDate.toISOString().split('T')[0],
+        estimatedDeliveryDate: offer.delivery_date,
         leadTimeDays: offer.lead_time_days,
-        // Assignment data (for sorting and comparison)
+        // Assignment data
         matchScore: assignment?.match_score || 0,
         matchReasons: assignment?.match_reasons || [],
         assignmentStatus: assignment?.status || 'unknown',
         isExpired,
+        // Supplier MOQ
+        minTotalQuantity: offer.min_total_quantity,
         // Sponsored info
-        isSponsored,
+        isSponsored: sponsoredCategories.length > 0,
         sponsoredCategories,
-        // Other
+        // Metadata
         notes: offer.notes,
         status: offer.status,
         expiresAt: offer.expires_at,
@@ -561,7 +618,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       };
     });
 
-    // Filter out expired if not requested
+    // Filter expired
     let filteredOffers = transformedOffers;
     if (!includeExpired) {
       filteredOffers = transformedOffers.filter(o => !o.isExpired);
@@ -570,17 +627,13 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     // Sort by match score (best first)
     filteredOffers.sort((a, b) => b.matchScore - a.matchScore);
 
-    // Summary
     const summary = {
       total: transformedOffers.length,
       active: transformedOffers.filter(o => !o.isExpired).length,
       expired: transformedOffers.filter(o => o.isExpired).length,
     };
 
-    return NextResponse.json({
-      offers: filteredOffers,
-      summary,
-    });
+    return NextResponse.json({ offers: filteredOffers, summary });
 
   } catch (error: any) {
     console.error('Offers listing error:', error);

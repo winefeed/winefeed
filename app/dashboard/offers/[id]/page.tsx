@@ -1,20 +1,32 @@
 'use client';
 
+/**
+ * RESTAURANT OFFER COMPARISON PAGE — Multi-Line Offers
+ *
+ * Shows supplier-grouped offer cards with nested wine lines.
+ * Restaurant can accept whole offer or select individual lines (partial acceptance).
+ * Multiple offers (from different suppliers) can be accepted per request.
+ */
+
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 import { ButtonSpinner, Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast';
-import { Wine, LayoutGrid, List, Check, Building2, Loader2 } from 'lucide-react';
+import { Wine, Check, Building2, Loader2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 
-// Types matching API response
-interface Wine {
-  id: string;
-  name: string;
-  producer: string;
-  country: string;
-  region?: string;
-  vintage?: number;
+interface OfferLine {
+  id: string | null;
+  supplierWineId: string | null;
+  wineName: string;
+  producer: string | null;
+  country: string | null;
+  region: string | null;
+  vintage: number | null;
+  offeredPriceExVatSek: number;
+  quantity: number;
+  totalExVatSek: number;
+  accepted: boolean | null;
 }
 
 interface Offer {
@@ -23,39 +35,25 @@ interface Offer {
   supplierId: string;
   supplierName: string;
   supplierEmail: string;
-  wine: Wine;
-
-  // Pricing (all in SEK, B2B = ex moms primary)
-  offeredPriceExVatSek: number;
-  vatRate: number;
-  priceIncVatSek: number;
-  quantity: number;
+  lines: OfferLine[];
   totalExVatSek: number;
   totalIncVatSek: number;
-
-  // Shipping
-  isFranco: boolean; // true = frakt ingår i priset
+  vatRate: number;
+  isFranco: boolean;
   shippingCostSek: number | null;
   shippingNotes: string | null;
   totalWithShippingExVat: number;
   totalWithShippingIncVat: number;
-
-  // Delivery
   deliveryDate: string;
   estimatedDeliveryDate: string;
   leadTimeDays: number;
-
-  // Assignment & Matching
   matchScore: number;
   matchReasons: string[];
-  assignmentStatus: 'SENT' | 'VIEWED' | 'RESPONDED' | 'EXPIRED';
+  assignmentStatus: string;
   isExpired: boolean;
-
-  // Sponsored info
+  minTotalQuantity: number | null;
   isSponsored: boolean;
   sponsoredCategories: string[];
-
-  // Metadata
   notes?: string;
   status: string;
   expiresAt: string;
@@ -66,52 +64,6 @@ interface OfferSummary {
   total: number;
   active: number;
   expired: number;
-}
-
-interface OffersResponse {
-  offers: Offer[];
-  summary: OfferSummary;
-}
-
-interface AcceptResponse {
-  commercialIntent: {
-    id: string;
-    quoteRequestId: string;
-    acceptedOfferId: string;
-    status: string;
-    acceptedAt: string;
-  };
-  order: {
-    wine: {
-      name: string;
-      producer: string;
-    };
-    supplier: {
-      id: string;
-    };
-    pricing: {
-      priceExVatSek: number;
-      quantity: number;
-      totalGoodsSek: number;
-      vatRate: number;
-      vatAmountSek: number;
-      shippingSek: number;
-      serviceFeeSek: number;
-      totalPayableSek: number;
-    };
-    delivery: {
-      estimatedDate: string;
-      leadTimeDays: number;
-    };
-  };
-  message: string;
-}
-
-interface ErrorResponse {
-  errorCode?: string;
-  error: string;
-  details?: string;
-  expiresAt?: string;
 }
 
 export default function OffersPage() {
@@ -125,14 +77,19 @@ export default function OffersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [includeExpired, setIncludeExpired] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'compare'>('list');
 
-  // Accept state
+  // Accept state per offer
   const [accepting, setAccepting] = useState<string | null>(null);
-  const [acceptedOffer, setAcceptedOffer] = useState<AcceptResponse | null>(null);
-  const [acceptError, setAcceptError] = useState<ErrorResponse | null>(null);
+  const [acceptedOffers, setAcceptedOffers] = useState<Set<string>>(new Set());
+  const [acceptError, setAcceptError] = useState<{ offerId: string; message: string } | null>(null);
 
-  // Org number modal state
+  // Line selection state: offerId → Set of selected lineIds
+  const [selectedLines, setSelectedLines] = useState<Map<string, Set<string>>>(new Map());
+
+  // Expanded offer cards
+  const [expandedOffers, setExpandedOffers] = useState<Set<string>>(new Set());
+
+  // Org number modal
   const [showOrgNumberModal, setShowOrgNumberModal] = useState(false);
   const [orgNumber, setOrgNumber] = useState('');
   const [pendingOfferId, setPendingOfferId] = useState<string | null>(null);
@@ -142,17 +99,37 @@ export default function OffersPage() {
     try {
       setLoading(true);
       setError(null);
-
       const url = `/api/quote-requests/${requestId}/offers${includeExpired ? '?includeExpired=true' : ''}`;
       const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch offers');
-      }
-
-      const data: OffersResponse = await response.json();
+      if (!response.ok) throw new Error('Failed to fetch offers');
+      const data = await response.json();
       setOffers(data.offers);
       setSummary(data.summary);
+
+      // Initialize line selections: all lines selected by default
+      const lineMap = new Map<string, Set<string>>();
+      for (const offer of data.offers) {
+        const lineIds = new Set<string>();
+        for (const line of offer.lines) {
+          if (line.id) lineIds.add(line.id);
+        }
+        lineMap.set(offer.id, lineIds);
+      }
+      setSelectedLines(lineMap);
+
+      // Auto-expand first offer
+      if (data.offers.length > 0) {
+        setExpandedOffers(new Set([data.offers[0].id]));
+      }
+
+      // Mark already accepted offers
+      const accepted = new Set<string>();
+      for (const offer of data.offers) {
+        if (offer.status === 'ACCEPTED' || offer.status === 'PARTIALLY_ACCEPTED' || offer.status === 'accepted') {
+          accepted.add(offer.id);
+        }
+      }
+      setAcceptedOffers(accepted);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -164,65 +141,129 @@ export default function OffersPage() {
     fetchOffers();
   }, [fetchOffers]);
 
+  function toggleLineSelection(offerId: string, lineId: string) {
+    setSelectedLines(prev => {
+      const newMap = new Map(prev);
+      const current = new Set(newMap.get(offerId) || []);
+      if (current.has(lineId)) {
+        current.delete(lineId);
+      } else {
+        current.add(lineId);
+      }
+      newMap.set(offerId, current);
+      return newMap;
+    });
+  }
+
+  function toggleAllLines(offerId: string, offer: Offer) {
+    setSelectedLines(prev => {
+      const newMap = new Map(prev);
+      const current = newMap.get(offerId) || new Set();
+      const allLineIds = offer.lines.filter(l => l.id).map(l => l.id!);
+      if (current.size === allLineIds.length) {
+        newMap.set(offerId, new Set());
+      } else {
+        newMap.set(offerId, new Set(allLineIds));
+      }
+      return newMap;
+    });
+  }
+
+  function getSelectedTotal(offer: Offer): { bottles: number; price: number } {
+    const selected = selectedLines.get(offer.id) || new Set();
+    let bottles = 0;
+    let price = 0;
+    for (const line of offer.lines) {
+      if (line.id && selected.has(line.id)) {
+        bottles += line.quantity;
+        price += line.totalExVatSek;
+      }
+    }
+    const shipping = offer.isFranco ? 0 : (offer.shippingCostSek || 0);
+    return { bottles, price: price + shipping };
+  }
+
+  function toggleExpanded(offerId: string) {
+    setExpandedOffers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(offerId)) {
+        newSet.delete(offerId);
+      } else {
+        newSet.add(offerId);
+      }
+      return newSet;
+    });
+  }
+
   const handleAcceptOffer = async (offerId: string) => {
     try {
       setAccepting(offerId);
       setAcceptError(null);
 
+      const selected = selectedLines.get(offerId) || new Set();
+      const offer = offers.find(o => o.id === offerId);
+      const allLineIds = offer?.lines.filter(l => l.id).map(l => l.id!) || [];
+      const isPartial = selected.size > 0 && selected.size < allLineIds.length;
+
+      // Validate MOQ
+      if (offer?.minTotalQuantity && isPartial) {
+        const selectedBottles = offer.lines
+          .filter(l => l.id && selected.has(l.id))
+          .reduce((sum, l) => sum + l.quantity, 0);
+        if (selectedBottles < offer.minTotalQuantity) {
+          setAcceptError({
+            offerId,
+            message: `Minst ${offer.minTotalQuantity} flaskor kravs (du har valt ${selectedBottles})`
+          });
+          setAccepting(null);
+          return;
+        }
+      }
+
+      const body: Record<string, any> = {};
+      if (isPartial) {
+        body.acceptedLineIds = [...selected];
+      }
+
       const response = await fetch(`/api/offers/${offerId}/accept`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // Handle specific error codes
-        const errorData = data as ErrorResponse;
-        setAcceptError(errorData);
-
-        // If org number required, save the offer ID for retry after adding
-        if (errorData.errorCode === 'ORG_NUMBER_REQUIRED') {
+        if (data.errorCode === 'ORG_NUMBER_REQUIRED') {
           setPendingOfferId(offerId);
+          setShowOrgNumberModal(true);
+        } else {
+          setAcceptError({ offerId, message: data.error || data.details || 'Kunde inte acceptera offert' });
         }
         return;
       }
 
-      // Success!
-      setAcceptedOffer(data as AcceptResponse);
-      toast.success('Offert accepterad!', 'Din beställning har skapats');
-
-      // Refresh offers to show updated state
+      setAcceptedOffers(prev => new Set([...prev, offerId]));
+      toast.success('Offert accepterad!', isPartial ? 'Valda viner har bestellts' : 'Alla viner har bestellts');
       fetchOffers();
-
     } catch (err) {
-      setAcceptError({
-        error: err instanceof Error ? err.message : 'Unknown error',
-        details: 'Ett oväntat fel uppstod vid acceptans av offert.'
-      });
+      setAcceptError({ offerId, message: 'Ett ovantat fel uppstod' });
     } finally {
       setAccepting(null);
     }
   };
 
-  // Format org number as user types (XXXXXX-XXXX)
   const formatOrgNumber = (value: string) => {
     const digits = value.replace(/\D/g, '');
     if (digits.length <= 6) return digits;
     return `${digits.slice(0, 6)}-${digits.slice(6, 10)}`;
   };
 
-  const handleOrgNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatOrgNumber(e.target.value);
-    setOrgNumber(formatted);
-  };
-
   const handleSaveOrgNumber = async () => {
     if (orgNumber.length !== 11) {
-      toast.error('Ogiltigt format', 'Organisationsnummer måste vara XXXXXX-XXXX');
+      toast.error('Ogiltigt format', 'XXXXXX-XXXX');
       return;
     }
-
     setSavingOrgNumber(true);
     try {
       const response = await fetch('/api/me/restaurant', {
@@ -230,22 +271,13 @@ export default function OffersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ org_number: orgNumber })
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Kunde inte spara organisationsnummer');
-      }
-
+      if (!response.ok) throw new Error('Kunde inte spara');
       toast.success('Sparat!', 'Organisationsnummer har lagts till');
       setShowOrgNumberModal(false);
       setAcceptError(null);
-
-      // Retry the offer acceptance
-      if (pendingOfferId) {
-        handleAcceptOffer(pendingOfferId);
-      }
-    } catch (err) {
-      toast.error('Fel', err instanceof Error ? err.message : 'Kunde inte spara');
+      if (pendingOfferId) handleAcceptOffer(pendingOfferId);
+    } catch {
+      toast.error('Fel', 'Kunde inte spara organisationsnummer');
     } finally {
       setSavingOrgNumber(false);
     }
@@ -264,7 +296,6 @@ export default function OffersPage() {
   };
 
   const formatMatchReason = (reason: string) => {
-    // Format: "region_match:25pts" → "Region match (25 pts)"
     const [type, points] = reason.split(':');
     const typeLabel = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     return `${typeLabel} (${points})`;
@@ -280,8 +311,8 @@ export default function OffersPage() {
               <Spinner size="lg" className="absolute inset-0 text-wine/30" />
             </div>
           </div>
-          <p className="text-xl font-medium text-foreground">Hämtar offerter...</p>
-          <p className="text-sm text-muted-foreground mt-2">Laddar jämförelsedata</p>
+          <p className="text-xl font-medium text-foreground">Hamtar offerter...</p>
+          <p className="text-sm text-muted-foreground mt-2">Laddar jamforelsedata</p>
         </div>
       </div>
     );
@@ -291,132 +322,11 @@ export default function OffersPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 flex items-center justify-center">
         <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">⚠️</div>
-          <p className="text-xl font-medium text-foreground mb-2">Kunde inte hämta offerter</p>
+          <p className="text-xl font-medium text-foreground mb-2">Kunde inte hamta offerter</p>
           <p className="text-sm text-muted-foreground mb-4">{error}</p>
-          <button
-            onClick={() => fetchOffers()}
-            className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
-          >
-            Försök igen
+          <button onClick={fetchOffers} className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90">
+            Forsok igen
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Success modal
-  if (acceptedOffer) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-background to-accent/10 flex items-center justify-center p-4">
-        <div className="bg-card border-2 border-green-200 rounded-2xl shadow-2xl max-w-2xl w-full p-8">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 text-4xl mb-4">
-              ✓
-            </div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Offert accepterad!</h1>
-            <p className="text-muted-foreground">Din beställning har skapats</p>
-          </div>
-
-          <div className="space-y-4 mb-6">
-            {/* Wine info */}
-            <div className="p-4 bg-muted/30 rounded-xl">
-              <p className="text-sm text-muted-foreground mb-1">Vin</p>
-              <p className="text-lg font-semibold text-foreground">
-                {acceptedOffer.order.wine.name}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {acceptedOffer.order.wine.producer}
-              </p>
-            </div>
-
-            {/* Pricing breakdown - B2B ex moms */}
-            <div className="p-4 bg-muted/30 rounded-xl">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-foreground">Prissummering</p>
-                <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
-                  B2B ex moms
-                </span>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    {acceptedOffer.order.pricing.quantity} flaskor × {formatPrice(acceptedOffer.order.pricing.priceExVatSek)}
-                  </span>
-                  <span className="font-medium">{formatPrice(acceptedOffer.order.pricing.totalGoodsSek)}</span>
-                </div>
-                {acceptedOffer.order.pricing.shippingSek > 0 ? (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">🚚 Frakt</span>
-                    <span className="font-medium">{formatPrice(acceptedOffer.order.pricing.shippingSek)}</span>
-                  </div>
-                ) : (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">🚚 Frakt</span>
-                    <span className="font-medium text-green-600">Fritt levererat</span>
-                  </div>
-                )}
-                <div className="border-t-2 border-primary/30 pt-2 flex justify-between text-base">
-                  <span className="font-bold text-foreground">Totalt ex moms</span>
-                  <span className="font-bold text-primary text-lg">
-                    {formatPrice(acceptedOffer.order.pricing.totalGoodsSek + (acceptedOffer.order.pricing.shippingSek || 0))}
-                  </span>
-                </div>
-                <div className="text-xs text-muted-foreground space-y-1 pt-1">
-                  <div className="flex justify-between">
-                    <span>Moms ({acceptedOffer.order.pricing.vatRate}%)</span>
-                    <span>+{formatPrice(acceptedOffer.order.pricing.vatAmountSek)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Totalt inkl. moms</span>
-                    <span>{formatPrice(acceptedOffer.order.pricing.totalPayableSek)}</span>
-                  </div>
-                </div>
-                <div className="flex justify-between text-xs text-green-600 pt-2">
-                  <span>Serviceavgift (PILOT - gratis)</span>
-                  <span>0 kr</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Delivery info */}
-            <div className="p-4 bg-muted/30 rounded-xl">
-              <p className="text-sm text-muted-foreground mb-1">Beräknad leverans</p>
-              <p className="text-lg font-semibold text-foreground">
-                {new Date(acceptedOffer.order.delivery.estimatedDate).toLocaleDateString('sv-SE', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                ({acceptedOffer.order.delivery.leadTimeDays} dagars leveranstid)
-              </p>
-            </div>
-
-            {/* Order ID */}
-            <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
-              <p className="text-xs text-muted-foreground mb-1">Order-ID</p>
-              <p className="font-mono text-sm text-foreground">
-                {acceptedOffer.commercialIntent.id}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors font-medium"
-            >
-              Till Dashboard
-            </button>
-            <button
-              onClick={() => router.push('/dashboard/new-request')}
-              className="w-full px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-muted/80 transition-colors font-medium"
-            >
-              Ny offertförfrågan
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -428,534 +338,311 @@ export default function OffersPage() {
       <header className="bg-primary text-primary-foreground shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">🍷</span>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Winefeed</h1>
-                <p className="text-sm text-primary-foreground/80">Mottagna offerter</p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Mottagna offerter</h1>
+              <p className="text-sm text-primary-foreground/80">
+                Valj viner och acceptera — du kan acceptera fran flera leverantorer
+              </p>
             </div>
             <button
               onClick={() => router.push('/dashboard')}
               className="px-4 py-2 bg-primary-foreground text-primary rounded-lg hover:bg-primary-foreground/90 transition-colors text-sm font-medium"
             >
-              ← Tillbaka
+              Tillbaka
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Summary Header */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Summary */}
         {summary && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">
-                  {summary.active} {summary.active === 1 ? 'offert' : 'offerter'}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {summary.expired > 0 && `${summary.expired} utgångna`}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">
+                {summary.active} {summary.active === 1 ? 'offert' : 'offerter'}
+              </h2>
+              {acceptedOffers.size > 0 && (
+                <p className="text-sm text-green-600 font-medium">
+                  {acceptedOffers.size} accepterade
                 </p>
-              </div>
-
-              <div className="flex items-center gap-4">
-                {/* View mode toggle */}
-                {offers.length >= 2 && (
-                  <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
-                    <button
-                      onClick={() => setViewMode('list')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                        viewMode === 'list'
-                          ? 'bg-background text-foreground shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      <List className="h-4 w-4" />
-                      Lista
-                    </button>
-                    <button
-                      onClick={() => setViewMode('compare')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                        viewMode === 'compare'
-                          ? 'bg-background text-foreground shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      <LayoutGrid className="h-4 w-4" />
-                      Jämför
-                    </button>
-                  </div>
-                )}
-
-                {summary.expired > 0 && (
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={includeExpired}
-                      onChange={(e) => setIncludeExpired(e.target.checked)}
-                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm text-muted-foreground">Visa utgångna</span>
-                  </label>
-                )}
-              </div>
+              )}
             </div>
-
-            {acceptError && (
-              <div className={`mb-4 p-4 rounded-xl border ${
-                acceptError.errorCode === 'ORG_NUMBER_REQUIRED'
-                  ? 'bg-amber-50 border-amber-200'
-                  : 'bg-destructive/10 border-destructive/20'
-              }`}>
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">
-                    {acceptError.errorCode === 'ORG_NUMBER_REQUIRED' ? '📋' : '⚠️'}
-                  </span>
-                  <div className="flex-1">
-                    <p className={`font-medium mb-1 ${
-                      acceptError.errorCode === 'ORG_NUMBER_REQUIRED'
-                        ? 'text-amber-800'
-                        : 'text-destructive'
-                    }`}>
-                      {acceptError.errorCode === 'ALREADY_ACCEPTED' && 'Offert redan accepterad'}
-                      {acceptError.errorCode === 'OFFER_EXPIRED' && 'Offert har gått ut'}
-                      {acceptError.errorCode === 'ORG_NUMBER_REQUIRED' && 'Organisationsnummer krävs'}
-                      {!acceptError.errorCode && 'Kunde inte acceptera offert'}
-                    </p>
-                    <p className={`text-sm ${
-                      acceptError.errorCode === 'ORG_NUMBER_REQUIRED'
-                        ? 'text-amber-700'
-                        : 'text-destructive/80'
-                    }`}>{acceptError.details || acceptError.error}</p>
-                    {acceptError.errorCode === 'ORG_NUMBER_REQUIRED' && (
-                      <button
-                        onClick={() => setShowOrgNumberModal(true)}
-                        className="mt-3 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
-                      >
-                        Lägg till organisationsnummer
-                      </button>
-                    )}
-                    {acceptError.expiresAt && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Utgick: {new Date(acceptError.expiresAt).toLocaleString('sv-SE')}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setAcceptError(null)}
-                    className={acceptError.errorCode === 'ORG_NUMBER_REQUIRED'
-                      ? 'text-amber-600 hover:text-amber-800'
-                      : 'text-destructive hover:text-destructive/80'
-                    }
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
+            {summary.expired > 0 && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={includeExpired}
+                  onChange={(e) => setIncludeExpired(e.target.checked)}
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="text-sm text-muted-foreground">Visa utgangna</span>
+              </label>
             )}
           </div>
         )}
 
-        {/* No offers */}
         {offers.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">📭</div>
-            <p className="text-xl font-medium text-foreground mb-2">
-              {includeExpired ? 'Inga offerter' : 'Inga aktiva offerter'}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {includeExpired
-                ? 'Det finns inga offerter för denna förfrågan ännu.'
-                : 'Väntar på svar från leverantörer...'}
-            </p>
+            <p className="text-xl font-medium text-foreground mb-2">Inga aktiva offerter</p>
+            <p className="text-sm text-muted-foreground">Vantar pa svar fran leverantorer...</p>
           </div>
         )}
 
-        {/* Comparison View */}
-        {viewMode === 'compare' && offers.length >= 2 && (
-          <div className="bg-card border-2 border-border rounded-2xl shadow-lg overflow-hidden mb-6">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-muted/50 border-b border-border">
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-muted-foreground w-40">Jämför</th>
-                    {offers.filter(o => !o.isExpired).slice(0, 4).map((offer, i) => (
-                      <th key={offer.id} className="text-left px-4 py-3 min-w-[200px]">
-                        <div className="flex items-center gap-2">
-                          <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                            i === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {i + 1}
-                          </span>
-                          <span className="font-semibold text-foreground truncate">{offer.supplierName}</span>
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {/* Wine */}
-                  <tr>
-                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Vin</td>
-                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
-                      <td key={offer.id} className="px-4 py-3">
-                        <p className="font-medium text-foreground">{offer.wine.name}</p>
-                        <p className="text-xs text-muted-foreground">{offer.wine.producer} · {offer.wine.vintage || 'NV'}</p>
-                      </td>
-                    ))}
-                  </tr>
-                  {/* Match Score */}
-                  <tr className="bg-muted/20">
-                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Matchning</td>
-                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
-                      <td key={offer.id} className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-bold ${getMatchScoreBg(offer.matchScore)} ${getMatchScoreColor(offer.matchScore)}`}>
-                          {offer.matchScore}%
-                        </span>
-                      </td>
-                    ))}
-                  </tr>
-                  {/* Price per bottle */}
-                  <tr>
-                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Pris/flaska</td>
-                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
-                      <td key={offer.id} className="px-4 py-3">
-                        <p className="font-bold text-lg text-foreground">{formatPrice(offer.offeredPriceExVatSek)}</p>
-                        <p className="text-xs text-muted-foreground">ex moms</p>
-                      </td>
-                    ))}
-                  </tr>
-                  {/* Quantity */}
-                  <tr className="bg-muted/20">
-                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Antal</td>
-                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
-                      <td key={offer.id} className="px-4 py-3 font-medium">{offer.quantity} flaskor</td>
-                    ))}
-                  </tr>
-                  {/* Shipping */}
-                  <tr>
-                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Frakt</td>
-                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
-                      <td key={offer.id} className="px-4 py-3">
-                        {offer.isFranco ? (
-                          <span className="text-green-600 font-medium">Fritt levererat</span>
-                        ) : offer.shippingCostSek ? (
-                          <span className="font-medium">{formatPrice(offer.shippingCostSek)}</span>
-                        ) : (
-                          <span className="text-muted-foreground">Ej angiven</span>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                  {/* Total */}
-                  <tr className="bg-primary/5">
-                    <td className="px-4 py-3 text-sm font-bold text-foreground">Totalt ex moms</td>
-                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
-                      <td key={offer.id} className="px-4 py-3">
-                        <p className="font-bold text-xl text-primary">{formatPrice(offer.totalWithShippingExVat || offer.totalExVatSek)}</p>
-                      </td>
-                    ))}
-                  </tr>
-                  {/* Delivery */}
-                  <tr>
-                    <td className="px-4 py-3 text-sm font-medium text-muted-foreground">Leveranstid</td>
-                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
-                      <td key={offer.id} className="px-4 py-3">
-                        <p className="font-medium">{offer.leadTimeDays} dagar</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(offer.estimatedDeliveryDate).toLocaleDateString('sv-SE')}
-                        </p>
-                      </td>
-                    ))}
-                  </tr>
-                  {/* Action */}
-                  <tr className="bg-muted/30">
-                    <td className="px-4 py-4 text-sm font-medium text-muted-foreground"></td>
-                    {offers.filter(o => !o.isExpired).slice(0, 4).map(offer => (
-                      <td key={offer.id} className="px-4 py-4">
-                        <button
-                          onClick={() => handleAcceptOffer(offer.id)}
-                          disabled={accepting !== null}
-                          className={`w-full px-4 py-2.5 rounded-lg font-medium transition-all ${
-                            accepting === offer.id
-                              ? 'bg-primary/50 text-primary-foreground cursor-wait'
-                              : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                          }`}
-                        >
-                          {accepting === offer.id ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <ButtonSpinner className="text-white" />
-                              Accepterar...
-                            </span>
-                          ) : (
-                            <span className="flex items-center justify-center gap-1">
-                              <Check className="h-4 w-4" />
-                              Acceptera
-                            </span>
-                          )}
-                        </button>
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Offer Cards (List View) */}
-        {viewMode === 'list' && (
+        {/* Supplier-grouped Offer Cards */}
         <div className="space-y-6">
-          {offers.map((offer, index) => (
-            <div
-              key={offer.id}
-              className={`bg-card border-2 rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden ${
-                offer.isExpired
-                  ? 'border-muted opacity-60'
-                  : 'border-border'
-              }`}
-            >
-              {/* Expired badge */}
-              {offer.isExpired && (
-                <div className="bg-muted text-muted-foreground text-center py-2 text-sm font-medium">
-                  ⏱️ Offert utgången
-                </div>
-              )}
+          {offers.map((offer) => {
+            const isExpanded = expandedOffers.has(offer.id);
+            const isAccepted = acceptedOffers.has(offer.id);
+            const selected = selectedLines.get(offer.id) || new Set();
+            const allLineIds = offer.lines.filter(l => l.id).map(l => l.id!);
+            const allSelected = selected.size === allLineIds.length;
+            const selectedTotals = getSelectedTotal(offer);
+            const offerError = acceptError?.offerId === offer.id ? acceptError.message : null;
 
-              {/* Card Header */}
-              <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-border">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
-                        index === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                      }`}>
-                        {index + 1}
-                      </span>
-                      <h3 className="text-2xl font-bold text-foreground">
-                        {offer.wine.name}
-                      </h3>
-                    </div>
-                    <p className="text-muted-foreground flex items-center gap-2 text-sm">
-                      <span className="font-medium">{offer.wine.producer}</span>
-                      <span>•</span>
-                      <span>{offer.wine.country}</span>
-                      {offer.wine.region && (
-                        <>
-                          <span>•</span>
-                          <span>{offer.wine.region}</span>
-                        </>
-                      )}
-                      {offer.wine.vintage && (
-                        <>
-                          <span>•</span>
-                          <span>{offer.wine.vintage}</span>
-                        </>
-                      )}
-                    </p>
-                  </div>
-
-                  {/* Match score badge */}
-                  <div className={`px-3 py-2 rounded-xl border-2 ${getMatchScoreBg(offer.matchScore)}`}>
-                    <p className="text-xs font-medium text-muted-foreground mb-0.5">Matchning</p>
-                    <p className={`text-2xl font-bold ${getMatchScoreColor(offer.matchScore)}`}>
-                      {offer.matchScore}%
-                    </p>
-                  </div>
-                </div>
-
-                {/* Match reasons */}
-                {offer.matchReasons.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {offer.matchReasons.map((reason, i) => (
-                      <span
-                        key={i}
-                        className="px-2 py-1 bg-accent/20 text-accent-foreground text-xs rounded-full"
-                      >
-                        {formatMatchReason(reason)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Card Body */}
-              <div className="p-6">
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                  {/* Pricing - B2B: ex moms is primary */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-foreground flex items-center gap-2">
-                      <span>💰</span>
-                      Prissättning
-                      <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-normal">
-                        B2B ex moms
-                      </span>
-                    </h4>
-
-                    <div className="space-y-2 text-sm">
-                      {/* Wine price */}
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Pris per flaska</span>
-                        <span className="font-medium">{formatPrice(offer.offeredPriceExVatSek)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Antal</span>
-                        <span className="font-medium">{offer.quantity} flaskor</span>
-                      </div>
-                      <div className="flex justify-between font-medium">
-                        <span className="text-foreground">Delsumma vin</span>
-                        <span>{formatPrice(offer.totalExVatSek)}</span>
-                      </div>
-
-                      {/* Shipping */}
-                      <div className="border-t border-border pt-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground flex items-center gap-1.5">
-                            🚚 Frakt
-                            {offer.isFranco && (
-                              <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
-                                Fritt
-                              </span>
-                            )}
+            return (
+              <div
+                key={offer.id}
+                className={`bg-card border-2 rounded-2xl shadow-lg overflow-hidden transition-all ${
+                  isAccepted ? 'border-green-300 bg-green-50/30' :
+                  offer.isExpired ? 'border-muted opacity-60' : 'border-border'
+                }`}
+              >
+                {/* Card Header — always visible */}
+                <div
+                  className="px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                  onClick={() => toggleExpanded(offer.id)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <Building2 className="h-5 w-5 text-muted-foreground" />
+                        <h3 className="text-xl font-bold text-foreground">{offer.supplierName}</h3>
+                        {isAccepted && (
+                          <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full flex items-center gap-1">
+                            <Check className="h-3 w-3" /> Accepterad
                           </span>
+                        )}
+                        {offer.isSponsored && (
+                          <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Sponsrad</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {offer.lines.length} viner · {offer.lines.reduce((s, l) => s + l.quantity, 0)} flaskor · {formatPrice(offer.totalWithShippingExVat)} ex moms
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Leverans: {new Date(offer.deliveryDate).toLocaleDateString('sv-SE')} · {offer.leadTimeDays} dagar
+                        {offer.isFranco && ' · Franco'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {/* Match score */}
+                      <div className={`px-3 py-2 rounded-xl border ${getMatchScoreBg(offer.matchScore)}`}>
+                        <p className="text-xs text-muted-foreground">Match</p>
+                        <p className={`text-xl font-bold ${getMatchScoreColor(offer.matchScore)}`}>{offer.matchScore}%</p>
+                      </div>
+                      {isExpanded ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
+                    </div>
+                  </div>
+
+                  {/* Match reasons */}
+                  {offer.matchReasons.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {offer.matchReasons.map((reason, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-accent/20 text-accent-foreground text-xs rounded-full">
+                          {formatMatchReason(reason)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Expanded Content */}
+                {isExpanded && (
+                  <div className="border-t border-border">
+                    {/* Wine Lines with checkboxes */}
+                    <div className="px-6 py-4">
+                      {/* Select all */}
+                      {!isAccepted && offer.lines.length > 1 && (
+                        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border">
+                          <input
+                            type="checkbox"
+                            checked={allSelected}
+                            onChange={() => toggleAllLines(offer.id, offer)}
+                            className="rounded border-border text-primary focus:ring-primary"
+                          />
+                          <span className="text-sm text-muted-foreground font-medium">Valj alla</span>
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        {offer.lines.map((line, i) => {
+                          const isLineSelected = line.id ? selected.has(line.id) : true;
+                          const lineAccepted = line.accepted;
+
+                          return (
+                            <div
+                              key={line.id || i}
+                              className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                                lineAccepted === true ? 'bg-green-50 border border-green-200' :
+                                lineAccepted === false ? 'bg-gray-50 border border-gray-200 opacity-50' :
+                                isLineSelected ? 'bg-muted/30 border border-transparent' : 'bg-muted/10 border border-transparent opacity-60'
+                              }`}
+                            >
+                              {/* Checkbox (only if not already accepted) */}
+                              {!isAccepted && line.id && (
+                                <input
+                                  type="checkbox"
+                                  checked={isLineSelected}
+                                  onChange={() => toggleLineSelection(offer.id, line.id!)}
+                                  className="rounded border-border text-primary focus:ring-primary flex-shrink-0"
+                                />
+                              )}
+
+                              {/* Wine info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-foreground">
+                                  {line.wineName}
+                                  {line.vintage && <span className="text-muted-foreground ml-1">{line.vintage}</span>}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {line.producer}
+                                  {line.country && ` · ${line.country}`}
+                                  {line.region && ` · ${line.region}`}
+                                </p>
+                              </div>
+
+                              {/* Price × Qty */}
+                              <div className="text-right flex-shrink-0">
+                                <p className="font-medium text-foreground">
+                                  {line.quantity} fl × {formatPrice(line.offeredPriceExVatSek)}
+                                </p>
+                                <p className="text-sm font-bold text-primary">
+                                  {formatPrice(line.totalExVatSek)}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Shipping + Totals */}
+                    <div className="px-6 py-4 bg-muted/20 border-t border-border">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Frakt</span>
                           <span className="font-medium">
                             {offer.isFranco ? (
-                              <span className="text-green-600">Ingår i priset</span>
+                              <span className="text-green-600">Fritt levererat</span>
                             ) : offer.shippingCostSek ? (
                               formatPrice(offer.shippingCostSek)
                             ) : (
-                              <span className="text-muted-foreground">Ej angiven</span>
+                              'Ej angiven'
                             )}
                           </span>
                         </div>
                         {offer.shippingNotes && (
-                          <p className="text-xs text-muted-foreground mt-1 italic">
-                            {offer.shippingNotes}
-                          </p>
+                          <p className="text-xs text-muted-foreground italic">{offer.shippingNotes}</p>
                         )}
-                      </div>
 
-                      {/* Total ex moms - PRIMARY */}
-                      <div className="border-t-2 border-primary/30 pt-3 mt-2">
-                        <div className="flex justify-between text-lg">
-                          <span className="font-bold text-foreground">Totalt ex moms</span>
-                          <span className="font-bold text-primary text-xl">
-                            {formatPrice(offer.totalWithShippingExVat || offer.totalExVatSek)}
-                          </span>
+                        {!isAccepted && selected.size < allLineIds.length && selected.size > 0 && (
+                          <div className="flex justify-between font-medium text-foreground pt-2 border-t border-border">
+                            <span>Valda ({selected.size} av {allLineIds.length} viner, {selectedTotals.bottles} fl)</span>
+                            <span className="text-primary">{formatPrice(selectedTotals.price)}</span>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between text-base font-bold text-foreground pt-2 border-t border-border">
+                          <span>Totalt ex moms</span>
+                          <span className="text-primary text-lg">{formatPrice(offer.totalWithShippingExVat)}</span>
                         </div>
                       </div>
+                    </div>
 
-                      {/* VAT info (secondary) */}
-                      <div className="text-xs text-muted-foreground space-y-1 pt-1">
-                        <div className="flex justify-between">
-                          <span>Moms ({offer.vatRate}%)</span>
+                    {/* Notes */}
+                    {offer.notes && (
+                      <div className="px-6 py-3 bg-accent/10 border-t border-border">
+                        <p className="text-sm text-foreground/80">
+                          <span className="font-medium">Meddelande: </span>{offer.notes}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* MOQ Warning */}
+                    {offer.minTotalQuantity && !isAccepted && selected.size < allLineIds.length && selected.size > 0 && (
+                      <div className="px-6 py-3 bg-amber-50 border-t border-amber-200">
+                        <div className="flex items-center gap-2 text-sm text-amber-700">
+                          <AlertTriangle className="h-4 w-4" />
                           <span>
-                            +{formatPrice((offer.totalWithShippingIncVat || offer.totalIncVatSek) - (offer.totalWithShippingExVat || offer.totalExVatSek))}
+                            Minst {offer.minTotalQuantity} flaskor totalt kravs for denna leverantor
+                            {selectedTotals.bottles < offer.minTotalQuantity && (
+                              <span className="font-medium"> (du har valt {selectedTotals.bottles})</span>
+                            )}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Totalt inkl. moms</span>
-                          <span>{formatPrice(offer.totalWithShippingIncVat || offer.totalIncVatSek)}</span>
-                        </div>
                       </div>
+                    )}
 
-                      <div className="pt-2 text-xs text-green-600 flex justify-between">
-                        <span>Serviceavgift (PILOT)</span>
-                        <span className="font-medium">0 kr - Gratis under pilotfas</span>
+                    {/* Error */}
+                    {offerError && (
+                      <div className="px-6 py-3 bg-red-50 border-t border-red-200">
+                        <p className="text-sm text-red-700">{offerError}</p>
                       </div>
-                    </div>
-                  </div>
+                    )}
 
-                  {/* Supplier & Delivery */}
-                  <div className="space-y-4">
-                    {/* Supplier */}
-                    <div className="p-4 bg-muted/30 rounded-xl">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2 mb-2">
-                        <span>🏢</span>
-                        Leverantör
-                      </h4>
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-foreground">{offer.supplierName}</p>
-                        {offer.isSponsored && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
-                            <span>✨</span>
-                            Sponsrad
-                          </span>
-                        )}
+                    {/* Action */}
+                    {!isAccepted && !offer.isExpired && (
+                      <div className="px-6 py-4 border-t border-border">
+                        <button
+                          onClick={() => handleAcceptOffer(offer.id)}
+                          disabled={accepting !== null || selected.size === 0}
+                          className={`w-full px-6 py-3 rounded-xl font-medium shadow-lg transition-all ${
+                            accepting === offer.id
+                              ? 'bg-primary/50 text-primary-foreground cursor-wait'
+                              : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-xl'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          {accepting === offer.id ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <ButtonSpinner className="text-white" /> Accepterar...
+                            </span>
+                          ) : (
+                            <span className="flex items-center justify-center gap-2">
+                              <Check className="h-4 w-4" />
+                              {selected.size < allLineIds.length && selected.size > 0
+                                ? `Acceptera ${selected.size} av ${allLineIds.length} viner`
+                                : 'Acceptera offert'
+                              }
+                            </span>
+                          )}
+                        </button>
                       </div>
-                      <p className="text-xs text-muted-foreground">{offer.supplierEmail}</p>
-                    </div>
+                    )}
 
-                    {/* Delivery */}
-                    <div className="p-4 bg-muted/30 rounded-xl">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2 mb-2">
-                        <span>📦</span>
-                        Leverans
-                      </h4>
-                      <p className="text-sm text-muted-foreground mb-1">Beräknad leverans</p>
-                      <p className="font-medium text-foreground">
-                        {new Date(offer.estimatedDeliveryDate).toLocaleDateString('sv-SE', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Leveranstid: {offer.leadTimeDays} dagar
-                      </p>
-                    </div>
-
-                    {/* Assignment status */}
-                    <div className="text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-secondary/20 rounded-full">
-                        Status: {offer.assignmentStatus}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notes */}
-                {offer.notes && (
-                  <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-xl">
-                    <p className="text-sm font-medium text-foreground mb-1">
-                      💬 Meddelande från leverantör
-                    </p>
-                    <p className="text-sm text-foreground/80">{offer.notes}</p>
+                    {offer.isExpired && !isAccepted && (
+                      <div className="px-6 py-4 border-t border-border text-center">
+                        <p className="text-sm text-muted-foreground font-medium">Offert utgangen</p>
+                      </div>
+                    )}
                   </div>
                 )}
-
-                {/* Action button */}
-                <div className="flex items-center justify-end">
-                  {offer.isExpired ? (
-                    <div className="px-6 py-3 bg-muted text-muted-foreground rounded-xl text-sm font-medium">
-                      ⏱️ Offert utgången
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleAcceptOffer(offer.id)}
-                      disabled={accepting !== null}
-                      className={`px-8 py-3 rounded-xl font-medium shadow-lg transition-all ${
-                        accepting === offer.id
-                          ? 'bg-primary/50 text-primary-foreground cursor-wait'
-                          : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-xl'
-                      }`}
-                    >
-                      {accepting === offer.id ? (
-                        <span className="flex items-center gap-2">
-                          <ButtonSpinner className="text-white" />
-                          Accepterar...
-                        </span>
-                      ) : (
-                        <span>✓ Acceptera offert</span>
-                      )}
-                    </button>
-                  )}
-                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        {/* Bottom nav */}
+        {acceptedOffers.size > 0 && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-8 py-3 bg-primary text-primary-foreground rounded-xl font-medium shadow-lg hover:bg-primary/90"
+            >
+              Till Dashboard
+            </button>
+          </div>
         )}
       </div>
 
@@ -968,58 +655,35 @@ export default function OffersPage() {
                 <Building2 className="h-6 w-6 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Lägg till organisationsnummer
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Krävs för fakturering av beställningar
-                </p>
+                <h3 className="text-lg font-semibold text-gray-900">Lagg till organisationsnummer</h3>
+                <p className="text-sm text-gray-500">Kravs for fakturering</p>
               </div>
             </div>
-
             <div className="mb-6">
-              <label htmlFor="org_number_modal" className="block text-sm font-medium text-gray-700 mb-1">
-                Organisationsnummer
-              </label>
               <input
-                id="org_number_modal"
                 type="text"
                 value={orgNumber}
-                onChange={handleOrgNumberChange}
+                onChange={(e) => setOrgNumber(formatOrgNumber(e.target.value))}
                 maxLength={11}
                 placeholder="XXXXXX-XXXX"
                 autoFocus
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg tracking-wider focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Format: 123456-7890
-              </p>
             </div>
-
             <div className="flex gap-3">
               <button
-                onClick={() => {
-                  setShowOrgNumberModal(false);
-                  setOrgNumber('');
-                }}
+                onClick={() => { setShowOrgNumberModal(false); setOrgNumber(''); }}
                 disabled={savingOrgNumber}
-                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
               >
                 Avbryt
               </button>
               <button
                 onClick={handleSaveOrgNumber}
                 disabled={savingOrgNumber || orgNumber.length !== 11}
-                className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {savingOrgNumber ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Sparar...
-                  </>
-                ) : (
-                  'Spara och fortsätt'
-                )}
+                {savingOrgNumber ? <><Loader2 className="h-4 w-4 animate-spin" /> Sparar...</> : 'Spara'}
               </button>
             </div>
           </div>

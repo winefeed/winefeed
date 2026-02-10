@@ -2,7 +2,7 @@
  * SUPPLIER OFFERS API
  *
  * GET /api/suppliers/[id]/offers - List offers sent by supplier
- * POST /api/suppliers/[id]/offers - Create new offer
+ * POST /api/suppliers/[id]/offers - Create new offer (legacy single-wine)
  *
  * REQUIRES: User must be SELLER and owner of the supplier
  */
@@ -48,7 +48,7 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'all';
 
-    // Build query
+    // Build query — join offer_lines + supplier_wines for multi-line offers
     let query = supabase
       .from('offers')
       .select(`
@@ -62,10 +62,28 @@ export async function GET(
         is_franco,
         shipping_cost_sek,
         shipping_notes,
-        quote_request:quote_requests!inner(
+        supplier_wine_id,
+        min_total_quantity,
+        request_id,
+        offer_lines (
           id,
-          wine:wines!inner(name),
-          restaurant:restaurants!inner(name)
+          supplier_wine_id,
+          offered_unit_price_ore,
+          price_ex_vat_sek,
+          quantity,
+          accepted,
+          supplier_wines (
+            name,
+            producer,
+            vintage
+          )
+        ),
+        requests (
+          id,
+          restaurant_id,
+          restaurants (
+            name
+          )
         )
       `)
       .eq('supplier_id', supplierId)
@@ -73,7 +91,12 @@ export async function GET(
 
     // Filter by status
     if (status !== 'all') {
-      query = query.eq('status', status);
+      if (status === 'accepted') {
+        // Include both ACCEPTED and PARTIALLY_ACCEPTED
+        query = query.in('status', ['accepted', 'ACCEPTED', 'PARTIALLY_ACCEPTED']);
+      } else {
+        query = query.eq('status', status);
+      }
     }
 
     const { data: offers, error } = await query;
@@ -86,26 +109,71 @@ export async function GET(
       );
     }
 
-    // Transform to flat structure
-    const transformedOffers = (offers || []).map((offer: any) => ({
-      id: offer.id,
-      request_id: offer.quote_request?.id,
-      restaurant_name: offer.quote_request?.restaurant?.name || 'Okänd restaurang',
-      wine_name: offer.quote_request?.wine?.name || 'Okänt vin',
-      quantity: offer.quantity,
-      offered_price: offer.offered_price,
-      status: offer.status,
-      created_at: offer.created_at,
-      expires_at: offer.expires_at,
-      // Shipping info
-      is_franco: offer.is_franco || false,
-      shipping_cost_sek: offer.shipping_cost_sek,
-      shipping_notes: offer.shipping_notes,
-      // Calculated total with shipping
-      total_with_shipping: offer.is_franco
-        ? offer.offered_price * offer.quantity
-        : (offer.offered_price * offer.quantity) + (offer.shipping_cost_sek || 0),
-    }));
+    // Transform to response structure with lines[]
+    const transformedOffers = (offers || []).map((offer: any) => {
+      const requestData = offer.requests as any;
+      const restaurantName = requestData?.restaurants?.name || 'Okänd restaurang';
+
+      const lines = (offer.offer_lines || []).map((line: any) => {
+        const sw = line.supplier_wines;
+        const priceSek = line.price_ex_vat_sek
+          ? Number(line.price_ex_vat_sek)
+          : line.offered_unit_price_ore
+            ? line.offered_unit_price_ore / 100
+            : 0;
+        return {
+          id: line.id,
+          wineName: sw?.name || 'Okänt vin',
+          producer: sw?.producer || '',
+          vintage: sw?.vintage || null,
+          priceSek,
+          quantity: line.quantity || 0,
+          totalSek: priceSek * (line.quantity || 0),
+          accepted: line.accepted,
+        };
+      });
+
+      // Legacy fallback: no offer_lines → build virtual line from offer-level data
+      if (lines.length === 0 && offer.offered_price) {
+        lines.push({
+          id: null,
+          wineName: 'Vin', // Legacy offers don't have wine name in lines
+          producer: '',
+          vintage: null,
+          priceSek: offer.offered_price,
+          quantity: offer.quantity || 0,
+          totalSek: offer.offered_price * (offer.quantity || 0),
+          accepted: null,
+        });
+      }
+
+      const totalBottles = lines.reduce((sum: number, l: any) => sum + l.quantity, 0);
+      const totalSek = lines.reduce((sum: number, l: any) => sum + l.totalSek, 0);
+      const totalWithShipping = offer.is_franco
+        ? totalSek
+        : totalSek + (offer.shipping_cost_sek || 0);
+
+      return {
+        id: offer.id,
+        request_id: requestData?.id || offer.request_id,
+        restaurant_name: restaurantName,
+        status: offer.status,
+        created_at: offer.created_at,
+        expires_at: offer.expires_at,
+        is_franco: offer.is_franco || false,
+        shipping_cost_sek: offer.shipping_cost_sek,
+        min_total_quantity: offer.min_total_quantity,
+        lines,
+        wineCount: lines.length,
+        totalBottles,
+        totalSek,
+        totalWithShipping,
+        // Legacy flat fields for backwards compat
+        wine_name: lines[0]?.wineName || 'Okänt vin',
+        quantity: totalBottles,
+        offered_price: totalSek,
+      };
+    });
 
     return NextResponse.json({
       offers: transformedOffers,
