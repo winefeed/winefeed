@@ -11,6 +11,7 @@
  */
 
 import { parseWineFile } from '../parsers/excel-parser';
+import { isPdfFile, parsePdfFile } from '../parsers/pdf-parser';
 import { validateWineRows } from '../validators/wine-import';
 import { enrichWineRows } from './enrichment';
 import { detectAnomalies } from './anomaly-detector';
@@ -36,8 +37,10 @@ export async function runCatalogAgentPreview(
   filename: string,
   options: CatalogAgentOptions = DEFAULT_OPTIONS
 ): Promise<CatalogAgentPreview> {
-  // Step 1: Parse file (existing)
-  const parseResult = parseWineFile(buffer, filename);
+  // Step 1: Parse file (existing + PDF support)
+  const parseResult = isPdfFile(filename)
+    ? await parsePdfFile(buffer)
+    : parseWineFile(buffer, filename);
 
   if (!parseResult.success) {
     throw new Error(parseResult.error || 'Kunde inte läsa filen');
@@ -90,7 +93,9 @@ export async function runCatalogAgentPreview(
     // We need to go back to the raw data and re-transform.
     // Since we can't easily do that without re-reading the file,
     // let's re-parse it.
-    const reParsed = parseWineFile(buffer, filename);
+    const reParsed = isPdfFile(filename)
+      ? await parsePdfFile(buffer)
+      : parseWineFile(buffer, filename);
     if (reParsed.success) {
       // Now manually apply the full mapping (original + AI)
       // This is handled in the workbook raw data

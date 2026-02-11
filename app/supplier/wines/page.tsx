@@ -616,6 +616,7 @@ export default function SupplierWinesPage() {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
       'application/vnd.ms-excel': ['.xls'],
       'text/csv': ['.csv'],
+      'application/pdf': ['.pdf'],
     },
     maxFiles: 1,
     maxSize: MAX_FILE_SIZE,
@@ -625,7 +626,7 @@ export default function SupplierWinesPage() {
         const sizeMB = (rejection.file.size / (1024 * 1024)).toFixed(1);
         showToast(`Filen är för stor (${sizeMB} MB). Max 5 MB tillåtet.`, 'error');
       } else if (rejection?.errors[0]?.code === 'file-invalid-type') {
-        showToast('Ogiltigt filformat. Använd Excel (.xlsx, .xls) eller CSV.', 'error');
+        showToast('Ogiltigt filformat. Använd Excel (.xlsx, .xls), CSV eller PDF.', 'error');
       } else {
         showToast('Filen kunde inte laddas upp', 'error');
       }
@@ -1343,9 +1344,9 @@ export default function SupplierWinesPage() {
                   <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-wine bg-wine/5' : 'border-gray-300 hover:border-gray-400'}`}>
                     <input {...getInputProps()} />
                     <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">{isDragActive ? 'Släpp filen här...' : 'Dra och släpp en Excel- eller CSV-fil här'}</p>
+                    <p className="text-gray-600 mb-2">{isDragActive ? 'Släpp filen här...' : 'Dra och släpp en Excel-, CSV- eller PDF-fil här'}</p>
                     <p className="text-sm text-gray-400">eller klicka för att välja fil</p>
-                    <p className="text-xs text-gray-400 mt-2">Max 5 MB • Excel (.xlsx, .xls) eller CSV</p>
+                    <p className="text-xs text-gray-400 mt-2">Max 5 MB • Excel (.xlsx, .xls), CSV eller PDF</p>
                   </div>
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <h3 className="font-medium text-gray-900 mb-2">Kolumner som krävs:</h3>

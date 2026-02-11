@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
 import { parseWineFile } from '@/lib/parsers/excel-parser';
+import { isPdfFile, parsePdfFile } from '@/lib/parsers/pdf-parser';
 import { validateWineRows } from '@/lib/validators/wine-import';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -73,8 +74,9 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/vnd.ms-excel',
       'text/csv',
+      'application/pdf',
     ];
-    const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+    const allowedExtensions = ['.xlsx', '.xls', '.csv', '.pdf'];
 
     const hasValidExtension = allowedExtensions.some(ext =>
       file.name.toLowerCase().endsWith(ext)
@@ -82,7 +84,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     if (!hasValidExtension && !allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Filformatet stöds inte. Ladda upp Excel (.xlsx, .xls) eller CSV.' },
+        { error: 'Filformatet stöds inte. Ladda upp Excel (.xlsx, .xls), CSV eller PDF.' },
         { status: 400 }
       );
     }
@@ -90,8 +92,10 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     // Read file buffer
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Parse file
-    const parseResult = parseWineFile(buffer, file.name);
+    // Parse file (PDF uses async parser, Excel/CSV uses sync parser)
+    const parseResult = isPdfFile(file.name)
+      ? await parsePdfFile(buffer)
+      : parseWineFile(buffer, file.name);
 
     if (!parseResult.success) {
       return NextResponse.json(

@@ -69,14 +69,14 @@ export async function POST(
       );
     }
 
-    const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+    const allowedExtensions = ['.xlsx', '.xls', '.csv', '.pdf'];
     const hasValidExtension = allowedExtensions.some(ext =>
       file.name.toLowerCase().endsWith(ext)
     );
 
     if (!hasValidExtension) {
       return NextResponse.json(
-        { error: 'Filformatet stöds inte. Ladda upp Excel (.xlsx, .xls) eller CSV.' },
+        { error: 'Filformatet stöds inte. Ladda upp Excel (.xlsx, .xls), CSV eller PDF.' },
         { status: 400 }
       );
     }
