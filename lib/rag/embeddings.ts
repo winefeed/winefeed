@@ -1,20 +1,20 @@
 /**
  * EMBEDDINGS UTILITY
  *
- * Generates text embeddings via OpenAI text-embedding-3-small.
- * Simple fetch-based client — no SDK dependency.
+ * Generates text embeddings via Hugging Face Inference API (free).
+ * Model: BAAI/bge-small-en-v1.5 (384 dimensions)
  *
- * Cost: ~$0.02 per 1M tokens (negligible)
- * Dimensions: 1536
+ * Cost: $0 (free tier)
+ * Dimensions: 384
  */
 
-const OPENAI_EMBEDDING_MODEL = 'text-embedding-3-small';
-const OPENAI_EMBEDDING_URL = 'https://api.openai.com/v1/embeddings';
+const HF_MODEL = 'BAAI/bge-small-en-v1.5';
+const HF_URL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL}/pipeline/feature-extraction`;
 
 function getApiKey(): string {
-  const key = process.env.OPENAI_API_KEY;
+  const key = process.env.HF_API_TOKEN || process.env.HUGGINGFACE_API_TOKEN;
   if (!key) {
-    throw new Error('OPENAI_API_KEY environment variable is required for embeddings');
+    throw new Error('HF_API_TOKEN environment variable is required for embeddings');
   }
   return key;
 }
@@ -29,43 +29,33 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 
 /**
  * Generate embeddings for multiple texts (batch).
- * OpenAI supports up to 2048 inputs per request.
+ * HF Inference API processes one at a time, so we batch sequentially.
  */
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
 
   const apiKey = getApiKey();
-
-  // OpenAI batch limit is 2048, chunk if needed
-  const BATCH_SIZE = 100;
   const allEmbeddings: number[][] = [];
 
-  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
-    const batch = texts.slice(i, i + BATCH_SIZE);
-
-    const response = await fetch(OPENAI_EMBEDDING_URL, {
+  for (const text of texts) {
+    const response = await fetch(HF_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: OPENAI_EMBEDDING_MODEL,
-        input: batch,
-      }),
+      body: JSON.stringify({ inputs: text }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`OpenAI embeddings API error (${response.status}): ${error}`);
+      throw new Error(`HF embeddings API error (${response.status}): ${error}`);
     }
 
     const data = await response.json();
-    const embeddings = data.data
-      .sort((a: any, b: any) => a.index - b.index)
-      .map((item: any) => item.embedding);
-
-    allEmbeddings.push(...embeddings);
+    // HF returns flat array for single input
+    const embedding = Array.isArray(data[0]) ? data[0] : data;
+    allEmbeddings.push(embedding);
   }
 
   return allEmbeddings;
