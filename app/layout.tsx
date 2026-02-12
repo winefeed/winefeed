@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     description: "Sluten marknadsplats för restauranger och vinleverantörer. Från offert till leverans utan friktion.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/winefeed-logo-light.png",
         width: 1200,
         height: 630,
         alt: "Winefeed - B2B vinhandel",
@@ -44,12 +44,41 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Winefeed - B2B-plattformen för professionella vininköp",
     description: "Sluten marknadsplats för restauranger och vinleverantörer.",
-    images: ["/og-image.png"],
+    images: ["/winefeed-logo-light.png"],
   },
   robots: {
     index: true,
     follow: true,
   },
+  verification: {
+    google: 'gDm6S3HT2KBRsOA3A3yK1lJF7PFywN6cVt9jcsDYZC4',
+  },
+};
+
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Winefeed',
+  url: 'https://winefeed.se',
+  logo: 'https://winefeed.se/winefeed-logo-light.png',
+  description:
+    'B2B-plattformen som kopplar samman restauranger med vinleverantörer.',
+  email: 'hej@winefeed.se',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    email: 'hej@winefeed.se',
+    contactType: 'customer service',
+  },
+};
+
+const webSiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Winefeed',
+  url: 'https://winefeed.se',
+  description: 'Sluten marknadsplats för restauranger och vinleverantörer.',
+  publisher: { '@type': 'Organization', name: 'Winefeed' },
+  inLanguage: 'sv',
 };
 
 export default function RootLayout({
@@ -61,6 +90,18 @@ export default function RootLayout({
     <html lang="sv">
       <body className={`${dmSans.variable} ${cormorant.variable} font-sans`}>
         <Providers>{children}</Providers>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(webSiteJsonLd),
+          }}
+        />
       </body>
     </html>
   );

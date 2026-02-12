@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-pilot.png',
+        url: '/winefeed-logo-light.png',
         width: 1200,
         height: 630,
         alt: 'Winefeed – Från offert till leverans utan friktion',
@@ -38,7 +38,23 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Winefeed – Från offert till leverans utan friktion',
     description: 'En plattform för hela vinflödet. Restaurang, leverantör och importör ser samma status i realtid.',
-    images: ['/og-pilot.png'],
+    images: ['/winefeed-logo-light.png'],
+  },
+};
+
+const softwareJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Winefeed',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  description: 'B2B-plattform för professionella vininköp.',
+  url: 'https://winefeed.se/pitch',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'SEK',
+    description: 'Kostnadsfritt under pilotperioden',
   },
 };
 
@@ -482,6 +498,12 @@ export default function PitchPage() {
           </p>
         </div>
       </footer>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(softwareJsonLd),
+        }}
+      />
     </div>
   );
 }
