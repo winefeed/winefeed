@@ -178,6 +178,7 @@ export async function rankWinesEnhanced(
   userRequest: string,
   finalTopN: number = 10,
   knowledgeContext?: string,
+  restaurantContext?: string,
 ): Promise<EnhancedRankResult[]> {
   if (scoredWines.length === 0) return [];
 
@@ -223,7 +224,7 @@ export async function rankWinesEnhanced(
 RESTAURANGENS SÖKNING:
 ${richContext}
 
-${knowledgeContext ? `VINKUNSKAP (använd för att motivera dina val):\n${knowledgeContext}\n` : ''}FÖRFILTRERADE VINER (${scoredWines.length} st, sorterade efter förpoäng):
+${knowledgeContext ? `VINKUNSKAP (använd för att motivera dina val):\n${knowledgeContext}\n` : ''}${restaurantContext ? `${restaurantContext}\n\n` : ''}FÖRFILTRERADE VINER (${scoredWines.length} st, sorterade efter förpoäng):
 ${wineList}
 
 UPPGIFT:
@@ -238,6 +239,7 @@ BEDÖMNINGSKRITERIER (i prioritetsordning):
 5. Matkompatibilitet - ${preferences.food_pairing.length > 0 ? `passar till ${preferences.food_pairing.join(', ')}` : 'ingen specifik mat'}
 6. Tillfälle - ${preferences.occasion || 'inget specifikt tillfälle'}
 7. Stil/smakprofil - ${preferences.style.length > 0 ? preferences.style.join(', ') : 'ingen specifik stil'}
+8. Restaurangprofil - som mjuk preferens vid likvärdiga viner
 
 ${preferences.food_pairing.length > 0 ? `VIKTIGT: Förklara i "reason" VARFÖR vinet passar till ${preferences.food_pairing.join('/')}. T.ex. "Tanninerna i Barolo gifter sig med lammets fetma" eller "Frisk Chablis lyfter den grillade fisken".` : ''}
 

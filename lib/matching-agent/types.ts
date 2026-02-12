@@ -94,6 +94,7 @@ export interface StructuredFilters {
 export interface MatchingAgentInput {
   fritext: string;
   structuredFilters: StructuredFilters;
+  restaurantContext?: string;
 }
 
 /** Pipeline options (with sensible defaults) */

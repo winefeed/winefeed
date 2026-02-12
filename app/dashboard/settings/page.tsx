@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Building2, MapPin, Plus, Pencil, Trash2, Star, Check, X, Bell, Mail, User, Shield, Save, Receipt } from 'lucide-react';
+import { Building2, MapPin, Plus, Pencil, Trash2, Star, Check, X, Bell, Mail, User, Shield, Save, Receipt, Wine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,6 +34,10 @@ interface Restaurant {
   billing_postal_code?: string;
   billing_city?: string;
   billing_reference?: string;
+  // Wine profile
+  cuisine_type?: string[];
+  price_segment?: string;
+  wine_preference_notes?: string;
 }
 
 interface DeliveryAddress {
@@ -94,6 +98,15 @@ export default function SettingsPage() {
   });
   const [savingBilling, setSavingBilling] = useState(false);
 
+  // Wine profile state
+  const [editingWineProfile, setEditingWineProfile] = useState(false);
+  const [wineProfileForm, setWineProfileForm] = useState({
+    cuisine_type: [] as string[],
+    price_segment: '',
+    wine_preference_notes: '',
+  });
+  const [savingWineProfile, setSavingWineProfile] = useState(false);
+
   // Notification settings
   const [notifications, setNotifications] = useState<NotificationSettings>({
     email_new_offer: true,
@@ -145,6 +158,12 @@ export default function SettingsPage() {
           address: data.address || '',
           postal_code: data.postal_code || '',
           city: data.city || '',
+        });
+        // Initialize wine profile form
+        setWineProfileForm({
+          cuisine_type: data.cuisine_type || [],
+          price_segment: data.price_segment || '',
+          wine_preference_notes: data.wine_preference_notes || '',
         });
         // Initialize billing form
         const hasBillingAddress = data.billing_address || data.billing_postal_code || data.billing_city;
@@ -244,6 +263,32 @@ export default function SettingsPage() {
       toast.error('Kunde inte spara faktureringsuppgifter');
     } finally {
       setSavingBilling(false);
+    }
+  };
+
+  const handleSaveWineProfile = async () => {
+    setSavingWineProfile(true);
+    try {
+      const res = await fetch('/api/me/restaurant', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cuisine_type: wineProfileForm.cuisine_type.length > 0 ? wineProfileForm.cuisine_type : null,
+          price_segment: wineProfileForm.price_segment || null,
+          wine_preference_notes: wineProfileForm.wine_preference_notes || null,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRestaurant(data);
+        setEditingWineProfile(false);
+        toast.success('Vinprofil sparad');
+      }
+    } catch (err) {
+      toast.error('Kunde inte spara vinprofil');
+    } finally {
+      setSavingWineProfile(false);
     }
   };
 
@@ -679,6 +724,148 @@ export default function SettingsPage() {
                       ? `${restaurant.address}, ${restaurant.postal_code} ${restaurant.city} (samma som restaurang)`
                       : '–'}
                   </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Wine Profile */}
+          <div className="bg-card rounded-lg border border-border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Wine className="h-5 w-5 text-primary" />
+                <div>
+                  <h2 className="text-lg font-semibold">Vinprofil</h2>
+                  <p className="text-sm text-muted-foreground">Hjälper vår AI att ge bättre vinförslag</p>
+                </div>
+              </div>
+              {!editingWineProfile && (
+                <Button variant="outline" size="sm" onClick={() => setEditingWineProfile(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Redigera
+                </Button>
+              )}
+            </div>
+
+            {editingWineProfile ? (
+              <div className="space-y-5">
+                {/* Cuisine type pills */}
+                <div className="space-y-2">
+                  <Label>Kökskategori</Label>
+                  <p className="text-xs text-muted-foreground">Välj en eller flera som beskriver er restaurang</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Svensk', 'Italiensk', 'Fransk', 'Japansk', 'Spansk', 'Nordisk', 'Fusion', 'Asiatisk', 'Amerikansk', 'Mellanöstern'].map((cuisine) => {
+                      const selected = wineProfileForm.cuisine_type.includes(cuisine);
+                      return (
+                        <button
+                          key={cuisine}
+                          type="button"
+                          onClick={() => {
+                            setWineProfileForm(prev => ({
+                              ...prev,
+                              cuisine_type: selected
+                                ? prev.cuisine_type.filter(c => c !== cuisine)
+                                : [...prev.cuisine_type, cuisine],
+                            }));
+                          }}
+                          className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                            selected
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background text-foreground border-border hover:border-primary/50'
+                          }`}
+                        >
+                          {cuisine}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Price segment radio */}
+                <div className="space-y-2">
+                  <Label>Prissegment</Label>
+                  <div className="flex gap-3">
+                    {[
+                      { value: 'casual', label: 'Casual' },
+                      { value: 'mid-range', label: 'Mellansegment' },
+                      { value: 'fine-dining', label: 'Fine dining' },
+                    ].map((opt) => (
+                      <label
+                        key={opt.value}
+                        className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${
+                          wineProfileForm.price_segment === opt.value
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="price_segment"
+                          value={opt.value}
+                          checked={wineProfileForm.price_segment === opt.value}
+                          onChange={() => setWineProfileForm({ ...wineProfileForm, price_segment: opt.value })}
+                          className="sr-only"
+                        />
+                        {opt.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Wine preference notes */}
+                <div className="space-y-2">
+                  <Label htmlFor="wine_notes">Vinpreferenser</Label>
+                  <Textarea
+                    id="wine_notes"
+                    placeholder="T.ex. Vi gillar naturviner och eleganta Barolo. Vår vinlista fokuserar på små producenter från Italien och Frankrike."
+                    rows={3}
+                    value={wineProfileForm.wine_preference_notes}
+                    onChange={(e) => setWineProfileForm({ ...wineProfileForm, wine_preference_notes: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">Beskriv fritt vad ni letar efter — detta vägs in som mjuk preferens i vinförslagen</p>
+                </div>
+
+                <div className="flex gap-2 justify-end pt-4 border-t">
+                  <Button variant="ghost" onClick={() => {
+                    setEditingWineProfile(false);
+                    setWineProfileForm({
+                      cuisine_type: restaurant?.cuisine_type || [],
+                      price_segment: restaurant?.price_segment || '',
+                      wine_preference_notes: restaurant?.wine_preference_notes || '',
+                    });
+                  }}>
+                    Avbryt
+                  </Button>
+                  <Button onClick={handleSaveWineProfile} disabled={savingWineProfile}>
+                    {savingWineProfile ? 'Sparar...' : 'Spara vinprofil'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Kök</span>
+                  <p className="font-medium">
+                    {restaurant?.cuisine_type?.length ? (
+                      <span className="flex flex-wrap gap-1.5">
+                        {restaurant.cuisine_type.map(c => (
+                          <span key={c} className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">{c}</span>
+                        ))}
+                      </span>
+                    ) : '–'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Segment</span>
+                  <p className="font-medium">
+                    {restaurant?.price_segment
+                      ? { casual: 'Casual', 'mid-range': 'Mellansegment', 'fine-dining': 'Fine dining' }[restaurant.price_segment] || restaurant.price_segment
+                      : '–'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Vinpreferenser</span>
+                  <p className="font-medium">{restaurant?.wine_preference_notes || '–'}</p>
                 </div>
               </div>
             )}

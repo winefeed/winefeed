@@ -199,6 +199,7 @@ export async function runMatchingAgentPipeline(
         searchContext,
         options.finalTopN,
         combinedKnowledge || undefined,
+        input.restaurantContext || undefined,
       );
 
       // Re-order scoredWines based on AI ranking

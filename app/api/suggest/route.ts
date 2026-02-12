@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
 import { runMatchingAgentPipeline } from '@/lib/matching-agent/pipeline';
+import { buildSommelierContext } from '@/lib/sommelier-context';
 
 // Create admin client lazily to avoid startup errors
 function getSupabaseAdmin() {
@@ -143,6 +144,16 @@ export async function POST(request: NextRequest) {
 
     request_id = savedRequest.id;
 
+    // Build sommelier context (restaurant profile + order history for personalization)
+    const sommelierCtx = await buildSommelierContext(restaurantId!, tenantId);
+    if (sommelierCtx.promptContext) {
+      console.log('[Suggest] Sommelier context loaded:', {
+        hasCuisine: !!sommelierCtx.profile?.cuisine_type?.length,
+        hasSegment: !!sommelierCtx.profile?.price_segment,
+        hasHistory: !!sommelierCtx.history,
+      });
+    }
+
     // Run Matching Agent pipeline (AI parse → lookup → smart query → pre-score → AI re-rank)
     const result = await runMatchingAgentPipeline({
       fritext: fritext || description || '',
@@ -156,6 +167,7 @@ export async function POST(request: NextRequest) {
         antal_flaskor,
         leverans_ort,
       },
+      restaurantContext: sommelierCtx.promptContext || undefined,
     });
 
     if (result.wines.length === 0) {

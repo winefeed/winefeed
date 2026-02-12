@@ -44,9 +44,10 @@ export async function GET(request: NextRequest) {
     const { data: restaurant, error } = await supabase
       .from('restaurants')
       .select(`
-        id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code, contact_person,
+        id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code,
         billing_email, billing_contact_person, billing_contact_phone,
-        billing_address, billing_postal_code, billing_city, billing_reference
+        billing_address, billing_postal_code, billing_city, billing_reference,
+        cuisine_type, price_segment, wine_preference_notes
       `)
       .eq('id', actor.restaurant_id)
       .single();
@@ -67,7 +68,6 @@ export async function GET(request: NextRequest) {
       city: restaurant.city,
       address: restaurant.address_line1,
       postal_code: restaurant.postal_code,
-      contact_person: restaurant.contact_person,
       // Billing fields
       billing_email: restaurant.billing_email,
       billing_contact_person: restaurant.billing_contact_person,
@@ -76,6 +76,10 @@ export async function GET(request: NextRequest) {
       billing_postal_code: restaurant.billing_postal_code,
       billing_city: restaurant.billing_city,
       billing_reference: restaurant.billing_reference,
+      // Wine profile fields
+      cuisine_type: restaurant.cuisine_type,
+      price_segment: restaurant.price_segment,
+      wine_preference_notes: restaurant.wine_preference_notes,
     });
 
   } catch (error: any) {
@@ -143,8 +147,6 @@ export async function PATCH(request: NextRequest) {
     if (body.contact_email !== undefined) updates.contact_email = body.contact_email || null;
     if (body.phone !== undefined) updates.contact_phone = body.phone || null;
     if (body.contact_phone !== undefined) updates.contact_phone = body.contact_phone || null;
-    if (body.contact_person !== undefined) updates.contact_person = body.contact_person || null;
-
     // Billing fields
     if (body.billing_email !== undefined) updates.billing_email = body.billing_email || null;
     if (body.billing_contact_person !== undefined) updates.billing_contact_person = body.billing_contact_person || null;
@@ -153,6 +155,14 @@ export async function PATCH(request: NextRequest) {
     if (body.billing_postal_code !== undefined) updates.billing_postal_code = body.billing_postal_code || null;
     if (body.billing_city !== undefined) updates.billing_city = body.billing_city || null;
     if (body.billing_reference !== undefined) updates.billing_reference = body.billing_reference || null;
+
+    // Wine profile fields
+    if (body.cuisine_type !== undefined) (updates as any).cuisine_type = Array.isArray(body.cuisine_type) ? body.cuisine_type : null;
+    if (body.price_segment !== undefined) {
+      const valid = [null, 'casual', 'mid-range', 'fine-dining'];
+      (updates as any).price_segment = valid.includes(body.price_segment) ? body.price_segment : null;
+    }
+    if (body.wine_preference_notes !== undefined) updates.wine_preference_notes = body.wine_preference_notes || null;
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
@@ -167,9 +177,10 @@ export async function PATCH(request: NextRequest) {
       .update(updates)
       .eq('id', actor.restaurant_id)
       .select(`
-        id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code, contact_person,
+        id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code,
         billing_email, billing_contact_person, billing_contact_phone,
-        billing_address, billing_postal_code, billing_city, billing_reference
+        billing_address, billing_postal_code, billing_city, billing_reference,
+        cuisine_type, price_segment, wine_preference_notes
       `)
       .single();
 
@@ -191,7 +202,6 @@ export async function PATCH(request: NextRequest) {
       city: restaurant.city,
       address: restaurant.address_line1,
       postal_code: restaurant.postal_code,
-      contact_person: restaurant.contact_person,
       billing_email: restaurant.billing_email,
       billing_contact_person: restaurant.billing_contact_person,
       billing_contact_phone: restaurant.billing_contact_phone,
@@ -199,6 +209,9 @@ export async function PATCH(request: NextRequest) {
       billing_postal_code: restaurant.billing_postal_code,
       billing_city: restaurant.billing_city,
       billing_reference: restaurant.billing_reference,
+      cuisine_type: restaurant.cuisine_type,
+      price_segment: restaurant.price_segment,
+      wine_preference_notes: restaurant.wine_preference_notes,
     });
 
   } catch (error: any) {
