@@ -34,6 +34,19 @@ export const ReadinessPackPayer = {
 export type ReadinessPackPayer = typeof ReadinessPackPayer[keyof typeof ReadinessPackPayer];
 
 // ============================================
+// LANGUAGE SUPPORT
+// ============================================
+
+export type ReadinessPackLanguage = 'en' | 'fr' | 'es' | 'it';
+
+export const READINESS_PACK_LANGUAGES: { value: ReadinessPackLanguage; label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'Français' },
+  { value: 'es', label: 'Español' },
+  { value: 'it', label: 'Italiano' },
+];
+
+// ============================================
 // SCOPE DEFINITION
 // ============================================
 
@@ -51,6 +64,49 @@ export const ReadinessPackScopeItems = {
 } as const;
 
 export type ReadinessPackScopeKey = keyof typeof ReadinessPackScopeItems;
+
+/**
+ * Translated scope labels per language.
+ * Used in UI and in outgoing emails/messages to producers.
+ */
+export const ReadinessPackScopeLabels: Record<ReadinessPackLanguage, Record<ReadinessPackScopeKey, string>> = {
+  en: {
+    product_sheet: 'Product sheet / Tech sheet',
+    price_list: 'Price list / Case configuration',
+    data_pack: 'Data pack (images, descriptions)',
+    translations: 'Translations',
+    certifications: 'Certifications (organic, etc.)',
+    logistics_info: 'Logistics / MOQ / Lead times',
+  },
+  fr: {
+    product_sheet: 'Fiche produit / Fiche technique',
+    price_list: 'Tarif / Configuration de caisse',
+    data_pack: 'Pack données (images, descriptions)',
+    translations: 'Traductions',
+    certifications: 'Certifications (bio, etc.)',
+    logistics_info: 'Logistique / MOQ / Délais de livraison',
+  },
+  es: {
+    product_sheet: 'Ficha de producto / Ficha técnica',
+    price_list: 'Lista de precios / Configuración de caja',
+    data_pack: 'Pack de datos (imágenes, descripciones)',
+    translations: 'Traducciones',
+    certifications: 'Certificaciones (ecológico, etc.)',
+    logistics_info: 'Logística / MOQ / Plazos de entrega',
+  },
+  it: {
+    product_sheet: 'Scheda prodotto / Scheda tecnica',
+    price_list: 'Listino prezzi / Configurazione cartone',
+    data_pack: 'Pacchetto dati (immagini, descrizioni)',
+    translations: 'Traduzioni',
+    certifications: 'Certificazioni (biologico, ecc.)',
+    logistics_info: 'Logistica / MOQ / Tempi di consegna',
+  },
+};
+
+export function getScopeLabels(lang: ReadinessPackLanguage = 'en'): Record<ReadinessPackScopeKey, string> {
+  return ReadinessPackScopeLabels[lang];
+}
 
 export interface ReadinessPackScope {
   product_sheet?: boolean;
@@ -81,6 +137,7 @@ export const createReadinessPackSchema = z.object({
   price_cents: z.number().int().min(0).nullable().optional(),
   currency: z.string().length(3).default('EUR'),
   notes: z.string().max(2000).optional(),
+  language: z.enum(['en', 'fr', 'es', 'it']).default('en'),
 });
 
 export const updateReadinessPackSchema = z.object({
@@ -106,6 +163,7 @@ export interface ReadinessPack {
   price_cents: number | null;
   scope: ReadinessPackScope;
   status: ReadinessPackStatus;
+  language: ReadinessPackLanguage;
   notes: string | null;
   created_at: string;
   updated_at: string;

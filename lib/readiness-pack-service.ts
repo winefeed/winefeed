@@ -113,6 +113,7 @@ class ReadinessPackService {
         price_cents: validated.price_cents ?? null,
         scope: validated.scope,
         status: 'DRAFT',
+        language: validated.language,
         notes: validated.notes ?? null,
       })
       .select()

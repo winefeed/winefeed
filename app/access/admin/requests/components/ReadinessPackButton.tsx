@@ -16,9 +16,14 @@
 
 'use client';
 
-import { useState } from 'react';
-import { Package, Check, Loader2, AlertCircle, Info } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Package, Check, Loader2, AlertCircle, Info, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  type ReadinessPackLanguage,
+  READINESS_PACK_LANGUAGES,
+  getScopeLabels,
+} from '@/lib/readiness-pack-types';
 
 // ============================================
 // TYPES
@@ -46,15 +51,17 @@ interface ScopeItem {
 // Statuses where pack creation is allowed
 const ACCEPTED_STATUSES = ['besvarad', 'meddelad', 'slutford'];
 
-// Default scope items
-const DEFAULT_SCOPE_ITEMS: ScopeItem[] = [
-  { key: 'product_sheet', label: 'Produktblad / Tech sheet', checked: true },
-  { key: 'price_list', label: 'Prislista / Case configuration', checked: true },
-  { key: 'data_pack', label: 'Data pack (bilder, beskrivningar)', checked: false },
-  { key: 'translations', label: 'Svenska översättningar', checked: false },
-  { key: 'certifications', label: 'Certifieringar (eko, etc.)', checked: false },
-  { key: 'logistics_info', label: 'Logistik / MOQ / Leveranstider', checked: false },
-];
+// Default checked keys
+const DEFAULT_CHECKED_KEYS = ['product_sheet', 'price_list'];
+
+function buildScopeItems(lang: ReadinessPackLanguage): ScopeItem[] {
+  const labels = getScopeLabels(lang);
+  return (Object.keys(labels) as Array<keyof typeof labels>).map(key => ({
+    key,
+    label: labels[key],
+    checked: DEFAULT_CHECKED_KEYS.includes(key),
+  }));
+}
 
 // ============================================
 // FEATURE FLAG CHECK
@@ -76,10 +83,20 @@ export function ReadinessPackButton({
   className,
 }: ReadinessPackButtonProps) {
   const [showModal, setShowModal] = useState(false);
-  const [scopeItems, setScopeItems] = useState<ScopeItem[]>(DEFAULT_SCOPE_ITEMS);
+  const [language, setLanguage] = useState<ReadinessPackLanguage>('en');
+  const [checkedKeys, setCheckedKeys] = useState<Set<string>>(new Set(DEFAULT_CHECKED_KEYS));
   const [notes, setNotes] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const scopeItems = useMemo(() => {
+    const labels = getScopeLabels(language);
+    return (Object.keys(labels) as Array<keyof typeof labels>).map(key => ({
+      key,
+      label: labels[key],
+      checked: checkedKeys.has(key),
+    }));
+  }, [language, checkedKeys]);
 
   // Feature flag check - render nothing if disabled
   if (!FEATURE_ENABLED) {
@@ -105,11 +122,15 @@ export function ReadinessPackButton({
   }
 
   const toggleScope = (key: string) => {
-    setScopeItems(items =>
-      items.map(item =>
-        item.key === key ? { ...item, checked: !item.checked } : item
-      )
-    );
+    setCheckedKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
   };
 
   const handleCreate = async () => {
@@ -133,6 +154,7 @@ export function ReadinessPackButton({
           scope,
           notes: notes || undefined,
           payer: 'IOR', // MVP: IOR always pays
+          language,
         }),
       });
 
@@ -207,6 +229,25 @@ export function ReadinessPackButton({
                   <p className="text-sm text-red-800">{error}</p>
                 </div>
               )}
+
+              {/* Language selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Språk till producenten
+                </label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <select
+                    value={language}
+                    onChange={e => setLanguage(e.target.value as ReadinessPackLanguage)}
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 appearance-none"
+                  >
+                    {READINESS_PACK_LANGUAGES.map(l => (
+                      <option key={l.value} value={l.value}>{l.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
               {/* Scope selection */}
               <div>
