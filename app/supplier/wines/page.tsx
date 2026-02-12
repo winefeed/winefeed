@@ -159,8 +159,11 @@ export default function SupplierWinesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<SupplierWine | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Upload state
+  const [isUploading, setIsUploading] = useState(false);
+
   // Catalog Agent state
-  const [catalogAgentEnabled, setCatalogAgentEnabled] = useState(false);
+  const [catalogAgentEnabled, setCatalogAgentEnabled] = useState(true);
   const [qualityReport, setQualityReport] = useState<QualityReport | null>(null);
   const [enrichments, setEnrichments] = useState<EnrichmentResult[]>([]);
   const [anomalies, setAnomalies] = useState<AnomalyWarning[]>([]);
