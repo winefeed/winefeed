@@ -127,6 +127,12 @@ const COLOR_ALIASES: Record<string, WineColor> = {
   'porto': 'fortified',
   'madeira': 'fortified',
   'marsala': 'fortified',
+  'pastis': 'fortified',
+  'vermouth': 'fortified',
+  'vermut': 'fortified',
+  'armagnac': 'fortified',
+  'cognac': 'fortified',
+  'grappa': 'fortified',
 
   'orange': 'orange',
 };
@@ -491,7 +497,7 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   price: ['price', 'pris', 'price_per_bottle', 'bottle_price', 'flaskpris', 'sek'],
   moq: ['moq', 'min_order', 'min_qty', 'minimum', 'minimum_order', 'minsta_order'],
   alcohol_pct: ['alcohol_pct', 'alcohol', 'abv', 'alk', 'alkohol', 'alcohol_%', 'vol'],
-  bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'size', 'ml', 'storlek', 'flaskstorlek', 'volume', 'volym'],
+  bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'size', 'ml', 'storlek', 'flaskstorlek'],
   organic: ['organic', 'ekologisk', 'eko', 'bio'],
   biodynamic: ['biodynamic', 'biodynamisk'],
   description: ['description', 'beskrivning', 'notes', 'smakbeskrivning', 'tasting_notes'],

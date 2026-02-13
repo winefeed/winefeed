@@ -37,16 +37,41 @@ const WINE_TYPE_MAP: Record<string, string> = {
   'red': 'red',
   'röd': 'red',
   'rött': 'red',
+  'rouge': 'red',
+  'rosso': 'red',
+  'tinto': 'red',
   'white': 'white',
   'vit': 'white',
   'vitt': 'white',
+  'blanc': 'white',
+  'bianco': 'white',
   'rose': 'rose',
   'rosé': 'rose',
+  'rosa': 'rose',
+  'rosado': 'rose',
   'sparkling': 'sparkling',
   'mousserande': 'sparkling',
   'bubbel': 'sparkling',
+  'champagne': 'sparkling',
+  'cremant': 'sparkling',
+  'crémant': 'sparkling',
+  'pet-nat': 'sparkling',
+  'petnat': 'sparkling',
+  'pet nat': 'sparkling',
   'fortified': 'fortified',
   'stärkt': 'fortified',
+  'starkvin': 'fortified',
+  'sherry': 'fortified',
+  'port': 'fortified',
+  'porto': 'fortified',
+  'madeira': 'fortified',
+  'marsala': 'fortified',
+  'pastis': 'fortified',
+  'vermouth': 'fortified',
+  'vermut': 'fortified',
+  'armagnac': 'fortified',
+  'cognac': 'fortified',
+  'grappa': 'fortified',
   'orange': 'orange',
 };
 
@@ -177,16 +202,24 @@ export async function POST(
       // Parse vintage (0 = NV)
       let vintage: number | undefined;
       if (wine.vintage !== undefined && wine.vintage !== null && wine.vintage !== '') {
-        const parsed = parseInt(String(wine.vintage));
-        if (!isNaN(parsed)) {
-          if (parsed === 0 || (parsed >= 1900 && parsed <= 2100)) {
-            vintage = parsed;
-          } else {
-            rowErrors.push('Årgång måste vara 0 (NV) eller mellan 1900-2100');
-          }
+        const vintageStr = String(wine.vintage).trim().toUpperCase();
+        // Handle NV variants
+        if (['NV', 'N/V', 'N.V.', 'NON-VINTAGE', 'SA'].includes(vintageStr)) {
+          vintage = 0;
         } else {
-          rowErrors.push('Ogiltig årgång');
+          const parsed = parseInt(vintageStr);
+          if (!isNaN(parsed)) {
+            if (parsed === 0 || (parsed >= 1900 && parsed <= 2100)) {
+              vintage = parsed;
+            } else {
+              rowErrors.push('Årgång måste vara 0 (NV) eller mellan 1900-2100');
+            }
+          } else {
+            rowErrors.push('Ogiltig årgång');
+          }
         }
+      } else {
+        vintage = 0; // Default to NV if not provided
       }
 
       // Parse volume
@@ -252,8 +285,12 @@ export async function POST(
         }
       }
 
+      // Auto-generate reference if missing
+      const effectiveReference = reference ||
+        `${(producer || '').substring(0, 10)}-${(name || '').substring(0, 20)}-${vintage ?? 0}`
+          .toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-');
+
       // Validate required fields
-      if (!reference) rowErrors.push('Reference saknas');
       if (!producer) rowErrors.push('Producer saknas');
       if (!name) rowErrors.push('Cuvée/namn saknas');
       if (vintage === undefined) rowErrors.push('Vintage saknas (använd 0 för NV)');
@@ -262,9 +299,7 @@ export async function POST(
       if (type && !VALID_WINE_TYPES.includes(type)) {
         rowErrors.push(`Ogiltig type: ${type}. Giltiga: ${VALID_WINE_TYPES.join(', ')}`);
       }
-      if (volume === undefined) rowErrors.push('Volume saknas');
       if (price === undefined) rowErrors.push('List price saknas');
-      if (quantity === undefined) rowErrors.push('Quantity saknas');
       if (caseSize === undefined) rowErrors.push('Q/box saknas');
 
       // Skip row if validation errors
@@ -284,15 +319,15 @@ export async function POST(
       // Prepare wine data (using correct column names from schema)
       const wineData = {
         supplier_id: supplierId,
-        sku: reference,
+        sku: effectiveReference,
         name: name!,
         producer: producer!,
         vintage: vintage!,
         country: country!,
         color: type as 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange',
-        bottle_size_ml: volume!,
+        bottle_size_ml: volume ?? 750,
         price_ex_vat_sek: price!,
-        stock_qty: quantity!,
+        stock_qty: quantity ?? 0,
         case_size: caseSize!,
         moq: moq ?? caseSize!, // Use explicit MOQ or default to case_size
         region: wine.region?.trim() || null,
@@ -314,7 +349,7 @@ export async function POST(
         .from('supplier_wines')
         .select('id')
         .eq('supplier_id', supplierId)
-        .eq('sku', reference)
+        .eq('sku', effectiveReference)
         .single();
 
       // Insert or update
