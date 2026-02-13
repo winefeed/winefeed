@@ -129,10 +129,9 @@ export async function POST(
       );
     }
 
-    const { wines, mode = 'merge', descriptionMeta } = await request.json() as {
+    const { wines, mode = 'merge' } = await request.json() as {
       wines: WineImportRow[];
       mode: 'merge' | 'replace';
-      descriptionMeta?: Record<number, { source: 'manual' | 'ai'; originalDescription?: string | null }>;
     };
 
     if (!wines || !Array.isArray(wines) || wines.length === 0) {
@@ -338,10 +337,6 @@ export async function POST(
         description: translatedDescriptions[i] || wine.description?.trim() || null,
         is_active: true,
         location: (wine.location as 'domestic' | 'eu' | 'non_eu') || 'domestic',
-        ...(descriptionMeta?.[i] ? {
-          description_source: descriptionMeta[i].source,
-          description_original: descriptionMeta[i].originalDescription ?? null,
-        } : {}),
       };
 
       // Check for existing wine by sku (reference)

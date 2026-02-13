@@ -497,8 +497,8 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   price: ['price', 'pris', 'price_per_bottle', 'bottle_price', 'flaskpris', 'sek'],
   moq: ['moq', 'min_order', 'min_qty', 'minimum', 'minimum_order', 'minsta_order'],
   alcohol_pct: ['alcohol_pct', 'alcohol', 'abv', 'alk', 'alkohol', 'alcohol_%', 'vol'],
-  bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'size', 'ml', 'storlek', 'flaskstorlek'],
-  organic: ['organic', 'ekologisk', 'eko', 'bio'],
+  bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'ml', 'storlek', 'flaskstorlek'],
+  organic: ['organic', 'ekologisk', 'eko'],
   biodynamic: ['biodynamic', 'biodynamisk'],
   description: ['description', 'beskrivning', 'notes', 'smakbeskrivning', 'tasting_notes'],
   sku: ['sku', 'article', 'artikelnr', 'artikelnummer', 'article_number', 'product_code'],
@@ -512,6 +512,11 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
 /**
  * Map column headers to standard field names
  * Handles variations like "Wine Name", "wine_name", "Vinnamn", etc.
+ *
+ * Uses two-pass matching:
+ * 1. Exact match (normalized header === normalized alias)
+ * 2. Substring match (normalized header includes normalized alias)
+ * This prevents false matches like "case_size" matching "size" alias for bottle_size_ml.
  */
 export function normalizeColumnHeaders(headers: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
@@ -521,10 +526,23 @@ export function normalizeColumnHeaders(headers: string[]): Record<string, string
   for (const header of headers) {
     const normalized = header.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
 
+    // Pass 1: Exact match
+    let matched = false;
     for (const [field, fieldAliases] of Object.entries(aliases)) {
-      if (fieldAliases.some(alias => normalized.includes(alias.replace(/[^a-z0-9_]/g, '_')))) {
+      if (fieldAliases.some(alias => normalized === alias.replace(/[^a-z0-9_]/g, '_'))) {
         mapping[header] = field;
+        matched = true;
         break;
+      }
+    }
+
+    // Pass 2: Substring match (fallback for fuzzy headers)
+    if (!matched) {
+      for (const [field, fieldAliases] of Object.entries(aliases)) {
+        if (fieldAliases.some(alias => normalized.includes(alias.replace(/[^a-z0-9_]/g, '_')))) {
+          mapping[header] = field;
+          break;
+        }
       }
     }
   }
