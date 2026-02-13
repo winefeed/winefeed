@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireIORContext, isGuardError, guardErrorResponse } from '@/lib/ior-route-guard';
-import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 // Transform snake_case to camelCase for UI
 function transformFeedback(f: Record<string, unknown>) {
@@ -37,9 +37,9 @@ export async function GET(
     const guard = await requireIORContext(request);
     if (isGuardError(guard)) return guardErrorResponse(guard);
 
-    const supabase = getSupabaseAdmin();
+    const { userClient } = await createRouteClients();
 
-    const { data: feedback, error } = await supabase
+    const { data: feedback, error } = await userClient
       .from('ior_feedback_items')
       .select('*')
       .eq('id', feedbackId)
@@ -75,7 +75,7 @@ export async function PATCH(
     if (isGuardError(guard)) return guardErrorResponse(guard);
 
     const body = await request.json();
-    const supabase = getSupabaseAdmin();
+    const { userClient } = await createRouteClients();
 
     // Build update object
     const updateData: Record<string, unknown> = {};
@@ -110,7 +110,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
-    const { data: feedback, error } = await supabase
+    const { data: feedback, error } = await userClient
       .from('ior_feedback_items')
       .update(updateData)
       .eq('id', feedbackId)

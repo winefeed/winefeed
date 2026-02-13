@@ -26,15 +26,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { matchService } from '@/lib/match-service';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 // Security: Forbidden keys that must not appear in response
 const FORBIDDEN_PATTERN = /price|offer|currency|market|cost|value|\$|€|£|USD|EUR|GBP/i;
@@ -79,13 +73,15 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
+    const { userClient } = await createRouteClients();
+
     // Must be SELLER or ADMIN to run matching
     if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'SELLER')) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Load offer_line (tenant scoped)
-    const { data: line, error: lineError } = await supabase
+    const { data: line, error: lineError } = await userClient
       .from('offer_lines')
       .select('*')
       .eq('id', lineId)
@@ -101,7 +97,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     // SELLER must own the offer that contains this line
     if (actorService.hasRole(actor, 'SELLER') && !actorService.hasRole(actor, 'ADMIN')) {
-      const { data: offer } = await supabase
+      const { data: offer } = await userClient
         .from('offers')
         .select('supplier_id')
         .eq('id', line.offer_id)

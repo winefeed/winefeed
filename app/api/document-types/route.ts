@@ -7,17 +7,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest) {
   try {
-    const { data, error } = await supabase
+    const { userClient } = await createRouteClients();
+
+    const { data, error } = await userClient
       .from('import_document_types')
       .select('*')
       .eq('is_active', true)

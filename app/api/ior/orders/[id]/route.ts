@@ -19,13 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { orderService } from '@/lib/order-service';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -61,6 +55,8 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     const importerId = actor.importer_id;
 
     // Fetch order with details
@@ -81,21 +77,21 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     }
 
     // Enrich order with restaurant info
-    const { data: restaurant } = await supabase
+    const { data: restaurant } = await userClient
       .from('restaurants')
       .select('name, contact_email, contact_phone, address')
       .eq('id', order.restaurant_id)
       .single();
 
     // Enrich order with supplier info
-    const { data: supplier } = await supabase
+    const { data: supplier } = await userClient
       .from('suppliers')
       .select('namn, type, kontakt_email, kontakt_telefon')
       .eq('id', order.seller_supplier_id)
       .single();
 
     // Enrich order with importer info (IOR details)
-    const { data: importer } = await supabase
+    const { data: importer } = await userClient
       .from('importers')
       .select('legal_name, org_number, contact_name, contact_email, contact_phone, license_number')
       .eq('id', order.importer_of_record_id)
@@ -104,7 +100,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     // Fetch delivery location if exists
     let deliveryLocation = null;
     if (order.delivery_location_id) {
-      const { data: ddl } = await supabase
+      const { data: ddl } = await userClient
         .from('direct_delivery_locations')
         .select('*')
         .eq('id', order.delivery_location_id)
@@ -116,7 +112,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     let importCase: any = null;
     let documents: any[] = [];
     if (order.import_case_id) {
-      const { data: imp } = await supabase
+      const { data: imp } = await userClient
         .from('imports')
         .select(`
           id,
@@ -137,7 +133,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
       // Fetch 5369 documents for this import case
       if (imp) {
-        const { data: docs } = await supabase
+        const { data: docs } = await userClient
           .from('import_documents')
           .select('id, document_type, version, generated_at, file_path, file_size')
           .eq('import_id', order.import_case_id)

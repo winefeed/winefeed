@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importService } from '@/lib/import-service';
 import { orderService, OrderStatus } from '@/lib/order-service';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { sendEmail, getRestaurantRecipients, logOrderEmailEvent } from '@/lib/email-service';
 import { orderStatusUpdatedEmail } from '@/lib/email-templates';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -21,6 +15,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     if (!tenantId || !userId) {
       return NextResponse.json({ error: 'Missing auth context' }, { status: 401 });
     }
+
+    const { userClient } = await createRouteClients();
 
     const body = await request.json();
     const { to_status, why } = body;
@@ -43,7 +39,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         console.log(`Import case ${importId} approved - checking for linked orders to auto-confirm`);
 
         // Find orders linked to this import case
-        const { data: linkedOrders, error: ordersError } = await supabase
+        const { data: linkedOrders, error: ordersError } = await userClient
           .from('orders')
           .select('id, status, restaurant_id')
           .eq('tenant_id', tenantId)
@@ -72,7 +68,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
             if (order.status !== OrderStatus.CONFIRMED) {
               console.log(`Auto-confirming order ${order.id} (current status: ${order.status})`);
 
-              const { error: updateError } = await supabase
+              const { error: updateError } = await userClient
                 .from('orders')
                 .update({
                   status: OrderStatus.CONFIRMED,
@@ -87,7 +83,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
               }
 
               // Log order event: STATUS_AUTO_UPDATED
-              const { error: eventError } = await supabase
+              const { error: eventError } = await userClient
                 .from('order_events')
                 .insert({
                   tenant_id: tenantId,
@@ -116,7 +112,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
             // FAIL-SAFE: Send restaurant email notification (ORDER_STATUS_UPDATED)
             try {
-              const { data: restaurant } = await supabase
+              const { data: restaurant } = await userClient
                 .from('restaurants')
                 .select('name')
                 .eq('id', order.restaurant_id)

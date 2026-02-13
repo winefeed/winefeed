@@ -7,13 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,8 +22,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Get supplier ID from user
-    const { data: supplierUser } = await supabase
+    const { data: supplierUser } = await userClient
       .from('supplier_users')
       .select('supplier_id')
       .eq('id', userId)
@@ -70,55 +66,55 @@ export async function GET(request: NextRequest) {
       acceptedPrev30Result,
     ] = await Promise.all([
       // Total wines
-      supabase
+      userClient
         .from('supplier_wines')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId),
 
       // Active wines
-      supabase
+      userClient
         .from('supplier_wines')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
         .eq('is_active', true),
 
       // Pending requests (quote requests without an offer from this supplier)
-      supabase
+      userClient
         .from('quote_requests')
         .select('id', { count: 'exact', head: true })
         .eq('status', 'open')
         .not('id', 'in', `(select quote_request_id from offers where supplier_id = '${supplierId}')`),
 
       // Active offers (pending/sent)
-      supabase
+      userClient
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
         .in('status', ['DRAFT', 'SENT', 'pending']),
 
       // Accepted offers
-      supabase
+      userClient
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
         .in('status', ['ACCEPTED', 'accepted']),
 
       // Total offers (for win rate calculation)
-      supabase
+      userClient
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
         .in('status', ['ACCEPTED', 'accepted', 'REJECTED', 'rejected']),
 
       // Pending orders
-      supabase
+      userClient
         .from('orders')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
         .in('status', ['PENDING', 'pending']),
 
       // Recent activity (last 10 actions)
-      supabase
+      userClient
         .from('offers')
         .select(`
           id,
@@ -134,34 +130,34 @@ export async function GET(request: NextRequest) {
         .limit(5),
 
       // Assignments with response (for avg response time)
-      supabase
+      userClient
         .from('quote_request_assignments')
         .select('sent_at, responded_at')
         .eq('supplier_id', supplierId)
         .not('responded_at', 'is', null),
 
       // Total assignments received
-      supabase
+      userClient
         .from('quote_request_assignments')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId),
 
       // Completed orders
-      supabase
+      userClient
         .from('orders')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
         .in('status', ['DELIVERED', 'delivered', 'COMPLETED', 'completed']),
 
       // Offers last 30 days
-      supabase
+      userClient
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
         .gte('created_at', thirtyDaysAgo.toISOString()),
 
       // Offers previous 30 days
-      supabase
+      userClient
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
@@ -169,7 +165,7 @@ export async function GET(request: NextRequest) {
         .lt('created_at', thirtyDaysAgo.toISOString()),
 
       // Accepted last 30 days
-      supabase
+      userClient
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)
@@ -177,7 +173,7 @@ export async function GET(request: NextRequest) {
         .gte('created_at', thirtyDaysAgo.toISOString()),
 
       // Accepted previous 30 days
-      supabase
+      userClient
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('supplier_id', supplierId)

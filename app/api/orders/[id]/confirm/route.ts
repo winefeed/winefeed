@@ -8,16 +8,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { orderService } from '@/lib/order-service';
 import { sendEmail, getRestaurantRecipients, getSupplierEmail } from '@/lib/email-service';
 import { orderConfirmationEmail } from '@/lib/email-templates';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function POST(
   request: NextRequest,
@@ -35,8 +29,10 @@ export async function POST(
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Get order to find supplier
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await userClient
       .from('orders')
       .select('seller_supplier_id')
       .eq('id', orderId)
@@ -51,7 +47,7 @@ export async function POST(
     }
 
     // Verify user has access to this supplier
-    const { data: supplierUser, error: accessError } = await supabase
+    const { data: supplierUser, error: accessError } = await userClient
       .from('supplier_users')
       .select('supplier_id')
       .eq('id', userId)
@@ -86,7 +82,7 @@ export async function POST(
     // Send confirmation emails (fail-safe)
     try {
       // Get full order details for email
-      const { data: fullOrder } = await supabase
+      const { data: fullOrder } = await userClient
         .from('orders')
         .select(`
           id,
@@ -100,20 +96,20 @@ export async function POST(
 
       if (fullOrder) {
         // Get restaurant and supplier details
-        const { data: restaurant } = await supabase
+        const { data: restaurant } = await userClient
           .from('restaurants')
           .select('name, contact_email')
           .eq('id', fullOrder.buyer_restaurant_id)
           .single();
 
-        const { data: supplier } = await supabase
+        const { data: supplier } = await userClient
           .from('suppliers')
           .select('namn, kontakt_email')
           .eq('id', fullOrder.seller_supplier_id)
           .single();
 
         // Get order lines
-        const { data: orderLines } = await supabase
+        const { data: orderLines } = await userClient
           .from('order_lines')
           .select('wine_name, quantity, offered_unit_price_ore')
           .eq('order_id', orderId);

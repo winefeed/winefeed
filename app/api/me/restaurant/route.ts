@@ -6,14 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,8 +34,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Fetch restaurant details including billing fields
-    const { data: restaurant, error } = await supabase
+    const { data: restaurant, error } = await userClient
       .from('restaurants')
       .select(`
         id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code,
@@ -171,8 +167,10 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Update restaurant
-    const { data: restaurant, error } = await supabase
+    const { data: restaurant, error } = await userClient
       .from('restaurants')
       .update(updates)
       .eq('id', actor.restaurant_id)

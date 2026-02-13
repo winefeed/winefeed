@@ -11,10 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -29,13 +26,13 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       );
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const { userClient } = await createRouteClients();
 
     // ========================================================================
     // 1. Status Counts
     // ========================================================================
 
-    const { data: ddls } = await supabase
+    const { data: ddls } = await userClient
       .from('direct_delivery_locations')
       .select('id, status, created_at')
       .eq('tenant_id', tenantId)
@@ -72,7 +69,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
     if (approvedDdlIds.length > 0) {
       // Get submission events
-      const { data: submissionEvents } = await supabase
+      const { data: submissionEvents } = await userClient
         .from('ddl_status_events')
         .select('ddl_id, created_at')
         .in('ddl_id', approvedDdlIds)
@@ -80,7 +77,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
         .order('created_at', { ascending: true });
 
       // Get approval events
-      const { data: approvalEvents } = await supabase
+      const { data: approvalEvents } = await userClient
         .from('ddl_status_events')
         .select('ddl_id, created_at')
         .in('ddl_id', approvedDdlIds)
@@ -123,7 +120,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     // Count recent rejections as a proxy for blocked validations
-    const { data: recentRejections } = await supabase
+    const { data: recentRejections } = await userClient
       .from('ddl_status_events')
       .select('id')
       .eq('tenant_id', tenantId)

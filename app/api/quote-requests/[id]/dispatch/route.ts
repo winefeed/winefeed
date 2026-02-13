@@ -1,10 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { QuoteRequestRouter } from '@/lib/quote-request-router';
 import { actorService } from '@/lib/actor-service';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /**
  * POST /api/quote-requests/[id]/dispatch
@@ -64,13 +61,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     const minScore = body.minScore || 20;
     const expiresInHours = body.expiresInHours || 48;
 
-    // Create Supabase client
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
+    const { userClient } = await createRouteClients();
 
     // Step 1: Verify quote request exists
-    const { data: quoteRequest, error: requestError } = await supabase
+    const { data: quoteRequest, error: requestError } = await userClient
       .from('requests')
       .select('*')
       .eq('id', quoteRequestId)
@@ -92,7 +86,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     }
 
     // Step 2: Check if already dispatched
-    const { data: existingAssignments } = await supabase
+    const { data: existingAssignments } = await userClient
       .from('quote_request_assignments')
       .select('id')
       .eq('quote_request_id', quoteRequestId);
@@ -146,7 +140,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       expires_at: expiresAt.toISOString(),
     }));
 
-    const { data: createdAssignments, error: assignmentError } = await supabase
+    const { data: createdAssignments, error: assignmentError } = await userClient
       .from('quote_request_assignments')
       .insert(assignmentsToCreate)
       .select('id, supplier_id, match_score, match_reasons');
@@ -232,12 +226,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const { searchParams } = new URL(req.url);
     const preview = searchParams.get('preview') === 'true';
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
+    const { userClient } = await createRouteClients();
 
     // Check if quote request exists
-    const { data: quoteRequest, error: requestError } = await supabase
+    const { data: quoteRequest, error: requestError } = await userClient
       .from('requests')
       .select('*')
       .eq('id', quoteRequestId)
@@ -259,7 +251,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
 
     // Check existing assignments
-    const { data: assignments } = await supabase
+    const { data: assignments } = await userClient
       .from('quote_request_assignments')
       .select('*')
       .eq('quote_request_id', quoteRequestId);

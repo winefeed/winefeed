@@ -5,21 +5,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { productMatcherV2 } from '@/lib/matching/product-matcher-v2';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
     const { id: importId } = params;
+    const { userClient } = await createRouteClients();
 
     // STEP 1: Get import record
-    const { data: importRecord, error: importError } = await supabase
+    const { data: importRecord, error: importError } = await userClient
       .from('supplier_imports')
       .select('*')
       .eq('id', importId)
@@ -50,13 +46,13 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Update status to MATCHING
-    await supabase
+    await userClient
       .from('supplier_imports')
       .update({ status: 'MATCHING' })
       .eq('id', importId);
 
     // STEP 2: Get all pending lines
-    const { data: lines, error: linesError } = await supabase
+    const { data: lines, error: linesError } = await userClient
       .from('supplier_import_lines')
       .select('*')
       .eq('import_id', importId)
@@ -103,7 +99,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         switch (matchResult.decision) {
           case 'AUTO_MATCH':
             // Update line as matched
-            await supabase
+            await userClient
               .from('supplier_import_lines')
               .update({
                 match_status: 'AUTO_MATCHED',
@@ -118,7 +114,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
             // Optionally create mapping immediately (idempotent)
             if (matchResult.masterProductId) {
-              await supabase
+              await userClient
                 .from('supplier_product_mappings')
                 .upsert({
                   supplier_id: importRecord.supplier_id,
@@ -137,7 +133,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
           case 'AUTO_MATCH_WITH_SAMPLING_REVIEW':
             // Update line as matched with sampling flag
-            await supabase
+            await userClient
               .from('supplier_import_lines')
               .update({
                 match_status: 'SAMPLING_REVIEW',
@@ -152,7 +148,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
             // Create mapping with sampling flag
             if (matchResult.masterProductId) {
-              await supabase
+              await userClient
                 .from('supplier_product_mappings')
                 .upsert({
                   supplier_id: importRecord.supplier_id,
@@ -172,7 +168,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
           case 'REVIEW_QUEUE':
           case 'NO_MATCH':
             // Update line status
-            await supabase
+            await userClient
               .from('supplier_import_lines')
               .update({
                 match_status: matchResult.decision === 'NO_MATCH' ? 'NO_MATCH' : 'NEEDS_REVIEW',
@@ -184,7 +180,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
               .eq('id', line.id);
 
             // Insert into review queue
-            await supabase
+            await userClient
               .from('product_match_review_queue')
               .insert({
                 supplier_id: importRecord.supplier_id,
@@ -207,7 +203,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         console.error(`Error matching line ${line.line_number}:`, error);
 
         // Mark line as error
-        await supabase
+        await userClient
           .from('supplier_import_lines')
           .update({
             match_status: 'ERROR',
@@ -221,7 +217,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // STEP 4: Update import summary
-    await supabase
+    await userClient
       .from('supplier_imports')
       .update({
         status: 'MATCHED',

@@ -33,18 +33,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest) {
   try {
-    // MVP: Get user context from headers
-    // Production: Get from Supabase Auth session or JWT
     const tenantId = request.headers.get('x-tenant-id');
     const userId = request.headers.get('x-user-id');
 
@@ -62,13 +54,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Optional: Get user email from auth.users table
+    const { adminClient } = await createRouteClients();
+
+    // Get user email from auth.users table (requires admin client)
     let userEmail: string | undefined;
     try {
-      const { data: user } = await supabase.auth.admin.getUserById(userId);
+      const { data: user } = await adminClient.auth.admin.getUserById(userId);
       userEmail = user?.user?.email;
     } catch (error) {
-      // Email not critical - continue without it
       console.warn('Could not fetch user email:', error);
     }
 

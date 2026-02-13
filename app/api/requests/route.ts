@@ -27,14 +27,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,6 +42,8 @@ export async function GET(request: NextRequest) {
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
+    const { userClient } = await createRouteClients();
+
     // Query params
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'OPEN';
@@ -58,14 +54,14 @@ export async function GET(request: NextRequest) {
 
     if (actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
       // Restaurant users only see their own requests - filter by restaurant_id
-      const { data: requests } = await supabase
+      const { data: requests } = await userClient
         .from('requests')
         .select('id')
         .eq('restaurant_id', actor.restaurant_id);
       requestIds = requests?.map(r => r.id) || [];
     } else if (actorService.hasRole(actor, 'SELLER') && !actorService.hasRole(actor, 'ADMIN')) {
       // Sellers only see requests they're assigned to
-      const { data: assignments } = await supabase
+      const { data: assignments } = await userClient
         .from('quote_request_assignments')
         .select('quote_request_id')
         .eq('supplier_id', actor.supplier_id);
@@ -73,7 +69,7 @@ export async function GET(request: NextRequest) {
     }
     // ADMIN sees all requests (requestIds remains null)
 
-    let query = supabase
+    let query = userClient
       .from('requests')
       .select('id, restaurant_id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, accepted_offer_id, created_at');
 
@@ -109,7 +105,7 @@ export async function GET(request: NextRequest) {
     let latestOfferMap: Record<string, string> = {};
 
     if (fetchedRequestIds.length > 0) {
-      const { data: offers } = await supabase
+      const { data: offers } = await userClient
         .from('offers')
         .select('request_id, status, created_at')
         .in('request_id', fetchedRequestIds)
@@ -144,7 +140,7 @@ export async function GET(request: NextRequest) {
     let trackingMap: Record<string, TrackingData> = {};
 
     if (fetchedRequestIds.length > 0) {
-      const { data: assignments } = await supabase
+      const { data: assignments } = await userClient
         .from('quote_request_assignments')
         .select('quote_request_id, status, sent_at, expires_at')
         .in('quote_request_id', fetchedRequestIds);

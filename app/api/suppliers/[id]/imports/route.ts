@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { parse } from 'csv-parse/sync';
 import { actorService } from '@/lib/actor-service';
 
@@ -37,11 +37,6 @@ function decodeCSVBuffer(buffer: ArrayBuffer): string {
 
   return utf8Text;
 }
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // Helper to generate content hash
 function generateLineHash(line: any): string {
@@ -84,6 +79,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Parse multipart form or JSON
     const contentType = request.headers.get('content-type') || '';
     let csvText: string;
@@ -111,7 +108,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // STEP 1: Create import record
-    const { data: importRecord, error: importError } = await supabase
+    const { data: importRecord, error: importError } = await userClient
       .from('supplier_imports')
       .insert({
         supplier_id: supplierId,
@@ -140,7 +137,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         trim: true
       });
     } catch (parseError) {
-      await supabase
+      await userClient
         .from('supplier_imports')
         .update({ status: 'FAILED' })
         .eq('id', importId);
@@ -185,13 +182,13 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       };
     });
 
-    const { error: linesError } = await supabase
+    const { error: linesError } = await userClient
       .from('supplier_import_lines')
       .insert(lines);
 
     if (linesError) {
       console.error('Failed to insert lines:', linesError);
-      await supabase
+      await userClient
         .from('supplier_imports')
         .update({ status: 'FAILED' })
         .eq('id', importId);
@@ -203,7 +200,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // STEP 4: Update import status
-    await supabase
+    await userClient
       .from('supplier_imports')
       .update({
         status: 'PARSED',

@@ -7,14 +7,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { requireIORContext, isGuardError, guardErrorResponse } from '@/lib/ior-route-guard';
 import { iorPortfolioService } from '@/lib/ior-portfolio-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 // Transform snake_case producer to camelCase for UI
 function transformProducer(p: Record<string, unknown>) {
@@ -100,11 +95,13 @@ export async function DELETE(
     const guard = await requireIORContext(request);
     if (isGuardError(guard)) return guardErrorResponse(guard);
 
+    const { userClient } = await createRouteClients();
+
     const { searchParams } = new URL(request.url);
     const productsOnly = searchParams.get('productsOnly') === 'true';
 
     // Verify producer belongs to this importer
-    const { data: producer } = await supabase
+    const { data: producer } = await userClient
       .from('ior_producers')
       .select('id, name')
       .eq('id', producerId)
@@ -116,7 +113,7 @@ export async function DELETE(
     }
 
     // Delete all products for this producer
-    const { count: deletedProducts } = await supabase
+    const { count: deletedProducts } = await userClient
       .from('ior_products')
       .delete({ count: 'exact' })
       .eq('producer_id', producerId);
@@ -130,7 +127,7 @@ export async function DELETE(
     }
 
     // Also delete the producer
-    await supabase
+    await userClient
       .from('ior_producers')
       .delete()
       .eq('id', producerId);

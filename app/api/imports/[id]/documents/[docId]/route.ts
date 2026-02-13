@@ -13,13 +13,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 const STORAGE_BUCKET = 'documents';
 
@@ -49,8 +43,10 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    const { userClient } = await createRouteClients();
+
     // Fetch document with type info
-    const { data: document, error } = await supabase
+    const { data: document, error } = await userClient
       .from('import_documents')
       .select(`
         *,
@@ -142,8 +138,10 @@ export async function PATCH(
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Fetch current document
-    const { data: document, error: fetchError } = await supabase
+    const { data: document, error: fetchError } = await userClient
       .from('import_documents')
       .select('id, status, type, import_id')
       .eq('id', docId)
@@ -191,7 +189,7 @@ export async function PATCH(
     }
 
     // Update document
-    const { data: updatedDocument, error: updateError } = await supabase
+    const { data: updatedDocument, error: updateError } = await userClient
       .from('import_documents')
       .update(updateData)
       .eq('id', docId)
@@ -208,7 +206,7 @@ export async function PATCH(
     }
 
     // Get document type name for response
-    const { data: docType } = await supabase
+    const { data: docType } = await userClient
       .from('import_document_types')
       .select('name_sv')
       .eq('code', document.type)
@@ -269,8 +267,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    const { userClient } = await createRouteClients();
+
     // Fetch current document with import info
-    const { data: document, error: fetchError } = await supabase
+    const { data: document, error: fetchError } = await userClient
       .from('import_documents')
       .select('id, status, storage_path, type, import_id, is_required')
       .eq('id', docId)
@@ -285,14 +285,14 @@ export async function DELETE(
     // Guard: Cannot delete VERIFIED documents (unless ADMIN with explicit override)
     if (document.status === 'VERIFIED') {
       // Check if this is the last verified document of this required type
-      const { data: importCase } = await supabase
+      const { data: importCase } = await userClient
         .from('imports')
         .select('status')
         .eq('id', importId)
         .single();
 
       // Check if this doc type is required for current status
-      const { data: docType } = await supabase
+      const { data: docType } = await userClient
         .from('import_document_types')
         .select('required_for_status')
         .eq('code', document.type)
@@ -302,7 +302,7 @@ export async function DELETE(
 
       if (isRequiredForCurrentStatus) {
         // Count other verified docs of this type
-        const { count } = await supabase
+        const { count } = await userClient
           .from('import_documents')
           .select('id', { count: 'exact', head: true })
           .eq('import_id', importId)
@@ -334,7 +334,7 @@ export async function DELETE(
 
     // Delete from storage
     if (document.storage_path) {
-      const { error: storageError } = await supabase.storage
+      const { error: storageError } = await userClient.storage
         .from(STORAGE_BUCKET)
         .remove([document.storage_path]);
 
@@ -345,7 +345,7 @@ export async function DELETE(
     }
 
     // Delete database record
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await userClient
       .from('import_documents')
       .delete()
       .eq('id', docId)

@@ -5,15 +5,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
 import { getMatchingWines } from '@/lib/notifications-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,12 +37,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     const searchParams = request.nextUrl.searchParams;
     const requestId = searchParams.get('request_id');
 
     if (requestId) {
       // Get specific request and find matching wines
-      const { data: req } = await supabase
+      const { data: req } = await userClient
         .from('requests')
         .select('id, fritext, vin_typ, land, region, budget_per_flaska')
         .eq('id', requestId)
@@ -80,7 +76,7 @@ export async function GET(request: NextRequest) {
 
     // Get all pending requests with potential matches
     const now = new Date().toISOString();
-    const { data: pendingRequests } = await supabase
+    const { data: pendingRequests } = await userClient
       .from('requests')
       .select(`
         id,
@@ -98,7 +94,7 @@ export async function GET(request: NextRequest) {
       .limit(10);
 
     // Get existing offers from this supplier
-    const { data: supplierOffers } = await supabase
+    const { data: supplierOffers } = await userClient
       .from('offers')
       .select('request_id')
       .eq('supplier_id', actor.supplier_id);

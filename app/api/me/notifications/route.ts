@@ -8,13 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 // Default settings for new users
 const DEFAULT_SETTINGS = {
@@ -40,8 +34,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Fetch user's notification preferences
-    const { data: preferences, error } = await supabase
+    const { data: preferences, error } = await userClient
       .from('user_notification_preferences')
       .select('*')
       .eq('user_id', userId)
@@ -136,8 +132,10 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    const { userClient } = await createRouteClients();
+
     // Upsert preferences (create if not exists, update if exists)
-    const { data, error } = await supabase
+    const { data, error } = await userClient
       .from('user_notification_preferences')
       .upsert(
         {

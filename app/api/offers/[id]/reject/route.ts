@@ -10,7 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
 import {
   validateOfferTransition,
@@ -19,12 +19,6 @@ import {
 } from '@/lib/state-machine';
 import { sendEmail, getSupplierEmail, logEmailEvent, WINEFEED_FROM } from '@/lib/email-service';
 import { offerDeclinedEmail } from '@/lib/email-templates';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -44,12 +38,14 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       tenant_id: tenantId,
     });
 
+    const { userClient } = await createRouteClients();
+
     const offerId = params.id;
     const body = await request.json().catch(() => ({}));
     const { reason } = body;
 
     // Fetch current offer with request info
-    const { data: offer, error: fetchError } = await supabase
+    const { data: offer, error: fetchError } = await userClient
       .from('offers')
       .select(`
         id,
@@ -103,7 +99,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Update offer
-    const { data: updatedOffer, error: updateError } = await supabase
+    const { data: updatedOffer, error: updateError } = await userClient
       .from('offers')
       .update({
         status: 'REJECTED',
@@ -119,7 +115,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Log event
-    await supabase.from('offer_events').insert({
+    await userClient.from('offer_events').insert({
       offer_id: offerId,
       event_type: 'rejected',
       from_status: fromStatus,
@@ -138,8 +134,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         if (supplierEmail) {
           // Fetch supplier and restaurant names for email
           const [supplierResult, restaurantResult] = await Promise.all([
-            supabase.from('suppliers').select('namn').eq('id', offer.supplier_id).single(),
-            supabase.from('restaurants').select('name').eq('id', requestRestaurantId).single()
+            userClient.from('suppliers').select('namn').eq('id', offer.supplier_id).single(),
+            userClient.from('restaurants').select('name').eq('id', requestRestaurantId).single()
           ]);
 
           const requestData = offer.requests as any;
@@ -161,7 +157,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
           });
 
           // Mark email as sent (idempotency)
-          await supabase
+          await userClient
             .from('offers')
             .update({ declined_email_sent_at: new Date().toISOString() })
             .eq('id', offerId);

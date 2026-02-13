@@ -7,14 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 interface LineUpdate {
   lineId: string;
@@ -47,6 +41,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    const { userClient } = await createRouteClients();
 
     // Verify IOR access
     if (!actorService.hasRole(actor, 'IOR') && !actorService.hasRole(actor, 'ADMIN')) {
@@ -68,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     // Verify order exists and belongs to IOR (if not admin)
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await userClient
       .from('orders')
       .select('id, importer_of_record_id')
       .eq('id', orderId)
@@ -110,7 +105,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
 
       // Update the order line
-      const { error: updateError } = await supabase
+      const { error: updateError } = await userClient
         .from('order_lines')
         .update(filteredData)
         .eq('id', update.lineId)
@@ -126,7 +121,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     // Log event
-    await supabase.from('order_events').insert({
+    await userClient.from('order_events').insert({
       tenant_id: tenantId,
       order_id: orderId,
       event_type: 'COMPLIANCE_UPDATED',

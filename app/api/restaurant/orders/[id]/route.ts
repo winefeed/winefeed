@@ -18,13 +18,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
 import { orderService } from '@/lib/order-service';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -77,15 +71,17 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Enrich order with supplier info
-    const { data: supplier } = await supabase
+    const { data: supplier } = await userClient
       .from('suppliers')
       .select('namn, type, kontakt_email')
       .eq('id', order.seller_supplier_id)
       .single();
 
     // Enrich order with importer info
-    const { data: importer } = await supabase
+    const { data: importer } = await userClient
       .from('importers')
       .select('legal_name, contact_email')
       .eq('id', order.importer_of_record_id)
@@ -97,7 +93,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     let complianceSummary: any = null;
 
     if (order.import_case_id) {
-      const { data: imp } = await supabase
+      const { data: imp } = await userClient
         .from('imports')
         .select(`
           id,
@@ -117,7 +113,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
       // Fetch latest 5369 document
       if (imp) {
-        const { data: docs } = await supabase
+        const { data: docs } = await userClient
           .from('import_documents')
           .select('id, document_type, version, generated_at, file_path')
           .eq('import_id', order.import_case_id)

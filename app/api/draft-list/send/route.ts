@@ -19,16 +19,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
 import { sendEmail, getSupplierEmail } from '@/lib/email-service';
 import { newQuoteRequestEmail } from '@/lib/email-templates';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 interface DraftWineItem {
   wine_id: string;
@@ -64,6 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    const { userClient } = await createRouteClients();
 
     // Only RESTAURANT or ADMIN can send draft lists
     if (!actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
@@ -83,7 +78,7 @@ export async function POST(request: NextRequest) {
     if (!restaurantId) {
       if (actorService.hasRole(actor, 'ADMIN')) {
         // Admin fallback: get any restaurant
-        const { data: restaurant } = await supabase
+        const { data: restaurant } = await userClient
           .from('restaurants')
           .select('id')
           .limit(1)
@@ -124,7 +119,7 @@ export async function POST(request: NextRequest) {
     const supplierIds = [...new Set(items.map(i => i.supplier_id))];
 
     // Create the request
-    const { data: savedRequest, error: requestError } = await supabase
+    const { data: savedRequest, error: requestError } = await userClient
       .from('requests')
       .insert({
         restaurant_id: restaurantId,
@@ -165,7 +160,7 @@ export async function POST(request: NextRequest) {
       provorder_fee: item.provorder ? (item.provorder_fee || 500) : null,
     }));
 
-    const { error: itemsError } = await supabase
+    const { error: itemsError } = await userClient
       .from('request_items')
       .insert(requestItems);
 
@@ -186,7 +181,7 @@ export async function POST(request: NextRequest) {
       expires_at: expiresAt.toISOString(),
     }));
 
-    const { data: createdAssignments, error: assignmentError } = await supabase
+    const { data: createdAssignments, error: assignmentError } = await userClient
       .from('quote_request_assignments')
       .insert(assignments)
       .select('id');
@@ -206,7 +201,7 @@ export async function POST(request: NextRequest) {
     let emailsSent = 0;
     try {
       // Get restaurant name for emails
-      const { data: restaurant } = await supabase
+      const { data: restaurant } = await userClient
         .from('restaurants')
         .select('name')
         .eq('id', restaurantId)
@@ -215,7 +210,7 @@ export async function POST(request: NextRequest) {
       const restaurantName = restaurant?.name || 'En restaurang';
 
       // Get supplier details for emails
-      const { data: suppliers } = await supabase
+      const { data: suppliers } = await userClient
         .from('suppliers')
         .select('id, namn, kontakt_email')
         .in('id', supplierIds);

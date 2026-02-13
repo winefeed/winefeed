@@ -14,14 +14,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 // Fields allowed for bulk update (subset of individual update)
 const BULK_EDITABLE_FIELDS = [
@@ -87,8 +81,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
     }
 
+    const { userClient } = await createRouteClients();
+
     // Verify all wines belong to this supplier
-    const { data: existingWines, error: checkError } = await supabase
+    const { data: existingWines, error: checkError } = await userClient
       .from('supplier_wines')
       .select('id')
       .eq('supplier_id', supplierId)
@@ -110,7 +106,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Perform bulk update
-    const { data: updatedWines, error: updateError } = await supabase
+    const { data: updatedWines, error: updateError } = await userClient
       .from('supplier_wines')
       .update(filteredUpdates)
       .eq('supplier_id', supplierId)

@@ -13,16 +13,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { offerService, CreateOfferInput } from '@/lib/offer-service';
 import { sendEmail, getRestaurantEmail, logEmailEvent } from '@/lib/email-service';
 import { offerCreatedEmail } from '@/lib/email-templates';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
 import { checkActionGate, createGatedResponse } from '@/lib/feature-gates';
 import { incrementUsage } from '@/lib/subscription-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,6 +29,8 @@ export async function POST(request: NextRequest) {
     }
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+
+    const { userClient } = await createRouteClients();
 
     // Only SELLER or ADMIN can create offers
     if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'SELLER')) {
@@ -125,19 +121,19 @@ export async function POST(request: NextRequest) {
 
         if (restaurantEmail) {
           // Fetch request and supplier details for email
-          const { data: requestData } = await supabase
+          const { data: requestData } = await userClient
             .from('requests')
             .select('id, fritext')
             .eq('id', request_id)
             .single();
 
-          const { data: supplierData } = await supabase
+          const { data: supplierData } = await userClient
             .from('suppliers')
             .select('namn')
             .eq('id', supplier_id || '')
             .single();
 
-          const { data: restaurantData } = await supabase
+          const { data: restaurantData } = await userClient
             .from('restaurants')
             .select('name')
             .eq('id', restaurant_id)

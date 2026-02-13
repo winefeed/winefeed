@@ -28,14 +28,8 @@ import { offerService } from '@/lib/offer-service';
 import { orderService } from '@/lib/order-service';
 import { sendEmail, getSupplierEmail, getRestaurantEmail, logEmailEvent, logOrderEmailEvent } from '@/lib/email-service';
 import { offerAcceptedEmail, orderConfirmationEmail } from '@/lib/email-templates';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -53,6 +47,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
+    const { userClient } = await createRouteClients();
+
     // Only RESTAURANT users or ADMIN can accept offers
     if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'RESTAURANT')) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
@@ -60,7 +56,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     // Load offer first to check existence and ownership
     // Note: offers table doesn't have tenant_id, get restaurant via request
-    const { data: existingOffer, error: offerError } = await supabase
+    const { data: existingOffer, error: offerError } = await userClient
       .from('offers')
       .select(`
         id,
@@ -95,7 +91,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Check if restaurant has org_number (required for orders/invoicing)
-    const { data: restaurant } = await supabase
+    const { data: restaurant } = await userClient
       .from('restaurants')
       .select('org_number')
       .eq('id', offerRestaurantId)
@@ -113,7 +109,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Validate assignment is valid and not expired
-    const { data: assignment, error: assignmentError } = await supabase
+    const { data: assignment, error: assignmentError } = await userClient
       .from('quote_request_assignments')
       .select('id, status, expires_at')
       .eq('quote_request_id', existingOffer.request_id)
@@ -183,13 +179,13 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
           const orderDetails = await orderService.getOrder(orderId, tenantId);
 
           if (orderDetails) {
-            const { data: restaurantData } = await supabase
+            const { data: restaurantData } = await userClient
               .from('restaurants')
               .select('name, city')
               .eq('id', offer.restaurant_id)
               .single();
 
-            const { data: supplierData } = await supabase
+            const { data: supplierData } = await userClient
               .from('suppliers')
               .select('namn')
               .eq('id', offer.supplier_id || '')
@@ -252,13 +248,13 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
         if (supplierEmail) {
           // Fetch supplier and restaurant details for email
-          const { data: supplierData } = await supabase
+          const { data: supplierData } = await userClient
             .from('suppliers')
             .select('namn')
             .eq('id', offer.supplier_id)
             .single();
 
-          const { data: restaurantData } = await supabase
+          const { data: restaurantData } = await userClient
             .from('restaurants')
             .select('name')
             .eq('id', offer.restaurant_id)

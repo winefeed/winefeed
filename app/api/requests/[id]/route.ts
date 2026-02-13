@@ -26,14 +26,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -48,9 +42,11 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
+    const { userClient } = await createRouteClients();
+
     // SECURITY: Tenant-scope via restaurants.tenant_id JOIN
     // Step 1: Fetch request with restaurant info
-    const { data: requestData, error: requestError } = await supabase
+    const { data: requestData, error: requestError } = await userClient
       .from('requests')
       .select('*')
       .eq('id', requestId)
@@ -72,7 +68,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
         }
       } else if (actorService.hasRole(actor, 'SELLER')) {
         // Sellers can only view requests they've been assigned to
-        const { data: assignment } = await supabase
+        const { data: assignment } = await userClient
           .from('quote_request_assignments')
           .select('id')
           .eq('quote_request_id', requestId)
@@ -105,7 +101,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
     // Fetch related offers
     // Note: offers table may not have tenant_id - security is via request ownership
-    const { data: offers, error: offersError } = await supabase
+    const { data: offers, error: offersError } = await userClient
       .from('offers')
       .select('id, status, supplier_id, title, currency, created_at, updated_at, accepted_at, locked_at')
       .eq('request_id', requestId)
@@ -119,7 +115,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     const offerIds = offers?.map(o => o.id) || [];
     const offersWithDetails = await Promise.all(
       (offers || []).map(async (offer) => {
-        const { data: lines } = await supabase
+        const { data: lines } = await userClient
           .from('offer_lines')
           .select('quantity, offered_unit_price_ore')
           .eq('offer_id', offer.id);

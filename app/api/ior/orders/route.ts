@@ -22,13 +22,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { orderService } from '@/lib/order-service';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,6 +53,8 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    const { userClient } = await createRouteClients();
 
     // For IOR users, use their importer_id; for ADMIN, show all IOR orders
     const importerId = actor.importer_id;
@@ -91,7 +87,7 @@ export async function GET(request: NextRequest) {
       });
     } else if (isAdmin) {
       // ADMIN without specific importer - fetch all orders with IOR assigned
-      let query = supabase
+      let query = userClient
         .from('orders')
         .select(`
           id,
@@ -131,14 +127,14 @@ export async function GET(request: NextRequest) {
     const enrichedOrders = await Promise.all(
       orders.map(async (order) => {
         // Fetch restaurant name
-        const { data: restaurant } = await supabase
+        const { data: restaurant } = await userClient
           .from('restaurants')
           .select('name, contact_email')
           .eq('id', order.restaurant_id)
           .single();
 
         // Fetch supplier name
-        const { data: supplier } = await supabase
+        const { data: supplier } = await userClient
           .from('suppliers')
           .select('namn, type')
           .eq('id', order.seller_supplier_id)

@@ -5,14 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,10 +36,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     const now = new Date();
 
     // Get all requests
-    const { data: allRequests } = await supabase
+    const { data: allRequests } = await userClient
       .from('requests')
       .select(`
         id,
@@ -67,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     // Get supplier's offers to find which requests they've responded to
     const requestIds = allRequests.map(r => r.id);
-    const { data: supplierOffers } = await supabase
+    const { data: supplierOffers } = await userClient
       .from('offers')
       .select('request_id')
       .eq('supplier_id', actor.supplier_id)

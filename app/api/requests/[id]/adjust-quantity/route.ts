@@ -8,15 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-// Supabase client with service role
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export interface AdjustQuantityRequest {
   wineId: string;         // ID of the supplier_wine or request_wine
@@ -55,6 +48,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
+    const { userClient } = await createRouteClients();
+
     // Must be RESTAURANT role
     if (!actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
       return NextResponse.json(
@@ -82,7 +77,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Verify request exists and is in a state that allows modification
-    const { data: requestData, error: requestError } = await supabase
+    const { data: requestData, error: requestError } = await userClient
       .from('requests')
       .select('id, status, restaurant_id')
       .eq('id', requestId)
@@ -113,7 +108,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Check if request_wines table exists and has this wine
-    const { data: requestWine, error: requestWineError } = await supabase
+    const { data: requestWine, error: requestWineError } = await userClient
       .from('request_wines')
       .select('id, requested_quantity, adjusted_quantity, supplier_wine_id')
       .eq('request_id', requestId)
@@ -124,7 +119,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       // Update request_wines record
       const originalQuantity = requestWine.adjusted_quantity || requestWine.requested_quantity;
 
-      const { error: updateError } = await supabase
+      const { error: updateError } = await userClient
         .from('request_wines')
         .update({
           adjusted_quantity: newQuantity,
@@ -141,7 +136,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       }
 
       // Update request's updated_at
-      await supabase
+      await userClient
         .from('requests')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', requestId);
@@ -162,7 +157,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
     // Fallback: Try to update quantity field directly on request if it's stored there
     // This handles legacy data structure where quantity might be on the request itself
-    const { data: existingRequest, error: fetchError } = await supabase
+    const { data: existingRequest, error: fetchError } = await userClient
       .from('requests')
       .select('quantity, wine_id')
       .eq('id', requestId)
@@ -186,7 +181,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const originalQuantity = existingRequest.quantity || 0;
 
     // Update quantity on request
-    const { error: updateRequestError } = await supabase
+    const { error: updateRequestError } = await userClient
       .from('requests')
       .update({
         quantity: newQuantity,
@@ -196,7 +191,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
     if (updateRequestError) {
       // If quantity column doesn't exist, create a request_wines entry instead
-      const { error: insertError } = await supabase
+      const { error: insertError } = await userClient
         .from('request_wines')
         .insert({
           request_id: requestId,

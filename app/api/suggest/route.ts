@@ -1,33 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
 import { runMatchingAgentPipeline } from '@/lib/matching-agent/pipeline';
 import { buildSommelierContext } from '@/lib/sommelier-context';
-
-// Create admin client lazily to avoid startup errors
-function getSupabaseAdmin() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-}
-
-// MVP: Get any existing restaurant for testing
-async function getAnyRestaurant(): Promise<string | null> {
-  const { data: existing, error } = await getSupabaseAdmin()
-    .from('restaurants')
-    .select('id')
-    .limit(1)
-    .single();
-
-  if (error || !existing) {
-    console.log('No restaurants found, using placeholder ID');
-    return null;
-  }
-
-  return existing.id;
-}
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,21 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Check environment variables
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      console.error('Missing NEXT_PUBLIC_SUPABASE_URL');
-      return NextResponse.json(
-        { error: 'Server configuration error', details: 'Missing Supabase URL' },
-        { status: 500 }
-      );
-    }
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('Missing SUPABASE_SERVICE_ROLE_KEY');
-      return NextResponse.json(
-        { error: 'Server configuration error', details: 'Missing service role key' },
-        { status: 500 }
-      );
-    }
+    const { userClient } = await createRouteClients();
 
     const body = await request.json();
     const {
@@ -98,7 +59,12 @@ export async function POST(request: NextRequest) {
     if (!restaurantId) {
       if (actorService.hasRole(actor, 'ADMIN')) {
         // Admin fallback: use any existing restaurant for testing
-        const fallbackRestaurant = await getAnyRestaurant();
+        const { data: fallbackRow } = await userClient
+          .from('restaurants')
+          .select('id')
+          .limit(1)
+          .single();
+        const fallbackRestaurant = fallbackRow?.id || null;
         if (!fallbackRestaurant) {
           return NextResponse.json(
             { error: 'Ingen restaurang finns i systemet. Skapa en restaurang först.' },
@@ -116,7 +82,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { data: savedRequest, error: requestError } = await getSupabaseAdmin()
+    const { data: savedRequest, error: requestError } = await userClient
       .from('requests')
       .insert({
         restaurant_id: restaurantId,

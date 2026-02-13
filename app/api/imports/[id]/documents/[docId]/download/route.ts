@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 const STORAGE_BUCKET = 'documents';
 const SIGNED_URL_EXPIRES_IN = 300; // 5 minutes
@@ -40,8 +34,10 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    const { userClient } = await createRouteClients();
+
     // 1. Verify import case exists and belongs to tenant
-    const { data: importCase, error: importError } = await supabase
+    const { data: importCase, error: importError } = await userClient
       .from('imports')
       .select('id')
       .eq('id', importId)
@@ -56,7 +52,7 @@ export async function GET(
     }
 
     // 2. Fetch document and verify tenant + import match
-    const { data: document, error: docError } = await supabase
+    const { data: document, error: docError } = await userClient
       .from('import_documents')
       .select('id, storage_path, type, version')
       .eq('id', documentId)
@@ -72,7 +68,7 @@ export async function GET(
     }
 
     // 3. Create signed URL from Supabase Storage
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+    const { data: signedUrlData, error: signedUrlError } = await userClient.storage
       .from(STORAGE_BUCKET)
       .createSignedUrl(document.storage_path, SIGNED_URL_EXPIRES_IN);
 

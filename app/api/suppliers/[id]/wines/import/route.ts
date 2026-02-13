@@ -24,16 +24,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
 import { checkActionGate, createGatedResponse } from '@/lib/feature-gates';
 import { batchTranslateToSwedish } from '@/lib/ai/translate';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 // Wine types that match the wine_color enum in database
 const VALID_WINE_TYPES = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange'];
@@ -123,8 +117,10 @@ export async function POST(
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Validate supplier exists
-    const { data: supplier } = await supabase
+    const { data: supplier } = await userClient
       .from('suppliers')
       .select('id')
       .eq('id', supplierId)
@@ -159,7 +155,7 @@ export async function POST(
 
     // If replace mode, deactivate all existing wines first
     if (mode === 'replace') {
-      await supabase
+      await userClient
         .from('supplier_wines')
         .update({ is_active: false })
         .eq('supplier_id', supplierId);
@@ -314,7 +310,7 @@ export async function POST(
       };
 
       // Check for existing wine by sku (reference)
-      const { data: existingWine } = await supabase
+      const { data: existingWine } = await userClient
         .from('supplier_wines')
         .select('id')
         .eq('supplier_id', supplierId)
@@ -323,7 +319,7 @@ export async function POST(
 
       // Insert or update
       if (existingWine) {
-        const { error } = await supabase
+        const { error } = await userClient
           .from('supplier_wines')
           .update(wineData)
           .eq('id', existingWine.id);
@@ -335,7 +331,7 @@ export async function POST(
           updatedCount++;
         }
       } else {
-        const { error } = await supabase
+        const { error } = await userClient
           .from('supplier_wines')
           .insert(wineData);
 

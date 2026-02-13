@@ -7,14 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -45,7 +39,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { data: address, error } = await supabase
+    const { userClient } = await createRouteClients();
+
+    const { data: address, error } = await userClient
       .from('restaurant_delivery_addresses')
       .select('*')
       .eq('id', id)
@@ -94,8 +90,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Verify address belongs to restaurant
-    const { data: existing } = await supabase
+    const { data: existing } = await userClient
       .from('restaurant_delivery_addresses')
       .select('id')
       .eq('id', id)
@@ -132,7 +130,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { data: address, error } = await supabase
+    const { data: address, error } = await userClient
       .from('restaurant_delivery_addresses')
       .update(updateData)
       .eq('id', id)
@@ -182,8 +180,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Soft delete - set is_active = false
-    const { error } = await supabase
+    const { error } = await userClient
       .from('restaurant_delivery_addresses')
       .update({ is_active: false })
       .eq('id', id)

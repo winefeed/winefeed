@@ -1,10 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
 import { sponsoredSlotsService } from '@/lib/sponsored-slots-service';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /**
  * POST /api/quote-requests/[id]/offers
@@ -97,6 +94,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Validate lead time and date
     if (leadTimeDays < 0) {
       return NextResponse.json({ error: 'Lead time must be non-negative' }, { status: 400 });
@@ -106,12 +105,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       return NextResponse.json({ error: 'Invalid delivery date format' }, { status: 400 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
-
     // 1. Verify quote request exists
-    const { data: quoteRequest, error: requestError } = await supabase
+    const { data: quoteRequest, error: requestError } = await userClient
       .from('requests')
       .select('id, restaurant_id')
       .eq('id', requestId)
@@ -122,7 +117,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     }
 
     // 2. Verify supplier exists and is active
-    const { data: supplier, error: supplierError } = await supabase
+    const { data: supplier, error: supplierError } = await userClient
       .from('suppliers')
       .select('id, type, is_active')
       .eq('id', supplierId)
@@ -137,7 +132,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     // 3. Validate all wines belong to this supplier
     const wineIds = lines.map(l => l.supplierWineId);
-    const { data: supplierWines, error: winesError } = await supabase
+    const { data: supplierWines, error: winesError } = await userClient
       .from('supplier_wines')
       .select('id, supplier_id, name, producer, price_ex_vat_sek, vat_rate, moq, vintage, country, region')
       .in('id', wineIds);
@@ -184,7 +179,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     }
 
     // 4. Validate assignment exists and is not expired
-    const { data: assignment, error: assignmentError } = await supabase
+    const { data: assignment, error: assignmentError } = await userClient
       .from('quote_request_assignments')
       .select('*')
       .eq('quote_request_id', requestId)
@@ -234,7 +229,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       offerInsert.shipping_notes = body.shipping_notes;
     }
 
-    const { data: offer, error: offerError } = await supabase
+    const { data: offer, error: offerError } = await userClient
       .from('offers')
       .insert(offerInsert)
       .select('*')
@@ -267,13 +262,13 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       };
     });
 
-    const { error: linesError } = await supabase
+    const { error: linesError } = await userClient
       .from('offer_lines')
       .insert(offerLines);
 
     if (linesError) {
       // Rollback: delete the offer header
-      await supabase.from('offers').delete().eq('id', offer.id);
+      await userClient.from('offers').delete().eq('id', offer.id);
       console.error('Failed to create offer lines:', linesError);
       return NextResponse.json(
         { error: 'Failed to create offer lines', details: linesError.message },
@@ -283,7 +278,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     // 8. Auto-update assignment status to RESPONDED
     if (assignment.status !== 'RESPONDED') {
-      await supabase
+      await userClient
         .from('quote_request_assignments')
         .update({
           status: 'RESPONDED',
@@ -381,12 +376,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const { searchParams } = new URL(req.url);
     const includeExpired = searchParams.get('includeExpired') === 'true';
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
+    const { userClient } = await createRouteClients();
 
     // Verify request exists AND get restaurant ownership
-    const { data: quoteRequest, error: requestError } = await supabase
+    const { data: quoteRequest, error: requestError } = await userClient
       .from('requests')
       .select('id, restaurant_id')
       .eq('id', requestId)
@@ -409,7 +402,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
 
     // Get all offers for this request WITH offer_lines join
-    const { data: offers, error: offersError } = await supabase
+    const { data: offers, error: offersError } = await userClient
       .from('offers')
       .select(`
         id,
@@ -461,7 +454,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     // Get assignments for match scores
     const supplierIds = [...new Set((offers || []).map(o => o.supplier_id).filter(Boolean))];
-    const { data: assignments } = await supabase
+    const { data: assignments } = await userClient
       .from('quote_request_assignments')
       .select('*')
       .eq('quote_request_id', requestId)
@@ -490,7 +483,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     let legacyWineMap = new Map<string, any>();
     if (legacyWineIds.length > 0) {
-      const { data: legacyWines } = await supabase
+      const { data: legacyWines } = await userClient
         .from('supplier_wines')
         .select('id, name, producer, country, region, vintage')
         .in('id', legacyWineIds);

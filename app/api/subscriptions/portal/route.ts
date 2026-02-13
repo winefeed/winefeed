@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import Stripe from 'stripe';
 
 // Lazy initialization to avoid build-time errors
@@ -19,18 +19,10 @@ function getStripe() {
   });
 }
 
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-}
-
 export async function GET(request: NextRequest) {
   try {
     const stripe = getStripe();
-    const supabase = getSupabase();
+    const { userClient } = await createRouteClients();
 
     const userId = request.headers.get('x-user-id');
     const tenantId = request.headers.get('x-tenant-id');
@@ -59,7 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get Stripe customer ID
-    const { data: sub } = await supabase
+    const { data: sub } = await userClient
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('supplier_id', actor.supplier_id)

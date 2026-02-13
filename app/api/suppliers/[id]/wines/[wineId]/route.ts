@@ -9,14 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 // Allowed fields for inline editing
 const EDITABLE_FIELDS = [
@@ -56,7 +50,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const { data: wine, error } = await supabase
+    const { userClient } = await createRouteClients();
+
+    const { data: wine, error } = await userClient
       .from('supplier_wines')
       .select('*')
       .eq('id', wineId)
@@ -126,7 +122,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    const { data: wine, error } = await supabase
+    const { userClient } = await createRouteClients();
+
+    const { data: wine, error } = await userClient
       .from('supplier_wines')
       .update(updates)
       .eq('id', wineId)
@@ -169,7 +167,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const { error } = await supabase
+    const { userClient } = await createRouteClients();
+
+    const { error } = await userClient
       .from('supplier_wines')
       .delete()
       .eq('id', wineId)

@@ -16,19 +16,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
 import {
   validateRequestTransition,
   RequestStatus,
   InvalidStatusTransitionError,
 } from '@/lib/state-machine';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 /**
  * GET - Fetch request details with supplier assignments
@@ -51,10 +45,12 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       tenant_id: tenantId,
     });
 
+    const { userClient } = await createRouteClients();
+
     const requestId = params.id;
 
     // Fetch request
-    const { data: req, error: fetchError } = await supabase
+    const { data: req, error: fetchError } = await userClient
       .from('requests')
       .select('id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, created_at')
       .eq('id', requestId)
@@ -68,7 +64,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     }
 
     // Check access - restaurant owner or admin
-    const { data: restaurantCheck } = await supabase
+    const { data: restaurantCheck } = await userClient
       .from('requests')
       .select('restaurant_id')
       .eq('id', requestId)
@@ -85,7 +81,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     }
 
     // Fetch supplier assignments with supplier names
-    const { data: assignments } = await supabase
+    const { data: assignments } = await userClient
       .from('quote_request_assignments')
       .select(`
         supplier_id,
@@ -97,7 +93,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       .order('sent_at', { ascending: true });
 
     // Count offers for this request
-    const { count: offersCount } = await supabase
+    const { count: offersCount } = await userClient
       .from('offers')
       .select('id', { count: 'exact', head: true })
       .eq('request_id', requestId);
@@ -150,6 +146,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       tenant_id: tenantId,
     });
 
+    const { userClient } = await createRouteClients();
+
     const requestId = params.id;
     const body = await request.json();
     const { status: newStatus, reason } = body;
@@ -162,7 +160,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Fetch current request
-    const { data: currentRequest, error: fetchError } = await supabase
+    const { data: currentRequest, error: fetchError } = await userClient
       .from('requests')
       .select('id, status, restaurant_id')
       .eq('id', requestId)
@@ -221,7 +219,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Update request
-    const { data: updatedRequest, error: updateError } = await supabase
+    const { data: updatedRequest, error: updateError } = await userClient
       .from('requests')
       .update(updateData)
       .eq('id', requestId)
@@ -233,7 +231,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Log event (trigger will also log, but we add actor info here)
-    await supabase.from('request_events').insert({
+    await userClient.from('request_events').insert({
       request_id: requestId,
       event_type: 'status_change',
       from_status: fromStatus,

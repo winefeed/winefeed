@@ -8,14 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function GET(
   request: NextRequest,
@@ -45,6 +39,8 @@ export async function GET(
         { status: 403 }
       );
     }
+    const { userClient } = await createRouteClients();
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const page = parseInt(searchParams.get('page') || '1');
@@ -52,7 +48,7 @@ export async function GET(
     const offset = (page - 1) * limit;
 
     // Build query
-    let query = supabase
+    let query = userClient
       .from('supplier_wines')
       .select('*', { count: 'exact' })
       .eq('supplier_id', supplierId)
@@ -88,7 +84,7 @@ export async function GET(
     let offerCounts: Record<string, number> = {};
 
     if (wineNames.length > 0) {
-      const { data: offerLines } = await supabase
+      const { data: offerLines } = await userClient
         .from('offer_lines')
         .select('name')
         .in('name', wineNames);
@@ -163,8 +159,10 @@ export async function POST(
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Create wine entry
-    const { data: wine, error } = await supabase
+    const { data: wine, error } = await userClient
       .from('supplier_wines')
       .insert({
         supplier_id: supplierId,

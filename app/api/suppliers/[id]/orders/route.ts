@@ -7,14 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function GET(
   request: NextRequest,
@@ -44,11 +38,13 @@ export async function GET(
         { status: 403 }
       );
     }
+    const { userClient } = await createRouteClients();
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'all';
 
     // Build query for orders via offers
-    let query = supabase
+    let query = userClient
       .from('orders')
       .select(`
         id,

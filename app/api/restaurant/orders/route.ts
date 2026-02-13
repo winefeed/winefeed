@@ -21,13 +21,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,6 +52,8 @@ export async function GET(request: NextRequest) {
 
     const restaurantId = actor.restaurant_id;
 
+    const { userClient } = await createRouteClients();
+
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status') || undefined;
@@ -74,7 +70,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query
-    let query = supabase
+    let query = userClient
       .from('orders')
       .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_case_id, total_lines, total_quantity, currency, dispute_status, dispute_reason, dispute_reported_at, payment_status, handled_by_winefeed')
       .eq('tenant_id', tenantId)
@@ -96,14 +92,14 @@ export async function GET(request: NextRequest) {
     const enrichedOrders = await Promise.all(
       (orders || []).map(async (order) => {
         // Fetch supplier name
-        const { data: supplier } = await supabase
+        const { data: supplier } = await userClient
           .from('suppliers')
           .select('namn, type')
           .eq('id', order.seller_supplier_id)
           .single();
 
         // Fetch importer name
-        const { data: importer } = await supabase
+        const { data: importer } = await userClient
           .from('importers')
           .select('legal_name')
           .eq('id', order.importer_of_record_id)
@@ -112,7 +108,7 @@ export async function GET(request: NextRequest) {
         // Fetch import case status if exists
         let importStatus = null;
         if (order.import_case_id) {
-          const { data: importCase } = await supabase
+          const { data: importCase } = await userClient
             .from('imports')
             .select('status')
             .eq('id', order.import_case_id)

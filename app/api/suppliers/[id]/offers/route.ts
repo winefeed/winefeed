@@ -8,14 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function GET(
   request: NextRequest,
@@ -45,11 +39,13 @@ export async function GET(
         { status: 403 }
       );
     }
+    const { userClient } = await createRouteClients();
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'all';
 
     // Build query — join offer_lines + supplier_wines for multi-line offers
-    let query = supabase
+    let query = userClient
       .from('offers')
       .select(`
         id,
@@ -242,8 +238,10 @@ export async function POST(
     // (optional for backwards compatibility)
     const isFranco = is_franco === true;
 
+    const { userClient } = await createRouteClients();
+
     // Verify quote request exists and is open
-    const { data: quoteRequest } = await supabase
+    const { data: quoteRequest } = await userClient
       .from('quote_requests')
       .select('id, status')
       .eq('id', quote_request_id)
@@ -264,7 +262,7 @@ export async function POST(
     }
 
     // Check if supplier already has an offer for this request
-    const { data: existingOffer } = await supabase
+    const { data: existingOffer } = await userClient
       .from('offers')
       .select('id')
       .eq('supplier_id', supplierId)
@@ -279,7 +277,7 @@ export async function POST(
     }
 
     // Create offer with shipping info
-    const { data: offer, error } = await supabase
+    const { data: offer, error } = await userClient
       .from('offers')
       .insert({
         supplier_id: supplierId,

@@ -15,17 +15,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sponsoredSlotsService } from '@/lib/sponsored-slots-service';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import Stripe from 'stripe';
-
-// Lazy initialization to avoid build-time errors
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-}
 
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -38,7 +29,7 @@ function getStripe() {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabase();
+    const { userClient } = await createRouteClients();
     const stripe = getStripe();
 
     const tenantId = request.headers.get('x-tenant-id');
@@ -76,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get category to verify it exists and get price
-    const { data: category, error: catError } = await supabase
+    const { data: category, error: catError } = await userClient
       .from('sponsored_categories')
       .select('*')
       .eq('id', category_id)
@@ -111,7 +102,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create Stripe customer
-    const { data: subscription } = await supabase
+    const { data: subscription } = await userClient
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('supplier_id', actor.supplier_id)
@@ -121,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     if (!customerId) {
       // Get supplier info for customer creation
-      const { data: supplier } = await supabase
+      const { data: supplier } = await userClient
         .from('suppliers')
         .select('namn, kontakt_email')
         .eq('id', actor.supplier_id)
@@ -138,7 +129,7 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
 
       // Save customer ID
-      await supabase
+      await userClient
         .from('subscriptions')
         .upsert({
           supplier_id: actor.supplier_id,

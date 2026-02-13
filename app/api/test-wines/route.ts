@@ -7,29 +7,14 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET() {
   try {
-    // Check env vars
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!url || !key) {
-      return NextResponse.json({
-        error: 'Missing environment variables',
-        hasUrl: !!url,
-        hasKey: !!key,
-      }, { status: 500 });
-    }
-
-    // Create client
-    const supabase = createClient(url, key, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
+    const { userClient } = await createRouteClients();
 
     // Simple count query
-    const { count, error: countError } = await supabase
+    const { count, error: countError } = await userClient
       .from('supplier_wines')
       .select('*', { count: 'exact', head: true });
 
@@ -42,7 +27,7 @@ export async function GET() {
     }
 
     // Fetch first 5 wines
-    const { data: wines, error: winesError } = await supabase
+    const { data: wines, error: winesError } = await userClient
       .from('supplier_wines')
       .select('id, name, producer, country, color, price_ex_vat_sek')
       .limit(5);

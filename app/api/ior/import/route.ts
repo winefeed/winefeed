@@ -6,13 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { requireIORContext, isGuardError, guardErrorResponse } from '@/lib/ior-route-guard';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 // Map Combi wine types to our enum
 // Enum: RED, WHITE, ROSE, ORANGE, SPARKLING, DESSERT, FORTIFIED, OTHER
@@ -58,6 +53,7 @@ export async function POST(request: NextRequest) {
     return guardErrorResponse(guardResult);
   }
   const { ctx } = guardResult;
+  const { userClient } = await createRouteClients();
 
   try {
     const body = await request.json() as CombiDataset;
@@ -100,7 +96,7 @@ export async function POST(request: NextRequest) {
       const combiTag = combiTagByProducer.get(producerName) || null;
 
       // Check if producer exists
-      const { data: existingProducer } = await supabase
+      const { data: existingProducer } = await userClient
         .from('ior_producers')
         .select('id, combi_tag')
         .eq('importer_id', ctx.importerId)
@@ -115,14 +111,14 @@ export async function POST(request: NextRequest) {
 
         // Update combi_tag if we have one and producer doesn't
         if (combiTag && !existingProducer.combi_tag) {
-          await supabase
+          await userClient
             .from('ior_producers')
             .update({ combi_tag: combiTag })
             .eq('id', producerId);
         }
       } else {
         // Create producer with combi_tag
-        const { data: newProducer, error: producerError } = await supabase
+        const { data: newProducer, error: producerError } = await userClient
           .from('ior_producers')
           .insert({
             tenant_id: ctx.tenantId,
@@ -178,7 +174,7 @@ export async function POST(request: NextRequest) {
 
         // Check if product already exists (by name + vintage + producer)
         // Note: For NULL vintage (NV wines), we need .is() not .eq()
-        let existingProductQuery = supabase
+        let existingProductQuery = userClient
           .from('ior_products')
           .select('id')
           .eq('producer_id', producerId)
@@ -198,7 +194,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create product
-        const { error: productError } = await supabase
+        const { error: productError } = await userClient
           .from('ior_products')
           .insert({
             tenant_id: ctx.tenantId,

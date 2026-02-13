@@ -7,17 +7,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest) {
   try {
-    // MVP: Get user context from headers
     const tenantId = request.headers.get('x-tenant-id');
     const userId = request.headers.get('x-user-id');
 
@@ -28,8 +21,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { userClient, adminClient } = await createRouteClients();
+
     // Get supplier from supplier_users table
-    const { data: supplierUser, error: supplierUserError } = await supabase
+    const { data: supplierUser, error: supplierUserError } = await userClient
       .from('supplier_users')
       .select('supplier_id')
       .eq('id', userId)
@@ -43,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get supplier details
-    const { data: supplier, error: supplierError } = await supabase
+    const { data: supplier, error: supplierError } = await userClient
       .from('suppliers')
       .select('id, namn, type, org_number, is_active')
       .eq('id', supplierUser.supplier_id)
@@ -56,10 +51,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user email
+    // Get user email (requires admin client)
     let userEmail: string | undefined;
     try {
-      const { data: user } = await supabase.auth.admin.getUserById(userId);
+      const { data: user } = await adminClient.auth.admin.getUserById(userId);
       userEmail = user?.user?.email;
     } catch {
       // Continue without email
@@ -70,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     // Check if supplier's org_number matches an importer (gives IOR role)
     if (supplier.org_number) {
-      const { data: importer } = await supabase
+      const { data: importer } = await userClient
         .from('importers')
         .select('id')
         .eq('org_number', supplier.org_number)

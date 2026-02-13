@@ -20,13 +20,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 interface ReorderLineInput {
   wine_sku_id?: string;
@@ -75,8 +69,10 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     // Parse request body
     const body: ReorderInput = await request.json().catch(() => ({}));
 
+    const { userClient } = await createRouteClients();
+
     // 1. Fetch original order
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await userClient
       .from('orders')
       .select(`
         id,
@@ -105,7 +101,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // 2. Fetch original order lines
-    const { data: orderLines, error: linesError } = await supabase
+    const { data: orderLines, error: linesError } = await userClient
       .from('order_lines')
       .select(`
         id,
@@ -131,7 +127,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // 3. Fetch supplier info
-    const { data: supplier } = await supabase
+    const { data: supplier } = await userClient
       .from('suppliers')
       .select('id, namn')
       .eq('id', order.seller_supplier_id)
@@ -161,7 +157,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const avgPrice = linesToOrder.reduce((sum, line) => sum + (line.unit_price_sek || 0), 0) / linesToOrder.length;
 
     // 5. Create new request (marked as reorder)
-    const { data: newRequest, error: requestError } = await supabase
+    const { data: newRequest, error: requestError } = await userClient
       .from('requests')
       .insert({
         tenant_id: tenantId,
@@ -209,14 +205,14 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }));
 
     // Check if request_lines table exists, if not just store in metadata
-    const { error: requestLinesError } = await supabase
+    const { error: requestLinesError } = await userClient
       .from('request_lines')
       .insert(requestLines);
 
     if (requestLinesError) {
       // Table might not exist - update request metadata instead
       console.log('request_lines table not available, storing in metadata');
-      await supabase
+      await userClient
         .from('requests')
         .update({
           metadata: {

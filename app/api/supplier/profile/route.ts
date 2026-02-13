@@ -6,14 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,8 +40,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { userClient, adminClient } = await createRouteClients();
+
     // Get full supplier details
-    const { data: supplier, error: supplierError } = await supabase
+    const { data: supplier, error: supplierError } = await userClient
       .from('suppliers')
       .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles, provorder_enabled, provorder_fee_sek')
       .eq('id', actor.supplier_id)
@@ -63,7 +59,7 @@ export async function GET(request: NextRequest) {
     // Get user email
     let userEmail = '';
     try {
-      const { data: user } = await supabase.auth.admin.getUserById(userId);
+      const { data: user } = await adminClient.auth.admin.getUserById(userId);
       userEmail = user?.user?.email || '';
     } catch {
       // Continue without email
@@ -218,8 +214,10 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Update supplier
-    const { data: supplier, error: updateError } = await supabase
+    const { data: supplier, error: updateError } = await userClient
       .from('suppliers')
       .update(updates)
       .eq('id', actor.supplier_id)

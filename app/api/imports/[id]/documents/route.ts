@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importDocumentService } from '@/lib/import-document-service';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import crypto from 'crypto';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 const STORAGE_BUCKET = 'documents';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -45,11 +39,13 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    const { userClient } = await createRouteClients();
+
     // List all documents for this import case
     const documents = await importDocumentService.listDocuments(importId, tenantId);
 
     // Get document requirements
-    const { data: requirements } = await supabase
+    const { data: requirements } = await userClient
       .from('import_document_requirements')
       .select('document_type, document_name, is_required_now, is_satisfied, latest_document_status')
       .eq('import_id', importId);
@@ -102,8 +98,10 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Only importers can upload documents' }, { status: 403 });
     }
 
+    const { userClient } = await createRouteClients();
+
     // Verify import exists and belongs to tenant
-    const { data: importCase, error: importError } = await supabase
+    const { data: importCase, error: importError } = await userClient
       .from('imports')
       .select('id, status, importer_id')
       .eq('id', importId)
@@ -150,7 +148,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Validate document type exists
-    const { data: docType, error: docTypeError } = await supabase
+    const { data: docType, error: docTypeError } = await userClient
       .from('import_document_types')
       .select('code, name_sv, required_for_status')
       .eq('code', documentType)
@@ -166,7 +164,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
 
     // Determine next version for this document type
-    const { data: existingDocs } = await supabase
+    const { data: existingDocs } = await userClient
       .from('import_documents')
       .select('version')
       .eq('import_id', importId)
@@ -182,7 +180,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const storagePath = `documents/${tenantId}/imports/${importId}/${documentType.toLowerCase()}/v${nextVersion}.${fileExtension}`;
 
     // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await userClient.storage
       .from(STORAGE_BUCKET)
       .upload(storagePath, fileBuffer, {
         contentType: file.type,
@@ -201,7 +199,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const isRequired = docType.required_for_status?.includes(importCase.status) || false;
 
     // Insert document record
-    const { data: document, error: insertError } = await supabase
+    const { data: document, error: insertError } = await userClient
       .from('import_documents')
       .insert({
         tenant_id: tenantId,
@@ -223,7 +221,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     if (insertError) {
       // Cleanup: delete uploaded file
-      await supabase.storage.from(STORAGE_BUCKET).remove([storagePath]);
+      await userClient.storage.from(STORAGE_BUCKET).remove([storagePath]);
       console.error('Database insert error:', insertError);
       return NextResponse.json(
         { error: `Failed to save document record: ${insertError.message}` },

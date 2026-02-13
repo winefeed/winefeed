@@ -19,13 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
 import { getAllowedTransitions, IMPORT_STATUS_LABELS } from '@/lib/state-machine';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 type ComplianceStatus = 'OK' | 'ACTION_NEEDED' | 'BLOCKED';
 type QueueFilter = 'all' | 'needs_action' | 'waiting_admin' | 'ready';
@@ -68,12 +62,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Get filter from query params
     const { searchParams } = new URL(request.url);
     const filter = (searchParams.get('filter') || 'all') as QueueFilter;
 
     // Fetch import cases for this importer
-    const { data: imports, error: importsError } = await supabase
+    const { data: imports, error: importsError } = await userClient
       .from('imports')
       .select(`
         id,
@@ -107,7 +103,7 @@ export async function GET(request: NextRequest) {
     const importIds = imports.map(i => i.id);
 
     // Get document status counts per import
-    const { data: docCounts, error: docCountsError } = await supabase
+    const { data: docCounts, error: docCountsError } = await userClient
       .from('import_documents')
       .select('import_id, status')
       .eq('tenant_id', tenantId)
@@ -119,7 +115,7 @@ export async function GET(request: NextRequest) {
 
     // Get missing docs counts via the helper function (or compute manually)
     // Since we can't call the function directly, we'll use the view
-    const { data: requirements, error: reqError } = await supabase
+    const { data: requirements, error: reqError } = await userClient
       .from('import_document_requirements')
       .select('import_id, document_type, is_required_now, is_satisfied, latest_document_status')
       .in('import_id', importIds);

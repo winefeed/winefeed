@@ -8,14 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { orderService } from '@/lib/order-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-);
 
 export async function POST(
   request: NextRequest,
@@ -33,8 +27,10 @@ export async function POST(
       );
     }
 
+    const { userClient } = await createRouteClients();
+
     // Get order to find supplier
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await userClient
       .from('orders')
       .select('seller_supplier_id')
       .eq('id', orderId)
@@ -49,7 +45,7 @@ export async function POST(
     }
 
     // Verify user has access to this supplier
-    const { data: supplierUser, error: accessError } = await supabase
+    const { data: supplierUser, error: accessError } = await userClient
       .from('supplier_users')
       .select('supplier_id')
       .eq('id', userId)

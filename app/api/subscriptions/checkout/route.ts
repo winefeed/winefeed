@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { actorService } from '@/lib/actor-service';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import Stripe from 'stripe';
 
 // Lazy initialization to avoid build-time errors
@@ -17,14 +17,6 @@ function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2026-01-28.clover',
   });
-}
-
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
 }
 
 // Price IDs from Stripe (configure these in env)
@@ -38,7 +30,7 @@ function getPriceIds(): Record<string, string> {
 export async function POST(request: NextRequest) {
   try {
     const stripe = getStripe();
-    const supabase = getSupabase();
+    const { userClient } = await createRouteClients();
     const PRICE_IDS = getPriceIds();
 
     const userId = request.headers.get('x-user-id');
@@ -85,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get supplier info
-    const { data: supplier } = await supabase
+    const { data: supplier } = await userClient
       .from('suppliers')
       .select('id, namn, kontakt_email')
       .eq('id', actor.supplier_id)
@@ -99,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for existing Stripe customer
-    const { data: existingSub } = await supabase
+    const { data: existingSub } = await userClient
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('supplier_id', actor.supplier_id)
@@ -119,7 +111,7 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
 
       // Save customer ID
-      await supabase
+      await userClient
         .from('subscriptions')
         .upsert({
           supplier_id: actor.supplier_id,

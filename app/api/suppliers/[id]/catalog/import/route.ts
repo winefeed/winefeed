@@ -1,9 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 interface CatalogRow {
   name: string;
@@ -83,13 +80,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       );
     }
 
-    // Create Supabase client
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
+    const { userClient } = await createRouteClients();
 
     // Verify supplier exists and is active
-    const { data: supplier, error: supplierError } = await supabase
+    const { data: supplier, error: supplierError } = await userClient
       .from('suppliers')
       .select('id, type, is_active')
       .eq('id', supplierId)
@@ -136,7 +130,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     // If replaceExisting, deactivate all current wines
     if (body.replaceExisting === true) {
-      await supabase
+      await userClient
         .from('supplier_wines')
         .update({ is_active: false })
         .eq('supplier_id', supplierId);
@@ -149,7 +143,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     for (const row of validatedRows) {
       try {
         // Check if wine already exists (by name + producer + vintage)
-        const { data: existing } = await supabase
+        const { data: existing } = await userClient
           .from('supplier_wines')
           .select('id')
           .eq('supplier_id', supplierId)
@@ -187,7 +181,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
         if (existing) {
           // Update existing wine
-          const { error } = await supabase
+          const { error } = await userClient
             .from('supplier_wines')
             .update(wineData)
             .eq('id', existing.id);
@@ -196,7 +190,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
           updated++;
         } else {
           // Insert new wine
-          const { error } = await supabase
+          const { error } = await userClient
             .from('supplier_wines')
             .insert(wineData);
 
