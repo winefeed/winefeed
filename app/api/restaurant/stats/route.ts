@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     const restaurantId = actor.restaurant_id;
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       totalSpentResult,
     ] = await Promise.all([
       // Active requests (not expired, not completed)
-      userClient
+      adminClient
         .from('requests')
         .select('id', { count: 'exact', head: true })
         .eq('restaurant_id', restaurantId)
@@ -63,14 +63,14 @@ export async function GET(request: NextRequest) {
         .gte('deadline', now.toISOString()),
 
       // Pending offers (awaiting decision)
-      userClient
+      adminClient
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('restaurant_id', restaurantId)
         .in('status', ['SENT', 'pending']),
 
       // Accepted offers (last 30 days)
-      userClient
+      adminClient
         .from('offers')
         .select('id', { count: 'exact', head: true })
         .eq('restaurant_id', restaurantId)
@@ -78,14 +78,14 @@ export async function GET(request: NextRequest) {
         .gte('updated_at', thirtyDaysAgo.toISOString()),
 
       // Pending orders
-      userClient
+      adminClient
         .from('orders')
         .select('id', { count: 'exact', head: true })
         .eq('restaurant_id', restaurantId)
         .in('status', ['PENDING', 'CONFIRMED', 'pending', 'confirmed']),
 
       // Completed orders (last 30 days)
-      userClient
+      adminClient
         .from('orders')
         .select('id', { count: 'exact', head: true })
         .eq('restaurant_id', restaurantId)
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
         .gte('updated_at', thirtyDaysAgo.toISOString()),
 
       // Recent offers for activity feed
-      userClient
+      adminClient
         .from('offers')
         .select(`
           id,
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         .limit(5),
 
       // Total spent (last 30 days)
-      userClient
+      adminClient
         .from('orders')
         .select('total_amount')
         .eq('restaurant_id', restaurantId)

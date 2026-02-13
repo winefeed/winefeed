@@ -43,10 +43,10 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Fetch document with type info
-    const { data: document, error } = await userClient
+    const { data: document, error } = await adminClient
       .from('import_documents')
       .select(`
         *,
@@ -138,10 +138,10 @@ export async function PATCH(
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Fetch current document
-    const { data: document, error: fetchError } = await userClient
+    const { data: document, error: fetchError } = await adminClient
       .from('import_documents')
       .select('id, status, type, import_id')
       .eq('id', docId)
@@ -189,7 +189,7 @@ export async function PATCH(
     }
 
     // Update document
-    const { data: updatedDocument, error: updateError } = await userClient
+    const { data: updatedDocument, error: updateError } = await adminClient
       .from('import_documents')
       .update(updateData)
       .eq('id', docId)
@@ -206,7 +206,7 @@ export async function PATCH(
     }
 
     // Get document type name for response
-    const { data: docType } = await userClient
+    const { data: docType } = await adminClient
       .from('import_document_types')
       .select('name_sv')
       .eq('code', document.type)
@@ -267,10 +267,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Fetch current document with import info
-    const { data: document, error: fetchError } = await userClient
+    const { data: document, error: fetchError } = await adminClient
       .from('import_documents')
       .select('id, status, storage_path, type, import_id, is_required')
       .eq('id', docId)
@@ -285,14 +285,14 @@ export async function DELETE(
     // Guard: Cannot delete VERIFIED documents (unless ADMIN with explicit override)
     if (document.status === 'VERIFIED') {
       // Check if this is the last verified document of this required type
-      const { data: importCase } = await userClient
+      const { data: importCase } = await adminClient
         .from('imports')
         .select('status')
         .eq('id', importId)
         .single();
 
       // Check if this doc type is required for current status
-      const { data: docType } = await userClient
+      const { data: docType } = await adminClient
         .from('import_document_types')
         .select('required_for_status')
         .eq('code', document.type)
@@ -302,7 +302,7 @@ export async function DELETE(
 
       if (isRequiredForCurrentStatus) {
         // Count other verified docs of this type
-        const { count } = await userClient
+        const { count } = await adminClient
           .from('import_documents')
           .select('id', { count: 'exact', head: true })
           .eq('import_id', importId)
@@ -334,7 +334,7 @@ export async function DELETE(
 
     // Delete from storage
     if (document.storage_path) {
-      const { error: storageError } = await userClient.storage
+      const { error: storageError } = await adminClient.storage
         .from(STORAGE_BUCKET)
         .remove([document.storage_path]);
 
@@ -345,7 +345,7 @@ export async function DELETE(
     }
 
     // Delete database record
-    const { error: deleteError } = await userClient
+    const { error: deleteError } = await adminClient
       .from('import_documents')
       .delete()
       .eq('id', docId)

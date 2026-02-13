@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Only RESTAURANT or ADMIN can send draft lists
     if (!actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     if (!restaurantId) {
       if (actorService.hasRole(actor, 'ADMIN')) {
         // Admin fallback: get any restaurant
-        const { data: restaurant } = await userClient
+        const { data: restaurant } = await adminClient
           .from('restaurants')
           .select('id')
           .limit(1)
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     const supplierIds = [...new Set(items.map(i => i.supplier_id))];
 
     // Create the request
-    const { data: savedRequest, error: requestError } = await userClient
+    const { data: savedRequest, error: requestError } = await adminClient
       .from('requests')
       .insert({
         restaurant_id: restaurantId,
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
       provorder_fee: item.provorder ? (item.provorder_fee || 500) : null,
     }));
 
-    const { error: itemsError } = await userClient
+    const { error: itemsError } = await adminClient
       .from('request_items')
       .insert(requestItems);
 
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
       expires_at: expiresAt.toISOString(),
     }));
 
-    const { data: createdAssignments, error: assignmentError } = await userClient
+    const { data: createdAssignments, error: assignmentError } = await adminClient
       .from('quote_request_assignments')
       .insert(assignments)
       .select('id');
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
     let emailsSent = 0;
     try {
       // Get restaurant name for emails
-      const { data: restaurant } = await userClient
+      const { data: restaurant } = await adminClient
         .from('restaurants')
         .select('name')
         .eq('id', restaurantId)
@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
       const restaurantName = restaurant?.name || 'En restaurang';
 
       // Get supplier details for emails
-      const { data: suppliers } = await userClient
+      const { data: suppliers } = await adminClient
         .from('suppliers')
         .select('id, namn, kontakt_email')
         .in('id', supplierIds);

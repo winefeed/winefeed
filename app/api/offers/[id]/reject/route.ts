@@ -38,14 +38,14 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       tenant_id: tenantId,
     });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const offerId = params.id;
     const body = await request.json().catch(() => ({}));
     const { reason } = body;
 
     // Fetch current offer with request info
-    const { data: offer, error: fetchError } = await userClient
+    const { data: offer, error: fetchError } = await adminClient
       .from('offers')
       .select(`
         id,
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Update offer
-    const { data: updatedOffer, error: updateError } = await userClient
+    const { data: updatedOffer, error: updateError } = await adminClient
       .from('offers')
       .update({
         status: 'REJECTED',
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Log event
-    await userClient.from('offer_events').insert({
+    await adminClient.from('offer_events').insert({
       offer_id: offerId,
       event_type: 'rejected',
       from_status: fromStatus,
@@ -134,8 +134,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         if (supplierEmail) {
           // Fetch supplier and restaurant names for email
           const [supplierResult, restaurantResult] = await Promise.all([
-            userClient.from('suppliers').select('namn').eq('id', offer.supplier_id).single(),
-            userClient.from('restaurants').select('name').eq('id', requestRestaurantId).single()
+            adminClient.from('suppliers').select('namn').eq('id', offer.supplier_id).single(),
+            adminClient.from('restaurants').select('name').eq('id', requestRestaurantId).single()
           ]);
 
           const requestData = offer.requests as any;
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
           });
 
           // Mark email as sent (idempotency)
-          await userClient
+          await adminClient
             .from('offers')
             .update({ declined_email_sent_at: new Date().toISOString() })
             .eq('id', offerId);

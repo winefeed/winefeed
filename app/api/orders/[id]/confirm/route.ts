@@ -29,10 +29,10 @@ export async function POST(
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Get order to find supplier
-    const { data: order, error: orderError } = await userClient
+    const { data: order, error: orderError } = await adminClient
       .from('orders')
       .select('seller_supplier_id')
       .eq('id', orderId)
@@ -47,7 +47,7 @@ export async function POST(
     }
 
     // Verify user has access to this supplier
-    const { data: supplierUser, error: accessError } = await userClient
+    const { data: supplierUser, error: accessError } = await adminClient
       .from('supplier_users')
       .select('supplier_id')
       .eq('id', userId)
@@ -82,7 +82,7 @@ export async function POST(
     // Send confirmation emails (fail-safe)
     try {
       // Get full order details for email
-      const { data: fullOrder } = await userClient
+      const { data: fullOrder } = await adminClient
         .from('orders')
         .select(`
           id,
@@ -96,20 +96,20 @@ export async function POST(
 
       if (fullOrder) {
         // Get restaurant and supplier details
-        const { data: restaurant } = await userClient
+        const { data: restaurant } = await adminClient
           .from('restaurants')
           .select('name, contact_email')
           .eq('id', fullOrder.buyer_restaurant_id)
           .single();
 
-        const { data: supplier } = await userClient
+        const { data: supplier } = await adminClient
           .from('suppliers')
           .select('namn, kontakt_email')
           .eq('id', fullOrder.seller_supplier_id)
           .single();
 
         // Get order lines
-        const { data: orderLines } = await userClient
+        const { data: orderLines } = await adminClient
           .from('order_lines')
           .select('wine_name, quantity, offered_unit_price_ore')
           .eq('order_id', orderId);

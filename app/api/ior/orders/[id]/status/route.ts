@@ -64,7 +64,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const importerId = actor.importer_id!;
 
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Get importer name for actor_name
-    const { data: importer } = await userClient
+    const { data: importer } = await adminClient
       .from('importers')
       .select('legal_name')
       .eq('id', importerId)
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     // FAIL-SAFE: Send restaurant email notifications to all users (don't block status update)
     try {
       // Get restaurant details and all recipients
-      const { data: restaurant } = await userClient
+      const { data: restaurant } = await adminClient
         .from('restaurants')
         .select('name')
         .eq('id', orderCheck.order.restaurant_id)

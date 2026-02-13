@@ -16,7 +16,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Missing auth context' }, { status: 401 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const body = await request.json();
     const { to_status, why } = body;
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         console.log(`Import case ${importId} approved - checking for linked orders to auto-confirm`);
 
         // Find orders linked to this import case
-        const { data: linkedOrders, error: ordersError } = await userClient
+        const { data: linkedOrders, error: ordersError } = await adminClient
           .from('orders')
           .select('id, status, restaurant_id')
           .eq('tenant_id', tenantId)
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
             if (order.status !== OrderStatus.CONFIRMED) {
               console.log(`Auto-confirming order ${order.id} (current status: ${order.status})`);
 
-              const { error: updateError } = await userClient
+              const { error: updateError } = await adminClient
                 .from('orders')
                 .update({
                   status: OrderStatus.CONFIRMED,
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
               }
 
               // Log order event: STATUS_AUTO_UPDATED
-              const { error: eventError } = await userClient
+              const { error: eventError } = await adminClient
                 .from('order_events')
                 .insert({
                   tenant_id: tenantId,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
             // FAIL-SAFE: Send restaurant email notification (ORDER_STATUS_UPDATED)
             try {
-              const { data: restaurant } = await userClient
+              const { data: restaurant } = await adminClient
                 .from('restaurants')
                 .select('name')
                 .eq('id', order.restaurant_id)

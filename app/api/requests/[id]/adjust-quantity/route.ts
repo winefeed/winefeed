@@ -48,7 +48,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Must be RESTAURANT role
     if (!actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
@@ -77,7 +77,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Verify request exists and is in a state that allows modification
-    const { data: requestData, error: requestError } = await userClient
+    const { data: requestData, error: requestError } = await adminClient
       .from('requests')
       .select('id, status, restaurant_id')
       .eq('id', requestId)
@@ -108,7 +108,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Check if request_wines table exists and has this wine
-    const { data: requestWine, error: requestWineError } = await userClient
+    const { data: requestWine, error: requestWineError } = await adminClient
       .from('request_wines')
       .select('id, requested_quantity, adjusted_quantity, supplier_wine_id')
       .eq('request_id', requestId)
@@ -119,7 +119,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       // Update request_wines record
       const originalQuantity = requestWine.adjusted_quantity || requestWine.requested_quantity;
 
-      const { error: updateError } = await userClient
+      const { error: updateError } = await adminClient
         .from('request_wines')
         .update({
           adjusted_quantity: newQuantity,
@@ -136,7 +136,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       }
 
       // Update request's updated_at
-      await userClient
+      await adminClient
         .from('requests')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', requestId);
@@ -157,7 +157,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
     // Fallback: Try to update quantity field directly on request if it's stored there
     // This handles legacy data structure where quantity might be on the request itself
-    const { data: existingRequest, error: fetchError } = await userClient
+    const { data: existingRequest, error: fetchError } = await adminClient
       .from('requests')
       .select('quantity, wine_id')
       .eq('id', requestId)
@@ -181,7 +181,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const originalQuantity = existingRequest.quantity || 0;
 
     // Update quantity on request
-    const { error: updateRequestError } = await userClient
+    const { error: updateRequestError } = await adminClient
       .from('requests')
       .update({
         quantity: newQuantity,
@@ -191,7 +191,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
     if (updateRequestError) {
       // If quantity column doesn't exist, create a request_wines entry instead
-      const { error: insertError } = await userClient
+      const { error: insertError } = await adminClient
         .from('request_wines')
         .insert({
           request_id: requestId,

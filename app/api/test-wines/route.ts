@@ -11,10 +11,10 @@ import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET() {
   try {
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Simple count query
-    const { count, error: countError } = await userClient
+    const { count, error: countError } = await adminClient
       .from('supplier_wines')
       .select('*', { count: 'exact', head: true });
 
@@ -27,7 +27,7 @@ export async function GET() {
     }
 
     // Fetch first 5 wines
-    const { data: wines, error: winesError } = await userClient
+    const { data: wines, error: winesError } = await adminClient
       .from('supplier_wines')
       .select('id, name, producer, country, color, price_ex_vat_sek')
       .limit(5);

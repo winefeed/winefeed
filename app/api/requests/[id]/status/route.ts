@@ -45,12 +45,12 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       tenant_id: tenantId,
     });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const requestId = params.id;
 
     // Fetch request
-    const { data: req, error: fetchError } = await userClient
+    const { data: req, error: fetchError } = await adminClient
       .from('requests')
       .select('id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, created_at')
       .eq('id', requestId)
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     }
 
     // Check access - restaurant owner or admin
-    const { data: restaurantCheck } = await userClient
+    const { data: restaurantCheck } = await adminClient
       .from('requests')
       .select('restaurant_id')
       .eq('id', requestId)
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     }
 
     // Fetch supplier assignments with supplier names
-    const { data: assignments } = await userClient
+    const { data: assignments } = await adminClient
       .from('quote_request_assignments')
       .select(`
         supplier_id,
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       .order('sent_at', { ascending: true });
 
     // Count offers for this request
-    const { count: offersCount } = await userClient
+    const { count: offersCount } = await adminClient
       .from('offers')
       .select('id', { count: 'exact', head: true })
       .eq('request_id', requestId);
@@ -146,7 +146,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       tenant_id: tenantId,
     });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const requestId = params.id;
     const body = await request.json();
@@ -160,7 +160,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Fetch current request
-    const { data: currentRequest, error: fetchError } = await userClient
+    const { data: currentRequest, error: fetchError } = await adminClient
       .from('requests')
       .select('id, status, restaurant_id')
       .eq('id', requestId)
@@ -219,7 +219,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Update request
-    const { data: updatedRequest, error: updateError } = await userClient
+    const { data: updatedRequest, error: updateError } = await adminClient
       .from('requests')
       .update(updateData)
       .eq('id', requestId)
@@ -231,7 +231,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
 
     // Log event (trigger will also log, but we add actor info here)
-    await userClient.from('request_events').insert({
+    await adminClient.from('request_events').insert({
       request_id: requestId,
       event_type: 'status_change',
       from_status: fromStatus,

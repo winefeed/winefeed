@@ -94,7 +94,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Validate lead time and date
     if (leadTimeDays < 0) {
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     }
 
     // 1. Verify quote request exists
-    const { data: quoteRequest, error: requestError } = await userClient
+    const { data: quoteRequest, error: requestError } = await adminClient
       .from('requests')
       .select('id, restaurant_id')
       .eq('id', requestId)
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     }
 
     // 2. Verify supplier exists and is active
-    const { data: supplier, error: supplierError } = await userClient
+    const { data: supplier, error: supplierError } = await adminClient
       .from('suppliers')
       .select('id, type, is_active')
       .eq('id', supplierId)
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     // 3. Validate all wines belong to this supplier
     const wineIds = lines.map(l => l.supplierWineId);
-    const { data: supplierWines, error: winesError } = await userClient
+    const { data: supplierWines, error: winesError } = await adminClient
       .from('supplier_wines')
       .select('id, supplier_id, name, producer, price_ex_vat_sek, vat_rate, moq, vintage, country, region')
       .in('id', wineIds);
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     }
 
     // 4. Validate assignment exists and is not expired
-    const { data: assignment, error: assignmentError } = await userClient
+    const { data: assignment, error: assignmentError } = await adminClient
       .from('quote_request_assignments')
       .select('*')
       .eq('quote_request_id', requestId)
@@ -229,7 +229,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       offerInsert.shipping_notes = body.shipping_notes;
     }
 
-    const { data: offer, error: offerError } = await userClient
+    const { data: offer, error: offerError } = await adminClient
       .from('offers')
       .insert(offerInsert)
       .select('*')
@@ -262,13 +262,13 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       };
     });
 
-    const { error: linesError } = await userClient
+    const { error: linesError } = await adminClient
       .from('offer_lines')
       .insert(offerLines);
 
     if (linesError) {
       // Rollback: delete the offer header
-      await userClient.from('offers').delete().eq('id', offer.id);
+      await adminClient.from('offers').delete().eq('id', offer.id);
       console.error('Failed to create offer lines:', linesError);
       return NextResponse.json(
         { error: 'Failed to create offer lines', details: linesError.message },
@@ -278,7 +278,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     // 8. Auto-update assignment status to RESPONDED
     if (assignment.status !== 'RESPONDED') {
-      await userClient
+      await adminClient
         .from('quote_request_assignments')
         .update({
           status: 'RESPONDED',
@@ -376,10 +376,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const { searchParams } = new URL(req.url);
     const includeExpired = searchParams.get('includeExpired') === 'true';
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Verify request exists AND get restaurant ownership
-    const { data: quoteRequest, error: requestError } = await userClient
+    const { data: quoteRequest, error: requestError } = await adminClient
       .from('requests')
       .select('id, restaurant_id')
       .eq('id', requestId)
@@ -402,7 +402,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
 
     // Get all offers for this request WITH offer_lines join
-    const { data: offers, error: offersError } = await userClient
+    const { data: offers, error: offersError } = await adminClient
       .from('offers')
       .select(`
         id,
@@ -454,7 +454,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     // Get assignments for match scores
     const supplierIds = [...new Set((offers || []).map(o => o.supplier_id).filter(Boolean))];
-    const { data: assignments } = await userClient
+    const { data: assignments } = await adminClient
       .from('quote_request_assignments')
       .select('*')
       .eq('quote_request_id', requestId)
@@ -483,7 +483,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     let legacyWineMap = new Map<string, any>();
     if (legacyWineIds.length > 0) {
-      const { data: legacyWines } = await userClient
+      const { data: legacyWines } = await adminClient
         .from('supplier_wines')
         .select('id, name, producer, country, region, vintage')
         .in('id', legacyWineIds);

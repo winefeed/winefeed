@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
     const restaurantId = actor.restaurant_id;
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query
-    let query = userClient
+    let query = adminClient
       .from('orders')
       .select('id, created_at, updated_at, status, seller_supplier_id, importer_of_record_id, import_case_id, total_lines, total_quantity, currency, dispute_status, dispute_reason, dispute_reported_at, payment_status, handled_by_winefeed')
       .eq('tenant_id', tenantId)
@@ -92,14 +92,14 @@ export async function GET(request: NextRequest) {
     const enrichedOrders = await Promise.all(
       (orders || []).map(async (order) => {
         // Fetch supplier name
-        const { data: supplier } = await userClient
+        const { data: supplier } = await adminClient
           .from('suppliers')
           .select('namn, type')
           .eq('id', order.seller_supplier_id)
           .single();
 
         // Fetch importer name
-        const { data: importer } = await userClient
+        const { data: importer } = await adminClient
           .from('importers')
           .select('legal_name')
           .eq('id', order.importer_of_record_id)
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         // Fetch import case status if exists
         let importStatus = null;
         if (order.import_case_id) {
-          const { data: importCase } = await userClient
+          const { data: importCase } = await adminClient
             .from('imports')
             .select('status')
             .eq('id', order.import_case_id)

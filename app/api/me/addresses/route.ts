@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Fetch addresses
-    const { data: addresses, error } = await userClient
+    const { data: addresses, error } = await adminClient
       .from('restaurant_delivery_addresses')
       .select('*')
       .eq('restaurant_id', actor.restaurant_id)
@@ -98,10 +98,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Create address
-    const { data: address, error } = await userClient
+    const { data: address, error } = await adminClient
       .from('restaurant_delivery_addresses')
       .insert({
         tenant_id: tenantId,

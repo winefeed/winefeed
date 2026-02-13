@@ -39,9 +39,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
-    const { data: address, error } = await userClient
+    const { data: address, error } = await adminClient
       .from('restaurant_delivery_addresses')
       .select('*')
       .eq('id', id)
@@ -90,10 +90,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Verify address belongs to restaurant
-    const { data: existing } = await userClient
+    const { data: existing } = await adminClient
       .from('restaurant_delivery_addresses')
       .select('id')
       .eq('id', id)
@@ -130,7 +130,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { data: address, error } = await userClient
+    const { data: address, error } = await adminClient
       .from('restaurant_delivery_addresses')
       .update(updateData)
       .eq('id', id)
@@ -180,10 +180,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Soft delete - set is_active = false
-    const { error } = await userClient
+    const { error } = await adminClient
       .from('restaurant_delivery_addresses')
       .update({ is_active: false })
       .eq('id', id)

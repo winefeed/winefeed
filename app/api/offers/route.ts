@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Only SELLER or ADMIN can create offers
     if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'SELLER')) {
@@ -121,19 +121,19 @@ export async function POST(request: NextRequest) {
 
         if (restaurantEmail) {
           // Fetch request and supplier details for email
-          const { data: requestData } = await userClient
+          const { data: requestData } = await adminClient
             .from('requests')
             .select('id, fritext')
             .eq('id', request_id)
             .single();
 
-          const { data: supplierData } = await userClient
+          const { data: supplierData } = await adminClient
             .from('suppliers')
             .select('namn')
             .eq('id', supplier_id || '')
             .single();
 
-          const { data: restaurantData } = await userClient
+          const { data: restaurantData } = await adminClient
             .from('restaurants')
             .select('name')
             .eq('id', restaurant_id)

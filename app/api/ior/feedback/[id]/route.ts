@@ -37,9 +37,9 @@ export async function GET(
     const guard = await requireIORContext(request);
     if (isGuardError(guard)) return guardErrorResponse(guard);
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
-    const { data: feedback, error } = await userClient
+    const { data: feedback, error } = await adminClient
       .from('ior_feedback_items')
       .select('*')
       .eq('id', feedbackId)
@@ -75,7 +75,7 @@ export async function PATCH(
     if (isGuardError(guard)) return guardErrorResponse(guard);
 
     const body = await request.json();
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Build update object
     const updateData: Record<string, unknown> = {};
@@ -110,7 +110,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
-    const { data: feedback, error } = await userClient
+    const { data: feedback, error } = await adminClient
       .from('ior_feedback_items')
       .update(updateData)
       .eq('id', feedbackId)

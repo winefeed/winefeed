@@ -30,7 +30,7 @@ function getPriceIds(): Record<string, string> {
 export async function POST(request: NextRequest) {
   try {
     const stripe = getStripe();
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
     const PRICE_IDS = getPriceIds();
 
     const userId = request.headers.get('x-user-id');
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get supplier info
-    const { data: supplier } = await userClient
+    const { data: supplier } = await adminClient
       .from('suppliers')
       .select('id, namn, kontakt_email')
       .eq('id', actor.supplier_id)
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for existing Stripe customer
-    const { data: existingSub } = await userClient
+    const { data: existingSub } = await adminClient
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('supplier_id', actor.supplier_id)
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
 
       // Save customer ID
-      await userClient
+      await adminClient
         .from('subscriptions')
         .upsert({
           supplier_id: actor.supplier_id,

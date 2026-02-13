@@ -11,9 +11,9 @@ import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest) {
   try {
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
-    const { data, error } = await userClient
+    const { data, error } = await adminClient
       .from('import_document_types')
       .select('*')
       .eq('is_active', true)

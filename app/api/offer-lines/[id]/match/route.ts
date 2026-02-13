@@ -73,7 +73,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Must be SELLER or ADMIN to run matching
     if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'SELLER')) {
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Load offer_line (tenant scoped)
-    const { data: line, error: lineError } = await userClient
+    const { data: line, error: lineError } = await adminClient
       .from('offer_lines')
       .select('*')
       .eq('id', lineId)
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     // SELLER must own the offer that contains this line
     if (actorService.hasRole(actor, 'SELLER') && !actorService.hasRole(actor, 'ADMIN')) {
-      const { data: offer } = await userClient
+      const { data: offer } = await adminClient
         .from('offers')
         .select('supplier_id')
         .eq('id', line.offer_id)

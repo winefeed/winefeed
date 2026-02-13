@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Fetch restaurant details including billing fields
-    const { data: restaurant, error } = await userClient
+    const { data: restaurant, error } = await adminClient
       .from('restaurants')
       .select(`
         id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code,
@@ -167,10 +167,10 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Update restaurant
-    const { data: restaurant, error } = await userClient
+    const { data: restaurant, error } = await adminClient
       .from('restaurants')
       .update(updates)
       .eq('id', actor.restaurant_id)

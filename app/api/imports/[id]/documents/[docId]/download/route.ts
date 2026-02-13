@@ -34,10 +34,10 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // 1. Verify import case exists and belongs to tenant
-    const { data: importCase, error: importError } = await userClient
+    const { data: importCase, error: importError } = await adminClient
       .from('imports')
       .select('id')
       .eq('id', importId)
@@ -52,7 +52,7 @@ export async function GET(
     }
 
     // 2. Fetch document and verify tenant + import match
-    const { data: document, error: docError } = await userClient
+    const { data: document, error: docError } = await adminClient
       .from('import_documents')
       .select('id, storage_path, type, version')
       .eq('id', documentId)
@@ -68,7 +68,7 @@ export async function GET(
     }
 
     // 3. Create signed URL from Supabase Storage
-    const { data: signedUrlData, error: signedUrlError } = await userClient.storage
+    const { data: signedUrlData, error: signedUrlError } = await adminClient.storage
       .from(STORAGE_BUCKET)
       .createSignedUrl(document.storage_path, SIGNED_URL_EXPIRES_IN);
 

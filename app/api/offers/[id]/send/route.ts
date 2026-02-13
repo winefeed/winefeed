@@ -36,14 +36,14 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       tenant_id: tenantId,
     });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const offerId = params.id;
     const body = await request.json().catch(() => ({}));
     const { message } = body;
 
     // Fetch current offer
-    const { data: offer, error: fetchError } = await userClient
+    const { data: offer, error: fetchError } = await adminClient
       .from('offers')
       .select('id, status, supplier_id, request_id')
       .eq('id', offerId)
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Update offer
-    const { data: updatedOffer, error: updateError } = await userClient
+    const { data: updatedOffer, error: updateError } = await adminClient
       .from('offers')
       .update({
         status: 'SENT',
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Log event
-    await userClient.from('offer_events').insert({
+    await adminClient.from('offer_events').insert({
       offer_id: offerId,
       event_type: 'sent',
       from_status: fromStatus,
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     // Update quote_request_assignment status to RESPONDED
     if (offer.request_id && offer.supplier_id) {
-      await userClient
+      await adminClient
         .from('quote_request_assignments')
         .update({ status: 'RESPONDED' })
         .eq('quote_request_id', offer.request_id)
