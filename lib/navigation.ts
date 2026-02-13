@@ -31,6 +31,7 @@ import {
   Handshake,
   MessageSquarePlus,
   Search,
+  Rocket,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -211,6 +212,16 @@ export const ADMIN_NAVIGATION: NavSection[] = [
         label: 'Compliance',
         href: '/admin/compliance',
         icon: Shield,
+      },
+    ],
+  },
+  {
+    title: 'Tillväxt',
+    items: [
+      {
+        label: 'Pipeline',
+        href: '/admin/growth',
+        icon: Rocket,
       },
     ],
   },
