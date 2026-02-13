@@ -141,10 +141,11 @@ export async function POST(
       );
     }
 
-    const { userClient } = await createRouteClients();
+    // Use adminClient for DB operations — auth is already verified above
+    const { adminClient } = await createRouteClients();
 
     // Validate supplier exists
-    const { data: supplier } = await userClient
+    const { data: supplier } = await adminClient
       .from('suppliers')
       .select('id')
       .eq('id', supplierId)
@@ -168,18 +169,24 @@ export async function POST(
     let errorCount = 0;
     const errors: { row: number; error: string }[] = [];
 
-    // Translate descriptions to Swedish if needed
+    // Translate descriptions to Swedish if needed (with 8s timeout to avoid function timeout)
     const descriptions = wines.map(w => w.description?.trim() || '');
     let translatedDescriptions: string[] = descriptions;
     try {
-      translatedDescriptions = await batchTranslateToSwedish(descriptions);
-    } catch (translationError) {
-      console.warn('Translation failed, using original descriptions:', translationError);
+      const translationTimeout = new Promise<string[]>((_, reject) =>
+        setTimeout(() => reject(new Error('Translation timeout')), 8000)
+      );
+      translatedDescriptions = await Promise.race([
+        batchTranslateToSwedish(descriptions),
+        translationTimeout,
+      ]);
+    } catch (translationError: any) {
+      console.warn('[Wine Import] Translation skipped:', translationError?.message || translationError);
     }
 
     // If replace mode, deactivate all existing wines first
     if (mode === 'replace') {
-      await userClient
+      await adminClient
         .from('supplier_wines')
         .update({ is_active: false })
         .eq('supplier_id', supplierId);
@@ -340,7 +347,7 @@ export async function POST(
       };
 
       // Check for existing wine by sku (reference)
-      const { data: existingWine } = await userClient
+      const { data: existingWine } = await adminClient
         .from('supplier_wines')
         .select('id')
         .eq('supplier_id', supplierId)
@@ -349,29 +356,36 @@ export async function POST(
 
       // Insert or update
       if (existingWine) {
-        const { error } = await userClient
+        const { error } = await adminClient
           .from('supplier_wines')
           .update(wineData)
           .eq('id', existingWine.id);
 
         if (error) {
+          console.error(`[Wine Import] Update failed row ${i + 1}:`, error.message, error.code);
           errors.push({ row: i + 1, error: error.message });
           errorCount++;
         } else {
           updatedCount++;
         }
       } else {
-        const { error } = await userClient
+        const { error } = await adminClient
           .from('supplier_wines')
           .insert(wineData);
 
         if (error) {
+          console.error(`[Wine Import] Insert failed row ${i + 1}:`, error.message, error.code);
           errors.push({ row: i + 1, error: error.message });
           errorCount++;
         } else {
           importedCount++;
         }
       }
+    }
+
+    console.log(`[Wine Import] Done for ${supplierId}: ${importedCount} imported, ${updatedCount} updated, ${errorCount} errors out of ${wines.length} total`);
+    if (errors.length > 0) {
+      console.log('[Wine Import] First errors:', JSON.stringify(errors.slice(0, 3)));
     }
 
     return NextResponse.json({
