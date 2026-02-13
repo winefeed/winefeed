@@ -165,7 +165,7 @@ export async function runCatalogAgentPreview(
     type: row.data?.color,
     volume: row.data?.bottle_size_ml,
     price: row.data?.price,
-    quantity: row.data?.moq,
+    quantity: row.data?.stock_qty ?? undefined,
     q_per_box: row.data?.case_size,
     region: row.data?.region,
     grapes: row.data?.grape,

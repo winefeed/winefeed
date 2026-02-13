@@ -10,6 +10,42 @@
 
 import { getAppUrl } from './email-service';
 
+// ============================================================================
+// Shared Winefeed email header & footer (v8 — diamonds + text logo)
+// Reference: scripts/send-test-email.mjs
+// ============================================================================
+
+function winefeedEmailHeader(): string {
+  return `
+  <div style="max-width: 600px; margin: 0 auto;">
+    <!-- Header with text logo -->
+    <div style="background: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+      <div style="display: inline-block;">
+        <span style="display: inline-block; width: 12px; height: 12px; background: #E8DFC4; transform: rotate(45deg); margin-right: -4px;"></span>
+        <span style="display: inline-block; width: 14px; height: 14px; background: #E8B4B8; transform: rotate(45deg); margin-right: -4px; opacity: 0.85;"></span>
+        <span style="display: inline-block; width: 12px; height: 12px; background: #7A1B2D; transform: rotate(45deg); margin-right: 12px;"></span>
+        <span style="font-size: 28px; color: #7A1B2D; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; vertical-align: middle;">
+          <span style="font-weight: 700;">wine</span><span style="font-weight: 300;">feed</span>
+        </span>
+      </div>
+      <p style="color: #b89a9e; margin: 6px 0 0 0; font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;">SOURCE &amp; SERVE</p>
+    </div>
+    <!-- Accent line -->
+    <div style="height: 4px; background: linear-gradient(90deg, #E8DFC4 0%, #E8B4B8 50%, #7A1B2D 100%);"></div>
+    <!-- Body -->
+    <div style="background: white; padding: 30px;">`;
+}
+
+function winefeedEmailFooter(): string {
+  return `
+    </div>
+    <!-- Footer -->
+    <div style="background: #E8DFC4; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+      <p style="margin: 0; color: #7A1B2D; font-size: 12px; font-weight: 500;">Winefeed – Din B2B-marknadsplats för vin</p>
+    </div>
+  </div>`;
+}
+
 export interface OfferCreatedEmailParams {
   restaurantName: string;
   requestTitle: string;
@@ -128,42 +164,34 @@ export function offerCreatedEmail(params: OfferCreatedEmailParams): { subject: s
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">🍷 Winefeed</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Din vinmarknadsplats</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
 
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-    <h2 style="color: #667eea; margin-top: 0;">Ny offert mottagen!</h2>
+    <h2 style="color: #7A1B2D; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Ny offert mottagen!</h2>
 
-    <p>Hej ${restaurantName},</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Hej ${restaurantName},</p>
 
-    <p>Du har fått en ny offert från <strong>${supplierName}</strong> på din förfrågan:</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Du har fått en ny offert från <strong>${supplierName}</strong> på din förfrågan:</p>
 
-    <div style="background: #f9fafb; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0;">
-      <p style="margin: 0 0 10px 0;"><strong>Förfrågan:</strong> ${requestTitle || 'Din förfrågan'}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Offert:</strong> ${offerTitle || 'Offert från ' + supplierName}</p>
-      <p style="margin: 0;"><strong>Antal rader:</strong> ${linesCount} ${linesCount === 1 ? 'rad' : 'rader'}</p>
+    <div style="background: linear-gradient(135deg, rgba(232,180,184,0.15) 0%, rgba(232,223,196,0.15) 100%); border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Förfrågan:</strong> ${requestTitle || 'Din förfrågan'}</p>
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Offert:</strong> ${offerTitle || 'Offert från ' + supplierName}</p>
+      <p style="margin: 0; color: #4b5563;"><strong>Antal rader:</strong> ${linesCount} ${linesCount === 1 ? 'rad' : 'rader'}</p>
     </div>
 
-    <p>Granska offerten och acceptera om den passar era behov.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Granska offerten och acceptera om den passar era behov.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${offerUrl}" style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+      <a href="${offerUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
         Visa offert
       </a>
     </div>
 
-    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-      Du kan också se alla offerter för din förfrågan här:<br>
-      <a href="${requestUrl}" style="color: #667eea;">${requestUrl}</a>
+    <p style="font-size: 13px; color: #6b7280; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      Se alla offerter: <a href="${requestUrl}" style="color: #7A1B2D;">${requestUrl}</a>
     </p>
-  </div>
 
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Winefeed - Din B2B-marknadsplats för vin</p>
-  </div>
+  ${winefeedEmailFooter()}
 </body>
 </html>
   `;
@@ -327,44 +355,37 @@ export function offerAcceptedEmail(params: OfferAcceptedEmailParams): { subject:
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">🎉 Grattis!</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Din offert har accepterats</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
 
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-    <h2 style="color: #10b981; margin-top: 0;">Offert accepterad!</h2>
+    <h2 style="color: #7A1B2D; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Offert accepterad!</h2>
 
-    <p>Hej ${supplierName},</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Hej ${supplierName},</p>
 
-    <p><strong>${restaurantName}</strong> har accepterat din offert!</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;"><strong>${restaurantName}</strong> har accepterat din offert!</p>
 
-    <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
-      <p style="margin: 0 0 10px 0;"><strong>Offert:</strong> ${offerTitle || offerId.substring(0, 8)}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Restaurang:</strong> ${restaurantName}</p>
-      <p style="margin: 0;"><strong>Accepterad:</strong> ${acceptedDate}</p>
+    <div style="background: linear-gradient(135deg, rgba(232,180,184,0.15) 0%, rgba(232,223,196,0.15) 100%); border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Offert:</strong> ${offerTitle || offerId.substring(0, 8)}</p>
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Restaurang:</strong> ${restaurantName}</p>
+      <p style="margin: 0; color: #4b5563;"><strong>Accepterad:</strong> ${acceptedDate}</p>
     </div>
 
-    <p>Offerten är nu låst och du kan inte längre redigera den. Kontakta restaurangen för att koordinera leverans.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Offerten är nu låst och du kan inte längre redigera den. Kontakta restaurangen för att koordinera leverans.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${offerUrl}" style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+      <a href="${offerUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
         Visa accepterad offert
       </a>
     </div>
 
     ${requestUrl ? `
-    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+    <p style="font-size: 13px; color: #6b7280; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       Se original förfrågan:<br>
-      <a href="${requestUrl}" style="color: #10b981;">${requestUrl}</a>
+      <a href="${requestUrl}" style="color: #7A1B2D;">${requestUrl}</a>
     </p>
     ` : ''}
-  </div>
 
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Winefeed - Din B2B-marknadsplats för vin</p>
-  </div>
+  ${winefeedEmailFooter()}
 </body>
 </html>
   `;
@@ -428,47 +449,39 @@ export function userInviteEmail(params: InviteEmailParams): { subject: string; h
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">🍷 Winefeed</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">B2B-marknadsplats för vin</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
 
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-    <h2 style="color: #667eea; margin-top: 0;">${roleIcon} Välkommen!</h2>
+    <h2 style="color: #7A1B2D; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Välkommen!</h2>
 
-    <p>Hej,</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Hej,</p>
 
-    <p>Du har blivit inbjuden att gå med i Winefeed som <strong>${roleText}</strong> för <strong>${entityName}</strong>.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Du har blivit inbjuden att gå med i Winefeed som <strong>${roleText}</strong> för <strong>${entityName}</strong>.</p>
 
-    <div style="background: #f9fafb; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0;">
-      <p style="margin: 0 0 10px 0;"><strong>Email:</strong> ${recipientEmail}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Roll:</strong> ${roleText === 'restaurang' ? 'Restaurang' : 'Leverantör'}</p>
-      <p style="margin: 0;"><strong>Organisation:</strong> ${entityName}</p>
+    <div style="background: linear-gradient(135deg, rgba(232,180,184,0.15) 0%, rgba(232,223,196,0.15) 100%); border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Email:</strong> ${recipientEmail}</p>
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Roll:</strong> ${roleText === 'restaurang' ? 'Restaurang' : 'Leverantör'}</p>
+      <p style="margin: 0; color: #4b5563;"><strong>Organisation:</strong> ${entityName}</p>
     </div>
 
-    <p>Klicka på knappen nedan för att acceptera inbjudan och skapa ditt konto:</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Klicka på knappen nedan för att acceptera inbjudan och skapa ditt konto:</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${inviteUrl}" style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+      <a href="${inviteUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
         Acceptera inbjudan
       </a>
     </div>
 
-    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+    <p style="font-size: 13px; color: #6b7280; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       <strong>Viktigt:</strong> Denna inbjudan är giltig till <strong>${expiryDate}</strong>.<br>
       Om du inte accepterar inbjudan innan dess måste du be om en ny.
     </p>
 
-    <p style="font-size: 14px; color: #6b7280;">
+    <p style="font-size: 13px; color: #6b7280;">
       Länken fungerar endast en gång. Om du har problem, kontakta den som bjöd in dig.
     </p>
-  </div>
 
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Winefeed - Din B2B-marknadsplats för vin</p>
-    <p style="margin: 5px 0 0 0;">Om du inte förväntade dig detta mejl, ignorera det bara.</p>
-  </div>
+  ${winefeedEmailFooter()}
 </body>
 </html>
   `;
@@ -537,61 +550,54 @@ export function orderStatusUpdatedEmail(params: OrderStatusUpdatedEmailParams): 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, ${statusInfo.color} 0%, ${statusInfo.color}dd 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">${statusInfo.icon} Order uppdaterad</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Status: ${statusInfo.label}</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
 
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-    <h2 style="color: ${statusInfo.color}; margin-top: 0;">Orderstatus uppdaterad</h2>
+    <h2 style="color: #7A1B2D; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Orderstatus uppdaterad</h2>
 
-    <p>Hej ${restaurantName || 'där'},</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Hej ${restaurantName || 'där'},</p>
 
-    <p>Din order har uppdaterats till ny status:</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Din order har uppdaterats till ny status:</p>
 
-    <div style="background: #f9fafb; border-left: 4px solid ${statusInfo.color}; padding: 15px; margin: 20px 0;">
-      <p style="margin: 0 0 10px 0;"><strong>Order ID:</strong> <span style="font-family: monospace; font-size: 12px;">${orderId.substring(0, 16)}...</span></p>
-      <p style="margin: 0;"><strong>Ny status:</strong> <span style="color: ${statusInfo.color}; font-weight: 600;">${statusInfo.icon} ${statusInfo.label}</span></p>
+    <div style="background: linear-gradient(135deg, rgba(232,180,184,0.15) 0%, rgba(232,223,196,0.15) 100%); border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Order ID:</strong> <span style="font-family: monospace; font-size: 12px;">${orderId.substring(0, 16)}...</span></p>
+      <p style="margin: 0; color: #4b5563;"><strong>Ny status:</strong> <span style="color: #7A1B2D; font-weight: 600;">${statusInfo.icon} ${statusInfo.label}</span></p>
     </div>
 
     ${newStatus === 'DELIVERED' ? `
     <div style="background: #f0fdf4; border: 1px solid #86efac; padding: 15px; margin: 20px 0; border-radius: 6px;">
-      <p style="margin: 0; color: #065f46;"><strong>✅ Leveransen är slutförd!</strong></p>
+      <p style="margin: 0; color: #065f46;"><strong>Leveransen är slutförd!</strong></p>
       <p style="margin: 10px 0 0 0; color: #065f46; font-size: 14px;">Vänligen verifiera att du mottagit varorna i gott skick.</p>
     </div>
     ` : ''}
 
     ${newStatus === 'SHIPPED' ? `
-    <p>Din order är nu på väg! Du kommer få ett nytt meddelande när leveransen är slutförd.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Din order är nu på väg! Du kommer få ett nytt meddelande när leveransen är slutförd.</p>
     ` : ''}
 
     ${newStatus === 'IN_FULFILLMENT' ? `
-    <p>Din order bearbetas nu för leverans. Du kommer få ett meddelande när ordern skickas.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Din order bearbetas nu för leverans. Du kommer få ett meddelande när ordern skickas.</p>
     ` : ''}
 
     ${newStatus === 'CANCELLED' ? `
     <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 20px 0; border-radius: 6px;">
-      <p style="margin: 0; color: #991b1b;"><strong>❌ Ordern har avbrutits</strong></p>
+      <p style="margin: 0; color: #991b1b;"><strong>Ordern har avbrutits</strong></p>
       <p style="margin: 10px 0 0 0; color: #991b1b; font-size: 14px;">Kontakta leverantören om du har frågor.</p>
     </div>
     ` : ''}
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${orderUrl}" style="display: inline-block; background: ${statusInfo.color}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+      <a href="${orderUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
         Visa order
       </a>
     </div>
 
-    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+    <p style="font-size: 13px; color: #6b7280; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       Se fullständig orderhistorik och detaljer:<br>
-      <a href="${orderUrl}" style="color: ${statusInfo.color}; word-break: break-all;">${orderUrl}</a>
+      <a href="${orderUrl}" style="color: #7A1B2D; word-break: break-all;">${orderUrl}</a>
     </p>
-  </div>
 
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Winefeed - Din B2B-marknadsplats för vin</p>
-  </div>
+  ${winefeedEmailFooter()}
 </body>
 </html>
   `;
@@ -658,51 +664,46 @@ export function newQuoteRequestEmail(params: NewQuoteRequestEmailParams): { subj
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">📬 Ny förfrågan!</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">En restaurang vill ha din offert</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
 
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-    <h2 style="color: #d97706; margin-top: 0;">Hej ${supplierName}!</h2>
+    <h2 style="color: #7A1B2D; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Ny förfrågan!</h2>
 
-    <p><strong>${restaurantName}</strong> har skickat en förfrågan som matchar din katalog.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Hej ${supplierName},</p>
 
-    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
-      <p style="margin: 0 0 10px 0;"><strong>Förfrågan:</strong> ${fritext}</p>
-      ${wineCount ? `<p style="margin: 0 0 10px 0;"><strong>Antal viner:</strong> ${wineCount} st</p>` : ''}
-      ${antalFlaskor ? `<p style="margin: 0 0 10px 0;"><strong>Antal flaskor:</strong> ${antalFlaskor}</p>` : ''}
-      ${budgetPerFlaska ? `<p style="margin: 0 0 10px 0;"><strong>Budget:</strong> ${budgetPerFlaska} kr/flaska</p>` : ''}
-      ${leveransOrt ? `<p style="margin: 0 0 10px 0;"><strong>Leveransort:</strong> ${leveransOrt}</p>` : ''}
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;"><strong>${restaurantName}</strong> har skickat en förfrågan som matchar din katalog.</p>
+
+    <div style="background: linear-gradient(135deg, rgba(232,180,184,0.15) 0%, rgba(232,223,196,0.15) 100%); border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Förfrågan:</strong> ${fritext}</p>
+      ${wineCount ? `<p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Antal viner:</strong> ${wineCount} st</p>` : ''}
+      ${antalFlaskor ? `<p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Antal flaskor:</strong> ${antalFlaskor}</p>` : ''}
+      ${budgetPerFlaska ? `<p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Budget:</strong> ${budgetPerFlaska} kr/flaska</p>` : ''}
+      ${leveransOrt ? `<p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Leveransort:</strong> ${leveransOrt}</p>` : ''}
     </div>
 
     ${hasProvorder ? `
     <div style="background: #f0fdf4; border: 1px solid #86efac; padding: 15px; margin: 20px 0; border-radius: 6px;">
-      <p style="margin: 0; color: #065f46;"><strong>✅ Provorder accepterad</strong></p>
+      <p style="margin: 0; color: #065f46;"><strong>Provorder accepterad</strong></p>
       <p style="margin: 10px 0 0 0; color: #065f46; font-size: 14px;">Kunden godkänner extra avgift på ${provorderFeeTotal} kr för småorder.</p>
     </div>
     ` : ''}
 
     ${expiryDate ? `
-    <p style="color: #b45309; font-weight: 500;">⏰ Svara senast: ${expiryDate}</p>
+    <p style="color: #7A1B2D; font-weight: 500;">Svara senast: ${expiryDate}</p>
     ` : ''}
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${requestUrl}" style="display: inline-block; background: #f59e0b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="${requestUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
         Visa förfrågan & skicka offert
       </a>
     </div>
 
-    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+    <p style="font-size: 13px; color: #6b7280; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       Gå direkt till din leverantörsportal:<br>
-      <a href="${getAppUrl('/supplier/requests')}" style="color: #f59e0b;">Se alla förfrågningar</a>
+      <a href="${getAppUrl('/supplier/requests')}" style="color: #7A1B2D;">Se alla förfrågningar</a>
     </p>
-  </div>
 
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Winefeed - Din B2B-marknadsplats för vin</p>
-  </div>
+  ${winefeedEmailFooter()}
 </body>
 </html>
   `;
@@ -1443,27 +1444,23 @@ export function orderConfirmationEmail(params: OrderConfirmationEmailParams): { 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">✅ Order bekräftad!</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Order #${shortOrderId}</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
 
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-    <h2 style="color: #10b981; margin-top: 0;">Tack för din order!</h2>
+    <h2 style="color: #7A1B2D; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Tack för din order!</h2>
 
-    <p>Hej ${recipientName},</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Hej ${recipientName},</p>
 
-    <p>Din order har bekräftats och leverantören har börjat behandla den.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Din order har bekräftats och leverantören har börjat behandla den.</p>
 
-    <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
-      <p style="margin: 0 0 10px 0;"><strong>Order:</strong> #${shortOrderId}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Restaurang:</strong> ${restaurantName}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Leverantör:</strong> ${supplierName}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Antal flaskor:</strong> ${totalBottles}</p>
-      ${totalValueSek ? `<p style="margin: 0 0 10px 0;"><strong>Totalt:</strong> ${totalValueSek.toLocaleString('sv-SE')} kr</p>` : ''}
-      ${deliveryAddress ? `<p style="margin: 0 0 10px 0;"><strong>Leveransadress:</strong> ${deliveryAddress}</p>` : ''}
-      ${expectedDelivery ? `<p style="margin: 0;"><strong>Förväntad leverans:</strong> ${expectedDelivery}</p>` : ''}
+    <div style="background: linear-gradient(135deg, rgba(232,180,184,0.15) 0%, rgba(232,223,196,0.15) 100%); border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Order:</strong> #${shortOrderId}</p>
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Restaurang:</strong> ${restaurantName}</p>
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Leverantör:</strong> ${supplierName}</p>
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Antal flaskor:</strong> ${totalBottles}</p>
+      ${totalValueSek ? `<p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Totalt:</strong> ${totalValueSek.toLocaleString('sv-SE')} kr</p>` : ''}
+      ${deliveryAddress ? `<p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Leveransadress:</strong> ${deliveryAddress}</p>` : ''}
+      ${expectedDelivery ? `<p style="margin: 0; color: #4b5563;"><strong>Förväntad leverans:</strong> ${expectedDelivery}</p>` : ''}
     </div>
 
     ${items.length > 0 ? `
@@ -1484,19 +1481,16 @@ export function orderConfirmationEmail(params: OrderConfirmationEmailParams): { 
     ` : ''}
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${orderUrl}" style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+      <a href="${orderUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
         Visa order
       </a>
     </div>
 
-    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+    <p style="font-size: 13px; color: #6b7280; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       Du får ett nytt mail när ordern skickas.
     </p>
-  </div>
 
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Winefeed - Din B2B-marknadsplats för vin</p>
-  </div>
+  ${winefeedEmailFooter()}
 </body>
 </html>
   `;
@@ -1568,21 +1562,19 @@ export function offerDeclinedEmail(params: OfferDeclinedEmailParams): { subject:
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Offert avböjd</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Restaurangen valde en annan leverantör</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
 
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-    <p>Hej ${supplierName},</p>
+    <h2 style="color: #7A1B2D; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Offert avböjd</h2>
 
-    <p>Vi vill informera dig om att <strong>${restaurantName}</strong> har avböjt din offert.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Hej ${supplierName},</p>
 
-    <div style="background: #f9fafb; border-left: 4px solid #6b7280; padding: 15px; margin: 20px 0;">
-      <p style="margin: 0 0 10px 0;"><strong>Förfrågan:</strong> ${requestTitle}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Restaurang:</strong> ${restaurantName}</p>
-      <p style="margin: 0;"><strong>Avböjd:</strong> ${declinedDate}</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Vi vill informera dig om att <strong>${restaurantName}</strong> har avböjt din offert.</p>
+
+    <div style="background: linear-gradient(135deg, rgba(232,180,184,0.15) 0%, rgba(232,223,196,0.15) 100%); border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Förfrågan:</strong> ${requestTitle}</p>
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Restaurang:</strong> ${restaurantName}</p>
+      <p style="margin: 0; color: #4b5563;"><strong>Avböjd:</strong> ${declinedDate}</p>
     </div>
 
     ${reason ? `
@@ -1591,22 +1583,19 @@ export function offerDeclinedEmail(params: OfferDeclinedEmailParams): { subject:
     </div>
     ` : ''}
 
-    <p>Detta är helt normalt – restauranger får ofta flera offerter och väljer den som passar bäst för deras behov. Vi hoppas att nästa affär går i lås!</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Detta är helt normalt -- restauranger får ofta flera offerter och väljer den som passar bäst för deras behov. Vi hoppas att nästa affär går i lås!</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${dashboardUrl}" style="display: inline-block; background: #722F37; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+      <a href="${dashboardUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
         Se nya förfrågningar
       </a>
     </div>
 
-    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+    <p style="font-size: 13px; color: #6b7280; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       Tips: Snabba svar och konkurrenskraftiga priser ökar chansen att vinna affären.
     </p>
-  </div>
 
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Winefeed - Din B2B-marknadsplats för vin</p>
-  </div>
+  ${winefeedEmailFooter()}
 </body>
 </html>
   `;
@@ -1668,39 +1657,34 @@ export function offerPendingReminderEmail(params: OfferPendingReminderEmailParam
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">⏰ Påminnelse</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">En offert väntar på ditt svar</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
 
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-    <p>Hej ${restaurantName},</p>
+    <h2 style="color: #7A1B2D; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Påminnelse</h2>
 
-    <p>Du har en offert som har väntat på granskning i <strong>${waitingText}</strong>.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Hej ${restaurantName},</p>
 
-    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
-      <p style="margin: 0 0 10px 0;"><strong>Offert:</strong> ${offerTitle || 'Offert'}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Från:</strong> ${supplierName}</p>
-      <p style="margin: 0;"><strong>Antal rader:</strong> ${linesCount} ${linesCount === 1 ? 'vin' : 'viner'}</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Du har en offert som har väntat på granskning i <strong>${waitingText}</strong>.</p>
+
+    <div style="background: linear-gradient(135deg, rgba(232,180,184,0.15) 0%, rgba(232,223,196,0.15) 100%); border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Offert:</strong> ${offerTitle || 'Offert'}</p>
+      <p style="margin: 0 0 10px 0; color: #4b5563;"><strong>Från:</strong> ${supplierName}</p>
+      <p style="margin: 0; color: #4b5563;"><strong>Antal rader:</strong> ${linesCount} ${linesCount === 1 ? 'vin' : 'viner'}</p>
     </div>
 
-    <p>Leverantörer uppskattar snabba svar. Granska offerten och acceptera eller avböj så att de kan planera sin verksamhet.</p>
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Leverantörer uppskattar snabba svar. Granska offerten och acceptera eller avböj så att de kan planera sin verksamhet.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${offerUrl}" style="display: inline-block; background: #f59e0b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="${offerUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
         Granska offert
       </a>
     </div>
 
-    <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+    <p style="font-size: 13px; color: #6b7280; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       Har du redan hanterat denna offert? Ignorera detta meddelande.
     </p>
-  </div>
 
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Winefeed - Din B2B-marknadsplats för vin</p>
-  </div>
+  ${winefeedEmailFooter()}
 </body>
 </html>
   `;

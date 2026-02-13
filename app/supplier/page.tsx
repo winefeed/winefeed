@@ -26,7 +26,7 @@ import { HelpTooltip, GLOSSARY } from '@/components/ui/help-tooltip';
 import { WineCard, type SupplierWine } from '@/components/supplier/WineCard';
 import { WineDetailModal } from '@/components/supplier/WineDetailModal';
 import { MatchingSuggestions } from '@/components/supplier/MatchingSuggestions';
-import { LowStockAlert } from '@/components/supplier/LowStockAlert';
+// LowStockAlert removed — stock_qty is unreliable in RFQ model (supplier confirms before order)
 import { ActivityFeed } from '@/components/supplier/ActivityFeed';
 import { UnansweredRequestsWidget } from '@/components/supplier/UnansweredRequestsWidget';
 import { SupplierDashboardSkeleton } from '@/components/ui/skeleton';
@@ -226,8 +226,7 @@ export default function SupplierDashboard() {
         {/* Expiring Offers Alert */}
         <ExpiringOffersAlert />
 
-        {/* Low Stock Alert */}
-        <LowStockAlert />
+        {/* Low Stock Alert removed — stock_qty unreliable in RFQ model */}
 
         {/* Empty catalog warning */}
         {stats?.totalWines === 0 && (
