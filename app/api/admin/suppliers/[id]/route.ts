@@ -81,13 +81,12 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       };
     }) || [];
 
-    // Get wines for this supplier
+    // Get wines for this supplier (all, with full details)
     const { data: wines } = await supabase
       .from('supplier_wines')
-      .select('id, name, producer, color, price_ex_vat_sek, is_active, created_at')
+      .select('id, sku, name, producer, vintage, country, region, color, grape, bottle_size_ml, price_ex_vat_sek, stock_qty, case_size, moq, alcohol_pct, organic, biodynamic, is_active, created_at')
       .eq('supplier_id', supplierId)
-      .order('created_at', { ascending: false })
-      .limit(20);
+      .order('producer', { ascending: true });
 
     // Get orders for this supplier
     const { data: orders } = await supabase
@@ -97,19 +96,14 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       .order('created_at', { ascending: false })
       .limit(10);
 
-    // Wine stats
-    const allWines = await supabase
-      .from('supplier_wines')
-      .select('id, color, is_active')
-      .eq('supplier_id', supplierId);
-
+    // Wine stats (computed from the full wines query above — no extra DB call)
     const wineStats = {
-      total: allWines.data?.length || 0,
-      active: allWines.data?.filter(w => w.is_active !== false).length || 0,
+      total: wines?.length || 0,
+      active: wines?.filter(w => w.is_active !== false).length || 0,
       byColor: {} as Record<string, number>,
     };
 
-    allWines.data?.forEach(w => {
+    wines?.forEach(w => {
       const color = w.color || 'unknown';
       wineStats.byColor[color] = (wineStats.byColor[color] || 0) + 1;
     });
@@ -132,12 +126,24 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       },
       users: usersWithDetails,
       wineStats,
-      recentWines: wines?.map(w => ({
+      wines: wines?.map(w => ({
         id: w.id,
+        sku: w.sku,
         name: w.name,
         producer: w.producer,
+        vintage: w.vintage,
+        country: w.country,
+        region: w.region,
         color: w.color,
+        grape: w.grape,
+        bottleSizeMl: w.bottle_size_ml,
         priceSek: w.price_ex_vat_sek ? Math.round(w.price_ex_vat_sek / 100) : null,
+        stockQty: w.stock_qty,
+        caseSize: w.case_size,
+        moq: w.moq,
+        alcoholPct: w.alcohol_pct,
+        organic: w.organic,
+        biodynamic: w.biodynamic,
         isActive: w.is_active !== false,
         createdAt: w.created_at,
       })) || [],
