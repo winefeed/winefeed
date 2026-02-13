@@ -80,10 +80,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Verify supplier exists and is active
-    const { data: supplier, error: supplierError } = await userClient
+    const { data: supplier, error: supplierError } = await adminClient
       .from('suppliers')
       .select('id, is_active')
       .eq('id', supplierId)
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
 
     // Step 1: Get assignments for this supplier
-    let assignmentsQuery = userClient
+    let assignmentsQuery = adminClient
       .from('quote_request_assignments')
       .select('*')
       .eq('supplier_id', supplierId)
@@ -146,7 +146,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       .map(a => a.id);
 
     if (sentAssignmentIds.length > 0) {
-      await userClient
+      await adminClient
         .from('quote_request_assignments')
         .update({
           status: 'VIEWED',
@@ -166,7 +166,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     // Step 3: Get quote requests for these assignments
     const quoteRequestIds = assignments.map(a => a.quote_request_id);
 
-    const { data: requests, error: requestsError } = await userClient
+    const { data: requests, error: requestsError } = await adminClient
       .from('requests')
       .select('*')
       .in('id', quoteRequestIds);
@@ -181,7 +181,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     // Step 4: Get restaurant names
     const restaurantIds = [...new Set(requests.map(r => r.restaurant_id))];
-    const { data: restaurants } = await userClient
+    const { data: restaurants } = await adminClient
       .from('restaurants')
       .select('id, name')
       .in('id', restaurantIds);
@@ -191,7 +191,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     );
 
     // Step 5: Get offer counts
-    const { data: totalOffers } = await userClient
+    const { data: totalOffers } = await adminClient
       .from('offers')
       .select('request_id, id')
       .in('request_id', quoteRequestIds);
@@ -202,7 +202,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       totalOfferMap.set(offer.request_id, count + 1);
     });
 
-    const { data: myOffers } = await userClient
+    const { data: myOffers } = await adminClient
       .from('offers')
       .select('request_id, id')
       .in('request_id', quoteRequestIds)
@@ -215,7 +215,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     });
 
     // Step 5b: Get request items (wines) for this supplier
-    const { data: requestItems } = await userClient
+    const { data: requestItems } = await adminClient
       .from('request_items')
       .select('*')
       .in('request_id', quoteRequestIds)
@@ -290,7 +290,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     });
 
     // Step 7: Get total count for pagination
-    const { count: totalCount } = await userClient
+    const { count: totalCount } = await adminClient
       .from('quote_request_assignments')
       .select('*', { count: 'exact', head: true })
       .eq('supplier_id', supplierId);

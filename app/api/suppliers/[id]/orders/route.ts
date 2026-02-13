@@ -38,13 +38,13 @@ export async function GET(
         { status: 403 }
       );
     }
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'all';
 
     // Build query for orders via offers
-    let query = userClient
+    let query = adminClient
       .from('orders')
       .select(`
         id,

@@ -50,9 +50,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
-    const { data: wine, error } = await userClient
+    const { data: wine, error } = await adminClient
       .from('supplier_wines')
       .select('*')
       .eq('id', wineId)
@@ -122,9 +122,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
-    const { data: wine, error } = await userClient
+    const { data: wine, error } = await adminClient
       .from('supplier_wines')
       .update(updates)
       .eq('id', wineId)
@@ -167,9 +167,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
-    const { error } = await userClient
+    const { error } = await adminClient
       .from('supplier_wines')
       .delete()
       .eq('id', wineId)

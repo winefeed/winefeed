@@ -81,10 +81,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Verify all wines belong to this supplier
-    const { data: existingWines, error: checkError } = await userClient
+    const { data: existingWines, error: checkError } = await adminClient
       .from('supplier_wines')
       .select('id')
       .eq('supplier_id', supplierId)
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Perform bulk update
-    const { data: updatedWines, error: updateError } = await userClient
+    const { data: updatedWines, error: updateError } = await adminClient
       .from('supplier_wines')
       .update(filteredUpdates)
       .eq('supplier_id', supplierId)
