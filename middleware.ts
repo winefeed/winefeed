@@ -25,6 +25,11 @@ import { checkRateLimit, getRateLimitType, getRateLimitHeaders } from '@/lib/rat
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // SECURITY: Strip any client-supplied auth context headers to prevent spoofing.
+  // These headers are set exclusively by this middleware after session validation.
+  request.headers.delete('x-user-id');
+  request.headers.delete('x-tenant-id');
+
   // Public routes - no auth required
   const publicPaths = [
     '/login',
