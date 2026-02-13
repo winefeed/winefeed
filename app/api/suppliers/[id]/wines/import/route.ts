@@ -343,6 +343,7 @@ export async function POST(
         biodynamic,
         description: translatedDescriptions[i] || wine.description?.trim() || null,
         is_active: true,
+        status: 'ACTIVE',
         location: (wine.location as 'domestic' | 'eu' | 'non_eu') || 'domestic',
       };
 

@@ -36,13 +36,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const now = new Date();
     const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
     // Get offers that are pending/sent and have an expiry date within 7 days
-    const { data: offers } = await userClient
+    const { data: offers } = await adminClient
       .from('offers')
       .select(`
         id,

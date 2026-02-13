@@ -37,14 +37,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const searchParams = request.nextUrl.searchParams;
     const requestId = searchParams.get('request_id');
 
     if (requestId) {
       // Get specific request and find matching wines
-      const { data: req } = await userClient
+      const { data: req } = await adminClient
         .from('requests')
         .select('id, fritext, vin_typ, land, region, budget_per_flaska')
         .eq('id', requestId)
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
 
     // Get all pending requests with potential matches
     const now = new Date().toISOString();
-    const { data: pendingRequests } = await userClient
+    const { data: pendingRequests } = await adminClient
       .from('requests')
       .select(`
         id,
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
       .limit(10);
 
     // Get existing offers from this supplier
-    const { data: supplierOffers } = await userClient
+    const { data: supplierOffers } = await adminClient
       .from('offers')
       .select('request_id')
       .eq('supplier_id', actor.supplier_id);
