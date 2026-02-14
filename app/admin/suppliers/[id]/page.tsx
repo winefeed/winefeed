@@ -46,6 +46,7 @@ interface WineItem {
   biodynamic: boolean;
   isActive: boolean;
   createdAt: string;
+  description: string | null;
 }
 
 interface Order {
@@ -594,6 +595,12 @@ export default function AdminSupplierDetailPage() {
                                 <span className="text-foreground">{formatDate(wine.createdAt)}</span>
                               </div>
                             </div>
+                            {wine.description && (
+                              <div className="mt-4 pt-4 border-t border-border">
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">Beskrivning</span>
+                                <p className="text-foreground text-sm leading-relaxed">{wine.description}</p>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       )}

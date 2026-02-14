@@ -84,7 +84,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     // Get wines for this supplier (all, with full details)
     const { data: wines } = await supabase
       .from('supplier_wines')
-      .select('id, sku, name, producer, vintage, country, region, color, grape, bottle_size_ml, price_ex_vat_sek, stock_qty, case_size, moq, alcohol_pct, organic, biodynamic, is_active, created_at')
+      .select('id, sku, name, producer, vintage, country, region, color, grape, bottle_size_ml, price_ex_vat_sek, stock_qty, case_size, moq, alcohol_pct, organic, biodynamic, is_active, created_at, description')
       .eq('supplier_id', supplierId)
       .order('producer', { ascending: true });
 
@@ -146,6 +146,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
         biodynamic: w.biodynamic,
         isActive: w.is_active !== false,
         createdAt: w.created_at,
+        description: w.description || null,
       })) || [],
       recentOrders: orders?.map(o => ({
         id: o.id,
