@@ -57,8 +57,11 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
   const [searchTerm, setSearchTerm] = useState('');
   const [colorFilter, setColorFilter] = useState('ALL');
   const [sortBy, setSortBy] = useState('producer');
+  const [expandedDescs, setExpandedDescs] = useState<Set<string>>(new Set());
 
-  const uniqueColors = [...new Set(wines.map(w => w.color).filter(Boolean))].sort();
+  const uniqueColors = [...new Set(wines.map(w => w.color).filter(Boolean))].sort((a, b) =>
+    (COLOR_LABELS[a] || a).localeCompare(COLOR_LABELS[b] || b, 'sv')
+  );
 
   const filtered = wines.filter((wine) => {
     if (colorFilter !== 'ALL' && wine.color !== colorFilter) return false;
@@ -93,7 +96,7 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
               <h1 className="text-2xl font-bold text-white mb-1">{supplierName}</h1>
               <p className="text-white/70 text-sm">Vinkatalog</p>
             </div>
-            <Image src="/winefeed-logo-white.svg" alt="Winefeed" width={240} height={51} />
+            <Image src="/winefeed-logo-white.svg" alt="Winefeed" width={240} height={51} className="w-[140px] sm:w-[240px] h-auto" />
           </div>
         </div>
       </div>
@@ -142,7 +145,7 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
         {sorted.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {sorted.map((wine) => (
-              <div key={wine.id} className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow">
+              <div key={wine.id} className="bg-white rounded-lg border border-gray-200 p-5">
                 {/* Color badge */}
                 {wine.color && (
                   <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-3 ${COLOR_STYLES[wine.color] || 'bg-gray-100 text-gray-700'}`}>
@@ -200,7 +203,21 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
 
                 {/* Description */}
                 {wine.description && (
-                  <p className="text-sm text-gray-600 mt-3 line-clamp-3">{wine.description}</p>
+                  <div className="mt-3">
+                    <p className={`text-sm text-gray-600 ${expandedDescs.has(wine.id) ? '' : 'line-clamp-3'}`}>{wine.description}</p>
+                    {wine.description.length > 150 && (
+                      <button
+                        onClick={() => setExpandedDescs(prev => {
+                          const next = new Set(prev);
+                          next.has(wine.id) ? next.delete(wine.id) : next.add(wine.id);
+                          return next;
+                        })}
+                        className="text-xs text-[#722F37] hover:underline mt-1"
+                      >
+                        {expandedDescs.has(wine.id) ? 'Visa mindre' : 'Läs mer'}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
@@ -209,7 +226,13 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
           <div className="text-center py-12">
             <Wine className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Inga viner hittades</h3>
-            <p className="text-gray-500">Prova med en annan sökning eller filter</p>
+            <p className="text-gray-500 mb-4">Prova med en annan sökning eller filter</p>
+            <button
+              onClick={() => { setSearchTerm(''); setColorFilter('ALL'); }}
+              className="text-sm text-[#722F37] hover:underline font-medium"
+            >
+              Rensa sökning
+            </button>
           </div>
         )}
       </div>
