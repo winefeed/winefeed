@@ -15,7 +15,7 @@ interface CatalogWine {
   id: string;
   name: string;
   producer: string;
-  vintage: string | null;
+  vintage: number | string | null;
   region: string;
   country: string;
   grape: string;
@@ -82,7 +82,7 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
               <h1 className="text-2xl font-bold text-white mb-1">{supplierName}</h1>
               <p className="text-white/70 text-sm">Vinkatalog</p>
             </div>
-            <span className="text-white/40 text-xs font-medium tracking-wide">via WINEFEED</span>
+            <Image src="/winefeed-logo-email.svg" alt="Winefeed" width={120} height={26} className="opacity-60" />
           </div>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
                 {/* Wine name */}
                 <h3 className="font-semibold text-gray-900 mb-1">
                   {wine.name}
-                  {wine.vintage && !wine.name.includes(wine.vintage) && (
+                  {wine.vintage && wine.vintage !== 0 && !wine.name.includes(String(wine.vintage)) && (
                     <span className="text-gray-500 font-normal ml-1">{wine.vintage}</span>
                   )}
                 </h3>
