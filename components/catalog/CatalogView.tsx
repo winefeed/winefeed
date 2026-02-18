@@ -9,7 +9,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Search, Wine, Leaf, Sparkles } from 'lucide-react';
+import { Search, Wine, Leaf, Sparkles, ArrowUpDown } from 'lucide-react';
 
 interface CatalogWine {
   id: string;
@@ -56,6 +56,7 @@ const COLOR_STYLES: Record<string, string> = {
 export default function CatalogView({ supplierName, supplierType, wines }: CatalogViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [colorFilter, setColorFilter] = useState('ALL');
+  const [sortBy, setSortBy] = useState('producer');
 
   const uniqueColors = [...new Set(wines.map(w => w.color).filter(Boolean))].sort();
 
@@ -70,6 +71,16 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
       (wine.country?.toLowerCase() || '').includes(term) ||
       (wine.grape?.toLowerCase() || '').includes(term)
     );
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case 'name': return a.name.localeCompare(b.name, 'sv');
+      case 'producer': return a.producer.localeCompare(b.producer, 'sv') || a.name.localeCompare(b.name, 'sv');
+      case 'country': return (a.country || '').localeCompare(b.country || '', 'sv') || a.name.localeCompare(b.name, 'sv');
+      case 'color': return (COLOR_LABELS[a.color] || '').localeCompare(COLOR_LABELS[b.color] || '', 'sv') || a.name.localeCompare(b.name, 'sv');
+      default: return 0;
+    }
   });
 
   return (
@@ -112,15 +123,25 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
               <option key={color} value={color}>{COLOR_LABELS[color] || color}</option>
             ))}
           </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#722F37]/20 bg-white text-gray-700"
+          >
+            <option value="producer">Producent</option>
+            <option value="name">Vinnamn</option>
+            <option value="country">Land</option>
+            <option value="color">Färg</option>
+          </select>
           <span className="text-sm text-gray-500">{filtered.length} viner</span>
         </div>
       </div>
 
       {/* Wine Grid */}
       <div className="max-w-6xl mx-auto px-4 pb-12">
-        {filtered.length > 0 ? (
+        {sorted.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((wine) => (
+            {sorted.map((wine) => (
               <div key={wine.id} className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow">
                 {/* Color badge */}
                 {wine.color && (
@@ -157,8 +178,8 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
 
                 {/* Alcohol + Bottle Size */}
                 <div className="flex gap-3 text-xs text-gray-400 mb-3">
-                  {wine.alcohol_pct && <span>{wine.alcohol_pct}%</span>}
-                  {wine.bottle_size_ml && <span>{wine.bottle_size_ml} ml</span>}
+                  {!!wine.alcohol_pct && <span>{wine.alcohol_pct}%</span>}
+                  {!!wine.bottle_size_ml && <span>{wine.bottle_size_ml} ml</span>}
                 </div>
 
                 {/* Badges */}
@@ -193,20 +214,17 @@ export default function CatalogView({ supplierName, supplierType, wines }: Catal
         )}
       </div>
 
-      {/* CTA Footer */}
-      <div className="bg-white border-t border-gray-200 py-8">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Intresserad av dessa viner?
-          </h3>
-          <p className="text-gray-600 mb-4">
-            Skicka en förfrågan via Winefeed och kom i kontakt med {supplierName}.
+      {/* Sticky CTA Bar */}
+      <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 py-3 z-10">
+        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between gap-4">
+          <p className="text-sm text-gray-600 hidden sm:block">
+            Intresserad? Kom i kontakt med {supplierName} via Winefeed.
           </p>
           <a
             href="/signup"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#722F37] text-white rounded-lg font-medium hover:bg-[#8B3A42] transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#722F37] text-white rounded-lg font-medium hover:bg-[#8B3A42] transition-colors text-sm whitespace-nowrap sm:ml-auto"
           >
-            Skicka en förfrågan via Winefeed
+            Skicka förfrågan
           </a>
         </div>
       </div>
