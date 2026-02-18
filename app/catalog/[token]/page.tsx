@@ -8,7 +8,7 @@
 
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { createRouteClients } from '@/lib/supabase/route-client';
+import { getSupabaseAdmin } from '@/lib/supabase-server';
 import CatalogView from '@/components/catalog/CatalogView';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -20,7 +20,7 @@ type PageProps = {
 async function getCatalog(token: string) {
   if (!UUID_REGEX.test(token)) return null;
 
-  const { adminClient } = await createRouteClients();
+  const adminClient = getSupabaseAdmin();
 
   // Look up supplier by catalog token + must be shared
   const { data: supplier, error: supplierError } = await adminClient
