@@ -26,7 +26,18 @@ const EDITABLE_FIELDS = [
   'country',
   'grape',
   'notes',
+  'description',
+  'appellation',
+  'alcohol_pct',
+  'color',
+  'bottle_size_ml',
+  'organic',
+  'biodynamic',
+  'sku',
+  'case_size',
 ];
+
+const VALID_COLORS = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange'];
 
 type RouteParams = {
   params: Promise<{ id: string; wineId: string }>;
@@ -120,6 +131,69 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       if (typeof updates.notes === 'string' && updates.notes.length > 140) {
         return NextResponse.json({ error: 'Anteckning får max vara 140 tecken' }, { status: 400 });
       }
+    }
+
+    // Validate description max length
+    if (updates.description !== undefined && updates.description !== null) {
+      if (typeof updates.description === 'string' && updates.description.length > 2000) {
+        return NextResponse.json({ error: 'Beskrivning får max vara 2000 tecken' }, { status: 400 });
+      }
+    }
+
+    // Validate appellation max length
+    if (updates.appellation !== undefined && updates.appellation !== null) {
+      if (typeof updates.appellation === 'string' && updates.appellation.length > 200) {
+        return NextResponse.json({ error: 'Appellation får max vara 200 tecken' }, { status: 400 });
+      }
+    }
+
+    // Validate alcohol_pct range
+    if (updates.alcohol_pct !== undefined && updates.alcohol_pct !== null) {
+      const pct = Number(updates.alcohol_pct);
+      if (isNaN(pct) || pct < 0 || pct > 100) {
+        return NextResponse.json({ error: 'Alkoholhalt måste vara mellan 0 och 100' }, { status: 400 });
+      }
+      updates.alcohol_pct = pct;
+    }
+
+    // Validate bottle_size_ml
+    if (updates.bottle_size_ml !== undefined && updates.bottle_size_ml !== null) {
+      const size = Number(updates.bottle_size_ml);
+      if (!Number.isInteger(size) || size <= 0) {
+        return NextResponse.json({ error: 'Flaskstorlek måste vara ett positivt heltal' }, { status: 400 });
+      }
+      updates.bottle_size_ml = size;
+    }
+
+    // Validate color
+    if (updates.color !== undefined && updates.color !== null) {
+      if (!VALID_COLORS.includes(updates.color)) {
+        return NextResponse.json({ error: 'Ogiltig färg' }, { status: 400 });
+      }
+    }
+
+    // Validate booleans
+    if (updates.organic !== undefined && updates.organic !== null && typeof updates.organic !== 'boolean') {
+      return NextResponse.json({ error: 'organic måste vara true/false' }, { status: 400 });
+    }
+    if (updates.biodynamic !== undefined && updates.biodynamic !== null && typeof updates.biodynamic !== 'boolean') {
+      return NextResponse.json({ error: 'biodynamic måste vara true/false' }, { status: 400 });
+    }
+
+    // Validate sku max length
+    if (updates.sku !== undefined && updates.sku !== null) {
+      if (typeof updates.sku === 'string' && updates.sku.length > 100) {
+        return NextResponse.json({ error: 'SKU får max vara 100 tecken' }, { status: 400 });
+      }
+    }
+
+    // Validate case_size
+    if (updates.case_size !== undefined && updates.case_size !== null) {
+      const cs = Number(updates.case_size);
+      if (!Number.isInteger(cs) || cs <= 0) {
+        return NextResponse.json({ error: 'Kartongstorlek måste vara ett positivt heltal' }, { status: 400 });
+      }
+      updates.case_size = cs;
     }
 
     const { adminClient } = await createRouteClients();

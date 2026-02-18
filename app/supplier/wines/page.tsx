@@ -10,7 +10,7 @@
  * - Offer usage tracking
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
   Wine,
@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { WinesTableSkeleton } from '@/components/ui/skeleton';
 import { HelpTooltip } from '@/components/ui/help-tooltip';
+import WineDetailPanel from '@/components/supplier/WineDetailPanel';
 import type { QualityReport, AnomalyWarning, EnrichmentResult, DescriptionMeta } from '@/lib/catalog-agent/types';
 
 interface SupplierWine {
@@ -61,6 +62,14 @@ interface SupplierWine {
   updated_at?: string;
   offer_count?: number;
   notes?: string | null;
+  description?: string | null;
+  appellation?: string | null;
+  alcohol_pct?: number | null;
+  bottle_size_ml?: number | null;
+  organic?: boolean | null;
+  biodynamic?: boolean | null;
+  sku?: string | null;
+  case_size?: number | null;
 }
 
 // Helper to format relative time
@@ -158,6 +167,9 @@ export default function SupplierWinesPage() {
   // Delete confirmation
   const [deleteConfirm, setDeleteConfirm] = useState<SupplierWine | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Expandable detail panel
+  const [expandedWineId, setExpandedWineId] = useState<string | null>(null);
 
   // Upload state
   const [isUploading, setIsUploading] = useState(false);
@@ -1099,10 +1111,11 @@ export default function SupplierWinesPage() {
             <tbody>
               {filteredAndSortedWines.map((wine) => {
                 const isEndOfVintage = wine.status === 'END_OF_VINTAGE';
+                const isExpanded = expandedWineId === wine.id;
                 return (
+                <React.Fragment key={wine.id}>
                 <tr
-                  key={wine.id}
-                  className={`border-b border-gray-100 hover:bg-gray-50 group ${isEndOfVintage ? 'opacity-60' : ''}`}
+                  className={`border-b border-gray-100 hover:bg-gray-50 group ${isEndOfVintage ? 'opacity-60' : ''} ${isExpanded ? 'bg-gray-50' : ''}`}
                 >
                   <td className="p-4 hidden sm:table-cell">
                     <input
@@ -1113,10 +1126,16 @@ export default function SupplierWinesPage() {
                     />
                   </td>
                   <td className="p-4">
-                    <div className="font-medium text-gray-900 line-clamp-1">
-                      {wine.name}
+                    <div
+                      className="flex items-center gap-1.5 cursor-pointer"
+                      onClick={() => setExpandedWineId(isExpanded ? null : wine.id)}
+                    >
+                      <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-900 line-clamp-1">{wine.name}</div>
+                        <div className="text-sm text-gray-500 line-clamp-1">{wine.producer} &middot; {wine.region}</div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500 line-clamp-1">{wine.producer} &middot; {wine.region}</div>
                     {/* Show status badge on mobile since column is hidden */}
                     <div className="md:hidden mt-1">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -1279,6 +1298,22 @@ export default function SupplierWinesPage() {
                     </button>
                   </td>
                 </tr>
+                {isExpanded && supplierId && (
+                  <tr className="border-b border-gray-200">
+                    <td colSpan={8}>
+                      <WineDetailPanel
+                        wine={wine}
+                        supplierId={supplierId}
+                        onSave={(updatedWine) => {
+                          setWines(prev => prev.map(w => w.id === updatedWine.id ? updatedWine : w));
+                          showToast('Sparat', 'success');
+                        }}
+                        onError={(msg) => showToast(msg, 'error')}
+                      />
+                    </td>
+                  </tr>
+                )}
+                </React.Fragment>
               );
               })}
             </tbody>

@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Building2, Mail, Phone, Globe, FileText, MapPin, CheckCircle, XCircle, Package, Loader2, Save, Pencil, X, Wine, Sparkles } from 'lucide-react';
+import { Building2, Mail, Phone, Globe, FileText, MapPin, CheckCircle, XCircle, Package, Loader2, Save, Pencil, X, Wine, Sparkles, Link2, Copy, ExternalLink } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 
 interface SupplierProfile {
@@ -55,6 +55,12 @@ export default function SupplierProfilePage() {
   const [provorderFee, setProvorderFee] = useState('500');
   const [savingProvorder, setSavingProvorder] = useState(false);
 
+  // Catalog sharing state
+  const [catalogShared, setCatalogShared] = useState(false);
+  const [catalogUrl, setCatalogUrl] = useState<string | null>(null);
+  const [savingCatalog, setSavingCatalog] = useState(false);
+  const [catalogCopied, setCatalogCopied] = useState(false);
+
   useEffect(() => {
     async function fetchProfile() {
       try {
@@ -72,7 +78,21 @@ export default function SupplierProfilePage() {
       }
     }
 
+    async function fetchCatalogSettings() {
+      try {
+        const res = await fetch('/api/supplier/catalog-settings');
+        if (res.ok) {
+          const data = await res.json();
+          setCatalogShared(data.catalogShared);
+          setCatalogUrl(data.catalogUrl);
+        }
+      } catch {
+        // Silently fail — catalog settings are optional
+      }
+    }
+
     fetchProfile();
+    fetchCatalogSettings();
   }, []);
 
   // Initialize MOQ value when profile loads
@@ -211,6 +231,42 @@ export default function SupplierProfilePage() {
     } finally {
       setSavingProvorder(false);
     }
+  }
+
+  async function saveCatalogShared(enabled: boolean) {
+    if (!profile) return;
+
+    setSavingCatalog(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/supplier/catalog-settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ catalogShared: enabled }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCatalogShared(data.catalogShared);
+        setCatalogUrl(data.catalogUrl);
+        toast.success(enabled ? 'Publik katalog aktiverad' : 'Publik katalog inaktiverad');
+      } else {
+        const err = await res.json();
+        setError(err.error || 'Kunde inte spara kataloginställningar');
+      }
+    } catch {
+      setError('Ett fel uppstod vid sparande');
+    } finally {
+      setSavingCatalog(false);
+    }
+  }
+
+  function copyCatalogUrl() {
+    if (!catalogUrl) return;
+    navigator.clipboard.writeText(catalogUrl);
+    setCatalogCopied(true);
+    setTimeout(() => setCatalogCopied(false), 2000);
   }
 
   if (loading) {
@@ -581,6 +637,90 @@ export default function SupplierProfilePage() {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Catalog Sharing */}
+      <div className="mt-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Link2 className="h-5 w-5 text-blue-500" />
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
+              Katalogdelning
+            </h3>
+          </div>
+
+          <p className="text-sm text-gray-600 mb-4">
+            Dela din vinkatalog via en publik länk. Perfekt att skicka till potentiella kunder
+            eller använda i marknadsföring.
+          </p>
+
+          {/* Enable toggle */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
+            <div>
+              <p className="font-medium text-gray-900">Aktivera publik katalog</p>
+              <p className="text-sm text-gray-500">
+                Gör din vinkatalog tillgänglig via en delbar länk
+              </p>
+            </div>
+            <button
+              onClick={() => saveCatalogShared(!catalogShared)}
+              disabled={savingCatalog}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                catalogShared ? 'bg-green-500' : 'bg-gray-300'
+              } ${savingCatalog ? 'opacity-50' : ''}`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  catalogShared ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* URL display when enabled */}
+          {catalogShared && catalogUrl && (
+            <div className="p-4 border border-gray-200 rounded-lg">
+              <p className="text-xs text-gray-500 mb-2">Din kataloglänk</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={catalogUrl}
+                  readOnly
+                  className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 select-all"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <button
+                  onClick={copyCatalogUrl}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-1"
+                >
+                  {catalogCopied ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Kopierad!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Kopiera
+                    </>
+                  )}
+                </button>
+                <a
+                  href={catalogUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-1"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Öppna
+                </a>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                Länken visar aktiva viner utan priser. Indexeras inte av sökmotorer.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
