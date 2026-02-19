@@ -27,7 +27,8 @@ import {
   SupplierInfo,
 } from './types';
 import { parseFritext } from './fritext-parser';
-import { mergePreferences } from './food-pairing';
+import { mergePreferences, setRuntimeOverrides } from './food-pairing';
+import { loadPairingOverrides } from '../food-scan/pairing-loader';
 import { runSmartQuery } from './smart-query';
 import { preScoreWines } from './pre-scorer';
 import { rankWinesEnhanced } from '../ai/rank-wines';
@@ -68,6 +69,16 @@ export async function runMatchingAgentPipeline(
       console.warn('[MatchingAgent] Parse failed, continuing with empty parsed:', err?.message);
     }
     timing.parse = Date.now() - tParse;
+  }
+
+  // -------------------------------------------------------------------------
+  // Step 1b: Load DB pairing overrides (async, cached 5 min)
+  // -------------------------------------------------------------------------
+  try {
+    const overrides = await loadPairingOverrides();
+    setRuntimeOverrides(overrides);
+  } catch (err: any) {
+    console.warn('[MatchingAgent] Failed to load pairing overrides (non-critical):', err?.message);
   }
 
   // -------------------------------------------------------------------------
