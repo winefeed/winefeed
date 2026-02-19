@@ -56,9 +56,13 @@ Returnera ENBART ett JSON-objekt (ingen markdown, ingen förklaring) med denna s
 }
 
 REGLER:
-- food_pairing: svenska ord för mat (lamm, fisk, ost, etc.)
+- food_pairing: svenska basord för mat. Normalisera alltid till grundformen:
+  "torskrygg" → "torsk", "lammracks" → "lamm", "beef tartare"/"tartare" → "tartar",
+  "räksallad" → "räkor", "ankbröst" → "anka", "oxfilé med rödvinssås" → "oxfilé".
+  Inkludera BÅDE det specifika och det generella om relevant: "torskrygg" → ["torsk", "fisk"]
 - style: svenska stilord (elegant, kraftig, naturvin, lätt, fruktig, mineralisk)
-- implied_color: BARA om texten antyder färg som INTE redan är valt
+- implied_color: BARA om texten antyder färg som INTE redan är valt. Tänk på matpairing:
+  fisk/skaldjur → "white", rött kött → "red", tartar/carpaccio → "red"
 - implied_country: BARA om texten antyder land som INTE redan är valt, skriv på engelska (France, Italy, Spain)
 - implied_region: vinregion om nämnd (Bordeaux, Toscana, Rioja)
 - implied_grapes: BARA om texten antyder druvor som INTE redan är valt
