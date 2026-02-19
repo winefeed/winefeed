@@ -46,7 +46,7 @@ Returnera ENBART ett JSON-objekt (ingen markdown, ingen förklaring) med denna s
   "food_pairing": ["mat1", "mat2"],
   "style": ["stil1"],
   "occasion": "tillfälle eller null",
-  "implied_color": "red/white/rose/sparkling/orange/fortified eller null",
+  "implied_color": "red/white/rose/sparkling/orange/fortified/alcohol_free eller null",
   "implied_country": "land på engelska eller null",
   "implied_region": "region på originalspråk eller null",
   "implied_grapes": ["druva1"],

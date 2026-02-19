@@ -34,6 +34,7 @@ import { preScoreWines } from './pre-scorer';
 import { rankWinesEnhanced } from '../ai/rank-wines';
 import { buildKnowledgeContext } from './knowledge';
 import { enrichWithKnowledge } from '../rag/wine-knowledge-store';
+import { buildMarketContext, getMarketLeaderSubsidiaries } from './market-context';
 
 function getSupabaseAdmin() {
   return createAdminClient(
@@ -143,6 +144,25 @@ export async function runMatchingAgentPipeline(
   }
 
   // -------------------------------------------------------------------------
+  // Step 4c: Build market context (async, fail-safe)
+  // -------------------------------------------------------------------------
+  let marketContext = '';
+  let marketLeaderSubsidiaries: string[] = [];
+  try {
+    const tMarket = Date.now();
+    [marketContext, marketLeaderSubsidiaries] = await Promise.all([
+      buildMarketContext(),
+      getMarketLeaderSubsidiaries(),
+    ]);
+    timing.marketContext = Date.now() - tMarket;
+    if (marketContext) {
+      console.log(`[MatchingAgent] Market context built in ${timing.marketContext}ms (${marketLeaderSubsidiaries.length} subsidiaries)`);
+    }
+  } catch (err: any) {
+    console.warn('[MatchingAgent] Market context failed (non-critical):', err?.message);
+  }
+
+  // -------------------------------------------------------------------------
   // Step 5: Pre-score (sync, <5ms)
   // -------------------------------------------------------------------------
   let scoredWines: ScoredWine[];
@@ -162,7 +182,7 @@ export async function runMatchingAgentPipeline(
     scoredWines = wines.slice(0, options.preScoreTopN).map(wine => ({
       wine,
       score: 50,
-      breakdown: { price: 12, color: 10, region: 10, grape: 8, food: 5, availability: 5 },
+      breakdown: { price: 12, color: 10, region: 10, grape: 8, food: 5, availability: 5, certification: 0 },
     }));
   }
 
@@ -190,6 +210,29 @@ export async function runMatchingAgentPipeline(
   }
 
   // -------------------------------------------------------------------------
+  // Step 5c: Pre-fetch supplier names for AI context
+  // -------------------------------------------------------------------------
+  let supplierNamesMap: Record<string, string> = {};
+  if (options.enableAIRerank && marketLeaderSubsidiaries.length > 0) {
+    try {
+      const supplierIds = [...new Set(scoredWines.map(sw => sw.wine.supplier_id).filter(Boolean))];
+      if (supplierIds.length > 0) {
+        const { data: suppliers } = await getSupabaseAdmin()
+          .from('suppliers')
+          .select('id, namn')
+          .in('id', supplierIds);
+        if (suppliers) {
+          for (const s of suppliers) {
+            supplierNamesMap[s.id] = s.namn;
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn('[MatchingAgent] Supplier name pre-fetch failed (non-critical):', err?.message);
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // Step 6: AI re-rank (async, fallback to pre-score order)
   // -------------------------------------------------------------------------
   if (options.enableAIRerank) {
@@ -198,8 +241,8 @@ export async function runMatchingAgentPipeline(
     // Build search context for AI
     const searchContext = buildSearchContext(input, parsed);
 
-    // Combine knowledge base context + RAG context
-    const combinedKnowledge = [knowledgeContext.promptContext, ragContext]
+    // Combine knowledge base context + RAG context + market context
+    const combinedKnowledge = [knowledgeContext.promptContext, ragContext, marketContext]
       .filter(Boolean)
       .join('\n\n');
 
@@ -211,6 +254,8 @@ export async function runMatchingAgentPipeline(
         options.finalTopN,
         combinedKnowledge || undefined,
         input.restaurantContext || undefined,
+        marketLeaderSubsidiaries,
+        supplierNamesMap,
       );
 
       // Re-order scoredWines based on AI ranking
@@ -279,6 +324,7 @@ function buildSearchContext(input: MatchingAgentInput, parsed: ParsedFritext): s
   const colorLabels: Record<string, string> = {
     red: 'rött vin', white: 'vitt vin', rose: 'rosévin',
     sparkling: 'mousserande vin', orange: 'orange vin', fortified: 'starkvin',
+    alcohol_free: 'alkoholfritt vin',
   };
 
   const color = input.structuredFilters.color;

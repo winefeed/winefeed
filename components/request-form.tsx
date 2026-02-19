@@ -21,6 +21,7 @@ const WINE_COLORS = [
   { value: 'rose', label: 'Rosé', emoji: '🌸' },
   { value: 'sparkling', label: 'Mousserande', emoji: '🍾' },
   { value: 'orange', label: 'Orange', emoji: '🍊' },
+  { value: 'alcohol_free', label: 'Alkoholfritt', emoji: '🫧' },
   { value: 'fortified', label: 'Starkvin', emoji: '🥃' },
 ] as const;
 

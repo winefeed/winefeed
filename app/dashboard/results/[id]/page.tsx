@@ -71,6 +71,7 @@ const COLOR_LABELS: Record<string, { label: string; bg: string; text: string }> 
   rose: { label: 'Rosé', bg: 'bg-pink-100', text: 'text-pink-700' },
   sparkling: { label: 'Mousserande', bg: 'bg-yellow-100', text: 'text-yellow-700' },
   orange: { label: 'Orange', bg: 'bg-orange-100', text: 'text-orange-700' },
+  alcohol_free: { label: 'Alkoholfritt', bg: 'bg-teal-100', text: 'text-teal-700' },
   fortified: { label: 'Starkvin', bg: 'bg-amber-200', text: 'text-amber-800' },
 };
 

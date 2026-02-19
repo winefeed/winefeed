@@ -9,7 +9,7 @@
 // Types
 // ============================================================================
 
-export type WineColor = 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange';
+export type WineColor = 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange' | 'alcohol_free';
 export type PackagingType = 'bottle' | 'keg' | 'bag_in_box' | 'can' | 'tetra' | 'other';
 export type WineLocation = 'domestic' | 'eu' | 'non_eu';
 
@@ -85,7 +85,7 @@ export interface ImportPreview {
 // Constants
 // ============================================================================
 
-const VALID_COLORS: WineColor[] = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange'];
+const VALID_COLORS: WineColor[] = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange', 'alcohol_free'];
 
 // Color aliases for fuzzy matching
 const COLOR_ALIASES: Record<string, WineColor> = {
@@ -137,6 +137,18 @@ const COLOR_ALIASES: Record<string, WineColor> = {
   'grappa': 'fortified',
 
   'orange': 'orange',
+
+  'alcohol_free': 'alcohol_free',
+  'alcohol-free': 'alcohol_free',
+  'alkoholfri': 'alcohol_free',
+  'alkoholfritt': 'alcohol_free',
+  'nolo': 'alcohol_free',
+  'no-lo': 'alcohol_free',
+  'low_alcohol': 'alcohol_free',
+  '0%': 'alcohol_free',
+  'non-alcoholic': 'alcohol_free',
+  'dealcoholized': 'alcohol_free',
+  'avalkoholiserad': 'alcohol_free',
 };
 
 const VALID_PACKAGING_TYPES: PackagingType[] = ['bottle', 'keg', 'bag_in_box', 'can', 'tetra', 'other'];

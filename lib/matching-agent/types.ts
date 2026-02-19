@@ -33,14 +33,15 @@ export const EMPTY_PARSED: ParsedFritext = {
   price_sensitivity: 'any',
 };
 
-/** Score breakdown per category (max sum = 100) */
+/** Score breakdown per category (max sum = 105) */
 export interface ScoreBreakdown {
-  price: number;        // 0-25
-  color: number;        // 0-20
-  region: number;       // 0-20
-  grape: number;        // 0-15
-  food: number;         // 0-10
-  availability: number; // 0-10
+  price: number;          // 0-25
+  color: number;          // 0-20
+  region: number;         // 0-20
+  grape: number;          // 0-15
+  food: number;           // 0-10
+  availability: number;   // 0-10
+  certification: number;  // 0-5 bonus
 }
 
 /** A wine with its deterministic pre-score */

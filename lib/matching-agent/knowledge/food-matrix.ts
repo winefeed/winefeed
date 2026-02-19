@@ -17,7 +17,7 @@ export interface FoodWineMatch {
   /** Intensity of the dish (determines wine weight) */
   intensity: 'light' | 'medium' | 'full';
   /** Best wine colors */
-  colors: ('red' | 'white' | 'rosé' | 'sparkling' | 'orange')[];
+  colors: ('red' | 'white' | 'rosé' | 'sparkling' | 'orange' | 'alcohol_free')[];
   /** Ideal grape varieties */
   grapes: string[];
   /** Ideal regions */

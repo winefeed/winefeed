@@ -62,6 +62,7 @@ const COLOR_LABELS: Record<string, { label: string; color: string }> = {
   rose: { label: 'Rosé', color: 'bg-pink-300' },
   sparkling: { label: 'Mousserande', color: 'bg-yellow-300' },
   orange: { label: 'Orange', color: 'bg-orange-400' },
+  alcohol_free: { label: 'Alkoholfritt', color: 'bg-teal-400' },
   fortified: { label: 'Starkvin', color: 'bg-amber-700' },
 };
 

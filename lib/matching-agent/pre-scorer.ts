@@ -28,7 +28,7 @@ export function preScoreWines(
 ): ScoredWine[] {
   const scored: ScoredWine[] = wines.map(wine => {
     const breakdown = scoreWine(wine, preferences, structuredFilters);
-    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.availability;
+    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.availability + breakdown.certification;
     return { wine, score, breakdown };
   });
 
@@ -50,6 +50,7 @@ function scoreWine(
     grape: scoreGrape(wine, prefs),
     food: scoreFood(wine, prefs),
     availability: scoreAvailability(wine),
+    certification: scoreCertification(wine, prefs),
   };
 }
 
@@ -239,6 +240,29 @@ function scoreFood(wine: SupplierWineRow, prefs: MergedPreferences): number {
   }
 
   return Math.min(score, 10);
+}
+
+// ============================================================================
+// Certification scoring (0-5 bonus)
+// ============================================================================
+
+function scoreCertification(wine: SupplierWineRow, prefs: MergedPreferences): number {
+  // Only give bonus if certifications are relevant:
+  // - User explicitly asked for organic/biodynamic, OR
+  // - The wine has certifications (sustainability is a growing market trend)
+  const userWantsCerts = prefs.organic || prefs.biodynamic;
+
+  if (wine.biodynamic) {
+    return userWantsCerts ? 5 : 3; // Biodynamic is strongest signal
+  }
+  if (wine.organic) {
+    return userWantsCerts ? 3 : 2; // Organic is common but valued
+  }
+
+  // No certification — small penalty only if user explicitly asked
+  if (userWantsCerts) return 0;
+
+  return 0;
 }
 
 // ============================================================================

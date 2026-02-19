@@ -40,6 +40,7 @@ const COLOR_LABELS: Record<string, string> = {
   sparkling: 'Mousserande',
   orange: 'Orange',
   fortified: 'Starkvin',
+  alcohol_free: 'Alkoholfritt',
 };
 
 export async function rankWinesWithClaude(
@@ -94,7 +95,7 @@ UPPGIFT:
 Rangordna vinerna baserat på hur väl de matchar restaurangens behov.
 
 BEDÖMNINGSKRITERIER (i prioritetsordning):
-1. Vintyp (rött/vitt/etc) - MÅSTE matcha om specificerat
+1. Vintyp (rött/vitt/alkoholfritt/etc) - MÅSTE matcha om specificerat
 2. Budget - pris UNDER eller vid budget är BRA (lägre pris = bättre värde för restaurangen). Pris ÖVER budget är negativt.
 3. Land/Region - om specificerat
 4. Druva - om specificerat
@@ -179,8 +180,14 @@ export async function rankWinesEnhanced(
   finalTopN: number = 10,
   knowledgeContext?: string,
   restaurantContext?: string,
+  marketLeaderSubsidiaries?: string[],
+  supplierNamesMap?: Record<string, string>,
 ): Promise<EnhancedRankResult[]> {
   if (scoredWines.length === 0) return [];
+
+  const subsidiarySet = new Set(
+    (marketLeaderSubsidiaries || []).map(s => s.toLowerCase())
+  );
 
   const wineList = scoredWines.map((sw, i) => {
     const w = sw.wine;
@@ -190,13 +197,36 @@ export async function rankWinesEnhanced(
       `   Typ: ${COLOR_LABELS[w.color || ''] || w.color || 'Okänd'}`,
       `   Land: ${w.country}${w.region ? `, ${w.region}` : ''}${w.appellation ? ` (${w.appellation})` : ''}`,
       `   Pris: ${Math.round(w.price_ex_vat_sek / 100)} kr`,
-      `   Förpoäng: ${sw.score}/100`,
+      `   Förpoäng: ${sw.score}/105`,
     ];
 
     if (w.grape) parts.push(`   Druva: ${w.grape}`);
     if (w.vintage) parts.push(`   Årgång: ${w.vintage}`);
     if (w.organic) parts.push(`   Ekologisk: Ja`);
     if (w.biodynamic) parts.push(`   Biodynamisk: Ja`);
+
+    // Surface packaging info
+    if (w.bottle_size_ml && w.bottle_size_ml !== 750) {
+      const packagingLabel = w.bottle_size_ml >= 2000
+        ? `BIB ${w.bottle_size_ml / 1000}L`
+        : `${w.bottle_size_ml} ml`;
+      parts.push(`   Förpackning: ${packagingLabel}`);
+    }
+
+    // Flag market leader subsidiaries (match on supplier name)
+    if (subsidiarySet.size > 0 && supplierNamesMap) {
+      const supplierName = supplierNamesMap[w.supplier_id];
+      if (supplierName) {
+        const supplierLower = supplierName.toLowerCase();
+        for (const sub of subsidiarySet) {
+          if (supplierLower.includes(sub) || sub.includes(supplierLower)) {
+            parts.push(`   Leverantörskontext: Marknadsledarens varumärke (Viva Wine Group)`);
+            break;
+          }
+        }
+      }
+    }
+
     if (w.description) {
       parts.push(`   Beskrivning: ${w.description.substring(0, 150)}${w.description.length > 150 ? '...' : ''}`);
     }
@@ -232,7 +262,7 @@ Rangordna vinerna baserat på hur väl de matchar restaurangens behov.
 Vinerna är redan förfiltrerade och poängsatta — din uppgift är att göra den slutgiltiga rankingen med ditt vinexpertomdöme.
 
 BEDÖMNINGSKRITERIER (i prioritetsordning):
-1. Vintyp (rött/vitt/etc) - MÅSTE matcha om specificerat
+1. Vintyp (rött/vitt/alkoholfritt/etc) - MÅSTE matcha om specificerat
 2. Budget - pris UNDER eller vid budget = BRA (fynd för restaurangen). Pris ÖVER budget = negativt.
 3. Land/Region - om specificerat
 4. Druva - om specificerat
