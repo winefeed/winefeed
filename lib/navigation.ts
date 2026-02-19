@@ -216,6 +216,16 @@ export const ADMIN_NAVIGATION: NavSection[] = [
     ],
   },
   {
+    title: 'Matching',
+    items: [
+      {
+        label: 'Matscan',
+        href: '/admin/food-scan',
+        icon: Search,
+      },
+    ],
+  },
+  {
     title: 'Tillväxt',
     items: [
       {

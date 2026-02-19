@@ -5,5 +5,8 @@
   "crons": [{
     "path": "/api/cron/access-reminders",
     "schedule": "0 7 * * *"
+  }, {
+    "path": "/api/cron/food-trends",
+    "schedule": "0 6 1 * *"
   }]
 }
