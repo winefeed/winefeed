@@ -43,6 +43,7 @@ export const FOOD_TO_WINE_STYLES: Record<string, FoodWinePreference> = {
   'vildsvin': { colors: ['red'], regions: ['toscana', 'rhône', 'languedoc', 'umbria'], grapes: ['Sangiovese', 'Syrah', 'Grenache'] },
   'älg': { colors: ['red'], regions: ['bourgogne', 'piemonte', 'rhône', 'naoussa'], grapes: ['Pinot Noir', 'Nebbiolo', 'Syrah', 'Xinomavro'] },
   'hjort': { colors: ['red'], regions: ['bourgogne', 'piemonte', 'priorat', 'dão'], grapes: ['Pinot Noir', 'Nebbiolo', 'Grenache', 'Touriga Nacional'] },
+  'rådjur': { colors: ['red'], regions: ['bourgogne', 'piemonte', 'beaujolais'], grapes: ['Pinot Noir', 'Nebbiolo', 'Gamay'] },
   'entrecote': { colors: ['red'], regions: ['bordeaux', 'napa valley', 'mendoza', 'alentejo'], grapes: ['Cabernet Sauvignon', 'Malbec', 'Touriga Nacional'] },
   'entrecôte': { colors: ['red'], regions: ['bordeaux', 'napa valley', 'mendoza'], grapes: ['Cabernet Sauvignon', 'Malbec'] },
   'oxfilé': { colors: ['red'], regions: ['bordeaux', 'barolo', 'napa valley'], grapes: ['Cabernet Sauvignon', 'Nebbiolo', 'Merlot'] },
