@@ -22,7 +22,7 @@ function getStripe() {
 export async function POST(request: NextRequest) {
   try {
     const stripe = getStripe();
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const userId = request.headers.get('x-user-id');
     const tenantId = request.headers.get('x-tenant-id');
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get subscription
-    const { data: sub } = await userClient
+    const { data: sub } = await adminClient
       .from('subscriptions')
       .select('stripe_subscription_id')
       .eq('supplier_id', actor.supplier_id)
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Update our database
-    await userClient
+    await adminClient
       .from('subscriptions')
       .update({
         cancel_at_period_end: true,

@@ -55,7 +55,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const importerId = actor.importer_id;
 
@@ -77,21 +77,21 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     }
 
     // Enrich order with restaurant info
-    const { data: restaurant } = await userClient
+    const { data: restaurant } = await adminClient
       .from('restaurants')
       .select('name, contact_email, contact_phone, address')
       .eq('id', order.restaurant_id)
       .single();
 
     // Enrich order with supplier info
-    const { data: supplier } = await userClient
+    const { data: supplier } = await adminClient
       .from('suppliers')
       .select('namn, type, kontakt_email, kontakt_telefon')
       .eq('id', order.seller_supplier_id)
       .single();
 
     // Enrich order with importer info (IOR details)
-    const { data: importer } = await userClient
+    const { data: importer } = await adminClient
       .from('importers')
       .select('legal_name, org_number, contact_name, contact_email, contact_phone, license_number')
       .eq('id', order.importer_of_record_id)
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     // Fetch delivery location if exists
     let deliveryLocation = null;
     if (order.delivery_location_id) {
-      const { data: ddl } = await userClient
+      const { data: ddl } = await adminClient
         .from('direct_delivery_locations')
         .select('*')
         .eq('id', order.delivery_location_id)
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     let importCase: any = null;
     let documents: any[] = [];
     if (order.import_case_id) {
-      const { data: imp } = await userClient
+      const { data: imp } = await adminClient
         .from('imports')
         .select(`
           id,
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
       // Fetch 5369 documents for this import case
       if (imp) {
-        const { data: docs } = await userClient
+        const { data: docs } = await adminClient
           .from('import_documents')
           .select('id, document_type, version, generated_at, file_path, file_size')
           .eq('import_id', order.import_case_id)

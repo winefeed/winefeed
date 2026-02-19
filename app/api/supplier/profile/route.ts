@@ -40,10 +40,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient, adminClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Get full supplier details
-    const { data: supplier, error: supplierError } = await userClient
+    const { data: supplier, error: supplierError } = await adminClient
       .from('suppliers')
       .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles, provorder_enabled, provorder_fee_sek')
       .eq('id', actor.supplier_id)
@@ -214,10 +214,10 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Update supplier
-    const { data: supplier, error: updateError } = await userClient
+    const { data: supplier, error: updateError } = await adminClient
       .from('suppliers')
       .update(updates)
       .eq('id', actor.supplier_id)

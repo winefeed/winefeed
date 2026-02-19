@@ -62,14 +62,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Get filter from query params
     const { searchParams } = new URL(request.url);
     const filter = (searchParams.get('filter') || 'all') as QueueFilter;
 
     // Fetch import cases for this importer
-    const { data: imports, error: importsError } = await userClient
+    const { data: imports, error: importsError } = await adminClient
       .from('imports')
       .select(`
         id,
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
     const importIds = imports.map(i => i.id);
 
     // Get document status counts per import
-    const { data: docCounts, error: docCountsError } = await userClient
+    const { data: docCounts, error: docCountsError } = await adminClient
       .from('import_documents')
       .select('import_id, status')
       .eq('tenant_id', tenantId)
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
 
     // Get missing docs counts via the helper function (or compute manually)
     // Since we can't call the function directly, we'll use the view
-    const { data: requirements, error: reqError } = await userClient
+    const { data: requirements, error: reqError } = await adminClient
       .from('import_document_requirements')
       .select('import_id, document_type, is_required_now, is_satisfied, latest_document_status')
       .in('import_id', importIds);

@@ -27,10 +27,10 @@ export async function POST(
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Get order to find supplier
-    const { data: order, error: orderError } = await userClient
+    const { data: order, error: orderError } = await adminClient
       .from('orders')
       .select('seller_supplier_id')
       .eq('id', orderId)
@@ -45,7 +45,7 @@ export async function POST(
     }
 
     // Verify user has access to this supplier
-    const { data: supplierUser, error: accessError } = await userClient
+    const { data: supplierUser, error: accessError } = await adminClient
       .from('supplier_users')
       .select('supplier_id')
       .eq('id', userId)

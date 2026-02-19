@@ -79,7 +79,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Parse multipart form or JSON
     const contentType = request.headers.get('content-type') || '';
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // STEP 1: Create import record
-    const { data: importRecord, error: importError } = await userClient
+    const { data: importRecord, error: importError } = await adminClient
       .from('supplier_imports')
       .insert({
         supplier_id: supplierId,
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         trim: true
       });
     } catch (parseError) {
-      await userClient
+      await adminClient
         .from('supplier_imports')
         .update({ status: 'FAILED' })
         .eq('id', importId);
@@ -182,13 +182,13 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       };
     });
 
-    const { error: linesError } = await userClient
+    const { error: linesError } = await adminClient
       .from('supplier_import_lines')
       .insert(lines);
 
     if (linesError) {
       console.error('Failed to insert lines:', linesError);
-      await userClient
+      await adminClient
         .from('supplier_imports')
         .update({ status: 'FAILED' })
         .eq('id', importId);
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // STEP 4: Update import status
-    await userClient
+    await adminClient
       .from('supplier_imports')
       .update({
         status: 'PARSED',

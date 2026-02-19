@@ -11,10 +11,10 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
   const params = await props.params;
   try {
     const { id: importId } = params;
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // STEP 1: Get import record
-    const { data: importRecord, error: importError } = await userClient
+    const { data: importRecord, error: importError } = await adminClient
       .from('supplier_imports')
       .select('*')
       .eq('id', importId)
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     }
 
     // STEP 2: Get detailed line data
-    const { data: lines, error: linesError } = await userClient
+    const { data: lines, error: linesError } = await adminClient
       .from('supplier_import_lines')
       .select('match_status, match_reasons, guardrail_failures, confidence_score')
       .eq('import_id', importId);

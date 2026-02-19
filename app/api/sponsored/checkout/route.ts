@@ -29,7 +29,7 @@ function getStripe() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
     const stripe = getStripe();
 
     const tenantId = request.headers.get('x-tenant-id');
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get category to verify it exists and get price
-    const { data: category, error: catError } = await userClient
+    const { data: category, error: catError } = await adminClient
       .from('sponsored_categories')
       .select('*')
       .eq('id', category_id)
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create Stripe customer
-    const { data: subscription } = await userClient
+    const { data: subscription } = await adminClient
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('supplier_id', actor.supplier_id)
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     if (!customerId) {
       // Get supplier info for customer creation
-      const { data: supplier } = await userClient
+      const { data: supplier } = await adminClient
         .from('suppliers')
         .select('namn, kontakt_email')
         .eq('id', actor.supplier_id)
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
 
       // Save customer ID
-      await userClient
+      await adminClient
         .from('subscriptions')
         .upsert({
           supplier_id: actor.supplier_id,

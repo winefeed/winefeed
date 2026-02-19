@@ -22,7 +22,7 @@ function getStripe() {
 export async function GET(request: NextRequest) {
   try {
     const stripe = getStripe();
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const userId = request.headers.get('x-user-id');
     const tenantId = request.headers.get('x-tenant-id');
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get Stripe customer ID
-    const { data: sub } = await userClient
+    const { data: sub } = await adminClient
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('supplier_id', actor.supplier_id)

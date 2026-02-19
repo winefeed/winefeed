@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient, adminClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Get supplier from supplier_users table
-    const { data: supplierUser, error: supplierUserError } = await userClient
+    const { data: supplierUser, error: supplierUserError } = await adminClient
       .from('supplier_users')
       .select('supplier_id')
       .eq('id', userId)
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get supplier details
-    const { data: supplier, error: supplierError } = await userClient
+    const { data: supplier, error: supplierError } = await adminClient
       .from('suppliers')
       .select('id, namn, type, org_number, is_active')
       .eq('id', supplierUser.supplier_id)
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     // Check if supplier's org_number matches an importer (gives IOR role)
     if (supplier.org_number) {
-      const { data: importer } = await userClient
+      const { data: importer } = await adminClient
         .from('importers')
         .select('id')
         .eq('org_number', supplier.org_number)

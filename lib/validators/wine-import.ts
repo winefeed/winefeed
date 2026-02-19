@@ -22,6 +22,7 @@ export interface RawWineRow {
   grape?: string;
   price?: string | number;
   moq?: string | number;
+  stock_qty?: string | number;
   alcohol_pct?: string | number;
   bottle_size_ml?: string | number;
   organic?: string | boolean;
@@ -44,6 +45,7 @@ export interface ValidatedWine {
   grape: string;
   price: number;
   moq: number;
+  stock_qty: number | null;
   alcohol_pct: number | null;
   bottle_size_ml: number;
   organic: boolean;
@@ -127,6 +129,12 @@ const COLOR_ALIASES: Record<string, WineColor> = {
   'porto': 'fortified',
   'madeira': 'fortified',
   'marsala': 'fortified',
+  'pastis': 'fortified',
+  'vermouth': 'fortified',
+  'vermut': 'fortified',
+  'armagnac': 'fortified',
+  'cognac': 'fortified',
+  'grappa': 'fortified',
 
   'orange': 'orange',
 };
@@ -412,6 +420,11 @@ export function validateWineRow(row: RawWineRow, rowNumber: number): ValidationR
     errors.push(`Ogiltig case_size: "${row.case_size}". Förväntat: positivt heltal`);
   }
 
+  // Stock quantity (optional — null means "not provided")
+  const stock_qty = row.stock_qty !== undefined && row.stock_qty !== null && row.stock_qty !== ''
+    ? normalizeNumber(row.stock_qty)
+    : null;
+
   // If there are errors, return invalid result
   if (errors.length > 0) {
     return { valid: false, errors, data: null };
@@ -430,6 +443,7 @@ export function validateWineRow(row: RawWineRow, rowNumber: number): ValidationR
       grape: grape!,
       price: price!,
       moq: Math.round(moq!),
+      stock_qty: stock_qty !== null ? Math.round(stock_qty) : null,
       alcohol_pct: alcohol_pct !== null && alcohol_pct >= 0 && alcohol_pct <= 100 ? alcohol_pct : null,
       bottle_size_ml: Math.round(bottle_size_ml),
       organic: normalizeBoolean(row.organic),
@@ -490,9 +504,10 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   grape: ['grape', 'grapes', 'druva', 'druvor', 'variety', 'varieties', 'cepage'],
   price: ['price', 'pris', 'price_per_bottle', 'bottle_price', 'flaskpris', 'sek'],
   moq: ['moq', 'min_order', 'min_qty', 'minimum', 'minimum_order', 'minsta_order'],
+  stock_qty: ['stock_qty', 'stock', 'quantity', 'qty', 'antal', 'lagersaldo', 'in_stock', 'available', 'inventory', 'nb', 'nombre'],
   alcohol_pct: ['alcohol_pct', 'alcohol', 'abv', 'alk', 'alkohol', 'alcohol_%', 'vol'],
-  bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'size', 'ml', 'storlek', 'flaskstorlek', 'volume', 'volym'],
-  organic: ['organic', 'ekologisk', 'eko', 'bio'],
+  bottle_size_ml: ['bottle_size_ml', 'bottle_size', 'ml', 'storlek', 'flaskstorlek'],
+  organic: ['organic', 'ekologisk', 'eko'],
   biodynamic: ['biodynamic', 'biodynamisk'],
   description: ['description', 'beskrivning', 'notes', 'smakbeskrivning', 'tasting_notes'],
   sku: ['sku', 'article', 'artikelnr', 'artikelnummer', 'article_number', 'product_code'],
@@ -506,6 +521,11 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
 /**
  * Map column headers to standard field names
  * Handles variations like "Wine Name", "wine_name", "Vinnamn", etc.
+ *
+ * Uses two-pass matching:
+ * 1. Exact match (normalized header === normalized alias)
+ * 2. Substring match (normalized header includes normalized alias)
+ * This prevents false matches like "case_size" matching "size" alias for bottle_size_ml.
  */
 export function normalizeColumnHeaders(headers: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
@@ -515,10 +535,23 @@ export function normalizeColumnHeaders(headers: string[]): Record<string, string
   for (const header of headers) {
     const normalized = header.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
 
+    // Pass 1: Exact match
+    let matched = false;
     for (const [field, fieldAliases] of Object.entries(aliases)) {
-      if (fieldAliases.some(alias => normalized.includes(alias.replace(/[^a-z0-9_]/g, '_')))) {
+      if (fieldAliases.some(alias => normalized === alias.replace(/[^a-z0-9_]/g, '_'))) {
         mapping[header] = field;
+        matched = true;
         break;
+      }
+    }
+
+    // Pass 2: Substring match (fallback for fuzzy headers)
+    if (!matched) {
+      for (const [field, fieldAliases] of Object.entries(aliases)) {
+        if (fieldAliases.some(alias => normalized.includes(alias.replace(/[^a-z0-9_]/g, '_')))) {
+          mapping[header] = field;
+          break;
+        }
       }
     }
   }

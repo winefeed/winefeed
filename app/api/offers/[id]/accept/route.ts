@@ -47,7 +47,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Only RESTAURANT users or ADMIN can accept offers
     if (!actorService.hasRole(actor, 'ADMIN') && !actorService.hasRole(actor, 'RESTAURANT')) {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     // Load offer first to check existence and ownership
     // Note: offers table doesn't have tenant_id, get restaurant via request
-    const { data: existingOffer, error: offerError } = await userClient
+    const { data: existingOffer, error: offerError } = await adminClient
       .from('offers')
       .select(`
         id,
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Check if restaurant has org_number (required for orders/invoicing)
-    const { data: restaurant } = await userClient
+    const { data: restaurant } = await adminClient
       .from('restaurants')
       .select('org_number')
       .eq('id', offerRestaurantId)
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Validate assignment is valid and not expired
-    const { data: assignment, error: assignmentError } = await userClient
+    const { data: assignment, error: assignmentError } = await adminClient
       .from('quote_request_assignments')
       .select('id, status, expires_at')
       .eq('quote_request_id', existingOffer.request_id)
@@ -179,13 +179,13 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
           const orderDetails = await orderService.getOrder(orderId, tenantId);
 
           if (orderDetails) {
-            const { data: restaurantData } = await userClient
+            const { data: restaurantData } = await adminClient
               .from('restaurants')
               .select('name, city')
               .eq('id', offer.restaurant_id)
               .single();
 
-            const { data: supplierData } = await userClient
+            const { data: supplierData } = await adminClient
               .from('suppliers')
               .select('namn')
               .eq('id', offer.supplier_id || '')
@@ -248,13 +248,13 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
         if (supplierEmail) {
           // Fetch supplier and restaurant details for email
-          const { data: supplierData } = await userClient
+          const { data: supplierData } = await adminClient
             .from('suppliers')
             .select('namn')
             .eq('id', offer.supplier_id)
             .single();
 
-          const { data: restaurantData } = await userClient
+          const { data: restaurantData } = await adminClient
             .from('restaurants')
             .select('name')
             .eq('id', offer.restaurant_id)

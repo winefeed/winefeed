@@ -36,12 +36,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const now = new Date();
 
     // Get all requests
-    const { data: allRequests } = await userClient
+    const { data: allRequests } = await adminClient
       .from('requests')
       .select(`
         id,
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     // Get supplier's offers to find which requests they've responded to
     const requestIds = allRequests.map(r => r.id);
-    const { data: supplierOffers } = await userClient
+    const { data: supplierOffers } = await adminClient
       .from('offers')
       .select('request_id')
       .eq('supplier_id', actor.supplier_id)

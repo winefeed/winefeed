@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     return guardErrorResponse(guardResult);
   }
   const { ctx } = guardResult;
-  const { userClient } = await createRouteClients();
+  const { adminClient } = await createRouteClients();
 
   try {
     const body = await request.json() as CombiDataset;
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       const combiTag = combiTagByProducer.get(producerName) || null;
 
       // Check if producer exists
-      const { data: existingProducer } = await userClient
+      const { data: existingProducer } = await adminClient
         .from('ior_producers')
         .select('id, combi_tag')
         .eq('importer_id', ctx.importerId)
@@ -111,14 +111,14 @@ export async function POST(request: NextRequest) {
 
         // Update combi_tag if we have one and producer doesn't
         if (combiTag && !existingProducer.combi_tag) {
-          await userClient
+          await adminClient
             .from('ior_producers')
             .update({ combi_tag: combiTag })
             .eq('id', producerId);
         }
       } else {
         // Create producer with combi_tag
-        const { data: newProducer, error: producerError } = await userClient
+        const { data: newProducer, error: producerError } = await adminClient
           .from('ior_producers')
           .insert({
             tenant_id: ctx.tenantId,
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
 
         // Check if product already exists (by name + vintage + producer)
         // Note: For NULL vintage (NV wines), we need .is() not .eq()
-        let existingProductQuery = userClient
+        let existingProductQuery = adminClient
           .from('ior_products')
           .select('id')
           .eq('producer_id', producerId)
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create product
-        const { error: productError } = await userClient
+        const { error: productError } = await adminClient
           .from('ior_products')
           .insert({
             tenant_id: ctx.tenantId,

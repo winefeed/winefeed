@@ -39,13 +39,13 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // List all documents for this import case
     const documents = await importDocumentService.listDocuments(importId, tenantId);
 
     // Get document requirements
-    const { data: requirements } = await userClient
+    const { data: requirements } = await adminClient
       .from('import_document_requirements')
       .select('document_type, document_name, is_required_now, is_satisfied, latest_document_status')
       .eq('import_id', importId);
@@ -98,10 +98,10 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Only importers can upload documents' }, { status: 403 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Verify import exists and belongs to tenant
-    const { data: importCase, error: importError } = await userClient
+    const { data: importCase, error: importError } = await adminClient
       .from('imports')
       .select('id, status, importer_id')
       .eq('id', importId)
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Validate document type exists
-    const { data: docType, error: docTypeError } = await userClient
+    const { data: docType, error: docTypeError } = await adminClient
       .from('import_document_types')
       .select('code, name_sv, required_for_status')
       .eq('code', documentType)
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
 
     // Determine next version for this document type
-    const { data: existingDocs } = await userClient
+    const { data: existingDocs } = await adminClient
       .from('import_documents')
       .select('version')
       .eq('import_id', importId)
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const storagePath = `documents/${tenantId}/imports/${importId}/${documentType.toLowerCase()}/v${nextVersion}.${fileExtension}`;
 
     // Upload to Supabase Storage
-    const { error: uploadError } = await userClient.storage
+    const { error: uploadError } = await adminClient.storage
       .from(STORAGE_BUCKET)
       .upload(storagePath, fileBuffer, {
         contentType: file.type,
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const isRequired = docType.required_for_status?.includes(importCase.status) || false;
 
     // Insert document record
-    const { data: document, error: insertError } = await userClient
+    const { data: document, error: insertError } = await adminClient
       .from('import_documents')
       .insert({
         tenant_id: tenantId,
@@ -221,7 +221,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     if (insertError) {
       // Cleanup: delete uploaded file
-      await userClient.storage.from(STORAGE_BUCKET).remove([storagePath]);
+      await adminClient.storage.from(STORAGE_BUCKET).remove([storagePath]);
       console.error('Database insert error:', insertError);
       return NextResponse.json(
         { error: `Failed to save document record: ${insertError.message}` },

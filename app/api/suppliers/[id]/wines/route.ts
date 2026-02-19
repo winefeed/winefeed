@@ -39,7 +39,7 @@ export async function GET(
         { status: 403 }
       );
     }
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
@@ -48,7 +48,7 @@ export async function GET(
     const offset = (page - 1) * limit;
 
     // Build query
-    let query = userClient
+    let query = adminClient
       .from('supplier_wines')
       .select('*', { count: 'exact' })
       .eq('supplier_id', supplierId)
@@ -84,7 +84,7 @@ export async function GET(
     let offerCounts: Record<string, number> = {};
 
     if (wineNames.length > 0) {
-      const { data: offerLines } = await userClient
+      const { data: offerLines } = await adminClient
         .from('offer_lines')
         .select('name')
         .in('name', wineNames);
@@ -159,10 +159,10 @@ export async function POST(
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Create wine entry
-    const { data: wine, error } = await userClient
+    const { data: wine, error } = await adminClient
       .from('supplier_wines')
       .insert({
         supplier_id: supplierId,

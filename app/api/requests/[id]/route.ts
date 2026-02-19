@@ -42,11 +42,11 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // SECURITY: Tenant-scope via restaurants.tenant_id JOIN
     // Step 1: Fetch request with restaurant info
-    const { data: requestData, error: requestError } = await userClient
+    const { data: requestData, error: requestError } = await adminClient
       .from('requests')
       .select('*')
       .eq('id', requestId)
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
         }
       } else if (actorService.hasRole(actor, 'SELLER')) {
         // Sellers can only view requests they've been assigned to
-        const { data: assignment } = await userClient
+        const { data: assignment } = await adminClient
           .from('quote_request_assignments')
           .select('id')
           .eq('quote_request_id', requestId)
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
     // Fetch related offers
     // Note: offers table may not have tenant_id - security is via request ownership
-    const { data: offers, error: offersError } = await userClient
+    const { data: offers, error: offersError } = await adminClient
       .from('offers')
       .select('id, status, supplier_id, title, currency, created_at, updated_at, accepted_at, locked_at')
       .eq('request_id', requestId)
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     const offerIds = offers?.map(o => o.id) || [];
     const offersWithDetails = await Promise.all(
       (offers || []).map(async (offer) => {
-        const { data: lines } = await userClient
+        const { data: lines } = await adminClient
           .from('offer_lines')
           .select('quantity, offered_unit_price_ore')
           .eq('offer_id', offer.id);

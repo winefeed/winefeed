@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const body = await request.json();
     const {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     if (!restaurantId) {
       if (actorService.hasRole(actor, 'ADMIN')) {
         // Admin fallback: use any existing restaurant for testing
-        const { data: fallbackRow } = await userClient
+        const { data: fallbackRow } = await adminClient
           .from('restaurants')
           .select('id')
           .limit(1)
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { data: savedRequest, error: requestError } = await userClient
+    const { data: savedRequest, error: requestError } = await adminClient
       .from('requests')
       .insert({
         restaurant_id: restaurantId,

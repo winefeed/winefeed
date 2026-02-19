@@ -80,10 +80,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Verify supplier exists and is active
-    const { data: supplier, error: supplierError } = await userClient
+    const { data: supplier, error: supplierError } = await adminClient
       .from('suppliers')
       .select('id, type, is_active')
       .eq('id', supplierId)
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     // If replaceExisting, deactivate all current wines
     if (body.replaceExisting === true) {
-      await userClient
+      await adminClient
         .from('supplier_wines')
         .update({ is_active: false })
         .eq('supplier_id', supplierId);
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     for (const row of validatedRows) {
       try {
         // Check if wine already exists (by name + producer + vintage)
-        const { data: existing } = await userClient
+        const { data: existing } = await adminClient
           .from('supplier_wines')
           .select('id')
           .eq('supplier_id', supplierId)
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
         if (existing) {
           // Update existing wine
-          const { error } = await userClient
+          const { error } = await adminClient
             .from('supplier_wines')
             .update(wineData)
             .eq('id', existing.id);
@@ -190,7 +190,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
           updated++;
         } else {
           // Insert new wine
-          const { error } = await userClient
+          const { error } = await adminClient
             .from('supplier_wines')
             .insert(wineData);
 

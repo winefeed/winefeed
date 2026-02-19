@@ -520,8 +520,8 @@ function OrderDetailModal({ order, onClose, formatCurrency, getStatusBadge }: Or
           {/* Order Lines */}
           <div>
             <p className="text-sm font-medium text-gray-700 mb-3">Produkter</p>
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
+            <div className="border rounded-lg overflow-x-auto">
+              <table className="w-full min-w-[400px]">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="text-left p-3 text-sm font-medium text-gray-600">Produkt</th>

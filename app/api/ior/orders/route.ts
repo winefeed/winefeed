@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // For IOR users, use their importer_id; for ADMIN, show all IOR orders
     const importerId = actor.importer_id;
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
       });
     } else if (isAdmin) {
       // ADMIN without specific importer - fetch all orders with IOR assigned
-      let query = userClient
+      let query = adminClient
         .from('orders')
         .select(`
           id,
@@ -127,14 +127,14 @@ export async function GET(request: NextRequest) {
     const enrichedOrders = await Promise.all(
       orders.map(async (order) => {
         // Fetch restaurant name
-        const { data: restaurant } = await userClient
+        const { data: restaurant } = await adminClient
           .from('restaurants')
           .select('name, contact_email')
           .eq('id', order.restaurant_id)
           .single();
 
         // Fetch supplier name
-        const { data: supplier } = await userClient
+        const { data: supplier } = await adminClient
           .from('suppliers')
           .select('namn, type')
           .eq('id', order.seller_supplier_id)

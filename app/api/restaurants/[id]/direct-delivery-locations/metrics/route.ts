@@ -26,13 +26,13 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // ========================================================================
     // 1. Status Counts
     // ========================================================================
 
-    const { data: ddls } = await userClient
+    const { data: ddls } = await adminClient
       .from('direct_delivery_locations')
       .select('id, status, created_at')
       .eq('tenant_id', tenantId)
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
 
     if (approvedDdlIds.length > 0) {
       // Get submission events
-      const { data: submissionEvents } = await userClient
+      const { data: submissionEvents } = await adminClient
         .from('ddl_status_events')
         .select('ddl_id, created_at')
         .in('ddl_id', approvedDdlIds)
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
         .order('created_at', { ascending: true });
 
       // Get approval events
-      const { data: approvalEvents } = await userClient
+      const { data: approvalEvents } = await adminClient
         .from('ddl_status_events')
         .select('ddl_id, created_at')
         .in('ddl_id', approvedDdlIds)
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     // Count recent rejections as a proxy for blocked validations
-    const { data: recentRejections } = await userClient
+    const { data: recentRejections } = await adminClient
       .from('ddl_status_events')
       .select('id')
       .eq('tenant_id', tenantId)

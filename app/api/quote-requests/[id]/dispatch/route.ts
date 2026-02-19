@@ -61,10 +61,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     const minScore = body.minScore || 20;
     const expiresInHours = body.expiresInHours || 48;
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Step 1: Verify quote request exists
-    const { data: quoteRequest, error: requestError } = await userClient
+    const { data: quoteRequest, error: requestError } = await adminClient
       .from('requests')
       .select('*')
       .eq('id', quoteRequestId)
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     }
 
     // Step 2: Check if already dispatched
-    const { data: existingAssignments } = await userClient
+    const { data: existingAssignments } = await adminClient
       .from('quote_request_assignments')
       .select('id')
       .eq('quote_request_id', quoteRequestId);
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       expires_at: expiresAt.toISOString(),
     }));
 
-    const { data: createdAssignments, error: assignmentError } = await userClient
+    const { data: createdAssignments, error: assignmentError } = await adminClient
       .from('quote_request_assignments')
       .insert(assignmentsToCreate)
       .select('id, supplier_id, match_score, match_reasons');
@@ -226,10 +226,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const { searchParams } = new URL(req.url);
     const preview = searchParams.get('preview') === 'true';
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Check if quote request exists
-    const { data: quoteRequest, error: requestError } = await userClient
+    const { data: quoteRequest, error: requestError } = await adminClient
       .from('requests')
       .select('*')
       .eq('id', quoteRequestId)
@@ -251,7 +251,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
 
     // Check existing assignments
-    const { data: assignments } = await userClient
+    const { data: assignments } = await adminClient
       .from('quote_request_assignments')
       .select('*')
       .eq('quote_request_id', quoteRequestId);

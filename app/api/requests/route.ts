@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Query params
     const { searchParams } = new URL(request.url);
@@ -54,14 +54,14 @@ export async function GET(request: NextRequest) {
 
     if (actorService.hasRole(actor, 'RESTAURANT') && !actorService.hasRole(actor, 'ADMIN')) {
       // Restaurant users only see their own requests - filter by restaurant_id
-      const { data: requests } = await userClient
+      const { data: requests } = await adminClient
         .from('requests')
         .select('id')
         .eq('restaurant_id', actor.restaurant_id);
       requestIds = requests?.map(r => r.id) || [];
     } else if (actorService.hasRole(actor, 'SELLER') && !actorService.hasRole(actor, 'ADMIN')) {
       // Sellers only see requests they're assigned to
-      const { data: assignments } = await userClient
+      const { data: assignments } = await adminClient
         .from('quote_request_assignments')
         .select('quote_request_id')
         .eq('supplier_id', actor.supplier_id);
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     }
     // ADMIN sees all requests (requestIds remains null)
 
-    let query = userClient
+    let query = adminClient
       .from('requests')
       .select('id, restaurant_id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, accepted_offer_id, created_at');
 
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
     let latestOfferMap: Record<string, string> = {};
 
     if (fetchedRequestIds.length > 0) {
-      const { data: offers } = await userClient
+      const { data: offers } = await adminClient
         .from('offers')
         .select('request_id, status, created_at')
         .in('request_id', fetchedRequestIds)
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
     let trackingMap: Record<string, TrackingData> = {};
 
     if (fetchedRequestIds.length > 0) {
-      const { data: assignments } = await userClient
+      const { data: assignments } = await adminClient
         .from('quote_request_assignments')
         .select('quote_request_id, status, sent_at, expires_at')
         .in('quote_request_id', fetchedRequestIds);

@@ -95,13 +95,13 @@ export async function DELETE(
     const guard = await requireIORContext(request);
     if (isGuardError(guard)) return guardErrorResponse(guard);
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const { searchParams } = new URL(request.url);
     const productsOnly = searchParams.get('productsOnly') === 'true';
 
     // Verify producer belongs to this importer
-    const { data: producer } = await userClient
+    const { data: producer } = await adminClient
       .from('ior_producers')
       .select('id, name')
       .eq('id', producerId)
@@ -113,7 +113,7 @@ export async function DELETE(
     }
 
     // Delete all products for this producer
-    const { count: deletedProducts } = await userClient
+    const { count: deletedProducts } = await adminClient
       .from('ior_products')
       .delete({ count: 'exact' })
       .eq('producer_id', producerId);
@@ -127,7 +127,7 @@ export async function DELETE(
     }
 
     // Also delete the producer
-    await userClient
+    await adminClient
       .from('ior_producers')
       .delete()
       .eq('id', producerId);

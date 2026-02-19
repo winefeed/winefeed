@@ -8,12 +8,13 @@
 
 'use client';
 
+import React from 'react';
 import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, ArrowLeft, Users, Wine, ShoppingCart, Mail, Phone, MapPin, Globe, ExternalLink, Crown, Check } from 'lucide-react';
+import { Building2, ArrowLeft, Users, Wine, ShoppingCart, Mail, Phone, MapPin, Globe, ExternalLink, Crown, Check, ChevronDown } from 'lucide-react';
 import { useActor } from '@/lib/hooks/useActor';
 
 interface User {
@@ -27,12 +28,25 @@ interface User {
 
 interface WineItem {
   id: string;
+  sku: string;
   name: string;
   producer: string;
+  vintage: number | null;
+  country: string | null;
+  region: string | null;
   color: string;
+  grape: string | null;
+  bottleSizeMl: number | null;
   priceSek: number | null;
+  stockQty: number | null;
+  caseSize: number | null;
+  moq: number | null;
+  alcoholPct: number | null;
+  organic: boolean;
+  biodynamic: boolean;
   isActive: boolean;
   createdAt: string;
+  description: string | null;
 }
 
 interface Order {
@@ -67,7 +81,7 @@ interface SupplierData {
   supplier: Supplier;
   users: User[];
   wineStats: WineStats;
-  recentWines: WineItem[];
+  wines: WineItem[];
   recentOrders: Order[];
 }
 
@@ -108,6 +122,7 @@ export default function AdminSupplierDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [upgrading, setUpgrading] = useState(false);
+  const [expandedWineId, setExpandedWineId] = useState<string | null>(null);
 
   const fetchSupplier = useCallback(async () => {
     try {
@@ -241,7 +256,7 @@ export default function AdminSupplierDetailPage() {
     );
   }
 
-  const { supplier, users, wineStats, recentWines, recentOrders } = data;
+  const { supplier, users, wineStats, wines, recentOrders } = data;
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -457,55 +472,149 @@ export default function AdminSupplierDetailPage() {
         </div>
       )}
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Wines */}
-        <div className="bg-card rounded-lg border border-border overflow-hidden">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <Wine className="h-5 w-5 text-muted-foreground" />
-              Senaste viner
-            </h2>
-            <Link
-              href={`/admin/wines?supplier=${supplierId}`}
-              className="text-sm text-primary hover:underline"
-            >
-              Visa alla
-            </Link>
-          </div>
-          {recentWines.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground">
-              Inga viner annu
-            </div>
-          ) : (
-            <div className="divide-y divide-border max-h-[300px] overflow-y-auto">
-              {recentWines.map((wine) => {
-                const colorInfo = COLOR_LABELS[wine.color] || { color: 'bg-muted' };
-                return (
-                  <div key={wine.id} className="px-6 py-3 hover:bg-accent transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-8 rounded ${colorInfo.color}`}></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{wine.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{wine.producer}</p>
-                      </div>
-                      <div className="text-right">
-                        {wine.priceSek && (
-                          <p className="text-sm font-medium text-foreground">{wine.priceSek} kr</p>
-                        )}
-                        {!wine.isActive && (
-                          <span className="text-xs text-destructive">Inaktiv</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+      {/* All Wines */}
+      <div className="bg-card rounded-lg border border-border overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Wine className="h-5 w-5 text-muted-foreground" />
+            Viner ({wines.length})
+          </h2>
         </div>
+        {wines.length === 0 ? (
+          <div className="p-6 text-center text-muted-foreground">
+            Inga viner annu
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">Vin</th>
+                  <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">Producent</th>
+                  <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center">Argang</th>
+                  <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">Farg</th>
+                  <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">Land</th>
+                  <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-right">Pris</th>
+                  <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-right">Lager</th>
+                  <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-right">Kartong</th>
+                  <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {wines.map((wine) => {
+                  const colorInfo = COLOR_LABELS[wine.color] || { label: wine.color, color: 'bg-muted' };
+                  const isExpanded = expandedWineId === wine.id;
+                  return (
+                    <React.Fragment key={wine.id}>
+                      <tr
+                        onClick={() => setExpandedWineId(isExpanded ? null : wine.id)}
+                        className={`hover:bg-accent transition-colors cursor-pointer ${isExpanded ? 'bg-accent' : ''}`}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                            <div>
+                              <div className="font-medium text-sm text-foreground">{wine.name}</div>
+                              {wine.grape && (
+                                <div className="text-xs text-muted-foreground">{wine.grape}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground">{wine.producer}</td>
+                        <td className="px-4 py-3 text-sm text-foreground text-center">
+                          {wine.vintage === 0 ? 'NV' : wine.vintage || '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${colorInfo.color}`}></div>
+                            <span className="text-sm text-foreground">{colorInfo.label}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">
+                          {wine.country}
+                          {wine.region && <span className="text-xs block">{wine.region}</span>}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground text-right font-medium">
+                          {wine.priceSek ? `${wine.priceSek} kr` : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground text-right">
+                          {wine.stockQty ?? '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground text-right">
+                          {wine.caseSize ?? '-'}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                            wine.isActive
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {wine.isActive ? 'Aktiv' : 'Inaktiv'}
+                          </span>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={9} className="px-4 py-4 bg-muted/50">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">SKU</span>
+                                <span className="text-foreground font-mono">{wine.sku || '-'}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">Flaskstorlek</span>
+                                <span className="text-foreground">{wine.bottleSizeMl ? `${wine.bottleSizeMl} ml` : '-'}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">Alkohol</span>
+                                <span className="text-foreground">{wine.alcoholPct ? `${wine.alcoholPct}%` : '-'}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">MOQ</span>
+                                <span className="text-foreground">{wine.moq ?? '-'}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">Druva</span>
+                                <span className="text-foreground">{wine.grape || '-'}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">Region</span>
+                                <span className="text-foreground">{wine.region || '-'}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">Certifiering</span>
+                                <span className="text-foreground">
+                                  {wine.organic && wine.biodynamic ? 'Ekologisk, Biodynamisk' :
+                                   wine.organic ? 'Ekologisk' :
+                                   wine.biodynamic ? 'Biodynamisk' : '-'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">Registrerad</span>
+                                <span className="text-foreground">{formatDate(wine.createdAt)}</span>
+                              </div>
+                            </div>
+                            {wine.description && (
+                              <div className="mt-4 pt-4 border-t border-border">
+                                <span className="text-muted-foreground text-xs uppercase tracking-wide block mb-1">Beskrivning</span>
+                                <p className="text-foreground text-sm leading-relaxed">{wine.description}</p>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
-        {/* Recent Orders */}
+      {/* Recent Orders */}
+      {recentOrders.length > 0 && (
         <div className="bg-card rounded-lg border border-border overflow-hidden">
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -514,31 +623,25 @@ export default function AdminSupplierDetailPage() {
             </h2>
             <span className="text-sm text-muted-foreground">{recentOrders.length} st</span>
           </div>
-          {recentOrders.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground">
-              Inga ordrar annu
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {recentOrders.map((order) => (
-                <div
-                  key={order.id}
-                  onClick={() => router.push(`/orders/${order.id}`)}
-                  className="px-6 py-3 hover:bg-accent transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-sm text-primary">
-                      {order.id.substring(0, 8)}...
-                    </span>
-                    {getStatusBadge(order.status)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">{formatDate(order.createdAt)}</p>
+          <div className="divide-y divide-border">
+            {recentOrders.map((order) => (
+              <div
+                key={order.id}
+                onClick={() => router.push(`/orders/${order.id}`)}
+                className="px-6 py-3 hover:bg-accent transition-colors cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-sm text-primary">
+                    {order.id.substring(0, 8)}...
+                  </span>
+                  {getStatusBadge(order.status)}
                 </div>
-              ))}
-            </div>
-          )}
+                <p className="text-xs text-muted-foreground mt-1">{formatDate(order.createdAt)}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -121,7 +121,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         type: row.data?.color, // import expects 'type' not 'color'
         volume: row.data?.bottle_size_ml, // import expects 'volume' not 'bottle_size_ml'
         price: row.data?.price,
-        quantity: row.data?.moq, // import expects 'quantity' as stock
+        quantity: row.data?.stock_qty ?? undefined, // stock — only if explicitly provided in CSV
         q_per_box: row.data?.case_size, // import expects 'q_per_box' not 'case_size'
         // Optional fields
         region: row.data?.region,

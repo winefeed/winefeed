@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Verify IOR access
     if (!actorService.hasRole(actor, 'IOR') && !actorService.hasRole(actor, 'ADMIN')) {
@@ -63,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     // Verify order exists and belongs to IOR (if not admin)
-    const { data: order, error: orderError } = await userClient
+    const { data: order, error: orderError } = await adminClient
       .from('orders')
       .select('id, importer_of_record_id')
       .eq('id', orderId)
@@ -105,7 +105,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
 
       // Update the order line
-      const { error: updateError } = await userClient
+      const { error: updateError } = await adminClient
         .from('order_lines')
         .update(filteredData)
         .eq('id', update.lineId)
@@ -121,7 +121,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     // Log event
-    await userClient.from('order_events').insert({
+    await adminClient.from('order_events').insert({
       tenant_id: tenantId,
       order_id: orderId,
       event_type: 'COMPLIANCE_UPDATED',

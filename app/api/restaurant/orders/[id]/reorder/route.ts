@@ -69,10 +69,10 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     // Parse request body
     const body: ReorderInput = await request.json().catch(() => ({}));
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // 1. Fetch original order
-    const { data: order, error: orderError } = await userClient
+    const { data: order, error: orderError } = await adminClient
       .from('orders')
       .select(`
         id,
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // 2. Fetch original order lines
-    const { data: orderLines, error: linesError } = await userClient
+    const { data: orderLines, error: linesError } = await adminClient
       .from('order_lines')
       .select(`
         id,
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // 3. Fetch supplier info
-    const { data: supplier } = await userClient
+    const { data: supplier } = await adminClient
       .from('suppliers')
       .select('id, namn')
       .eq('id', order.seller_supplier_id)
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const avgPrice = linesToOrder.reduce((sum, line) => sum + (line.unit_price_sek || 0), 0) / linesToOrder.length;
 
     // 5. Create new request (marked as reorder)
-    const { data: newRequest, error: requestError } = await userClient
+    const { data: newRequest, error: requestError } = await adminClient
       .from('requests')
       .insert({
         tenant_id: tenantId,
@@ -205,14 +205,14 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     }));
 
     // Check if request_lines table exists, if not just store in metadata
-    const { error: requestLinesError } = await userClient
+    const { error: requestLinesError } = await adminClient
       .from('request_lines')
       .insert(requestLines);
 
     if (requestLinesError) {
       // Table might not exist - update request metadata instead
       console.log('request_lines table not available, storing in metadata');
-      await userClient
+      await adminClient
         .from('requests')
         .update({
           metadata: {

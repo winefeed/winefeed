@@ -39,13 +39,13 @@ export async function GET(
         { status: 403 }
       );
     }
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'all';
 
     // Build query — join offer_lines + supplier_wines for multi-line offers
-    let query = userClient
+    let query = adminClient
       .from('offers')
       .select(`
         id,
@@ -238,10 +238,10 @@ export async function POST(
     // (optional for backwards compatibility)
     const isFranco = is_franco === true;
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Verify quote request exists and is open
-    const { data: quoteRequest } = await userClient
+    const { data: quoteRequest } = await adminClient
       .from('quote_requests')
       .select('id, status')
       .eq('id', quote_request_id)
@@ -262,7 +262,7 @@ export async function POST(
     }
 
     // Check if supplier already has an offer for this request
-    const { data: existingOffer } = await userClient
+    const { data: existingOffer } = await adminClient
       .from('offers')
       .select('id')
       .eq('supplier_id', supplierId)
@@ -277,7 +277,7 @@ export async function POST(
     }
 
     // Create offer with shipping info
-    const { data: offer, error } = await userClient
+    const { data: offer, error } = await adminClient
       .from('offers')
       .insert({
         supplier_id: supplierId,

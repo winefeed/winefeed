@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Fetch user's notification preferences
-    const { data: preferences, error } = await userClient
+    const { data: preferences, error } = await adminClient
       .from('user_notification_preferences')
       .select('*')
       .eq('user_id', userId)
@@ -132,10 +132,10 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    const { userClient } = await createRouteClients();
+    const { adminClient } = await createRouteClients();
 
     // Upsert preferences (create if not exists, update if exists)
-    const { data, error } = await userClient
+    const { data, error } = await adminClient
       .from('user_notification_preferences')
       .upsert(
         {
