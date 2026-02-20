@@ -226,7 +226,7 @@ function WineCard({ wine }: { wine: WineWithProducer }) {
           {typeLabel}
         </span>
         {wine.vintage && (
-          <span className="text-sm text-muted-foreground">{wine.vintage}</span>
+          <span className="px-2 py-0.5 rounded bg-stone-100 text-stone-700 text-xs font-semibold">{wine.vintage}</span>
         )}
       </div>
 
