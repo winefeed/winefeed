@@ -217,7 +217,7 @@ const LOCATION_ALIASES: Record<string, WineLocation> = {
 /**
  * Normalize color input to valid wine_color enum
  */
-function normalizeColor(input: string | undefined): WineColor | null {
+export function normalizeColor(input: string | undefined): WineColor | null {
   if (!input) return null;
 
   const normalized = input.toLowerCase().trim();
