@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, MapPin, Grape, Wine, Send } from 'lucide-react';
+import { ChevronRight, MapPin, Grape, Wine, Send, Sparkles } from 'lucide-react';
 import type { WineDetail, LotPublic } from '@/lib/access-types';
 
 const WINE_TYPE_LABELS: Record<string, string> = {
@@ -167,7 +167,7 @@ export default function WineDetailPage() {
                 <p className="text-lg text-muted-foreground mt-1">{wine.producer.name}</p>
               </div>
               {wine.vintage && (
-                <span className="text-3xl font-light text-muted-foreground">{wine.vintage}</span>
+                <span className="px-3 py-1 rounded-lg bg-stone-100 text-stone-800 text-2xl font-semibold tabular-nums">{wine.vintage}</span>
               )}
             </div>
 
@@ -208,6 +208,9 @@ export default function WineDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Sommelier */}
+      <SommelierBox wine={wine} />
 
       {/* Success message */}
       {submitSuccess && (
@@ -347,6 +350,98 @@ export default function WineDetailPage() {
           <p className="text-muted-foreground leading-relaxed">{wine.producer.description}</p>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// AI Sommelier
+// ============================================================================
+
+const GRAPE_DESCRIPTIONS: Record<string, string> = {
+  'merlot': 'sammetslen med toner av mörka körsbär, plommon och en antydan av choklad',
+  'cabernet sauvignon': 'kraftfull med svarta vinbär, cederträ och fast tannin',
+  'pinot noir': 'elegant med röda bär, kryddiga undertoner och silkig finish',
+  'chardonnay': 'fyllig med citrus, smör och subtil ekkaraktär',
+  'syrah': 'intensiv med blåbär, svartpeppar och rökiga inslag',
+  'grenache': 'generös med röda frukter, örter och värme',
+  'sangiovese': 'livlig med körsbär, tomat och kryddiga noter',
+  'nebbiolo': 'komplex med rosor, tjära, körsbär och kraftfull tannin',
+  'riesling': 'spänstigt med citrus, stenfrukt och mineralisk elegans',
+  'sauvignon blanc': 'fräsch med gröna äpplen, krusbär och örter',
+};
+
+const REGION_PAIRINGS: Record<string, string[]> = {
+  'bordeaux': ['Entrecote med rödvinssås', 'Grillat lamm med rosmarin', 'Lagrad ost som Comté'],
+  'bourgogne': ['Coq au vin', 'Grillad kalvfilé', 'Brie de Meaux'],
+  'beaujolais': ['Charkuteribricka', 'Grillad kyckling', 'Lättare pastarätter'],
+  'rhône': ['Gryta på vilt', 'Provensalsk lammgryta', 'Kryddiga korvar'],
+  'languedoc': ['Cassoulet', 'Grillat fläskkött', 'Medelhavsinspirerade grönsaker'],
+  'alsace': ['Choucroute garnie', 'Asiatisk mat', 'Münsterost'],
+  'toscana': ['Bistecca alla fiorentina', 'Pasta med vildsvinssås', 'Pecorino'],
+  'piemonte': ['Tryffelrisotto', 'Braserat kött', 'Tajarin med smörsås'],
+  'rioja': ['Grillat lamm', 'Manchego', 'Tapas med iberisk skinka'],
+};
+
+function getSommelierNote(wine: WineDetail): { description: string; pairings: string[] } {
+  const grape = wine.grape?.toLowerCase() || '';
+  const region = wine.region?.toLowerCase() || '';
+  const isAged = wine.vintage && wine.vintage < 2010;
+
+  // Build description
+  let desc = '';
+  const grapeKey = Object.keys(GRAPE_DESCRIPTIONS).find(g => grape.includes(g));
+  const grapeDesc = grapeKey ? GRAPE_DESCRIPTIONS[grapeKey] : 'komplex och välbalanserad';
+
+  if (isAged && wine.vintage) {
+    const age = new Date().getFullYear() - wine.vintage;
+    desc = `Ett mognat vin med ${age} år på nacken. Karaktären är ${grapeDesc}. `;
+    desc += 'Med åren har tanninerna mjuknat och gett plats för en harmonisk, utvecklad smakprofil med djup och elegans.';
+  } else {
+    desc = `Karaktären är ${grapeDesc}. `;
+    desc += 'Ett välgjort vin med fin balans och personlighet.';
+  }
+
+  if (wine.appellation && wine.appellation !== wine.region) {
+    desc += ` Från ${wine.appellation} — en av ${wine.region || 'regionens'} mest ansedda appellationer.`;
+  }
+
+  // Get pairings
+  const regionKey = Object.keys(REGION_PAIRINGS).find(r => region.includes(r));
+  const pairings = regionKey ? REGION_PAIRINGS[regionKey] : [
+    'Grillat rött kött', 'Lagrad hårdost', 'Viltgryta',
+  ];
+
+  return { description: desc, pairings };
+}
+
+function SommelierBox({ wine }: { wine: WineDetail }) {
+  const { description, pairings } = getSommelierNote(wine);
+
+  return (
+    <div className="bg-gradient-to-br from-[#722F37]/5 to-[#722F37]/10 border border-[#722F37]/15 rounded-lg p-6 mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-8 h-8 rounded-full bg-[#722F37]/10 flex items-center justify-center">
+          <Sparkles className="h-4 w-4 text-[#722F37]" />
+        </div>
+        <h2 className="text-lg font-semibold text-foreground">AI-sommelierens notering</h2>
+      </div>
+
+      <p className="text-muted-foreground leading-relaxed mb-5">{description}</p>
+
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-2">Passar till</h3>
+        <div className="flex flex-wrap gap-2">
+          {pairings.map((pairing) => (
+            <span
+              key={pairing}
+              className="px-3 py-1.5 bg-white/70 border border-[#722F37]/10 rounded-full text-sm text-foreground"
+            >
+              {pairing}
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

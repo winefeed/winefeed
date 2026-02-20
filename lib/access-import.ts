@@ -118,6 +118,7 @@ export function mapToWineInput(flat: Record<string, string>): {
     grape: flat.grape?.trim() || flat.grapes?.trim() || flat.Grape?.trim() || flat.Grapes?.trim() || null,
     appellation: flat.appellation?.trim() || flat.Appellation?.trim() || null,
     description: flat.description?.trim() || flat.Description?.trim() || null,
+    image_url: flat.Picture?.trim() || flat.picture?.trim() || flat.image?.trim() || flat.image_url?.trim() || null,
     price_sek: price ?? null,
     volume_ml: parseInt(flat['Volume ml'] || flat.volume_ml || '750', 10) || 750,
     status: 'DRAFT',
