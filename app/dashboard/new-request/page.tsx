@@ -91,22 +91,11 @@ export default function NewRequestPage() {
     }
   };
 
-  // Hide global hamburger menu on this page
+  // Hide global hamburger menu on this page (this page has its own menu button)
   useEffect(() => {
-    const style = document.createElement('style');
-    style.id = 'hide-global-hamburger';
-    style.textContent = `
-      .fixed.top-4.left-4.z-50[aria-label="Open menu"] {
-        display: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-
+    document.documentElement.setAttribute('data-hide-global-menu', 'true');
     return () => {
-      const existingStyle = document.getElementById('hide-global-hamburger');
-      if (existingStyle) {
-        existingStyle.remove();
-      }
+      document.documentElement.removeAttribute('data-hide-global-menu');
     };
   }, []);
 
@@ -158,13 +147,9 @@ export default function NewRequestPage() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12 pb-12">
-        {/* Form Card - Premium Glassmorphism */}
-        <div className="relative group">
-          {/* Glow Effect */}
-          <div className="absolute -inset-0.5 rounded-3xl opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-500" style={{ background: 'linear-gradient(to right, #93092b, #f1b4b0)' }} />
-
-          {/* Main Card */}
-          <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden">
+        {/* Form Card */}
+        <div className="relative">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden">
             {/* Subtle gradient header */}
             <div className="h-2" style={{ background: 'linear-gradient(to right, #93092b, #f1b4b0, #93092b)' }} />
 

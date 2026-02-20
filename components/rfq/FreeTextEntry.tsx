@@ -74,21 +74,16 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
           value={freeText}
           onChange={(e) => setFreeText(e.target.value)}
           placeholder={`Beskriv vad du söker... t.ex. "${placeholderExamples[placeholderIndex]}"`}
-          className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none min-h-[100px]"
-          rows={3}
+          className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none min-h-[60px]"
+          rows={2}
         />
-        {freeText && (
-          <div className="absolute right-3 bottom-3">
-            <span className="text-xs text-gray-400">{freeText.length} tecken</span>
-          </div>
-        )}
       </div>
 
       {/* Wine type chips */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
           <Wine className="h-4 w-4" />
-          Vintyp (valfritt)
+          Vintyp
         </label>
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:overflow-visible sm:flex-wrap sm:mx-0 sm:px-0">
           {WINE_TYPES.map((type) => (
