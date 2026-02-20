@@ -10,6 +10,7 @@ export default function NewRequestPage() {
   const router = useRouter();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [defaultDeliveryCity, setDefaultDeliveryCity] = useState('');
 
   // Fetch user's default delivery city from profile
@@ -36,6 +37,7 @@ export default function NewRequestPage() {
 
   const handleSubmit = async (data: { freeText: string; wineType: string; deliveryCity?: string }) => {
     setIsLoading(true);
+    setError(null);
 
     try {
       // Build request for suggestions API
@@ -83,7 +85,7 @@ export default function NewRequestPage() {
       router.push(`/dashboard/results/${result.request_id}`);
     } catch (err: any) {
       console.error('Error fetching suggestions:', err);
-      alert(err.message || 'Något gick fel. Försök igen.');
+      setError(err.message || 'Något gick fel. Försök igen.');
     } finally {
       setIsLoading(false);
     }
@@ -172,6 +174,12 @@ export default function NewRequestPage() {
                 isLoading={isLoading}
                 defaultDeliveryCity={defaultDeliveryCity}
               />
+
+              {error && (
+                <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded-xl">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

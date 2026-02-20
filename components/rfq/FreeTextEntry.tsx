@@ -167,7 +167,7 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
 
       {/* Helper text */}
       <p className="text-center text-sm text-gray-500">
-        Du kan förfina budget och antal i nästa steg
+        Söker viner upp till 500 kr — du kan ändra budget och antal i nästa steg
       </p>
     </form>
   );
