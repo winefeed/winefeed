@@ -9,7 +9,7 @@
 
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
-import { getSupabaseAdmin } from './supabase-server';
+import { getAccessAdmin } from './supabase-server';
 
 const COOKIE_NAME = 'access_consumer';
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
@@ -41,7 +41,7 @@ export async function createAuthToken(
   metadata: Record<string, unknown> = {},
   expiryMinutes: number = TOKEN_EXPIRY_MINUTES
 ): Promise<string> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { raw, hash } = generateToken();
 
   const expiresAt = new Date();
@@ -72,7 +72,7 @@ export async function verifyAuthToken(raw: string): Promise<{
   subjectId: string;
   metadata: Record<string, unknown>;
 } | null> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const hash = hashToken(raw);
 
   const { data: token, error } = await supabase
@@ -108,7 +108,7 @@ export async function verifyAuthTokenPeek(raw: string): Promise<{
   subjectId: string;
   metadata: Record<string, unknown>;
 } | null> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const hash = hashToken(raw);
 
   const { data: token, error } = await supabase

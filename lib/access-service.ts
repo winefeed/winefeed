@@ -5,7 +5,7 @@
  * Uses supabaseAdmin (service role) for all queries.
  */
 
-import { getSupabaseAdmin } from './supabase-server';
+import { getAccessAdmin } from './supabase-server';
 import type {
   AccessConsumer,
   AccessLot,
@@ -31,7 +31,7 @@ import type {
 // ============================================================================
 
 export async function getConsumerByEmail(email: string): Promise<AccessConsumer | null> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { data, error } = await supabase
     .from('access_consumers')
     .select('*')
@@ -43,7 +43,7 @@ export async function getConsumerByEmail(email: string): Promise<AccessConsumer 
 }
 
 export async function getConsumerById(id: string): Promise<AccessConsumer | null> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { data, error } = await supabase
     .from('access_consumers')
     .select('*')
@@ -55,7 +55,7 @@ export async function getConsumerById(id: string): Promise<AccessConsumer | null
 }
 
 export async function createConsumer(email: string, name?: string): Promise<AccessConsumer> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { data, error } = await supabase
     .from('access_consumers')
     .insert({ email: email.toLowerCase().trim(), name: name || null })
@@ -70,7 +70,7 @@ export async function updateConsumer(
   id: string,
   updates: Partial<Pick<AccessConsumer, 'name' | 'phone' | 'verified_at'>>
 ): Promise<void> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { error } = await supabase
     .from('access_consumers')
     .update({ ...updates, updated_at: new Date().toISOString() })
@@ -84,7 +84,7 @@ export async function updateConsumer(
 // ============================================================================
 
 export async function searchWines(params: WineSearchParams): Promise<PaginatedResult<WineWithProducer>> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { q, type, country, region, grape, page = 1, limit = 20 } = params;
   const offset = (page - 1) * limit;
 
@@ -132,7 +132,7 @@ export async function searchWines(params: WineSearchParams): Promise<PaginatedRe
 }
 
 export async function getWineById(id: string): Promise<WineDetail | null> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
 
   const { data: wine, error } = await supabase
     .from('access_wines')
@@ -166,7 +166,7 @@ export async function getWineById(id: string): Promise<WineDetail | null> {
 }
 
 export async function getWineFilters(): Promise<{ types: string[]; countries: string[] }> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
 
   const [typesRes, countriesRes] = await Promise.all([
     supabase.from('access_wines').select('wine_type').order('wine_type'),
@@ -184,7 +184,7 @@ export async function getWineFilters(): Promise<{ types: string[]; countries: st
 // ============================================================================
 
 export async function getProducers(): Promise<{ id: string; name: string }[]> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { data, error } = await supabase
     .from('access_producers')
     .select('id, name')
@@ -195,7 +195,7 @@ export async function getProducers(): Promise<{ id: string; name: string }[]> {
 }
 
 export async function getOrCreateProducer(name: string): Promise<string> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const trimmed = name.trim();
 
   // Look for existing (case-insensitive)
@@ -228,7 +228,7 @@ export async function searchWinesAdmin(params: {
   limit?: number;
   offset?: number;
 }): Promise<{ data: AccessWine[]; total: number }> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { q, status, limit = 50, offset = 0 } = params;
 
   let query = supabase
@@ -274,7 +274,7 @@ export async function searchWinesAdmin(params: {
 }
 
 export async function createWine(input: WineInput): Promise<AccessWine> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const now = new Date().toISOString();
 
   const { data, error } = await supabase
@@ -303,7 +303,7 @@ export async function createWine(input: WineInput): Promise<AccessWine> {
 }
 
 export async function updateWine(id: string, input: Partial<WineInput>): Promise<AccessWine> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (input.name !== undefined) updates.name = input.name.trim();
@@ -339,7 +339,7 @@ export async function archiveWine(id: string): Promise<AccessWine> {
 // ============================================================================
 
 export async function getLotsByWineId(wineId: string): Promise<AccessLot[]> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { data, error } = await supabase
     .from('access_lots')
     .select('*, importer:access_importers!importer_id(id, name, description)')
@@ -351,7 +351,7 @@ export async function getLotsByWineId(wineId: string): Promise<AccessLot[]> {
 }
 
 export async function createLot(input: LotInput): Promise<AccessLot> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
 
   const { data, error } = await supabase
     .from('access_lots')
@@ -373,7 +373,7 @@ export async function createLot(input: LotInput): Promise<AccessLot> {
 }
 
 export async function updateLot(id: string, input: Partial<LotInput>): Promise<AccessLot> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
 
   const updates: Record<string, unknown> = {};
   if (input.importer_id !== undefined) updates.importer_id = input.importer_id || null;
@@ -396,7 +396,7 @@ export async function updateLot(id: string, input: Partial<LotInput>): Promise<A
 }
 
 export async function deleteLot(id: string): Promise<void> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { error } = await supabase
     .from('access_lots')
     .update({ available: false })
@@ -406,7 +406,7 @@ export async function deleteLot(id: string): Promise<void> {
 }
 
 export async function getImporters(): Promise<{ id: string; name: string; description: string | null; contact_email: string | null }[]> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { data, error } = await supabase
     .from('access_importers')
     .select('id, name, description, contact_email')
@@ -424,7 +424,7 @@ export async function createWatchlist(
   consumerId: string,
   input: { target_type: string; target_id?: string; query_json?: Record<string, unknown>; note?: string }
 ): Promise<AccessWatchlist> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { data, error } = await supabase
     .from('access_watchlists')
     .insert({
@@ -442,7 +442,7 @@ export async function createWatchlist(
 }
 
 export async function getWatchlistsByConsumer(consumerId: string): Promise<WatchlistWithTarget[]> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { data, error } = await supabase
     .from('access_watchlists')
     .select('*')
@@ -476,7 +476,7 @@ export async function getWatchlistsByConsumer(consumerId: string): Promise<Watch
 }
 
 export async function deleteWatchlist(consumerId: string, watchlistId: string): Promise<void> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { error } = await supabase
     .from('access_watchlists')
     .delete()
@@ -501,7 +501,7 @@ export async function createRequest(
     message?: string;
   }
 ): Promise<AccessRequest> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
 
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 14);
@@ -527,7 +527,7 @@ export async function createRequest(
 }
 
 export async function getRequestsByConsumer(consumerId: string): Promise<RequestWithWine[]> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { data, error } = await supabase
     .from('access_requests')
     .select(`
@@ -550,7 +550,7 @@ export async function logAccessEvent(
   consumerId: string | null,
   metadata: Record<string, unknown> = {}
 ): Promise<void> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   await supabase.from('access_events').insert({
     event_type: eventType,
     consumer_id: consumerId,
@@ -584,7 +584,7 @@ export function sanitizeConsumerMessage(message: string | null): string | null {
 // ADMIN / MEDIATION HELPERS
 // ============================================================================
 
-async function lookupImporter(supabase: ReturnType<typeof getSupabaseAdmin>, importerId: string | null): Promise<{ name: string; contact_email: string | null } | null> {
+async function lookupImporter(supabase: ReturnType<typeof getAccessAdmin>, importerId: string | null): Promise<{ name: string; contact_email: string | null } | null> {
   if (!importerId) return null;
   try {
     const { data } = await supabase
@@ -599,7 +599,7 @@ async function lookupImporter(supabase: ReturnType<typeof getSupabaseAdmin>, imp
 }
 
 export async function getRequestsForAdmin(): Promise<AdminRequestView[]> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
 
   const { data, error } = await supabase
     .from('access_requests')
@@ -681,7 +681,7 @@ function adminActionScore(r: AdminRequestView): number {
 }
 
 export async function getRequestByIdForAdmin(id: string): Promise<AdminRequestView | null> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
 
   const { data: req, error } = await supabase
     .from('access_requests')
@@ -725,7 +725,7 @@ export async function forwardRequestToImporter(
   requestId: string,
   metadata: Record<string, unknown>
 ): Promise<boolean> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { error } = await supabase
     .from('access_requests')
     .update({ forwarded_at: new Date().toISOString(), updated_at: new Date().toISOString() })
@@ -739,7 +739,7 @@ export async function forwardRequestToImporter(
 }
 
 export async function markRequestSeen(requestId: string): Promise<boolean> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
 
   // Only update if still pending (don't overwrite later statuses)
   const { data: req } = await supabase
@@ -763,7 +763,7 @@ export async function recordImporterResponse(
   requestId: string,
   response: ImporterResponseData
 ): Promise<AccessRequest | null> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const now = new Date().toISOString();
 
   const { data, error } = await supabase
@@ -789,7 +789,7 @@ export async function recordImporterResponse(
 }
 
 export async function markConsumerNotified(requestId: string): Promise<boolean> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { error } = await supabase
     .from('access_requests')
     .update({ consumer_notified_at: new Date().toISOString(), updated_at: new Date().toISOString() })
@@ -799,7 +799,7 @@ export async function markConsumerNotified(requestId: string): Promise<boolean> 
 }
 
 export async function markOrderConfirmed(requestId: string): Promise<boolean> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const { error } = await supabase
     .from('access_requests')
     .update({ order_confirmed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
@@ -831,7 +831,7 @@ export async function processAccessReminders(): Promise<ProcessAccessRemindersRe
     renderAdminDailySummaryEmail,
   } = await import('./email-templates');
 
-  const supabase = getSupabaseAdmin();
+  const supabase = getAccessAdmin();
   const now = new Date();
   const errors: string[] = [];
   let reminded = 0;

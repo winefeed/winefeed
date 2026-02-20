@@ -394,12 +394,14 @@ function getSommelierNote(wine: WineDetail): { description: string; pairings: st
   const grapeDesc = grapeKey ? GRAPE_DESCRIPTIONS[grapeKey] : 'komplex och välbalanserad';
 
   if (isAged && wine.vintage) {
-    const age = new Date().getFullYear() - wine.vintage;
-    desc = `Ett mognat vin med ${age} år på nacken. Karaktären är ${grapeDesc}. `;
-    desc += 'Med åren har tanninerna mjuknat och gett plats för en harmonisk, utvecklad smakprofil med djup och elegans.';
+    const decades = Math.floor((new Date().getFullYear() - wine.vintage) / 10);
+    const decadeWords: Record<number, string> = { 1: 'ett', 2: 'två', 3: 'tre', 4: 'fyra', 5: 'fem', 6: 'sex', 7: 'sju', 8: 'åtta', 9: 'nio' };
+    const ageWord = decades >= 2 ? `${decadeWords[decades] || decades} decenniers` : `${new Date().getFullYear() - wine.vintage} års`;
+    desc = `${ageWord} lagring har gett detta vin en djup, komplex karaktär. `;
+    desc += `${grapeDesc.charAt(0).toUpperCase() + grapeDesc.slice(1)} — tanninerna har mjuknat och lämnat plats för en harmonisk elegans med lång eftersmak.`;
   } else {
-    desc = `Karaktären är ${grapeDesc}. `;
-    desc += 'Ett välgjort vin med fin balans och personlighet.';
+    desc = `${grapeDesc.charAt(0).toUpperCase() + grapeDesc.slice(1)}. `;
+    desc += 'Välgjort med fin balans och personlighet.';
   }
 
   if (wine.appellation && wine.appellation !== wine.region) {
@@ -424,7 +426,7 @@ function SommelierBox({ wine }: { wine: WineDetail }) {
         <div className="w-8 h-8 rounded-full bg-[#722F37]/10 flex items-center justify-center">
           <Sparkles className="h-4 w-4 text-[#722F37]" />
         </div>
-        <h2 className="text-lg font-semibold text-foreground">AI-sommelierens notering</h2>
+        <h2 className="text-lg font-semibold text-foreground">Mer om vinet</h2>
       </div>
 
       <p className="text-muted-foreground leading-relaxed mb-5">{description}</p>
