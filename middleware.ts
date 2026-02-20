@@ -51,6 +51,7 @@ export async function middleware(request: NextRequest) {
     '/pitch',            // Public pitch page
     '/api/health',       // Health check (monitoring + smoke tests)
     '/api/admin/access', // Vinkoll Access API (has own cookie auth)
+    '/admin/access',     // Vinkoll Access pages (own auth, separate from Winefeed)
     '/access/admin',     // Vinkoll Access admin (separate from Winefeed)
     '/access/importer/respond',       // Importer respond page (token-based auth)
     '/access/importer/confirm',       // Importer confirm page (token-based auth)
@@ -185,6 +186,12 @@ export async function middleware(request: NextRequest) {
     if (pathname === '/login' && user) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
+
+    // Content-Signal headers for Vinkoll Access pages (AI agent content negotiation)
+    if (pathname.startsWith('/admin/access')) {
+      response.headers.set('Content-Signal', 'training=disallow, search=allow, agent=allow');
+    }
+
     return response;
   }
 
