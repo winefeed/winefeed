@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react';
 import { Search, Wine, MapPin, Sparkles } from 'lucide-react';
 
-// Wine type chips
+// Wine type chips — matches database enum (wine_color)
 const WINE_TYPES = [
   { value: 'all', label: 'Alla typer', emoji: '🍇' },
   { value: 'red', label: 'Rött', emoji: '🍷' },
   { value: 'white', label: 'Vitt', emoji: '🥂' },
-  { value: 'sparkling', label: 'Bubbel', emoji: '🍾' },
+  { value: 'sparkling', label: 'Mousserande', emoji: '🍾' },
   { value: 'rose', label: 'Rosé', emoji: '🌸' },
+  { value: 'orange', label: 'Orange', emoji: '🍊' },
+  { value: 'alcohol_free', label: 'Alkoholfritt', emoji: '🫧' },
 ] as const;
 
 interface FreeTextEntryProps {
@@ -49,7 +51,7 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
     'Champagne för nyårsfest',
     'Eleganta vita viner under 200kr',
     'Naturvin från Frankrike',
-    'Barolo eller Barbaresco',
+    'Alkoholfritt vin till dessert',
   ];
 
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
@@ -88,13 +90,13 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
           <Wine className="h-4 w-4" />
           Vintyp (valfritt)
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:overflow-visible sm:flex-wrap sm:mx-0 sm:px-0">
           {WINE_TYPES.map((type) => (
             <button
               key={type.value}
               type="button"
               onClick={() => setWineType(type.value)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 wineType === type.value
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
