@@ -251,7 +251,7 @@ export default async function WineDetailPage({
                   <p className="text-lg text-muted-foreground mt-1">{wine.producer.name}</p>
                 </div>
                 {wine.vintage && (
-                  <span className="px-3 py-1 rounded-lg bg-stone-100 text-stone-800 text-2xl font-semibold tabular-nums">{wine.vintage}</span>
+                  <span className="px-4 py-1.5 rounded-lg bg-stone-800 text-white text-2xl font-bold tabular-nums">{wine.vintage}</span>
                 )}
               </div>
 
