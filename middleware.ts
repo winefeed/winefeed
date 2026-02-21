@@ -49,6 +49,7 @@ export async function middleware(request: NextRequest) {
     '/portal-select',    // Portal selector for multi-role users
     '/forgot-password',  // Forgot password page
     '/pitch',            // Public pitch page
+    '/llms.txt',         // AI-discoverable metadata (llmstxt.org)
     '/api/health',       // Health check (monitoring + smoke tests)
     '/api/admin/access', // Vinkoll Access API (has own cookie auth)
     '/admin/access',     // Vinkoll Access pages (own auth, separate from Winefeed)
