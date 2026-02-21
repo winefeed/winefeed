@@ -1,6 +1,7 @@
 # Winefeed robots.txt
 User-agent: *
 Allow: /
+Allow: /llms.txt
 Allow: /pitch
 Allow: /login
 Allow: /signup

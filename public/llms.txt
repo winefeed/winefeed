@@ -1,0 +1,27 @@
+# Winefeed
+
+> Winefeed är Sveriges B2B-plattform för professionella vinköp. Restauranger söker, jämför och beställer vin direkt från importörer. Importörer når nya restaurangkunder och får förfrågningar. Baserat i Sverige, på svenska.
+
+## För restauranger
+
+- [Sök viner](https://winefeed.se/): Bläddra bland viner från svenska importörer. Filtrera på druva, region, land och vintyp.
+- [Skicka förfrågan](https://winefeed.se/): Hitta rätt vin → skicka en förfrågan → importören svarar med offert → beställ direkt.
+- [Registrera dig](https://winefeed.se/signup): Gratis att registrera sig och använda plattformen.
+
+## För importörer och leverantörer
+
+- [Lista dina viner](https://winefeed.se/signup): Ladda upp ditt sortiment och nå restauranger som aktivt söker nya viner.
+- [Ta emot förfrågningar](https://winefeed.se/pitch): Restauranger skickar förfrågningar — du svarar med offert.
+- [Importör-pitch](https://winefeed.se/pitch): Läs mer om hur Winefeed fungerar för leverantörer.
+
+## Affärsmodell
+
+- Gratis att lista sig och ta emot förfrågningar
+- 4 % success fee på accepterade offerter (min 149 kr, max 1 995 kr per order)
+- Faktureras månadsvis i efterskott
+- Winefeed tar betalt för introduktionen — följande ordrar direkt mellan importör och restaurang är avgiftsfria
+
+## Kontakt
+
+- E-post: hej@winefeed.se
+- Webb: https://winefeed.se
