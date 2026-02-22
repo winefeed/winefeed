@@ -66,7 +66,7 @@ async function resolveUserRoles(userId: string, tenantId: string) {
     const { data: supplierUser } = await supabase
       .from('supplier_users')
       .select('supplier_id')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .maybeSingle();
 
     if (supplierUser) {

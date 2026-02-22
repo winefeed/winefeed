@@ -64,7 +64,7 @@ async function resolveUserRoles(userId: string, tenantId: string) {
     const { data: supplierUser } = await supabase
       .from('supplier_users')
       .select('supplier_id, suppliers(id, namn)')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .maybeSingle();
 
     if (supplierUser) {
@@ -121,6 +121,93 @@ async function resolveUserRoles(userId: string, tenantId: string) {
   }
 
   return { roles, linked_entities: linkedEntities };
+}
+
+// Helper: Fetch supplier wines (top 10) if user is SELLER
+async function fetchSupplierWines(supplierId: string) {
+  const supabase = getSupabaseAdmin();
+
+  const { data: wines } = await supabase
+    .from('supplier_wines')
+    .select('id, name, producer, grape, vintage, price_ex_vat_sek, stock_qty')
+    .eq('supplier_id', supplierId)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  const { count } = await supabase
+    .from('supplier_wines')
+    .select('id', { count: 'exact', head: true })
+    .eq('supplier_id', supplierId)
+    .eq('is_active', true);
+
+  return { wines: wines || [], total_count: count || 0 };
+}
+
+// Helper: Fetch quick stats for user based on roles
+async function fetchQuickStats(userId: string, tenantId: string, linkedEntities: { supplier_id?: string; restaurant_id?: string }) {
+  const supabase = getSupabaseAdmin();
+  const stats: Record<string, any> = {};
+
+  if (linkedEntities.supplier_id) {
+    const { count: wineCount } = await supabase
+      .from('supplier_wines')
+      .select('id', { count: 'exact', head: true })
+      .eq('supplier_id', linkedEntities.supplier_id)
+      .eq('is_active', true);
+
+    const { count: orderCount } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .eq('supplier_id', linkedEntities.supplier_id);
+
+    const { data: latestOffer } = await supabase
+      .from('offers')
+      .select('id, created_at, status')
+      .eq('tenant_id', tenantId)
+      .eq('created_by_user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    stats.seller = {
+      wine_count: wineCount || 0,
+      order_count: orderCount || 0,
+      latest_offer: latestOffer || null,
+    };
+  }
+
+  if (linkedEntities.restaurant_id) {
+    const { count: requestCount } = await supabase
+      .from('quote_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .eq('created_by_user_id', userId);
+
+    const { count: orderCount } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .eq('buyer_restaurant_id', linkedEntities.restaurant_id);
+
+    const { data: latestRequest } = await supabase
+      .from('quote_requests')
+      .select('id, created_at, status')
+      .eq('tenant_id', tenantId)
+      .eq('created_by_user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    stats.restaurant = {
+      request_count: requestCount || 0,
+      order_count: orderCount || 0,
+      latest_request: latestRequest || null,
+    };
+  }
+
+  return stats;
 }
 
 // Helper: Fetch recent activity for user
@@ -206,15 +293,26 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     // Fetch recent activity
     const recentActivity = await fetchRecentActivity(targetUserId, tenantId);
 
+    // Fetch supplier wines if SELLER
+    const supplierWines = linked_entities.supplier_id
+      ? await fetchSupplierWines(linked_entities.supplier_id)
+      : null;
+
+    // Fetch quick stats
+    const quickStats = await fetchQuickStats(targetUserId, tenantId, linked_entities);
+
     return NextResponse.json(
       {
         user_id: authUser.user.id,
+        email: authUser.user.email || '',
         email_masked: maskEmail(authUser.user.email || ''),
         created_at: authUser.user.created_at,
         roles,
         linked_entities,
         status: roles.length > 0 ? 'active' : 'unassigned',
         recent_activity: recentActivity,
+        supplier_wines: supplierWines,
+        quick_stats: quickStats,
         timestamp: new Date().toISOString()
       },
       { status: 200 }
