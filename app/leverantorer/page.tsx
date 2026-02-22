@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import { WinefeedLogo } from "@/components/ui/WinefeedLogo";
+import { MobileNav } from "@/components/ui/MobileNav";
 
 export const metadata: Metadata = {
   title: "För leverantörer - Nå nya restaurangkunder via Winefeed",
   description:
-    "Winefeed kopplar importörer och vinleverantörer med restauranger som aktivt söker nya viner. Ta emot förfrågningar, svara med offert och leverera. 4 % success fee — gratis att lista sig.",
+    "Winefeed kopplar importörer med restauranger som söker nya viner. Ta emot förfrågningar, svara med offert. 4 % success fee — gratis att lista sig.",
+  keywords: ["vinimportör", "vinleverantör", "restaurangkunder", "sälja vin B2B", "vin grossist", "horeca leverantör", "vinförmedling"],
   openGraph: {
     title: "Winefeed för leverantörer - Nå restauranger som söker vin",
     description:
@@ -14,21 +16,12 @@ export const metadata: Metadata = {
     siteName: "Winefeed",
     locale: "sv_SE",
     type: "website",
-    images: [
-      {
-        url: "/winefeed-logo-light.png",
-        width: 1200,
-        height: 630,
-        alt: "Winefeed för leverantörer",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Winefeed för leverantörer - Nå restauranger som söker vin",
     description:
       "Gratis att lista sig. Ta emot förfrågningar och svara med offert. 4 % success fee.",
-    images: ["/winefeed-logo-light.png"],
   },
   alternates: {
     canonical: "https://winefeed.se/leverantorer",
@@ -86,6 +79,12 @@ export default function LeverantorerPage() {
             Logga in
           </Link>
         </nav>
+        <MobileNav
+          links={[
+            { href: "/restauranger", label: "För restauranger" },
+            { href: "/", label: "Om oss" },
+          ]}
+        />
       </header>
 
       {/* Hero */}

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import { WinefeedLogo } from "@/components/ui/WinefeedLogo";
+import { MobileNav } from "@/components/ui/MobileNav";
 
 export const metadata: Metadata = {
-  title: "For restauranger - Sök, jämför och beställ vin från importörer",
+  title: "För restauranger - Sök, jämför och beställ vin från importörer",
   description:
     "Winefeed hjälper restauranger, hotell och vinbarer att hitta rätt vin. Sök bland tusentals viner, jämför priser och begär offert från flera leverantörer samtidigt.",
+  keywords: ["vin restaurang", "vininköp", "vinleverantör", "jämför vinpriser", "begär offert vin", "B2B vin", "horeca vin"],
   openGraph: {
     title: "Winefeed för restauranger - Professionella vininköp",
     description:
@@ -14,21 +16,12 @@ export const metadata: Metadata = {
     siteName: "Winefeed",
     locale: "sv_SE",
     type: "website",
-    images: [
-      {
-        url: "/winefeed-logo-light.png",
-        width: 1200,
-        height: 630,
-        alt: "Winefeed för restauranger",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Winefeed för restauranger - Professionella vininköp",
     description:
       "Slipp mejlkarusellen. Sök, jämför och beställ vin direkt från importörer.",
-    images: ["/winefeed-logo-light.png"],
   },
   alternates: {
     canonical: "https://winefeed.se/restauranger",
@@ -86,6 +79,12 @@ export default function RestaurangerPage() {
             Logga in
           </Link>
         </nav>
+        <MobileNav
+          links={[
+            { href: "/leverantorer", label: "För leverantörer" },
+            { href: "/", label: "Om oss" },
+          ]}
+        />
       </header>
 
       {/* Hero */}
