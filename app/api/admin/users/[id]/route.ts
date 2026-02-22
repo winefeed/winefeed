@@ -40,6 +40,7 @@ async function resolveUserRoles(userId: string, tenantId: string) {
     supplier_name?: string;
     importer_id?: string;
     importer_name?: string;
+    importer_org_number?: string;
   } = {};
 
   // 1. Check RESTAURANT role (junction table first, then direct fallback)
@@ -110,6 +111,7 @@ async function resolveUserRoles(userId: string, tenantId: string) {
           roles.push('IOR');
           linkedEntities.importer_id = importer.id;
           linkedEntities.importer_name = importer.legal_name;
+          linkedEntities.importer_org_number = supplier.org_number;
         }
       }
     } catch (error) {

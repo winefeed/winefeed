@@ -75,6 +75,7 @@ interface UserDetail {
     supplier_name?: string;
     importer_id?: string;
     importer_name?: string;
+    importer_org_number?: string;
   };
   status: string;
   recent_activity: {
@@ -255,8 +256,8 @@ export default function AdminUserDetailPage() {
               <User className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Användardetaljer</h1>
-              <p className="text-muted-foreground text-sm">{user.email}</p>
+              <h1 className="text-2xl font-bold text-foreground">{user.email}</h1>
+              <p className="text-muted-foreground text-sm">Användardetaljer</p>
             </div>
           </div>
           <div className="flex gap-3">
@@ -365,7 +366,9 @@ export default function AdminUserDetailPage() {
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <Hash className="h-3 w-3" /> User ID
                 </p>
-                <p className="text-sm text-foreground font-mono mt-0.5">{user.user_id}</p>
+                <p className="text-sm text-foreground font-mono mt-0.5" title={user.user_id}>
+                  {user.user_id.substring(0, 8)}...{user.user_id.substring(user.user_id.length - 4)}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -415,10 +418,10 @@ export default function AdminUserDetailPage() {
                 >
                   <Store className="h-5 w-5 text-green-600" />
                   <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Restaurant</p>
                     <p className="text-sm font-medium text-foreground group-hover:text-green-700 transition-colors">
                       {user.linked_entities.restaurant_name || 'Restaurant'}
                     </p>
-                    <p className="text-xs text-muted-foreground font-mono truncate">{user.linked_entities.restaurant_id}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-green-600 transition-colors" />
                 </Link>
@@ -430,10 +433,10 @@ export default function AdminUserDetailPage() {
                 >
                   <Package className="h-5 w-5 text-blue-600" />
                   <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Leverantör</p>
                     <p className="text-sm font-medium text-foreground group-hover:text-blue-700 transition-colors">
                       {user.linked_entities.supplier_name || 'Supplier'}
                     </p>
-                    <p className="text-xs text-muted-foreground font-mono truncate">{user.linked_entities.supplier_id}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-600 transition-colors" />
                 </Link>
@@ -442,10 +445,15 @@ export default function AdminUserDetailPage() {
                 <div className="flex items-center gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                   <Globe className="h-5 w-5 text-orange-600" />
                   <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Importör (IOR)</p>
                     <p className="text-sm font-medium text-foreground">
                       {user.linked_entities.importer_name || 'Importer'}
                     </p>
-                    <p className="text-xs text-muted-foreground font-mono truncate">{user.linked_entities.importer_id}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {user.linked_entities.importer_org_number
+                        ? `Org.nr: ${user.linked_entities.importer_org_number}`
+                        : user.linked_entities.importer_id.substring(0, 8) + '...'}
+                    </p>
                   </div>
                 </div>
               )}
@@ -492,13 +500,17 @@ export default function AdminUserDetailPage() {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {user.supplier_wines.wines.map((wine) => (
-                      <tr key={wine.id} className="hover:bg-accent/50 transition-colors">
-                        <td className="px-4 py-2.5 text-sm text-foreground font-medium">{wine.name}</td>
+                      <tr
+                        key={wine.id}
+                        className="hover:bg-accent/50 transition-colors cursor-pointer group"
+                        onClick={() => router.push(`/admin/wines?supplier=${user.linked_entities.supplier_id}&highlight=${wine.id}`)}
+                      >
+                        <td className="px-4 py-2.5 text-sm text-foreground font-medium group-hover:text-primary transition-colors">{wine.name}</td>
                         <td className="px-4 py-2.5 text-sm text-muted-foreground">{wine.producer}</td>
                         <td className="px-4 py-2.5 text-sm text-muted-foreground">{wine.grape || '—'}</td>
                         <td className="px-4 py-2.5 text-sm text-muted-foreground text-right">{wine.vintage || '—'}</td>
                         <td className="px-4 py-2.5 text-sm text-foreground text-right font-medium">
-                          {wine.price_ex_vat_sek.toLocaleString('sv-SE')} kr
+                          {(wine.price_ex_vat_sek / 100).toLocaleString('sv-SE')} kr
                         </td>
                         <td className="px-4 py-2.5 text-sm text-muted-foreground text-right">
                           {wine.stock_qty != null ? wine.stock_qty : '—'}
