@@ -4,12 +4,14 @@
 
 ## För restauranger
 
+- [Winefeed för restauranger](https://winefeed.se/restauranger): Sök bland tusentals viner, jämför priser och begär offert från flera leverantörer samtidigt.
 - [Sök viner](https://winefeed.se/): Bläddra bland viner från svenska importörer. Filtrera på druva, region, land och vintyp.
 - [Skicka förfrågan](https://winefeed.se/): Hitta rätt vin → skicka en förfrågan → importören svarar med offert → beställ direkt.
 - [Registrera dig](https://winefeed.se/signup): Gratis att registrera sig och använda plattformen.
 
 ## För importörer och leverantörer
 
+- [Winefeed för leverantörer](https://winefeed.se/leverantorer): Nå nya restaurangkunder, ta emot förfrågningar och svara med offert. 4 % success fee.
 - [Lista dina viner](https://winefeed.se/signup): Ladda upp ditt sortiment och nå restauranger som aktivt söker nya viner.
 - [Ta emot förfrågningar](https://winefeed.se/pitch): Restauranger skickar förfrågningar — du svarar med offert.
 - [Importör-pitch](https://winefeed.se/pitch): Läs mer om hur Winefeed fungerar för leverantörer.

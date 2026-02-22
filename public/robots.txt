@@ -3,6 +3,8 @@ User-agent: *
 Allow: /
 Allow: /llms.txt
 Allow: /pitch
+Allow: /restauranger
+Allow: /leverantorer
 Allow: /login
 Allow: /signup
 

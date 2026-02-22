@@ -9,13 +9,13 @@ export default function LandingPage() {
         <WinefeedLogo size="md" />
         <nav className="hidden md:flex items-center gap-8">
           <Link
-            href="#features"
+            href="/restauranger"
             className="text-wine-black-2 hover:text-wine-dark text-sm font-medium transition-colors"
           >
             För restauranger
           </Link>
           <Link
-            href="#how-it-works"
+            href="/leverantorer"
             className="text-wine-black-2 hover:text-wine-dark text-sm font-medium transition-colors"
           >
             För leverantörer
@@ -353,13 +353,13 @@ export default function LandingPage() {
         </div>
         <div className="flex gap-8">
           <Link
-            href="#"
+            href="/restauranger"
             className="text-white/70 hover:text-white text-sm transition-colors"
           >
-            Om oss
+            För restauranger
           </Link>
           <Link
-            href="#"
+            href="/leverantorer"
             className="text-white/70 hover:text-white text-sm transition-colors"
           >
             För leverantörer

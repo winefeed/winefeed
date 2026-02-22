@@ -61,6 +61,8 @@ export async function middleware(request: NextRequest) {
     '/api/cron',                      // Vercel Cron jobs (own CRON_SECRET auth)
     '/catalog',                       // Public supplier catalog (token-based)
     '/api/catalog',                   // Public catalog API (token-based)
+    '/restauranger',                  // Public landing page for restaurants
+    '/leverantorer',                  // Public landing page for suppliers
   ];
 
   // Exact match for root landing page
