@@ -4,6 +4,7 @@
  * /admin/users
  *
  * Shows all users in the tenant with roles, linked entities, and status.
+ * Sortable columns and filterable by email/role.
  */
 
 'use client';
@@ -11,7 +12,7 @@
 import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, RefreshCw, ArrowLeft } from 'lucide-react';
+import { RefreshCw, ArrowLeft, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useActor } from '@/lib/hooks/useActor';
 
 interface User {
@@ -33,6 +34,9 @@ interface UsersResponse {
   timestamp: string;
 }
 
+type SortKey = 'email' | 'roles' | 'entities' | 'created_at' | 'status';
+type SortDir = 'asc' | 'desc';
+
 export default function AdminUsersPage() {
   const router = useRouter();
   const { actor, loading: actorLoading } = useActor();
@@ -42,16 +46,25 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
+  const [sortKey, setSortKey] = useState<SortKey>('created_at');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   useEffect(() => {
-    if (!actorLoading && actor) {
-      if (!actor.roles.includes('ADMIN')) {
-        setError('Access Denied: Admin privileges required');
-        setLoading(false);
-        return;
-      }
-      fetchUsers();
+    if (actorLoading) return;
+
+    if (!actor) {
+      setError('Inte inloggad');
+      setLoading(false);
+      return;
     }
+
+    if (!actor.roles.includes('ADMIN')) {
+      setError('Access Denied: Admin privileges required');
+      setLoading(false);
+      return;
+    }
+
+    fetchUsers();
   }, [actor, actorLoading]);
 
   useEffect(() => {
@@ -67,8 +80,36 @@ export default function AdminUsersPage() {
       filtered = filtered.filter((u) => u.roles.includes(roleFilter));
     }
 
-    setFilteredUsers(filtered);
-  }, [users, searchQuery, roleFilter]);
+    // Sort
+    const sorted = [...filtered].sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case 'email':
+          cmp = a.email_masked.localeCompare(b.email_masked);
+          break;
+        case 'roles':
+          cmp = a.roles.join(',').localeCompare(b.roles.join(','));
+          break;
+        case 'entities': {
+          const countEntities = (u: User) =>
+            (u.linked_entities.restaurant_id ? 1 : 0) +
+            (u.linked_entities.supplier_id ? 1 : 0) +
+            (u.linked_entities.importer_id ? 1 : 0);
+          cmp = countEntities(a) - countEntities(b);
+          break;
+        }
+        case 'created_at':
+          cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        case 'status':
+          cmp = a.status.localeCompare(b.status);
+          break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    setFilteredUsers(sorted);
+  }, [users, searchQuery, roleFilter, sortKey, sortDir]);
 
   const fetchUsers = async () => {
     try {
@@ -88,13 +129,30 @@ export default function AdminUsersPage() {
 
       const data: UsersResponse = await response.json();
       setUsers(data.users);
-      setFilteredUsers(data.users);
     } catch (err) {
       console.error('Failed to fetch users:', err);
       setError(getErrorMessage(err, 'Kunde inte ladda användare'));
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'created_at' ? 'desc' : 'asc');
+    }
+  };
+
+  const SortIcon = ({ column }: { column: SortKey }) => {
+    if (sortKey !== column) {
+      return <ArrowUpDown className="h-3 w-3 opacity-40" />;
+    }
+    return sortDir === 'asc'
+      ? <ArrowUp className="h-3 w-3" />
+      : <ArrowDown className="h-3 w-3" />;
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -227,20 +285,45 @@ export default function AdminUsersPage() {
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-muted">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Email
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none"
+                  onClick={() => toggleSort('email')}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    Email <SortIcon column="email" />
+                  </span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Roller
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none"
+                  onClick={() => toggleSort('roles')}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    Roller <SortIcon column="roles" />
+                  </span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Länkade Entiteter
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none"
+                  onClick={() => toggleSort('entities')}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    Länkade Entiteter <SortIcon column="entities" />
+                  </span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Skapad
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none"
+                  onClick={() => toggleSort('created_at')}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    Skapad <SortIcon column="created_at" />
+                  </span>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Status
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none"
+                  onClick={() => toggleSort('status')}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    Status <SortIcon column="status" />
+                  </span>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Åtgärder

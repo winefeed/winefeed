@@ -42,7 +42,7 @@ async function resolveUserRoles(userId: string, tenantId: string) {
     importer_name?: string;
   } = {};
 
-  // 1. Check RESTAURANT role
+  // 1. Check RESTAURANT role (junction table first, then direct fallback)
   try {
     const { data: restaurantUser } = await supabase
       .from('restaurant_users')
@@ -54,6 +54,19 @@ async function resolveUserRoles(userId: string, tenantId: string) {
       roles.push('RESTAURANT');
       linkedEntities.restaurant_id = restaurantUser.restaurant_id;
       linkedEntities.restaurant_name = (restaurantUser as any).restaurants?.name;
+    } else {
+      // Fallback: restaurants.id = auth.users.id (legacy 1:1 mapping)
+      const { data: directRestaurant } = await supabase
+        .from('restaurants')
+        .select('id, name')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (directRestaurant) {
+        roles.push('RESTAURANT');
+        linkedEntities.restaurant_id = directRestaurant.id;
+        linkedEntities.restaurant_name = directRestaurant.name;
+      }
     }
   } catch (error) {
     // Skip if error
