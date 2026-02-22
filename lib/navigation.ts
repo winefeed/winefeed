@@ -219,7 +219,7 @@ export const ADMIN_NAVIGATION: NavSection[] = [
     title: 'Matching',
     items: [
       {
-        label: 'Matscan',
+        label: 'Matcha menyn',
         href: '/admin/food-scan',
         icon: Search,
       },

@@ -1,12 +1,12 @@
 /**
- * ADMIN FOOD SCAN PAGE
+ * ADMIN — MATCHA MENYN
  *
  * /admin/food-scan
  *
  * 3 tabs:
- * 1. Skanna restaurang — search Wolt, trigger scan, see results
- * 2. Förslag — pending pairing suggestions with approve/reject
- * 3. Historik — past scan results
+ * 1. Ny analys — search Wolt or upload PDF, trigger scan, see results + CTA
+ * 2. Vinförslag — merged history + outreach: generate, review, send wine recommendations
+ * 3. Pairings — pending pairing suggestions with approve/reject (advanced)
  */
 
 'use client';
@@ -17,11 +17,18 @@ import {
   ScanLine,
   CheckCircle2,
   XCircle,
-  Clock,
-  ChevronRight,
   Loader2,
   UtensilsCrossed,
+  Wine,
+  Send,
+  Mail,
+  Upload,
+  FileUp,
+  X,
+  ChevronRight,
+  Trash2,
 } from 'lucide-react';
+import { useDropzone } from 'react-dropzone';
 
 // ============================================================================
 // Types
@@ -47,6 +54,7 @@ interface DishAnalysis {
 }
 
 interface ScanResult {
+  id?: string;
   restaurant_name: string;
   wolt_slug?: string;
   city?: string;
@@ -88,16 +96,40 @@ interface ScanHistoryItem {
   scanned_at: string;
 }
 
-type Tab = 'scan' | 'suggestions' | 'history';
+interface RecommendedWine {
+  wineId: string;
+  name: string;
+  producer: string;
+  grape: string | null;
+  vintage: number | null;
+  priceExVat: number;
+  color: string | null;
+  reason: string;
+  matchedDishes?: string[];
+}
+
+interface RecommendationHistoryItem {
+  id: string;
+  restaurant_name: string;
+  status: string;
+  sent_at: string | null;
+  recipient_email: string | null;
+  dominant_styles: string[];
+  recommended_wines: RecommendedWine[];
+  email_subject: string | null;
+  created_at: string;
+}
+
+type Tab = 'scan' | 'vinforslag' | 'pairings';
 
 // ============================================================================
-// Page Component (outside to avoid re-render issues)
+// Page Component
 // ============================================================================
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: 'scan', label: 'Skanna restaurang' },
-  { key: 'suggestions', label: 'Förslag' },
-  { key: 'history', label: 'Historik' },
+  { key: 'scan', label: 'Ny analys' },
+  { key: 'vinforslag', label: 'Vinförslag' },
+  { key: 'pairings', label: 'Pairings' },
 ];
 
 export default function FoodScanPage() {
@@ -108,10 +140,10 @@ export default function FoodScanPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <UtensilsCrossed className="h-6 w-6" />
-          Matscan
+          Matcha menyn
         </h1>
         <p className="text-gray-500 mt-1">
-          Skanna restaurangmenyer, granska matpairings, bevaka trender
+          Analysera restaurangmenyer och föreslå viner från era importörer
         </p>
       </div>
 
@@ -132,25 +164,54 @@ export default function FoodScanPage() {
         ))}
       </div>
 
-      {activeTab === 'scan' && <ScanTab />}
-      {activeTab === 'suggestions' && <SuggestionsTab />}
-      {activeTab === 'history' && <HistoryTab />}
+      {activeTab === 'scan' && (
+        <ScanTab onNavigateToVinforslag={() => setActiveTab('vinforslag')} />
+      )}
+      {activeTab === 'vinforslag' && <VinforslagTab />}
+      {activeTab === 'pairings' && <PairingsTab />}
     </div>
   );
 }
 
 // ============================================================================
-// Tab 1: Scan Restaurant
+// Tab 1: Ny analys (Wolt search + PDF upload + scan result with CTA)
 // ============================================================================
 
-function ScanTab() {
+function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => void }) {
   const [query, setQuery] = useState('');
-  const [city, setCity] = useState('stockholm');
+  const [city, setCity] = useState('');
   const [venues, setVenues] = useState<WoltVenue[]>([]);
   const [searching, setSearching] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // PDF upload state
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfRestaurantName, setPdfRestaurantName] = useState('');
+  const [scanningPdf, setScanningPdf] = useState(false);
+
+  // CTA state
+  const [generating, setGenerating] = useState(false);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: { 'application/pdf': ['.pdf'] },
+    maxSize: 10 * 1024 * 1024,
+    multiple: false,
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles.length > 0) {
+        setPdfFile(acceptedFiles[0]);
+      }
+    },
+    onDropRejected: (rejections) => {
+      const r = rejections[0];
+      if (r?.errors[0]?.code === 'file-too-large') {
+        setError('Filen är för stor. Max 10 MB.');
+      } else {
+        setError('Bara PDF-filer stöds.');
+      }
+    },
+  });
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
@@ -196,16 +257,63 @@ function ScanTab() {
     }
   }, []);
 
+  const handlePdfScan = useCallback(async () => {
+    if (!pdfFile || !pdfRestaurantName.trim()) return;
+    setScanningPdf(true);
+    setError(null);
+    setScanResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', pdfFile);
+      formData.append('restaurant_name', pdfRestaurantName.trim());
+
+      const res = await fetch('/api/admin/food-scan/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || 'PDF-analys misslyckades');
+      setScanResult(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setScanningPdf(false);
+    }
+  }, [pdfFile, pdfRestaurantName]);
+
+  const handleGenerateRecommendation = useCallback(async (scanId: string) => {
+    setGenerating(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/admin/food-scan/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scan_result_id: scanId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || 'Kunde inte generera vinförslag');
+      onNavigateToVinforslag();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setGenerating(false);
+    }
+  }, [onNavigateToVinforslag]);
+
+  const isLoading = searching || scanning || scanningPdf;
+
   return (
     <div className="space-y-6">
-      {/* Search form */}
+      {/* Wolt search form */}
       <div className="flex gap-3">
         <input
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSearch()}
-          placeholder="Restaurangnamn..."
+          placeholder="Sök restaurang på Wolt..."
           className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#722F37]"
         />
         <select
@@ -213,6 +321,7 @@ function ScanTab() {
           onChange={e => setCity(e.target.value)}
           className="px-3 py-2 border rounded-lg text-sm"
         >
+          <option value="">Alla</option>
           <option value="stockholm">Stockholm</option>
           <option value="göteborg">Göteborg</option>
           <option value="malmö">Malmö</option>
@@ -220,17 +329,13 @@ function ScanTab() {
         </select>
         <button
           onClick={handleSearch}
-          disabled={searching || !query.trim()}
+          disabled={isLoading || !query.trim()}
           className="px-4 py-2 bg-[#722F37] text-white rounded-lg text-sm font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center gap-2"
         >
           {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           Sök
         </button>
       </div>
-
-      {error && (
-        <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>
-      )}
 
       {/* Venue results */}
       {venues.length > 0 && (
@@ -243,24 +348,117 @@ function ScanTab() {
               </div>
               <button
                 onClick={() => handleScan(venue)}
-                disabled={scanning}
+                disabled={isLoading}
                 className="px-3 py-1.5 bg-[#722F37] text-white rounded text-xs font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center gap-1"
               >
                 {scanning ? <Loader2 className="h-3 w-3 animate-spin" /> : <ScanLine className="h-3 w-3" />}
-                Skanna meny
+                Analysera meny
               </button>
             </div>
           ))}
         </div>
       )}
 
-      {/* Scan result */}
-      {scanResult && <ScanResultView result={scanResult} />}
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white px-3 text-gray-500">eller ladda upp meny-PDF</span>
+        </div>
+      </div>
+
+      {/* PDF upload section */}
+      <div className="space-y-3">
+        <div>
+          <label className="text-xs font-medium text-gray-600">Restaurangnamn</label>
+          <input
+            type="text"
+            value={pdfRestaurantName}
+            onChange={e => setPdfRestaurantName(e.target.value)}
+            placeholder="t.ex. Restaurang Natur"
+            className="w-full px-3 py-2 border rounded-lg text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[#722F37]"
+          />
+        </div>
+
+        {pdfFile ? (
+          <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <FileUp className="h-4 w-4 text-[#722F37]" />
+            <span className="text-sm text-gray-700 truncate flex-1">{pdfFile.name}</span>
+            <span className="text-xs text-gray-400">{(pdfFile.size / 1024).toFixed(0)} KB</span>
+            <button
+              onClick={() => setPdfFile(null)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <div
+            {...getRootProps()}
+            className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+              isDragActive
+                ? 'border-[#722F37] bg-[#722F37]/5'
+                : 'border-gray-200 hover:border-[#722F37]/40 hover:bg-gray-50'
+            }`}
+          >
+            <input {...getInputProps()} />
+            <Upload className={`h-8 w-8 ${isDragActive ? 'text-[#722F37]' : 'text-gray-400'}`} />
+            {isDragActive ? (
+              <p className="text-sm text-[#722F37] font-medium">Släpp PDF här...</p>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600">Dra och släpp en PDF här, eller klicka för att välja</p>
+                <p className="text-xs text-gray-400">Max 10 MB</p>
+              </>
+            )}
+          </div>
+        )}
+
+        <button
+          onClick={handlePdfScan}
+          disabled={isLoading || !pdfRestaurantName.trim() || !pdfFile}
+          className="px-4 py-2 bg-[#722F37] text-white rounded-lg text-sm font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center gap-2"
+        >
+          {scanningPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
+          {scanningPdf ? 'Analyserar PDF...' : 'Analysera PDF'}
+        </button>
+
+        {/* Validation hints */}
+        {pdfFile && !pdfRestaurantName.trim() && (
+          <p className="text-xs text-amber-600">Fyll i restaurangnamn ovan för att fortsätta.</p>
+        )}
+        {!pdfFile && pdfRestaurantName.trim() && (
+          <p className="text-xs text-gray-400">Ladda upp en PDF-meny för att fortsätta.</p>
+        )}
+      </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>
+      )}
+
+      {/* Scan result + CTA */}
+      {scanResult && (
+        <ScanResultView
+          result={scanResult}
+          onGenerateRecommendation={scanResult.id ? () => handleGenerateRecommendation(scanResult.id!) : undefined}
+          generating={generating}
+        />
+      )}
     </div>
   );
 }
 
-function ScanResultView({ result }: { result: ScanResult }) {
+function ScanResultView({
+  result,
+  onGenerateRecommendation,
+  generating,
+}: {
+  result: ScanResult;
+  onGenerateRecommendation?: () => void;
+  generating?: boolean;
+}) {
   const matchRate = result.total_dishes > 0
     ? Math.round((result.matched_dishes / result.total_dishes) * 100)
     : 0;
@@ -326,15 +524,277 @@ function ScanResultView({ result }: { result: ScanResult }) {
           </div>
         ))}
       </div>
+
+      {/* CTA: Generate wine recommendation */}
+      {onGenerateRecommendation && matchRate >= 30 && (
+        <button
+          onClick={onGenerateRecommendation}
+          disabled={generating}
+          className="w-full px-4 py-3 bg-[#722F37] text-white rounded-lg text-sm font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+        >
+          {generating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Wine className="h-4 w-4" />
+          )}
+          {generating ? 'Genererar vinförslag...' : 'Generera vinförslag'}
+          {!generating && <ChevronRight className="h-4 w-4" />}
+        </button>
+      )}
+      {onGenerateRecommendation && matchRate < 30 && (
+        <p className="text-sm text-amber-600 text-center">
+          Matchgraden är för låg för vinförslag. Ladda upp en mer detaljerad meny.
+        </p>
+      )}
     </div>
   );
 }
 
 // ============================================================================
-// Tab 2: Suggestions
+// Tab 2: Vinförslag (merged History + Outreach)
 // ============================================================================
 
-function SuggestionsTab() {
+function VinforslagTab() {
+  // Recommendations state
+  const [recommendations, setRecommendations] = useState<RecommendationHistoryItem[]>([]);
+  const [loadingRecs, setLoadingRecs] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [editSubject, setEditSubject] = useState('');
+  const [editRecipient, setEditRecipient] = useState('');
+  const [toast, setToast] = useState<string | null>(null);
+
+  const fetchAll = useCallback(async () => {
+    const recRes = await fetch('/api/admin/food-scan/recommend').then(r => r.json()).catch(() => ({ recommendations: [] }));
+    setRecommendations(recRes.recommendations || []);
+    setLoadingRecs(false);
+  }, []);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleDelete = async (recId: string) => {
+    if (!confirm('Radera detta vinförslag?')) return;
+    try {
+      const res = await fetch(`/api/admin/food-scan/recommend/${recId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Radering misslyckades');
+      setRecommendations(prev => prev.filter(r => r.id !== recId));
+      showToast('Vinförslag raderat');
+    } catch (err: any) {
+      showToast(`Fel: ${err.message}`);
+    }
+  };
+
+  const startSend = (rec: RecommendationHistoryItem) => {
+    setExpandedId(rec.id);
+    setEditSubject(rec.email_subject || '');
+    setEditRecipient(rec.recipient_email || '');
+  };
+
+  const handleSend = async (recId: string) => {
+    if (!editRecipient.trim()) {
+      showToast('Ange mottagarens email');
+      return;
+    }
+    setSendingId(recId);
+    try {
+      const res = await fetch('/api/admin/food-scan/recommend/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recommendation_id: recId,
+          recipient_email: editRecipient.trim(),
+          subject: editSubject.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Skickandet misslyckades');
+      showToast('Email skickad!');
+      setExpandedId(null);
+      fetchAll();
+    } catch (err: any) {
+      showToast(`Fel: ${err.message}`);
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  const loading = loadingRecs;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (recommendations.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <Wine className="h-12 w-12 mx-auto mb-3 opacity-40" />
+        <p>Inga vinförslag ännu.</p>
+        <p className="text-sm mt-1">Gå till &quot;Ny analys&quot; och analysera en restaurangmeny för att komma igång.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 relative">
+      {toast && (
+        <div className="fixed top-4 right-4 bg-[#722F37] text-white px-4 py-2 rounded-lg text-sm shadow-lg z-50">
+          {toast}
+        </div>
+      )}
+
+      {/* Recommendations (ready to review & send) */}
+      {recommendations.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-gray-700">
+            Vinförslag ({recommendations.length})
+          </h3>
+          {recommendations.map(rec => {
+            const wines: RecommendedWine[] = Array.isArray(rec.recommended_wines) ? rec.recommended_wines : [];
+            const isExpanded = expandedId === rec.id;
+
+            return (
+              <div key={rec.id} className="border rounded-lg overflow-hidden">
+                {/* Header row */}
+                <div className="p-3 flex items-center justify-between hover:bg-gray-50">
+                  <div>
+                    <div className="font-medium text-sm">{rec.restaurant_name}</div>
+                    <div className="text-xs text-gray-500">
+                      {new Date(rec.created_at).toLocaleDateString('sv-SE')} | {wines.length} viner
+                      {rec.dominant_styles?.length > 0 && ` | ${rec.dominant_styles.join(', ')}`}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {rec.status === 'sent' ? (
+                      <button
+                        onClick={() => isExpanded ? setExpandedId(null) : setExpandedId(rec.id)}
+                        className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium flex items-center gap-1 hover:bg-emerald-200 transition-colors"
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                        Skickad {rec.sent_at ? new Date(rec.sent_at).toLocaleDateString('sv-SE') : ''}
+                        {rec.recipient_email && <span className="text-emerald-500 ml-1">→ {rec.recipient_email}</span>}
+                      </button>
+                    ) : rec.status === 'failed' ? (
+                      <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
+                        Misslyckad
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => isExpanded ? setExpandedId(null) : startSend(rec)}
+                        className="px-3 py-1.5 bg-[#722F37] text-white rounded text-xs font-medium hover:bg-[#5a252c] flex items-center gap-1"
+                      >
+                        <Send className="h-3 w-3" />
+                        {isExpanded ? 'Stäng' : 'Granska & skicka'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(rec.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors"
+                      title="Radera vinförslag"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expanded: wine cards + send form (only for drafts) */}
+                {isExpanded && (
+                  <div className="border-t bg-gray-50 p-4 space-y-4">
+                    <div className="grid gap-2">
+                      {wines.map((w, i) => (
+                        <div key={i} className="bg-white border rounded-lg p-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-medium text-sm">{w.name}{w.vintage ? ` ${w.vintage}` : ''}</div>
+                              <div className="text-xs text-gray-500">{w.producer}{w.grape ? ` · ${w.grape}` : ''}</div>
+                            </div>
+                            <div className="text-sm font-medium text-[#722F37]">{Math.round(w.priceExVat / 100)} kr</div>
+                          </div>
+                          {w.matchedDishes && w.matchedDishes.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {w.matchedDishes.map((dish, di) => (
+                                <span key={di} className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-xs">
+                                  {dish}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {w.reason && (
+                            <div className="text-xs text-gray-600 mt-2 italic">{w.reason}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Send form — only for drafts, not already sent */}
+                    {rec.status !== 'sent' && rec.status !== 'failed' && (
+                      <div className="space-y-3 pt-2 border-t">
+                        <div>
+                          <label className="text-xs font-medium text-gray-600">Ämnesrad</label>
+                          <input
+                            type="text"
+                            value={editSubject}
+                            onChange={e => setEditSubject(e.target.value)}
+                            className="w-full px-3 py-2 border rounded-lg text-sm mt-1"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-600">Mottagare (email)</label>
+                          <input
+                            type="email"
+                            value={editRecipient}
+                            onChange={e => setEditRecipient(e.target.value)}
+                            placeholder="restaurang@example.com"
+                            className="w-full px-3 py-2 border rounded-lg text-sm mt-1"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSend(rec.id)}
+                            disabled={sendingId === rec.id || !editRecipient.trim()}
+                            className="px-4 py-2 bg-[#722F37] text-white rounded-lg text-sm font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center gap-2"
+                          >
+                            {sendingId === rec.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Mail className="h-4 w-4" />
+                            )}
+                            Skicka email
+                          </button>
+                          <button
+                            onClick={() => setExpandedId(null)}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300"
+                          >
+                            Avbryt
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+// ============================================================================
+// Tab 3: Pairings (pairing suggestions review)
+// ============================================================================
+
+function PairingsTab() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -427,7 +887,7 @@ function SuggestionsTab() {
   if (suggestions.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
-        Inga väntande förslag. Skanna en restaurang för att generera nya.
+        Inga väntande pairings att granska.
       </div>
     );
   }
@@ -441,7 +901,7 @@ function SuggestionsTab() {
       )}
 
       <div className="text-sm text-gray-500 mb-4">
-        {suggestions.length} väntande förslag
+        {suggestions.length} väntande pairings
       </div>
 
       <div className="border rounded-lg divide-y">
@@ -524,7 +984,7 @@ function SuggestionsTab() {
                   </button>
                   <button
                     onClick={() => setEditingId(null)}
-                    className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded text-xs font-medium hover:bg-gray-300"
+                    className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-300"
                   >
                     Avbryt
                   </button>
@@ -534,74 +994,6 @@ function SuggestionsTab() {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// Tab 3: History
-// ============================================================================
-
-function HistoryTab() {
-  const [results, setResults] = useState<ScanHistoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch('/api/admin/food-scan/results');
-        const data = await res.json();
-        setResults(data.results || []);
-      } catch (err) {
-        console.error('Failed to load history:', err);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-      </div>
-    );
-  }
-
-  if (results.length === 0) {
-    return (
-      <div className="text-center py-12 text-gray-500">
-        Inga skanningar ännu.
-      </div>
-    );
-  }
-
-  return (
-    <div className="border rounded-lg divide-y">
-      {results.map(r => {
-        const matchRate = r.total_dishes > 0
-          ? Math.round((r.matched_dishes / r.total_dishes) * 100)
-          : 0;
-
-        return (
-          <div key={r.id} className="p-3 flex items-center justify-between hover:bg-gray-50">
-            <div>
-              <div className="font-medium text-sm">{r.restaurant_name}</div>
-              <div className="text-xs text-gray-500">
-                {new Date(r.scanned_at).toLocaleDateString('sv-SE')} | {r.scan_source}
-                {r.city && ` | ${r.city}`}
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-gray-500">{r.total_dishes} rätter</span>
-              <span className={matchRate >= 70 ? 'text-emerald-600 font-medium' : 'text-amber-600 font-medium'}>
-                {matchRate}% match
-              </span>
-              <ChevronRight className="h-4 w-4 text-gray-300" />
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }

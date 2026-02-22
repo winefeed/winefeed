@@ -1925,3 +1925,173 @@ Vinkoll - Hitta ditt nästa favoritvin
 
   return { subject, html, text };
 }
+
+// ============================================================================
+// Wine Recommendation Email (Sommelier Outreach)
+// ============================================================================
+
+export interface WineRecommendationEmailParams {
+  restaurantName: string;
+  dishSummary: string;
+  isExistingCustomer?: boolean;  // true = registered restaurant, false/undefined = cold lead
+  wines: Array<{
+    name: string;
+    producer: string;
+    grape: string | null;
+    vintage: number | null;
+    priceExVat: number;
+    reason: string;
+    matchedDishes?: string[];
+  }>;
+}
+
+export function renderWineRecommendationEmail(params: WineRecommendationEmailParams): { subject: string; html: string; text: string } {
+  const { restaurantName, dishSummary, wines, isExistingCustomer } = params;
+
+  const subject = isExistingCustomer
+    ? `Nya vinförslag till ${restaurantName} — baserat på er meny`
+    : `Vinförslag till ${restaurantName} — baserat på er meny`;
+
+  const wineCardsHtml = wines.map(w => {
+    const dishTagsHtml = (w.matchedDishes && w.matchedDishes.length > 0)
+      ? `<div style="margin-top: 10px;">${w.matchedDishes.map(d =>
+          `<span style="display: inline-block; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 4px; padding: 2px 8px; font-size: 11px; margin-right: 6px; margin-bottom: 4px;">${d}</span>`
+        ).join('')}</div>`
+      : '';
+    return `
+    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+      <div style="font-weight: 600; font-size: 15px; color: #1f2937;">${w.name}${w.vintage ? ` ${w.vintage}` : ''}</div>
+      <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">${w.producer}${w.grape ? ` · ${w.grape}` : ''}</div>
+      <div style="font-size: 13px; color: #7A1B2D; font-weight: 500; margin-top: 6px;">${Math.round(w.priceExVat / 100)} kr ex moms</div>
+      ${dishTagsHtml}
+      <div style="font-size: 13px; color: #4b5563; margin-top: 8px; line-height: 1.5; font-style: italic;">${w.reason}</div>
+    </div>`;
+  }).join('');
+
+  const wineListText = wines.map(w => {
+    const dishLine = (w.matchedDishes && w.matchedDishes.length > 0)
+      ? `\n  Passar till: ${w.matchedDishes.join(', ')}`
+      : '';
+    return `- ${w.name}${w.vintage ? ` ${w.vintage}` : ''} (${w.producer}${w.grape ? `, ${w.grape}` : ''}) — ${Math.round(w.priceExVat / 100)} kr ex moms${dishLine}\n  ${w.reason}`;
+  }).join('\n\n');
+
+  const dashboardUrl = getAppUrl('/dashboard');
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
+
+    <h2 style="color: #7A1B2D; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Vinförslag till er meny</h2>
+
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Hej ${restaurantName},</p>
+
+    ${isExistingCustomer ? `
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Vi har tittat på er meny (${dishSummary}) och hittat nya viner som kan passa:</p>
+    ` : `
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Vi på Winefeed hjälper restauranger hitta rätt vin från Sveriges importörer. Vi har analyserat er meny (${dishSummary}) och valt ut viner som matchar era rätter:</p>
+    `}
+
+    <div style="margin: 24px 0;">
+      ${wineCardsHtml}
+    </div>
+
+    ${isExistingCustomer ? `
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Alla viner finns i er katalog — klicka nedan för att se detaljer och beställa direkt.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${dashboardUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
+        Se vinerna i katalogen
+      </a>
+    </div>
+    ` : `
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Winefeed samlar viner från Sveriges importörer på ett ställe — kostnadsfritt för restauranger. Sök, jämför och skicka förfrågningar direkt till leverantörerna.</p>
+
+    <!-- Services section -->
+    <div style="border-top: 1px solid #e5e7eb; margin-top: 32px; padding-top: 28px;">
+      <h3 style="color: #7A1B2D; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Så fungerar Winefeed</h3>
+      <table style="width: 100%; border-spacing: 0;" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="width: 40px; vertical-align: top; padding: 8px 12px 8px 0;">
+            <div style="width: 32px; height: 32px; background: #fef2f2; border-radius: 50%; text-align: center; line-height: 32px; font-size: 16px;">&#x1F50D;</div>
+          </td>
+          <td style="vertical-align: top; padding: 8px 0;">
+            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">Sök och jämför</div>
+            <div style="font-size: 13px; color: #6b7280; line-height: 1.5;">Viner från flera importörer — filtrerade efter druva, region, pris och stil.</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="width: 40px; vertical-align: top; padding: 8px 12px 8px 0;">
+            <div style="width: 32px; height: 32px; background: #f0fdf4; border-radius: 50%; text-align: center; line-height: 32px; font-size: 16px;">&#x1F4E9;</div>
+          </td>
+          <td style="vertical-align: top; padding: 8px 0;">
+            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">Skicka förfrågan direkt</div>
+            <div style="font-size: 13px; color: #6b7280; line-height: 1.5;">Beskriv vad ni söker och få offerter från leverantörer inom 24h.</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="width: 40px; vertical-align: top; padding: 8px 12px 8px 0;">
+            <div style="width: 32px; height: 32px; background: #eff6ff; border-radius: 50%; text-align: center; line-height: 32px; font-size: 16px;">&#x1F4B0;</div>
+          </td>
+          <td style="vertical-align: top; padding: 8px 0;">
+            <div style="font-size: 14px; font-weight: 600; color: #1f2937;">Gratis för restauranger</div>
+            <div style="font-size: 13px; color: #6b7280; line-height: 1.5;">Inga avgifter, inga bindningar. Registrera er och börja utforska.</div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${dashboardUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
+        Se vinerna på Winefeed
+      </a>
+    </div>
+
+    <div style="text-align: center; margin: 0 0 10px 0;">
+      <a href="${getAppUrl('/signup')}" style="display: inline-block; border: 2px solid #7A1B2D; color: #7A1B2D; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+        Registrera er kostnadsfritt
+      </a>
+    </div>
+    `}
+
+  ${winefeedEmailFooter()}
+</body>
+</html>`;
+
+  const text = isExistingCustomer
+    ? `Nya vinförslag till ${restaurantName}
+
+Hej ${restaurantName},
+
+Vi har tittat på er meny (${dishSummary}) och hittat nya viner som kan passa:
+
+${wineListText}
+
+Se vinerna i katalogen: ${dashboardUrl}
+
+---
+Winefeed – Din B2B-marknadsplats för vin`.trim()
+    : `Vinförslag till ${restaurantName}
+
+Hej ${restaurantName},
+
+Vi på Winefeed hjälper restauranger hitta rätt vin från Sveriges importörer. Vi har analyserat er meny (${dishSummary}) och valt ut viner som matchar era rätter:
+
+${wineListText}
+
+Winefeed samlar viner från Sveriges importörer på ett ställe — kostnadsfritt för restauranger. Sök, jämför och skicka förfrågningar direkt till leverantörerna.
+
+Se vinerna: ${dashboardUrl}
+Registrera er kostnadsfritt: ${getAppUrl('/signup')}
+
+---
+Winefeed – Din B2B-marknadsplats för vin`.trim();
+
+  return { subject, html, text };
+}

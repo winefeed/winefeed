@@ -33,6 +33,7 @@ export interface DishAnalysis {
 
 /** Result of scanning a restaurant menu */
 export interface ScanResult {
+  id?: string;
   restaurant_name: string;
   wolt_slug?: string;
   city?: string;

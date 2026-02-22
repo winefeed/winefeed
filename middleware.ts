@@ -25,6 +25,23 @@ import { checkRateLimit, getRateLimitType, getRateLimitHeaders } from '@/lib/rat
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Development/Test: Allow header-based auth for smoke tests
+  // SECURITY: Requires BOTH non-production AND explicit env flag
+  // Must check BEFORE stripping headers below.
+  const allowTestBypass =
+    process.env.NODE_ENV !== 'production' &&
+    process.env.ALLOW_TEST_BYPASS === 'true';
+
+  if (allowTestBypass && pathname.startsWith('/api/')) {
+    const testUserId = request.headers.get('x-user-id');
+    const testTenantId = request.headers.get('x-tenant-id');
+    if (testUserId && testTenantId) {
+      return NextResponse.next({
+        request: { headers: request.headers },
+      });
+    }
+  }
+
   // SECURITY: Strip any client-supplied auth context headers to prevent spoofing.
   // These headers are set exclusively by this middleware after session validation.
   request.headers.delete('x-user-id');
@@ -70,23 +87,6 @@ export async function middleware(request: NextRequest) {
   // Exact match for root landing page
   if (pathname === '/') {
     return NextResponse.next();
-  }
-
-  // Development/Test: Allow header-based auth for smoke tests
-  // SECURITY: Requires BOTH non-production AND explicit env flag
-  const allowTestBypass =
-    process.env.NODE_ENV !== 'production' &&
-    process.env.ALLOW_TEST_BYPASS === 'true';
-
-  if (allowTestBypass && pathname.startsWith('/api/')) {
-    const testUserId = request.headers.get('x-user-id');
-    const testTenantId = request.headers.get('x-tenant-id');
-    if (testUserId && testTenantId) {
-      // Pass through with headers intact for testing
-      return NextResponse.next({
-        request: { headers: request.headers },
-      });
-    }
   }
 
   // Static assets - skip auth and rate limiting

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q');
-    const city = searchParams.get('city') || 'stockholm';
+    const city = searchParams.get('city') || '';
 
     if (!q) {
       return NextResponse.json({ error: 'Missing query parameter q' }, { status: 400 });

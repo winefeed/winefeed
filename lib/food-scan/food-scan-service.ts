@@ -8,6 +8,7 @@
 import { getSupabaseAdmin } from '../supabase-server';
 import { searchVenues, fetchMenu } from './wolt-client';
 import { analyzeDishes } from './menu-analyzer';
+import { enrichWithAI } from './ai-fallback';
 import { scanKoketTrends } from './trend-scanner';
 import type {
   WoltVenue,
@@ -52,8 +53,9 @@ export async function scanRestaurantMenu(
     };
   }
 
-  // 2. Analyze dishes
-  const dishes = analyzeDishes(menuItems);
+  // 2. Analyze dishes (4-step static + AI fallback)
+  const staticDishes = analyzeDishes(menuItems);
+  const dishes = await enrichWithAI(staticDishes);
   const matched = dishes.filter(d => d.matched).length;
   const unmatched = dishes.filter(d => !d.matched).length;
 
@@ -70,7 +72,7 @@ export async function scanRestaurantMenu(
 
   // 3. Persist scan result
   const supabase = getSupabaseAdmin();
-  await supabase.from('food_scan_results').insert({
+  const { data: inserted } = await supabase.from('food_scan_results').insert({
     restaurant_id: restaurantId || null,
     restaurant_name: restaurantName,
     wolt_slug: woltSlug,
@@ -80,7 +82,11 @@ export async function scanRestaurantMenu(
     matched_dishes: matched,
     unmatched_dishes: unmatched,
     dishes_json: dishes,
-  });
+  }).select('id').single();
+
+  if (inserted) {
+    result.id = inserted.id;
+  }
 
   // 4. Upsert unmatched dishes as suggestions
   await upsertSuggestions(

@@ -12,7 +12,7 @@ const anthropic = new Anthropic({
 
 export { anthropic };
 
-export async function callClaude(prompt: string, maxTokens: number = 2000): Promise<string> {
+export async function callClaude(prompt: string, maxTokens: number = 2000, systemPrompt?: string): Promise<string> {
   // Check API key before making request
   if (!apiKey) {
     throw new Error('ANTHROPIC_API_KEY is not configured. Please add it to your .env.local file.');
@@ -22,6 +22,7 @@ export async function callClaude(prompt: string, maxTokens: number = 2000): Prom
     const message = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',
       max_tokens: maxTokens,
+      ...(systemPrompt ? { system: systemPrompt } : {}),
       messages: [{ role: 'user', content: prompt }],
     });
 

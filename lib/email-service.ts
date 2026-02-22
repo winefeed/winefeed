@@ -59,7 +59,7 @@ export interface EmailEventPayload {
  * Send email with Resend
  * Fail-safe: Returns success even if email fails (logs error)
  */
-export async function sendEmail(params: SendEmailParams): Promise<{ success: boolean; error?: string }> {
+export async function sendEmail(params: SendEmailParams): Promise<{ success: boolean; error?: string; resendId?: string }> {
   const { to, subject, html, text, from, reply_to } = params;
   const fromAddress = from || DEFAULT_FROM;
 
@@ -95,7 +95,7 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
     }
 
     console.log(`✅ Email sent to ${to}: ${subject}`);
-    return { success: true };
+    return { success: true, resendId: data?.id ?? undefined };
 
   } catch (error: any) {
     console.error('❌ Email send exception:', error);
