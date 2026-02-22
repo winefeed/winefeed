@@ -63,6 +63,8 @@ export async function middleware(request: NextRequest) {
     '/api/catalog',                   // Public catalog API (token-based)
     '/restauranger',                  // Public landing page for restaurants
     '/leverantorer',                  // Public landing page for suppliers
+    '/sitemap.xml',                   // SEO sitemap
+    '/robots.txt',                    // SEO robots
   ];
 
   // Exact match for root landing page
