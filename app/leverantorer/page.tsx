@@ -55,7 +55,7 @@ export default function LeverantorerPage() {
       />
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 px-8 py-5 flex justify-between items-center bg-cream/95 backdrop-blur-md z-50 border-b border-wine-dark/10">
+      <header className="fixed top-0 left-0 right-0 px-4 sm:px-8 py-5 flex justify-between items-center bg-cream/95 backdrop-blur-md z-50 border-b border-wine-dark/10">
         <Link href="/">
           <WinefeedLogo size="md" />
         </Link>
@@ -94,7 +94,7 @@ export default function LeverantorerPage() {
             <span>För importörer & vinleverantörer</span>
           </div>
 
-          <h1 className="font-serif text-4xl lg:text-[3.5rem] font-semibold leading-tight text-wine-black-1 mb-6">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-[3.5rem] font-semibold leading-tight text-wine-black-1 mb-6">
             Nå nya{" "}
             <span className="text-wine-dark">restaurangkunder</span>
           </h1>
@@ -125,7 +125,7 @@ export default function LeverantorerPage() {
         {/* Hero Visual */}
         <div className="bg-gradient-to-br from-wine-dark to-wine-deep relative overflow-hidden flex items-center justify-center min-h-[400px] lg:min-h-0">
           <div className="absolute inset-0 hero-pattern opacity-50" />
-          <div className="bg-white rounded-2xl p-6 shadow-2xl w-80 relative z-10">
+          <div className="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-80 mx-4 sm:mx-0 relative z-10">
             <div className="mb-4 pb-4 border-b border-cream-dark">
               <p className="text-xs text-wine-black-2 uppercase tracking-wider mb-1">
                 Ny förfrågan
@@ -201,10 +201,10 @@ export default function LeverantorerPage() {
       </section>
 
       {/* How it Works */}
-      <section className="py-24 px-8 bg-white">
+      <section className="py-16 sm:py-24 px-4 sm:px-8 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-xl mx-auto mb-16">
-            <h2 className="font-serif text-4xl font-semibold mb-4">
+            <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">
               Så fungerar det för leverantörer
             </h2>
             <p className="text-wine-black-2 text-lg leading-relaxed">
@@ -256,10 +256,10 @@ export default function LeverantorerPage() {
       </section>
 
       {/* Business Model */}
-      <section className="py-24 px-8 bg-cream">
+      <section className="py-16 sm:py-24 px-4 sm:px-8 bg-cream">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl font-semibold mb-4">
+            <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">
               Transparent affärsmodell
             </h2>
             <p className="speakable text-wine-black-2 text-lg leading-relaxed">
@@ -269,7 +269,7 @@ export default function LeverantorerPage() {
 
           <div className="bg-white rounded-2xl p-8 md:p-12 shadow-xl max-w-2xl mx-auto">
             <div className="text-center mb-8">
-              <span className="font-serif text-6xl font-bold text-wine-dark">
+              <span className="font-serif text-5xl sm:text-6xl font-bold text-wine-dark">
                 4%
               </span>
               <p className="text-wine-black-2 text-lg mt-2">
@@ -311,10 +311,10 @@ export default function LeverantorerPage() {
       </section>
 
       {/* Benefits */}
-      <section className="py-24 px-8 bg-white">
+      <section className="py-16 sm:py-24 px-4 sm:px-8 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-xl mx-auto mb-16">
-            <h2 className="font-serif text-4xl font-semibold mb-4">
+            <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">
               Fördelar för leverantörer
             </h2>
           </div>
@@ -399,8 +399,8 @@ export default function LeverantorerPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-8 bg-gradient-to-br from-wine-dark to-wine-deep text-white text-center">
-        <h2 className="font-serif text-4xl font-semibold mb-4">
+      <section className="py-16 sm:py-24 px-4 sm:px-8 bg-gradient-to-br from-wine-dark to-wine-deep text-white text-center">
+        <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">
           Bli leverantör på Winefeed
         </h2>
         <p className="text-lg opacity-90 mb-8 max-w-lg mx-auto">
@@ -423,7 +423,7 @@ export default function LeverantorerPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-8 bg-wine-black-1 text-white flex flex-col md:flex-row justify-between items-center">
+      <footer className="py-12 px-4 sm:px-8 bg-wine-black-1 text-white flex flex-col md:flex-row justify-between items-center">
         <div className="font-serif text-xl font-semibold mb-4 md:mb-0">
           Winefeed
         </div>
