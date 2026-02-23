@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -89,6 +90,7 @@ export default function RootLayout({
   return (
     <html lang="sv">
       <body className={`${dmSans.variable} ${cormorant.variable} font-sans`}>
+        <GoogleAnalytics />
         <Providers>{children}</Providers>
         <script
           type="application/ld+json"
