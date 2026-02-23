@@ -2048,14 +2048,8 @@ export function renderWineRecommendationEmail(params: WineRecommendationEmailPar
     </div>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${dashboardUrl}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
-        Se vinerna på Winefeed
-      </a>
-    </div>
-
-    <div style="text-align: center; margin: 0 0 10px 0;">
-      <a href="${getAppUrl('/signup')}" style="display: inline-block; border: 2px solid #7A1B2D; color: #7A1B2D; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
-        Registrera er kostnadsfritt
+      <a href="${getAppUrl('/signup')}" style="display: inline-block; background: #7A1B2D; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(122,27,45,0.25);">
+        Skapa konto och se vinerna — gratis
       </a>
     </div>
     `}
@@ -2087,8 +2081,7 @@ ${wineListText}
 
 Winefeed samlar viner från Sveriges importörer på ett ställe — kostnadsfritt för restauranger. Sök, jämför och skicka förfrågningar direkt till leverantörerna.
 
-Se vinerna: ${dashboardUrl}
-Registrera er kostnadsfritt: ${getAppUrl('/signup')}
+Skapa konto och se vinerna (gratis): ${getAppUrl('/signup')}
 
 ---
 Winefeed – Din B2B-marknadsplats för vin`.trim();
