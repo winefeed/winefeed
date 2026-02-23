@@ -32,6 +32,7 @@ import {
   MessageSquarePlus,
   Search,
   Rocket,
+  ImageIcon,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -232,6 +233,16 @@ export const ADMIN_NAVIGATION: NavSection[] = [
         label: 'Pipeline',
         href: '/admin/growth',
         icon: Rocket,
+      },
+    ],
+  },
+  {
+    title: 'Verktyg',
+    items: [
+      {
+        label: 'Bildgenerator',
+        href: '/admin/instagram',
+        icon: ImageIcon,
       },
     ],
   },
