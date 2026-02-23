@@ -119,7 +119,7 @@ export default function AdminGrowthPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [leadType, setLeadType] = useState<'restaurant' | 'importer'>('restaurant');
+  const [leadType, setLeadType] = useState<'restaurant' | 'importer' | 'producer'>('restaurant');
   const [cardFilter, setCardFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [sourceFilter, setSourceFilter] = useState('ALL');
@@ -280,6 +280,16 @@ export default function AdminGrowthPage() {
               >
                 Importörer
               </button>
+              <button
+                onClick={() => { setLeadType('producer'); setExpandedLead(null); }}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  leadType === 'producer'
+                    ? 'bg-wine-dark text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Producenter
+              </button>
             </div>
           </div>
           <button
@@ -429,11 +439,11 @@ export default function AdminGrowthPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
           <Rocket className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-700 mb-2">
-            {leadType === 'restaurant' ? 'Inga restaurang-leads ännu' : 'Inga importör-leads ännu'}
+            {leadType === 'restaurant' ? 'Inga restaurang-leads ännu' : leadType === 'importer' ? 'Inga importör-leads ännu' : 'Inga producent-leads ännu'}
           </h3>
           <p className="text-gray-500">
             Kör <code className="bg-gray-100 px-2 py-0.5 rounded text-sm">/growth</code> i Claude
-            Code för att börja söka {leadType === 'restaurant' ? 'restauranger' : 'importörer'}.
+            Code för att börja söka {leadType === 'restaurant' ? 'restauranger' : leadType === 'importer' ? 'importörer' : 'producenter'}.
           </p>
         </div>
       ) : (
