@@ -61,7 +61,7 @@ export function FloatingDraftList() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="hidden md:block fixed bottom-6 right-6 z-50">
       {/* Expanded view */}
       {isExpanded && (
         <div className="mb-3 bg-card border border-border rounded-xl shadow-2xl w-80 max-h-96 overflow-hidden animate-in slide-in-from-bottom-2 duration-200">

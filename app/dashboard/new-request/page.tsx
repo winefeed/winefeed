@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FreeTextEntry } from '@/components/rfq/FreeTextEntry';
-import { ChevronDown, ChevronUp, Globe2, TrendingUp, Menu } from 'lucide-react';
+import { ChevronDown, ChevronUp, Globe2, TrendingUp, Menu, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function NewRequestPage() {
@@ -12,6 +12,9 @@ export default function NewRequestPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [defaultDeliveryCity, setDefaultDeliveryCity] = useState('');
+  const [quickOrderText, setQuickOrderText] = useState('');
+  const [quickOrderLoading, setQuickOrderLoading] = useState(false);
+  const [quickOrderError, setQuickOrderError] = useState<string | null>(null);
 
   // Fetch user's default delivery city from profile
   useEffect(() => {
@@ -99,6 +102,45 @@ export default function NewRequestPage() {
     };
   }, []);
 
+  const handleQuickOrder = async () => {
+    if (!quickOrderText.trim()) return;
+    setQuickOrderLoading(true);
+    setQuickOrderError(null);
+
+    try {
+      const response = await fetch('/api/quick-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: quickOrderText.trim() }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Något gick fel');
+      }
+
+      const result = await response.json();
+
+      // Store suggestions + draft for results page (same as normal search)
+      sessionStorage.setItem('latest-suggestions', JSON.stringify(result.suggestions));
+      sessionStorage.setItem('rfq-draft', JSON.stringify({
+        freeText: quickOrderText.trim(),
+        wineType: result.parsed?.wine_type || 'all',
+        deliveryCity: result.parsed?.delivery_city || '',
+        budget: result.parsed?.budget_max || null,
+        quantity: result.parsed?.quantity || null,
+      }));
+
+      // Navigate to results page — user picks wines before sending
+      router.push(`/dashboard/results/${result.request_id}`);
+    } catch (err: any) {
+      console.error('Quick order error:', err);
+      setQuickOrderError(err.message || 'Något gick fel. Försök igen.');
+    } finally {
+      setQuickOrderLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50">
       {/* Hero Header with Gradient */}
@@ -109,7 +151,7 @@ export default function NewRequestPage() {
         {/* Glassmorphism Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10" />
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
           {/* Mobile Menu Button - Integrated in header */}
           <button
             onClick={handleOpenMenu}
@@ -121,12 +163,12 @@ export default function NewRequestPage() {
 
           <div className="text-center">
             {/* Icon Badge */}
-            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm mb-6 ring-1 ring-white/30 shadow-lg">
+            <div className="hidden sm:inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm mb-6 ring-1 ring-white/30 shadow-lg">
               <span className="text-3xl sm:text-4xl">🍷</span>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
               Hitta rätt vin
             </h1>
 
@@ -138,15 +180,15 @@ export default function NewRequestPage() {
         </div>
 
         {/* Wave Divider */}
-        <div className="relative h-8 sm:h-12">
-          <svg className="absolute bottom-0 w-full h-8 sm:h-12" preserveAspectRatio="none" viewBox="0 0 1440 54">
+        <div className="relative h-4 sm:h-8">
+          <svg className="absolute bottom-0 w-full h-4 sm:h-8" preserveAspectRatio="none" viewBox="0 0 1440 54">
             <path fill="white" d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,21,1320,10.7L1440,0L1440,54L1320,54C1200,54,960,54,720,54C480,54,240,54,120,54L0,54Z"></path>
           </svg>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12 pb-12">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 sm:-mt-8 pb-12">
         {/* Form Card */}
         <div className="relative">
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden">
@@ -169,8 +211,43 @@ export default function NewRequestPage() {
           </div>
         </div>
 
-        {/* Feature Cards Grid */}
-        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mt-8">
+        {/* Snabbbeställning — för den som vet vad hen vill ha */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="h-4 w-4 text-primary" />
+            <p className="text-sm font-medium text-gray-900">Vet du redan vad du vill ha?</p>
+          </div>
+          <textarea
+            value={quickOrderText}
+            onChange={(e) => setQuickOrderText(e.target.value)}
+            placeholder='T.ex. "12 flaskor Ripasso under 150 kr, leverans Stockholm denna vecka"'
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm resize-none focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+            rows={2}
+          />
+          {quickOrderError && (
+            <p className="text-xs text-red-600 mt-1">{quickOrderError}</p>
+          )}
+          <button
+            onClick={handleQuickOrder}
+            disabled={quickOrderLoading || !quickOrderText.trim()}
+            className="mt-2 w-full py-3 bg-primary text-white rounded-xl font-medium text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          >
+            {quickOrderLoading ? (
+              <>
+                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Skickar...
+              </>
+            ) : (
+              'Skicka direkt till leverantörer'
+            )}
+          </button>
+          <p className="text-xs text-gray-400 mt-2 text-center">
+            AI:n tolkar din text och skapar en komplett förfrågan
+          </p>
+        </div>
+
+        {/* Feature Cards Grid — hidden on mobile */}
+        <div className="hidden sm:grid sm:grid-cols-2 gap-4 sm:gap-6 mt-8">
           {/* EU Wine Card */}
           <div className="group relative overflow-hidden rounded-2xl border p-5 sm:p-6 hover:shadow-lg transition-all duration-300 touch-manipulation" style={{ background: 'linear-gradient(to bottom right, #fef5f5, #fff9f9)', borderColor: '#f1b4b0' }}>
             <div className="flex items-start gap-4">
@@ -206,8 +283,8 @@ export default function NewRequestPage() {
           </div>
         </div>
 
-        {/* How It Works - Modern Collapsible */}
-        <div className="mt-8">
+        {/* How It Works - Modern Collapsible — hidden on mobile */}
+        <div className="hidden sm:block mt-8">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden hover:shadow-md transition-shadow duration-300">
             <button
               onClick={() => setShowHowItWorks(!showHowItWorks)}

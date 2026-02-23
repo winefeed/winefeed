@@ -5,13 +5,13 @@ import { Search, Wine, MapPin, Sparkles } from 'lucide-react';
 
 // Wine type chips — matches database enum (wine_color)
 const WINE_TYPES = [
-  { value: 'all', label: 'Alla typer', emoji: '🍇' },
-  { value: 'red', label: 'Rött', emoji: '🍷' },
-  { value: 'white', label: 'Vitt', emoji: '🥂' },
-  { value: 'sparkling', label: 'Mousserande', emoji: '🍾' },
-  { value: 'rose', label: 'Rosé', emoji: '🌸' },
-  { value: 'orange', label: 'Orange', emoji: '🍊' },
-  { value: 'alcohol_free', label: 'Alkoholfritt', emoji: '🫧' },
+  { value: 'all', label: 'Alla typer', dotColor: 'bg-gray-400' },
+  { value: 'red', label: 'Rött', dotColor: 'bg-red-600' },
+  { value: 'white', label: 'Vitt', dotColor: 'bg-amber-200' },
+  { value: 'sparkling', label: 'Mousserande', dotColor: 'bg-amber-400' },
+  { value: 'rose', label: 'Rosé', dotColor: 'bg-pink-400' },
+  { value: 'orange', label: 'Orange', dotColor: 'bg-orange-500' },
+  { value: 'alcohol_free', label: 'Alkoholfritt', dotColor: 'bg-teal-500' },
 ] as const;
 
 interface FreeTextEntryProps {
@@ -46,22 +46,7 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
     });
   };
 
-  const placeholderExamples = [
-    'Italienskt rött till lammkött',
-    'Champagne för nyårsfest',
-    'Eleganta vita viner under 200kr',
-    'Naturvin från Frankrike',
-    'Alkoholfritt vin till dessert',
-  ];
-
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderIndex((prev) => (prev + 1) % placeholderExamples.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+  const placeholderText = 'Beskriv vad du söker... t.ex. Italienskt rött till lamm';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -73,9 +58,9 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
         <textarea
           value={freeText}
           onChange={(e) => setFreeText(e.target.value)}
-          placeholder={`Beskriv vad du söker... t.ex. "${placeholderExamples[placeholderIndex]}"`}
-          className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none min-h-[60px]"
-          rows={2}
+          placeholder={placeholderText}
+          className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none min-h-[48px]"
+          rows={1}
         />
       </div>
 
@@ -97,7 +82,7 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <span className="mr-1">{type.emoji}</span>
+              <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1.5 ${type.dotColor}`} />
               {type.label}
             </button>
           ))}
@@ -160,10 +145,6 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
         )}
       </button>
 
-      {/* Helper text */}
-      <p className="text-center text-sm text-gray-500">
-        Söker viner upp till 500 kr — du kan ändra budget och antal i nästa steg
-      </p>
     </form>
   );
 }

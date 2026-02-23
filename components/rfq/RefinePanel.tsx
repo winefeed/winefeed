@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronUp, Info, MapPin, Clock, X } from 'lucide-react';
 import { HelpTooltip, GLOSSARY } from '@/components/ui/help-tooltip';
 
@@ -47,7 +47,19 @@ export function RefinePanel({
   const [customBudget, setCustomBudget] = useState('');
   const [customQuantity, setCustomQuantity] = useState('');
   const [editingCity, setEditingCity] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const cityInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-expand on desktop
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      if (e.matches) setIsCollapsed(false);
+    };
+    handleChange(mq);
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
+  }, []);
 
   // No longer required - these are optional refinements
   const _unused = showValidation; // Keep prop for backwards compatibility
@@ -71,23 +83,48 @@ export function RefinePanel({
     return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Build summary text for collapsed bar
+  const summaryParts: string[] = [];
+  if (budget) summaryParts.push(`Budget: ${budget} kr`);
+  if (quantity) summaryParts.push(`${quantity} fl`);
+  if (deliveryCity) summaryParts.push(deliveryCity);
+  if (deliveryTime) {
+    const dtLabel = DELIVERY_TIME_OPTIONS.find(o => o.value === deliveryTime)?.label;
+    if (dtLabel) summaryParts.push(dtLabel);
+  }
+  const summaryText = summaryParts.length > 0 ? summaryParts.join(' · ') : 'Budget, antal, leverans...';
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Header notice */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-start justify-between gap-2">
-        <div className="flex items-start gap-2">
+      {/* Header notice — clickable on mobile to toggle */}
+      <button
+        type="button"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="w-full px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between gap-2 md:cursor-default"
+      >
+        <div className="flex items-start gap-2 flex-1 min-w-0">
           <Info className="h-4 w-4 text-gray-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-gray-600">
-            Förfina din sökning <span className="text-gray-400">(valfritt)</span>
-          </p>
+          {isCollapsed ? (
+            <p className="text-sm text-gray-600 truncate">{summaryText}</p>
+          ) : (
+            <p className="text-sm text-gray-600">
+              Förfina din sökning <span className="text-gray-400">(valfritt)</span>
+            </p>
+          )}
         </div>
-        {lastSaved && (
-          <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
-            Sparad {formatLastSaved(lastSaved)}
-          </span>
-        )}
-      </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {lastSaved && !isCollapsed && (
+            <span className="text-xs text-gray-400 whitespace-nowrap">
+              Sparad {formatLastSaved(lastSaved)}
+            </span>
+          )}
+          <div className="md:hidden">
+            {isCollapsed ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronUp className="h-4 w-4 text-gray-400" />}
+          </div>
+        </div>
+      </button>
 
+      {!isCollapsed && (
       <div className="p-4 space-y-5">
         {/* Delivery City Chip (if set and not editing) */}
         {deliveryCity && !editingCity && onDeliveryCityChange && (
@@ -343,6 +380,7 @@ export function RefinePanel({
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
 import { useDraftList } from '@/lib/hooks/useDraftList';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine, HelpCircle, Send } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine, HelpCircle, Send, Menu } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { FloatingDraftList } from '@/components/FloatingDraftList';
 import { Spinner } from '@/components/ui/spinner';
@@ -576,7 +576,38 @@ export default function ResultsPage() {
                 <p className="text-sm text-primary-foreground/80">Din vininköpare</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            {/* Mobile header buttons */}
+            <div className="flex md:hidden items-center gap-2">
+              <button
+                onClick={() => window.dispatchEvent(new Event('openMobileMenu'))}
+                className="p-2 bg-primary-foreground/20 text-primary-foreground rounded-lg hover:bg-primary-foreground/30 transition-colors"
+                aria-label="Meny"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              {draftList.count > 0 && (
+                <button
+                  onClick={() => router.push('/dashboard/draft-list')}
+                  className="relative p-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 bg-white text-amber-600 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {draftList.count}
+                  </span>
+                </button>
+              )}
+              <button
+                onClick={handleRequestConfirmation}
+                disabled={draftList.items.length === 0}
+                className="px-4 py-2 bg-primary-foreground text-primary rounded-lg hover:bg-primary-foreground/90 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
+              >
+                <Send className="h-4 w-4" />
+                Skicka
+              </button>
+            </div>
+
+            {/* Desktop header buttons */}
+            <div className="hidden md:flex items-center gap-3">
               {/* Min lista - med badge */}
               <button
                 onClick={() => router.push('/dashboard/draft-list')}
@@ -624,16 +655,16 @@ export default function ResultsPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* Results Header */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-secondary/20 text-secondary-foreground px-4 py-2 rounded-full mb-4">
-            <span className="text-2xl">🔍</span>
-            <span className="font-medium">Sökning klar</span>
-          </div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Dina sökresultat</h1>
-          <p className="text-xl text-muted-foreground">
-            Vi hittade <span className="font-semibold text-foreground">{suggestions.length} matchande {suggestions.length === 1 ? 'vin' : 'viner'}</span> för din förfrågan
-          </p>
+        {/* Results Header — compact */}
+        <div className="mb-4 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+            {suggestions.length} matchande {suggestions.length === 1 ? 'vin' : 'viner'}
+          </h1>
+          {searchDescription && (
+            <p className="text-sm text-muted-foreground mt-1 truncate">
+              &quot;{searchDescription}&quot;
+            </p>
+          )}
         </div>
 
         {/* Incoming Offers Banner */}
@@ -772,8 +803,8 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        {/* Advanced Filter Section */}
-        <div className="mb-6">
+        {/* Advanced Filter Section — hidden on mobile */}
+        <div className="hidden md:block mb-6">
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:bg-accent transition-colors"
@@ -915,14 +946,58 @@ export default function ResultsPage() {
               >
                 {/* Card Header - Clickable to toggle selection */}
                 <div
-                  className={`px-6 py-4 border-b cursor-pointer transition-colors ${
+                  className={`px-4 md:px-6 py-3 md:py-4 border-b cursor-pointer transition-colors ${
                     isSelected
                       ? 'bg-green-100/50 border-green-200'
                       : 'bg-gradient-to-r from-primary/5 to-accent/5 border-border hover:bg-primary/10'
                   }`}
                   onClick={() => toggleWineSelection(suggestion.wine.id, suggestion)}
                 >
-                  <div className="flex items-start justify-between">
+                  {/* Mobile layout */}
+                  <div className="md:hidden">
+                    <div className="flex items-start gap-2 mb-1">
+                      <span className={`flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                        isSelected ? 'bg-green-600 text-white' : 'bg-primary text-primary-foreground'
+                      }`}>
+                        {isSelected ? <Check className="h-3 w-3" /> : index + 1}
+                      </span>
+                      <h2 className="text-base font-bold text-foreground leading-tight flex-1">
+                        {suggestion.wine.namn}
+                      </h2>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2 pl-8">
+                      {suggestion.wine.producent} · {suggestion.wine.land}
+                      {suggestion.wine.argang ? ` · ${suggestion.wine.argang}` : ''}
+                    </p>
+                    <div className="flex items-center justify-between pl-8">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-foreground">{formatPrice(suggestion.wine.pris_sek)}</span>
+                        {suggestion.wine.color && (
+                          <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${
+                            COLOR_LABELS[suggestion.wine.color]?.bg || 'bg-muted'
+                          } ${COLOR_LABELS[suggestion.wine.color]?.text || 'text-muted-foreground'}`}>
+                            {COLOR_LABELS[suggestion.wine.color]?.label || suggestion.wine.color}
+                          </span>
+                        )}
+                        {suggestion.wine.ekologisk && (
+                          <span className="text-[10px] text-green-600 font-medium">🌱</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleWineSelection(suggestion.wine.id, suggestion); }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          isSelected
+                            ? 'bg-green-600 text-white'
+                            : 'bg-primary text-white'
+                        }`}
+                      >
+                        {isSelected ? '✓ Vald' : 'Välj'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Desktop layout */}
+                  <div className="hidden md:flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <span className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
@@ -1128,7 +1203,7 @@ export default function ResultsPage() {
                           </div>
                         )}
 
-                        <div className="grid grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                           {/* Order Quantity - color based on state */}
                           <div className={`text-center p-3 rounded-lg ${
                             isInDraftList
@@ -1205,8 +1280,8 @@ export default function ResultsPage() {
                             )}
                           </div>
 
-                          {/* Lead Time */}
-                          <div className="text-center p-3 bg-background rounded-lg">
+                          {/* Lead Time — hidden on mobile */}
+                          <div className="hidden md:block text-center p-3 bg-background rounded-lg">
                             <div className="flex items-center justify-center gap-1 mb-1">
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Leveranstid</p>
                               <HelpTooltip content={GLOSSARY.leadtime} side="bottom" />
@@ -1493,9 +1568,9 @@ export default function ResultsPage() {
                     );
                   })()}
 
-                  {/* Market Data */}
+                  {/* Market Data — hidden on mobile */}
                   {suggestion.market_data && (
-                    <div className="mb-6 p-4 bg-secondary/10 border border-secondary/20 rounded-xl">
+                    <div className="hidden md:block mb-6 p-4 bg-secondary/10 border border-secondary/20 rounded-xl">
                       <div className="flex items-start gap-3">
                         <span className="text-2xl">💰</span>
                         <div className="flex-1">
@@ -1805,9 +1880,13 @@ export default function ResultsPage() {
             onClick={() => !sending && setShowConfirmModal(false)}
           />
 
-          {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+          {/* Modal — bottom-sheet on mobile, centered on desktop */}
+          <div className="fixed inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center z-50 p-0 md:p-4">
+            <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] md:max-h-[90vh] overflow-hidden">
+              {/* Drag handle — mobile only */}
+              <div className="flex justify-center pt-2 md:hidden">
+                <div className="w-10 h-1 bg-gray-300 rounded-full" />
+              </div>
               {/* Modal Header */}
               <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary/5 to-accent/5">
                 <div className="flex items-center justify-between">
@@ -1946,8 +2025,8 @@ export default function ResultsPage() {
       {/* Sticky action bar - shows when wines are in list */}
       {draftList.items.length > 0 && !sent && (
         <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-lg safe-area-inset-bottom">
-          {/* RFQ Summary Bar */}
-          <div className="max-w-4xl mx-auto px-4 pt-3 pb-1">
+          {/* RFQ Summary Bar — hidden on mobile */}
+          <div className="hidden sm:block max-w-4xl mx-auto px-4 pt-3 pb-1">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
               {searchDescription && (
                 <span className="truncate max-w-[200px]" title={searchDescription}>
@@ -1982,21 +2061,22 @@ export default function ResultsPage() {
             </div>
           </div>
           {/* Action Row */}
-          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+          <div className="px-4 py-3 flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 truncate">
-                {draftList.items.length} vin{draftList.items.length > 1 ? 'er' : ''} i listan ({totalBottles} fl)
+                {draftList.items.length} vin{draftList.items.length > 1 ? 'er' : ''} ({totalBottles} fl)
               </p>
-              <p className="text-sm text-gray-500 truncate">
-                Uppskattat: {formatPrice(totalEstimatedValue)}
+              <p className="text-xs sm:text-sm text-gray-500 truncate">
+                {formatPrice(totalEstimatedValue)}
               </p>
             </div>
             <button
               onClick={handleRequestConfirmation}
-              className="flex-shrink-0 px-6 py-2.5 rounded-lg transition-colors font-medium shadow flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
+              className="flex-shrink-0 px-5 sm:px-6 py-2.5 rounded-lg transition-colors font-medium shadow flex items-center gap-2 bg-primary text-white hover:bg-primary/90 text-sm sm:text-base"
             >
               <Send className="h-4 w-4" />
-              Skicka förfrågan
+              <span className="hidden sm:inline">Skicka förfrågan</span>
+              <span className="sm:hidden">Skicka</span>
             </button>
           </div>
         </div>
