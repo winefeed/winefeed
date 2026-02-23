@@ -1496,16 +1496,20 @@ export default function ResultsPage() {
                   <div className="mb-6">
                     <button
                       onClick={() => toggleWineExpanded(suggestion.wine.id)}
-                      className="w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 rounded-xl transition-colors"
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${
+                        expandedWines.has(suggestion.wine.id)
+                          ? 'bg-primary/5 border-primary/20 text-primary'
+                          : 'bg-muted/40 border-border hover:bg-muted/60 hover:border-primary/30 text-muted-foreground hover:text-foreground'
+                      }`}
                     >
-                      <span className="text-sm font-medium text-foreground flex items-center gap-2">
-                        <span>🍇</span>
+                      <span className="text-sm font-medium flex items-center gap-2">
+                        <Info className="h-4 w-4" />
                         Mer om detta vin
                       </span>
                       {expandedWines.has(suggestion.wine.id) ? (
-                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        <ChevronUp className="h-4 w-4" />
                       ) : (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        <ChevronDown className="h-4 w-4" />
                       )}
                     </button>
 
