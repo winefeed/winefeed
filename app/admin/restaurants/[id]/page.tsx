@@ -109,7 +109,7 @@ export default function AdminRestaurantDetailPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'OPEN':
-        return <span className="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">Oppen</span>;
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">Öppen</span>;
       case 'CLOSED':
         return <span className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">Avslutad</span>;
       case 'PENDING_SUPPLIER_CONFIRMATION':
