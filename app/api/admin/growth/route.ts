@@ -78,6 +78,32 @@ export async function GET(request: NextRequest) {
       throw new Error(`Failed to fetch leads: ${leadsError.message}`);
     }
 
+    // Look up last_sign_in_at for leads with contact_email
+    const emailsToLookup = (leads || [])
+      .map((l: any) => l.contact_email)
+      .filter(Boolean) as string[];
+
+    const lastSignInMap: Record<string, string | null> = {};
+
+    if (emailsToLookup.length > 0) {
+      try {
+        const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+        for (const user of users || []) {
+          if (user.email && emailsToLookup.includes(user.email)) {
+            lastSignInMap[user.email] = user.last_sign_in_at || null;
+          }
+        }
+      } catch (authErr) {
+        console.warn('Could not fetch auth users for last_sign_in:', authErr);
+      }
+    }
+
+    // Attach last_sign_in_at to leads
+    const enrichedLeads = (leads || []).map((lead: any) => ({
+      ...lead,
+      last_sign_in_at: lead.contact_email ? lastSignInMap[lead.contact_email] || null : null,
+    }));
+
     // Compute stats from leads matching lead_type filter
     let statsQuery = supabase
       .from('restaurant_leads')
@@ -112,7 +138,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { leads: leads || [], stats },
+      { leads: enrichedLeads, stats },
       { status: 200 }
     );
   } catch (error: any) {

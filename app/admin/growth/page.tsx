@@ -55,6 +55,7 @@ interface Lead {
   last_contact_at: string | null;
   created_at: string;
   updated_at: string;
+  last_sign_in_at: string | null;
 }
 
 interface Stats {
@@ -217,6 +218,8 @@ export default function AdminGrowthPage() {
         return dir * (a.status || '').localeCompare(b.status || '', 'sv');
       case 'next_action':
         return dir * (a.next_action || '').localeCompare(b.next_action || '', 'sv');
+      case 'last_sign_in_at':
+        return dir * (a.last_sign_in_at || '').localeCompare(b.last_sign_in_at || '');
       case 'created_at':
         return dir * (a.created_at || '').localeCompare(b.created_at || '');
       default:
@@ -445,6 +448,7 @@ export default function AdminGrowthPage() {
                   { key: 'pilot_fit_score', label: 'Poäng' },
                   { key: 'status', label: 'Status' },
                   { key: 'next_action', label: 'Nästa steg' },
+                  { key: 'last_sign_in_at', label: 'Senaste login' },
                   { key: 'created_at', label: 'Datum' },
                 ].map((col) => (
                   <th
@@ -539,6 +543,13 @@ function LeadRow({
         <td className="px-4 py-3 text-gray-600 truncate max-w-[200px]">
           {lead.next_action || '—'}
         </td>
+        <td className="px-4 py-3 text-gray-500">
+          {lead.last_sign_in_at ? (
+            <span className="text-green-600" title={new Date(lead.last_sign_in_at).toLocaleString('sv-SE')}>
+              {formatDate(lead.last_sign_in_at)}
+            </span>
+          ) : '—'}
+        </td>
         <td className="px-4 py-3 text-gray-500">{formatDate(lead.created_at)}</td>
         <td className="px-4 py-3 text-right text-gray-400">
           {isExpanded ? <ChevronUp className="h-4 w-4 inline" /> : <ChevronDown className="h-4 w-4 inline" />}
@@ -547,7 +558,7 @@ function LeadRow({
 
       {isExpanded && (
         <tr>
-          <td colSpan={8} className="bg-gray-50 px-4 py-4">
+          <td colSpan={9} className="bg-gray-50 px-4 py-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Left: Contact info */}
               <div>
