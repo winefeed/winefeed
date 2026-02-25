@@ -68,7 +68,7 @@ export interface SubscriptionWithLimits extends Subscription {
 const DEFAULT_LIMITS: Record<SubscriptionTier, TierLimits> = {
   free: {
     tier: 'free',
-    max_wines: 10,
+    max_wines: null,
     max_leads_per_month: 5,
     max_offers_per_month: 10,
     priority_in_search: 0,

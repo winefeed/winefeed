@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS tier_limits (
 -- Insert default limits
 INSERT INTO tier_limits (tier, max_wines, max_leads_per_month, max_offers_per_month, priority_in_search, features)
 VALUES
-  ('free', 10, 5, 10, 0, '{"analytics": false, "extended_profile": false, "support": "self-service"}'),
+  ('free', NULL, 5, 10, 0, '{"analytics": false, "extended_profile": false, "support": "self-service"}'),
   ('pro', NULL, NULL, NULL, 10, '{"analytics": true, "extended_profile": true, "support": "email"}'),
   ('premium', NULL, NULL, NULL, 20, '{"analytics": true, "analytics_competitors": true, "extended_profile": true, "video_profile": true, "support": "dedicated"}')
 ON CONFLICT (tier) DO UPDATE SET
