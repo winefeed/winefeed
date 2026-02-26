@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
         .select('id, combi_tag')
         .eq('importer_id', ctx.importerId)
         .eq('name', producerName)
-        .single();
+        .maybeSingle();
 
       let producerId: string;
 
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
           existingProductQuery = existingProductQuery.eq('vintage', vintage);
         }
 
-        const { data: existingProduct } = await existingProductQuery.single();
+        const { data: existingProduct } = await existingProductQuery.maybeSingle();
 
         if (existingProduct) {
           results.productsSkipped++;
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create product
-        const { error: productError } = await adminClient
+        const { data: newProduct, error: productError } = await adminClient
           .from('ior_products')
           .insert({
             tenant_id: ctx.tenantId,
@@ -207,10 +207,13 @@ export async function POST(request: NextRequest) {
             grape_varieties: grapeVarieties.length > 0 ? grapeVarieties : null,
             appellation,
             is_active: true,
-          });
+          })
+          .select('id')
+          .single();
 
-        if (productError) {
-          results.errors.push(`Failed to create product: ${productName}`);
+        if (productError || !newProduct) {
+          console.error(`[IOR Import] Product insert failed: ${productName}`, productError?.message, productError?.code);
+          results.errors.push(`Failed to create product: ${productName} (${productError?.message || 'unknown error'})`);
           results.productsSkipped++;
         } else {
           results.productsCreated++;
