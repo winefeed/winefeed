@@ -65,6 +65,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Log first item structure for debugging
+    if (body.data.length > 0) {
+      console.log('[IOR Import] First item keys:', Object.keys(body.data[0]));
+      console.log('[IOR Import] First item sample:', JSON.stringify(body.data[0]).substring(0, 500));
+    }
+    console.log('[IOR Import] Total items:', body.data.length);
+
     // Group products by producer and extract combi tags
     const productsByProducer = new Map<string, CombiProduct[]>();
     const combiTagByProducer = new Map<string, string>();
@@ -142,8 +149,19 @@ export async function POST(request: NextRequest) {
 
       // Create products for this producer
       for (const product of products) {
-        const productName = product.productName?.value;
-        if (!productName) {
+        // Support multiple field name variants from Combi exports
+        const productName = product.productName?.value
+          || (product as any).product_name?.value
+          || (product as any)['Product Name']?.value
+          || (product as any).name?.value
+          || (product as any).productName  // flat string
+          || (product as any).product_name // flat string
+          || (product as any).name;        // flat string
+        if (!productName || (typeof productName === 'object')) {
+          // Log first skipped product to help debug field name issues
+          if (results.productsSkipped === 0) {
+            console.error('[IOR Import] First product skipped - no productName found. Keys:', Object.keys(product));
+          }
           results.productsSkipped++;
           continue;
         }
@@ -220,6 +238,8 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    console.log('[IOR Import] Results:', JSON.stringify(results));
 
     return NextResponse.json({
       success: true,
