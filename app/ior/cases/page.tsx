@@ -62,6 +62,13 @@ const statusStyles: Record<string, string> = {
   CLOSED: 'bg-gray-100 text-gray-500',
 };
 
+const priorityLabels: Record<string, string> = {
+  URGENT: 'Brådskande',
+  HIGH: 'Hög',
+  NORMAL: 'Normal',
+  LOW: 'Låg',
+};
+
 const priorityStyles: Record<string, string> = {
   URGENT: 'bg-red-100 text-red-700',
   HIGH: 'bg-orange-100 text-orange-700',
@@ -244,7 +251,7 @@ export default function IORCasesPage() {
           )}
         >
           <option value="">Alla prioriteter</option>
-          <option value="URGENT">Urgent</option>
+          <option value="URGENT">Brådskande</option>
           <option value="HIGH">Hög</option>
           <option value="NORMAL">Normal</option>
           <option value="LOW">Låg</option>
@@ -331,7 +338,7 @@ export default function IORCasesPage() {
                           {caseItem.priority === 'URGENT' && (
                             <AlertTriangle className="h-3 w-3" />
                           )}
-                          {caseItem.priority}
+                          {priorityLabels[caseItem.priority] || caseItem.priority}
                         </span>
                         <span className={cn(
                           'px-2 py-0.5 text-xs font-medium rounded-full',
