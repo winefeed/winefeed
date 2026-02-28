@@ -161,9 +161,9 @@ export default function IORProducersPage() {
           <Link
             href="/ior/producers/new"
             className={cn(
-              'inline-flex items-center gap-2 px-4 py-2.5 rounded-lg',
-              'border-2 border-gray-300 text-gray-700 font-medium',
-              'hover:bg-gray-50 hover:border-gray-400 transition-all',
+              'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
+              'border border-gray-300 text-gray-700',
+              'hover:bg-gray-50 transition-colors',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2'
             )}
           >
@@ -173,9 +173,9 @@ export default function IORProducersPage() {
           <Link
             href="/ior/producers/import"
             className={cn(
-              'inline-flex items-center gap-2 px-5 py-2.5 rounded-lg',
-              'bg-wine text-white font-medium',
-              'hover:bg-wine/90 transition-all shadow-sm hover:shadow',
+              'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
+              'bg-wine text-white',
+              'hover:bg-wine/90 transition-colors',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2'
             )}
           >
@@ -186,7 +186,7 @@ export default function IORProducersPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+      <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -304,7 +304,7 @@ export default function IORProducersPage() {
       {data && (
         <>
           {data.items.length === 0 ? (
-            <div className="text-center py-16 bg-gradient-to-b from-gray-50 to-white rounded-xl border-2 border-dashed border-gray-300">
+            <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-200">
               <div className="p-4 bg-wine/10 rounded-full w-fit mx-auto mb-4">
                 <Building2 className="h-10 w-10 text-wine/50" />
               </div>
@@ -337,15 +337,15 @@ export default function IORProducersPage() {
                   key={producer.id}
                   href={`/ior/producers/${producer.id}`}
                   className={cn(
-                    'block bg-white border-2 border-gray-200 rounded-xl p-4 transition-all',
-                    'hover:shadow-md hover:border-wine/40 hover:bg-wine/5',
+                    'block bg-white border border-gray-200 rounded-lg p-4 transition-all',
+                    'hover:shadow-md hover:border-wine/30 hover:bg-wine/5',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2',
                     !producer.isActive && 'opacity-60'
                   )}
                 >
                   <div className="flex items-center gap-4">
                     {/* Logo */}
-                    <div className="h-14 w-14 bg-gradient-to-br from-wine/10 to-wine/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-wine/10">
+                    <div className="h-14 w-14 bg-gradient-to-br from-wine/10 to-wine/20 rounded-lg flex items-center justify-center flex-shrink-0 border border-wine/10">
                       {producer.logoUrl ? (
                         <img
                           src={producer.logoUrl}
@@ -364,12 +364,12 @@ export default function IORProducersPage() {
                           {producer.name}
                         </h3>
                         {!producer.isActive && (
-                          <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-gray-200 text-gray-600 border border-gray-300">
+                          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-500">
                             Inaktiv
                           </span>
                         )}
                         {producer.overdueCasesCount > 0 && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-700 border border-red-200">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">
                             <AlertTriangle className="h-3 w-3" />
                             {producer.overdueCasesCount} försenade
                           </span>
@@ -411,7 +411,7 @@ export default function IORProducersPage() {
 
           {/* Pagination */}
           {data.total > data.pageSize && (
-            <div className="flex items-center justify-between mt-6 pt-4 border-t-2 border-gray-200">
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-600 font-medium">
                 Visar {(data.page - 1) * data.pageSize + 1}–
                 {Math.min(data.page * data.pageSize, data.total)} av {data.total}
@@ -421,10 +421,10 @@ export default function IORProducersPage() {
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
                   className={cn(
-                    'px-4 py-2 text-sm font-medium rounded-lg border-2 transition-all',
+                    'px-4 py-2 text-sm font-medium rounded-lg border transition-colors',
                     page === 1
                       ? 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   )}
                 >
                   Föregående
@@ -433,10 +433,10 @@ export default function IORProducersPage() {
                   onClick={() => setPage(page + 1)}
                   disabled={page * data.pageSize >= data.total}
                   className={cn(
-                    'px-4 py-2 text-sm font-medium rounded-lg border-2 transition-all',
+                    'px-4 py-2 text-sm font-medium rounded-lg border transition-colors',
                     page * data.pageSize >= data.total
                       ? 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   )}
                 >
                   Nästa

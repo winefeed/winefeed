@@ -207,7 +207,7 @@ export default function ImportCatalogPage() {
 
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <div className="p-3 bg-wine/10 rounded-xl">
+        <div className="p-3 bg-wine/10 rounded-lg">
           <Upload className="h-6 w-6 text-wine" />
         </div>
         <div>
@@ -220,7 +220,7 @@ export default function ImportCatalogPage() {
 
       {/* Success result */}
       {result?.success && (
-        <div className="mb-6 bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-200 rounded-xl p-6">
+        <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-lg p-6">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-emerald-200 rounded-full">
               <CheckCircle className="h-6 w-6 text-emerald-700" />
@@ -287,7 +287,7 @@ export default function ImportCatalogPage() {
                 </Link>
                 <button
                   onClick={reset}
-                  className="px-5 py-2.5 border-2 border-emerald-300 text-emerald-700 rounded-lg font-medium hover:bg-emerald-50 transition-colors"
+                  className="px-4 py-2 border border-emerald-300 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-50 transition-colors"
                 >
                   Importera fler
                 </button>
@@ -304,7 +304,7 @@ export default function ImportCatalogPage() {
           onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
           onDragLeave={() => setDragActive(false)}
           className={cn(
-            'border-2 border-dashed rounded-xl p-8 text-center transition-all',
+            'border border-dashed rounded-lg p-8 text-center transition-all',
             dragActive
               ? 'border-wine bg-wine/5'
               : 'border-gray-300 hover:border-gray-400',
@@ -359,7 +359,7 @@ export default function ImportCatalogPage() {
 
       {/* Error */}
       {parseError && (
-        <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl flex items-start gap-3">
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-medium text-red-700">Fel</p>
@@ -383,7 +383,7 @@ export default function ImportCatalogPage() {
               onClick={handleImport}
               disabled={importing}
               className={cn(
-                'inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all',
+                'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                 importing
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : 'bg-wine text-white hover:bg-wine/90 shadow-sm hover:shadow'
@@ -408,7 +408,7 @@ export default function ImportCatalogPage() {
             {preview.map((producer) => (
               <div
                 key={producer.name}
-                className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-wine/30 transition-colors"
+                className="bg-white border border-gray-200 rounded-lg p-4 hover:border-wine/30 transition-colors"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 bg-wine/10 rounded-lg">
