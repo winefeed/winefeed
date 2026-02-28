@@ -24,17 +24,24 @@ import {
 import { cn } from '@/lib/utils';
 
 interface CombiProduct {
+  wineName?: { value: string };
   productName?: { value: string };
   producer?: { value: string };
   vintage?: { value: string };
+  color?: { value: string };
   type?: { value: string };
+  grape?: { value: string };
   grapes?: { value: string };
   Appellation?: { value: string };
   appellation?: { value: string };
   description?: { value: string };
+  bottleSizeMl?: { value: string };
   Volume?: { value: string };
   volume?: { value: string };
   price?: { value: string };
+  country?: { value: string };
+  region?: { value: string };
+  [key: string]: { value: string } | undefined;
 }
 
 interface CombiDataset {
@@ -109,9 +116,9 @@ export default function ImportCatalogPage() {
           name,
           productCount: products.length,
           products: products.slice(0, 5).map(p => ({
-            name: p.productName?.value || 'Okänd',
+            name: p.wineName?.value || p.productName?.value || 'Okänd',
             vintage: p.vintage?.value || 'NV',
-            type: p.type?.value || '-',
+            type: p.color?.value || p.type?.value || '-',
           })),
         });
       }

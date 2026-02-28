@@ -24,20 +24,45 @@ const WINE_TYPE_MAP: Record<string, string> = {
   'Other': 'OTHER',
 };
 
+interface CombiField {
+  fieldName?: string;
+  displayName?: string;
+  value: string;
+}
+
 interface CombiProduct {
-  productName?: { value: string };
-  producer?: { value: string };
-  vintage?: { value: string };
-  type?: { value: string };
-  grapes?: { value: string };
-  Appellation?: { value: string };
-  appellation?: { value: string };
-  description?: { value: string };
-  Volume?: { value: string };
-  volume?: { value: string };
-  price?: { value: string };
-  Combi?: { value: string };
-  combi?: { value: string };
+  // Wine name variants
+  wineName?: CombiField;
+  productName?: CombiField;
+  // Producer
+  producer?: CombiField;
+  // Wine details
+  vintage?: CombiField;
+  color?: CombiField;
+  type?: CombiField;
+  grape?: CombiField;
+  grapes?: CombiField;
+  region?: CombiField;
+  country?: CombiField;
+  // Appellation
+  Appellation?: CombiField;
+  appellation?: CombiField;
+  // Size & packaging
+  bottleSizeMl?: CombiField;
+  Volume?: CombiField;
+  volume?: CombiField;
+  caseSize?: CombiField;
+  // Other
+  description?: CombiField;
+  price?: CombiField;
+  moq?: CombiField;
+  alcoholPct?: CombiField;
+  organic?: CombiField;
+  sku?: CombiField;
+  packagingType?: CombiField;
+  // Combi tag
+  Combi?: CombiField;
+  combi?: CombiField;
 }
 
 interface CombiDataset {
@@ -102,6 +127,10 @@ export async function POST(request: NextRequest) {
     // Process each producer
     for (const [producerName, products] of productsByProducer) {
       const combiTag = combiTagByProducer.get(producerName) || null;
+      // Extract country and region from first product of this producer
+      const firstProduct = products[0];
+      const producerCountry = firstProduct?.country?.value || 'France';
+      const producerRegion = firstProduct?.region?.value || null;
 
       // Check if producer exists
       const { data: existingProducer } = await adminClient
@@ -125,14 +154,15 @@ export async function POST(request: NextRequest) {
             .eq('id', producerId);
         }
       } else {
-        // Create producer with combi_tag
+        // Create producer with country/region from data
         const { data: newProducer, error: producerError } = await adminClient
           .from('ior_producers')
           .insert({
             tenant_id: ctx.tenantId,
             importer_id: ctx.importerId,
             name: producerName,
-            country: 'France', // Default, can be updated later
+            country: producerCountry,
+            region: producerRegion,
             is_active: true,
             combi_tag: combiTag,
           })
@@ -151,17 +181,15 @@ export async function POST(request: NextRequest) {
       // Create products for this producer
       for (const product of products) {
         // Support multiple field name variants from Combi exports
-        const productName = product.productName?.value
+        // Primary: wineName (plot.farm format), fallback: productName, product_name, name
+        const productName = product.wineName?.value
+          || product.productName?.value
           || (product as any).product_name?.value
           || (product as any)['Product Name']?.value
-          || (product as any).name?.value
-          || (product as any).productName  // flat string
-          || (product as any).product_name // flat string
-          || (product as any).name;        // flat string
-        if (!productName || (typeof productName === 'object')) {
-          // Log first skipped product to help debug field name issues
+          || (product as any).name?.value;
+        if (!productName) {
           if (results.skipReasons.noName === 0) {
-            console.error('[IOR Import] First product skipped - no productName found. Keys:', Object.keys(product));
+            console.error('[IOR Import] First product skipped - no name found. Keys:', Object.keys(product));
           }
           results.productsSkipped++;
           results.skipReasons.noName++;
@@ -175,22 +203,30 @@ export async function POST(request: NextRequest) {
           vintage = parseInt(vintageStr, 10);
         }
 
-        // Parse volume
-        const volumeStr = product.Volume?.value || product.volume?.value || '750';
+        // Parse volume: bottleSizeMl (plot.farm) > Volume > volume
+        const volumeStr = product.bottleSizeMl?.value || product.Volume?.value || product.volume?.value || '750';
         const bottleSizeMl = parseInt(volumeStr, 10) || 750;
 
-        // Map wine type
-        const typeStr = product.type?.value || '';
+        // Map wine type: color (plot.farm) > type
+        const typeStr = product.color?.value || product.type?.value || '';
         const wineType = WINE_TYPE_MAP[typeStr] || 'RED';
 
-        // Parse grapes
-        const grapesStr = product.grapes?.value || '';
+        // Parse grapes: grape (plot.farm) > grapes
+        const grapesStr = product.grape?.value || product.grapes?.value || '';
         const grapeVarieties = grapesStr
           ? grapesStr.split(/[,;]/).map(g => g.trim()).filter(Boolean)
           : [];
 
         // Get appellation
         const appellation = product.Appellation?.value || product.appellation?.value || null;
+
+        // Parse additional fields from plot.farm format
+        const alcoholStr = product.alcoholPct?.value;
+        const alcoholPct = alcoholStr ? parseFloat(alcoholStr) || null : null;
+        const caseSizeStr = product.caseSize?.value;
+        const caseSize = caseSizeStr ? parseInt(caseSizeStr, 10) || 6 : 6;
+        const sku = product.sku?.value || null;
+        const description = product.description?.value || null;
 
         // Check if product already exists (by name + vintage + producer)
         // Note: For NULL vintage (NV wines), we need .is() not .eq()
@@ -227,6 +263,10 @@ export async function POST(request: NextRequest) {
             bottle_size_ml: bottleSizeMl,
             grape_varieties: grapeVarieties.length > 0 ? grapeVarieties : null,
             appellation,
+            alcohol_pct: alcoholPct,
+            case_size: caseSize,
+            sku,
+            tasting_notes: description,
             is_active: true,
           })
           .select('id')
