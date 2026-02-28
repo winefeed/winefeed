@@ -60,6 +60,7 @@ interface ImportResult {
     producersExisting: number;
     productsCreated: number;
     productsSkipped: number;
+    skipReasons?: { noName?: number; duplicate?: number; dbError?: number };
     errors: string[];
   };
   summary: string;
@@ -240,6 +241,23 @@ export default function ImportCatalogPage() {
                 </div>
               </div>
 
+              {result.results.productsSkipped > 0 && result.results.skipReasons && (
+                <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p className="text-sm font-medium text-gray-700">Hoppade över:</p>
+                  <ul className="text-sm text-gray-600 mt-1 space-y-0.5">
+                    {(result.results.skipReasons.duplicate ?? 0) > 0 && (
+                      <li>• {result.results.skipReasons.duplicate} redan importerade (duplikat)</li>
+                    )}
+                    {(result.results.skipReasons.noName ?? 0) > 0 && (
+                      <li>• {result.results.skipReasons.noName} saknar produktnamn</li>
+                    )}
+                    {(result.results.skipReasons.dbError ?? 0) > 0 && (
+                      <li>• {result.results.skipReasons.dbError} misslyckades (databasfel)</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
               {result.results.errors.length > 0 && (
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-sm font-medium text-amber-800">
@@ -417,7 +435,7 @@ export default function ImportCatalogPage() {
                   ))}
                   {producer.productCount > 5 && (
                     <p className="text-xs text-gray-400 pl-5">
-                      +{producer.productCount - 5} till...
+                      +{producer.productCount - 5} till (alla importeras)
                     </p>
                   )}
                 </div>

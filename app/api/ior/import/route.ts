@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
       producersExisting: 0,
       productsCreated: 0,
       productsSkipped: 0,
+      skipReasons: { noName: 0, duplicate: 0, dbError: 0 } as Record<string, number>,
       errors: [] as string[],
     };
 
@@ -159,10 +160,11 @@ export async function POST(request: NextRequest) {
           || (product as any).name;        // flat string
         if (!productName || (typeof productName === 'object')) {
           // Log first skipped product to help debug field name issues
-          if (results.productsSkipped === 0) {
+          if (results.skipReasons.noName === 0) {
             console.error('[IOR Import] First product skipped - no productName found. Keys:', Object.keys(product));
           }
           results.productsSkipped++;
+          results.skipReasons.noName++;
           continue;
         }
 
@@ -208,6 +210,7 @@ export async function POST(request: NextRequest) {
 
         if (existingProduct) {
           results.productsSkipped++;
+          results.skipReasons.duplicate++;
           continue;
         }
 
@@ -233,6 +236,7 @@ export async function POST(request: NextRequest) {
           console.error(`[IOR Import] Product insert failed: ${productName}`, productError?.message, productError?.code);
           results.errors.push(`Failed to create product: ${productName} (${productError?.message || 'unknown error'})`);
           results.productsSkipped++;
+          results.skipReasons.dbError++;
         } else {
           results.productsCreated++;
         }

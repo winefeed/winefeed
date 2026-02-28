@@ -149,7 +149,7 @@ export default function IORProducersPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="/ior/producers/import"
+            href="/ior/producers/new"
             className={cn(
               'inline-flex items-center gap-2 px-4 py-2.5 rounded-lg',
               'border-2 border-gray-300 text-gray-700 font-medium',
@@ -157,11 +157,11 @@ export default function IORProducersPage() {
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2'
             )}
           >
-            <Upload className="h-4 w-4" />
-            Importera
+            <Plus className="h-4 w-4" />
+            Lägg till
           </Link>
           <Link
-            href="/ior/producers/new"
+            href="/ior/producers/import"
             className={cn(
               'inline-flex items-center gap-2 px-5 py-2.5 rounded-lg',
               'bg-wine text-white font-medium',
@@ -169,8 +169,8 @@ export default function IORProducersPage() {
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2'
             )}
           >
-            <Plus className="h-4 w-4" />
-            Lägg till producent
+            <Upload className="h-4 w-4" />
+            Importera katalog
           </Link>
         </div>
       </div>
