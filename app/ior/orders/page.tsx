@@ -1,31 +1,27 @@
 /**
- * IOR ORDERS LIST PAGE - EU-SELLER → IOR OPERATIONAL FLOW
+ * IOR ORDERS LIST PAGE
  *
  * /ior/orders
  *
- * IOR (Importer-of-Record) console for managing order fulfillment
- *
- * Features:
- * - List orders where current user is IOR
- * - Filter by status (CONFIRMED, IN_FULFILLMENT, SHIPPED, DELIVERED, CANCELLED)
- * - View order details
- * - Quick status overview
- *
- * Actor Resolution:
- * - Fetches current user's actor context from /api/me/actor
- * - Verifies user has IOR role and importer_id
- * - Uses dynamic importer_id for all API calls
+ * IOR (Importer-of-Record) console for managing order fulfillment.
+ * Lists orders where current user is IOR with status filters and search.
  */
 
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  Search,
+  X,
+  RefreshCw,
+  AlertTriangle,
+  ChevronRight,
+  Inbox,
+  ShoppingCart,
+} from 'lucide-react';
 import { OrderStatusBadge } from '@/app/orders/components/StatusBadge';
-import { getErrorMessage } from '@/lib/utils';
-
-// Tenant ID - single tenant for MVP
-// Middleware sets x-user-id and x-tenant-id headers from Supabase auth session
+import { cn, getErrorMessage } from '@/lib/utils';
 
 interface ActorContext {
   tenant_id: string;
@@ -50,8 +46,23 @@ interface Order {
   restaurant_contact_email: string;
   supplier_name: string;
   supplier_type: string;
-  order_number?: number; // Sequential order number
+  order_number?: number;
 }
+
+const STATUS_FILTERS = [
+  { key: 'ALL', label: 'Alla' },
+  { key: 'CONFIRMED', label: 'Bekräftad' },
+  { key: 'IN_FULFILLMENT', label: 'I leverans' },
+  { key: 'SHIPPED', label: 'Skickad' },
+  { key: 'DELIVERED', label: 'Levererad' },
+  { key: 'CANCELLED', label: 'Avbruten' },
+];
+
+const SUPPLIER_TYPE_LABELS: Record<string, string> = {
+  'SWEDISH_IMPORTER': 'SE',
+  'EU_PRODUCER': 'EU',
+  'EU_IMPORTER': 'EU',
+};
 
 export default function IOROrdersPage() {
   const router = useRouter();
@@ -67,19 +78,12 @@ export default function IOROrdersPage() {
       setLoading(true);
       setError(null);
 
-      // Middleware sets x-user-id from Supabase auth session
-      const response = await fetch('/api/me/actor', {
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch actor context');
-      }
+      const response = await fetch('/api/me/actor', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch actor context');
 
       const actorData = await response.json();
       setActor(actorData);
 
-      // Verify IOR access - ADMIN can always access IOR view
       const hasIORAccess = actorData.roles.includes('IOR') && actorData.importer_id;
       const isAdmin = actorData.roles.includes('ADMIN');
 
@@ -94,7 +98,6 @@ export default function IOROrdersPage() {
   }, []);
 
   const fetchOrders = useCallback(async () => {
-    // Allow ADMIN without importer_id to view all IOR orders
     const isAdmin = actor?.roles.includes('ADMIN');
     if (!actor || (!actor.importer_id && !isAdmin)) return;
 
@@ -102,7 +105,6 @@ export default function IOROrdersPage() {
       setLoading(true);
       setError(null);
 
-      // Build URL with status filter
       const params = new URLSearchParams();
       if (statusFilter !== 'ALL') {
         params.append('status', statusFilter);
@@ -110,37 +112,28 @@ export default function IOROrdersPage() {
 
       const url = `/api/ior/orders${params.toString() ? `?${params.toString()}` : ''}`;
 
-      // Middleware sets x-user-id and x-tenant-id from Supabase auth session
-      const response = await fetch(url, {
-        credentials: 'include'  // Ensure cookies are sent
-      });
+      const response = await fetch(url, { credentials: 'include' });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized: Missing authentication');
-        }
-        if (response.status === 403) {
-          throw new Error('Access denied: Not authorized as IOR');
-        }
-        throw new Error('Failed to fetch orders');
+        if (response.status === 401) throw new Error('Ej autentiserad');
+        if (response.status === 403) throw new Error('Åtkomst nekad: Inte behörig som IOR');
+        throw new Error('Kunde inte hämta ordrar');
       }
 
       const data = await response.json();
       setOrders(data.orders || []);
     } catch (err) {
       console.error('Failed to fetch orders:', err);
-      setError(getErrorMessage(err, 'Kunde inte ladda orders'));
+      setError(getErrorMessage(err, 'Kunde inte ladda ordrar'));
     } finally {
       setLoading(false);
     }
   }, [actor, statusFilter]);
 
-  // Fetch actor context on mount
   useEffect(() => {
     fetchActor();
   }, [fetchActor]);
 
-  // Fetch orders when actor or filter changes
   useEffect(() => {
     const isAdmin = actor?.roles.includes('ADMIN');
     if (actor && (actor.importer_id || isAdmin)) {
@@ -154,53 +147,29 @@ export default function IOROrdersPage() {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'Bekräftad';
-      case 'IN_FULFILLMENT': return 'I leverans';
-      case 'SHIPPED': return 'Skickad';
-      case 'DELIVERED': return 'Levererad';
-      case 'CANCELLED': return 'Avbruten';
-      default: return status;
-    }
-  };
-
-  const getSupplierTypeIcon = (type: string) => {
-    switch (type) {
-      case 'SWEDISH_IMPORTER': return '🇸🇪';
-      case 'EU_PRODUCER': return '🇪🇺';
-      case 'EU_IMPORTER': return '🇪🇺';
-      default: return '📦';
-    }
-  };
-
-  // Format order ID to readable format
   const formatOrderId = (order: Order) => {
-    const year = new Date(order.created_at).getFullYear();
     if (order.order_number) {
+      const year = new Date(order.created_at).getFullYear();
       return `ORD-${year}-${String(order.order_number).padStart(3, '0')}`;
     }
-    // Fallback: use last 6 chars of UUID
     return `#${order.id.substring(0, 6).toUpperCase()}`;
   };
 
-  // Format price
   const formatPrice = (amount: number | undefined, currency: string = 'SEK') => {
     if (!amount && amount !== 0) return '–';
     return new Intl.NumberFormat('sv-SE', {
       style: 'currency',
-      currency: currency,
+      currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
   };
 
-  // Filter orders by search query
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = orders.filter((order) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -211,44 +180,60 @@ export default function IOROrdersPage() {
     );
   });
 
-  if (loading) {
+  // Initial loading (actor not yet resolved)
+  if (loading && !actor) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-12 bg-gray-200 rounded"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <div className="py-6 px-4 lg:px-6">
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 bg-gray-200 rounded-lg" />
+                <div className="flex-1">
+                  <div className="h-5 bg-gray-200 rounded w-48 mb-2" />
+                  <div className="h-4 bg-gray-200 rounded w-32" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
-  if (error) {
+  // Error before actor resolved (auth/permission issue)
+  if (error && !actor) {
     return (
-      <div className="p-6">
-        <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg border border-red-200">
-          <div className="text-center">
-            <span className="text-5xl mb-4 block">⚠️</span>
-            <h2 className="text-xl font-bold text-red-600 mb-2">Fel</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => {
-                  setError(null);
-                  fetchActor();
-                }}
-                className="px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-sm"
-              >
-                Försök igen
-              </button>
-              {error.includes('IOR-behörighet') && (
+      <div className="py-6 px-4 lg:px-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-red-700">Fel</p>
+              <p className="text-red-600 text-sm mt-1">{error}</p>
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => {
+                    setError(null);
+                    fetchActor();
+                  }}
+                  className={cn(
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                    'bg-wine text-white hover:bg-wine/90'
+                  )}
+                >
+                  Försök igen
+                </button>
                 <button
                   onClick={() => router.push('/supplier')}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                  className={cn(
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                    'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  )}
                 >
-                  ← Tillbaka
+                  Tillbaka
                 </button>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -257,146 +242,202 @@ export default function IOROrdersPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="py-6 px-4 lg:px-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">IOR Ordrar</h1>
-          <p className="text-gray-500 mt-1">Importer-of-Record - hantera orderflöden</p>
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-wine/10 rounded-lg">
+            <ShoppingCart className="h-6 w-6 text-wine" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Ordrar</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Importer-of-Record — hantera orderflöden
+            </p>
+          </div>
         </div>
         <button
           onClick={fetchOrders}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+          disabled={loading}
+          className={cn(
+            'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+            'border border-gray-300 text-gray-700 hover:bg-gray-50'
+          )}
         >
+          <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
           Uppdatera
         </button>
       </div>
 
-      {/* Main Content */}
-      <div>
-        {/* Status Filter */}
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
-          {['ALL', 'CONFIRMED', 'IN_FULFILLMENT', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map(status => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                statusFilter === status
-                  ? 'bg-wine text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {status === 'ALL' ? 'Alla' : getStatusLabel(status)}
-            </button>
-          ))}
+      {/* Error banner (after actor resolved) */}
+      {error && actor && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mb-6">
+          {error}
         </div>
+      )}
 
-        {/* Search */}
-        <div className="mb-4">
-          <div className="relative max-w-md">
-            <input
-              type="text"
-              placeholder="Sök på restaurang, leverantör eller ordernummer..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
-            />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
+      {/* Status Filter */}
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        {STATUS_FILTERS.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setStatusFilter(key)}
+            className={cn(
+              'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors',
+              statusFilter === key
+                ? 'bg-wine text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
             )}
-          </div>
-        </div>
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
-        {/* Orders List */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Ordrar ({filteredOrders.length}{searchQuery && ` av ${orders.length}`})
-            </h2>
-          </div>
-
-          {filteredOrders.length === 0 ? (
-            <div className="text-center py-12">
-              <span className="text-6xl mb-4 block">📭</span>
-              <p className="text-gray-500 text-lg">
-                {searchQuery ? 'Inga orders matchar sökningen' : 'Inga orders ännu'}
-              </p>
-              {(statusFilter !== 'ALL' || searchQuery) && (
-                <p className="text-gray-400 text-sm mt-2">
-                  {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className="text-wine underline mr-2">Rensa sökning</button>
-                  )}
-                  {statusFilter !== 'ALL' && (
-                    <button onClick={() => setStatusFilter('ALL')} className="text-wine underline">Visa alla statusar</button>
-                  )}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Order</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Restaurang</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Leverantör</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Status</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-700">Antal</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-700">Summa</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Skapad</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/ior/orders/${order.id}`)}>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-wine">{formatOrderId(order)}</div>
-                        <div className="text-xs text-gray-400">{order.total_lines} rad{order.total_lines !== 1 ? 'er' : ''}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{order.restaurant_name}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          <span>{getSupplierTypeIcon(order.supplier_type)}</span>
-                          <span>{order.supplier_name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <OrderStatusBadge status={order.status} size="md" />
-                      </td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900">
-                        {order.total_quantity} fl
-                      </td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900">
-                        {formatPrice(order.total_amount, order.currency)}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">{formatDate(order.created_at)}</td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/ior/orders/${order.id}`);
-                          }}
-                          className="px-3 py-1.5 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-xs font-medium"
-                        >
-                          Visa →
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      {/* Search */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Sök på restaurang, leverantör eller ordernummer..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={cn(
+              'w-full pl-9 pr-10 py-2 border border-gray-200 rounded-lg bg-white text-sm',
+              'focus:outline-none focus:ring-2 focus:ring-wine focus:border-wine',
+              'placeholder:text-gray-400'
+            )}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
           )}
         </div>
+      </div>
+
+      {/* Orders List */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Ordrar ({filteredOrders.length}
+            {searchQuery && ` av ${orders.length}`})
+          </h2>
+        </div>
+
+        {loading ? (
+          <div className="divide-y divide-gray-200">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="px-4 py-4 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="h-4 bg-gray-200 rounded w-24" />
+                  <div className="h-4 bg-gray-200 rounded w-16" />
+                </div>
+                <div className="h-5 bg-gray-200 rounded w-48 mt-2" />
+                <div className="h-4 bg-gray-200 rounded w-32 mt-2" />
+              </div>
+            ))}
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="p-4 bg-gray-100 rounded-full w-fit mx-auto mb-4">
+              <Inbox className="h-10 w-10 text-gray-400" />
+            </div>
+            <p className="text-gray-600 font-medium mb-1">
+              {searchQuery ? 'Inga ordrar matchar sökningen' : 'Inga ordrar ännu'}
+            </p>
+            {(statusFilter !== 'ALL' || searchQuery) && (
+              <div className="flex items-center justify-center gap-3 mt-2">
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="text-wine hover:text-wine/80 text-sm font-medium"
+                  >
+                    Rensa sökning
+                  </button>
+                )}
+                {statusFilter !== 'ALL' && (
+                  <button
+                    onClick={() => setStatusFilter('ALL')}
+                    className="text-wine hover:text-wine/80 text-sm font-medium"
+                  >
+                    Visa alla statusar
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">Order</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">Restaurang</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">Leverantör</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500 text-xs uppercase tracking-wider">Antal</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500 text-xs uppercase tracking-wider">Summa</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider">Skapad</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredOrders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => router.push(`/ior/orders/${order.id}`)}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-wine">{formatOrderId(order)}</div>
+                      <div className="text-xs text-gray-400">
+                        {order.total_lines} rad{order.total_lines !== 1 ? 'er' : ''}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-900">{order.restaurant_name}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            'px-1.5 py-0.5 text-xs font-medium rounded',
+                            order.supplier_type === 'SWEDISH_IMPORTER'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-amber-100 text-amber-700'
+                          )}
+                        >
+                          {SUPPLIER_TYPE_LABELS[order.supplier_type] || '—'}
+                        </span>
+                        <span className="text-gray-700">{order.supplier_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <OrderStatusBadge status={order.status} size="md" />
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium text-gray-900">
+                      {order.total_quantity} fl
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium text-gray-900">
+                      {formatPrice(order.total_amount, order.currency)}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">
+                      {formatDate(order.created_at)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
