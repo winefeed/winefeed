@@ -6,13 +6,12 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Plus,
   Search,
-  Filter,
   Building2,
   MapPin,
   Wine,
@@ -71,10 +70,20 @@ export default function IORProducersPage() {
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const [selectedCountry, setSelectedCountry] = useState(searchParams.get('country') || '');
   const [selectedCombi, setSelectedCombi] = useState(searchParams.get('combi') || '');
   const [showInactive, setShowInactive] = useState(searchParams.get('inactive') === 'true');
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
+
+  // Debounce search input
+  useEffect(() => {
+    searchTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [searchQuery]);
 
   // Extract unique combi tags from data
   const uniqueCombiTags = data?.items
@@ -85,7 +94,7 @@ export default function IORProducersPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (searchQuery) params.set('q', searchQuery);
+      if (debouncedSearch) params.set('q', debouncedSearch);
       if (selectedCountry && selectedCountry !== 'Alla länder') {
         params.set('country', selectedCountry);
       }
@@ -104,7 +113,7 @@ export default function IORProducersPage() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedCountry, showInactive, page]);
+  }, [debouncedSearch, selectedCountry, showInactive, page]);
 
   useEffect(() => {
     fetchProducers();
@@ -113,7 +122,7 @@ export default function IORProducersPage() {
   // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    if (searchQuery) params.set('q', searchQuery);
+    if (debouncedSearch) params.set('q', debouncedSearch);
     if (selectedCountry && selectedCountry !== 'Alla länder') {
       params.set('country', selectedCountry);
     }
@@ -125,10 +134,11 @@ export default function IORProducersPage() {
     router.replace(`/ior/producers${queryString ? `?${queryString}` : ''}`, {
       scroll: false,
     });
-  }, [searchQuery, selectedCountry, selectedCombi, showInactive, page, router]);
+  }, [debouncedSearch, selectedCountry, selectedCombi, showInactive, page, router]);
 
   const clearFilters = () => {
     setSearchQuery('');
+    setDebouncedSearch('');
     setSelectedCountry('');
     setSelectedCombi('');
     setShowInactive(false);
@@ -144,7 +154,7 @@ export default function IORProducersPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Producenter</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Hantera dina vinproducenter och deras kataloger
+            {data ? `${data.total} producenter` : 'Hantera dina vinproducenter och deras kataloger'}
           </p>
         </div>
         <div className="flex items-center gap-2">

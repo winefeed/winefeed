@@ -131,11 +131,11 @@ export default function ImportCatalogPage() {
     setDragActive(false);
 
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.type === 'application/json') {
+    if (droppedFile && (droppedFile.type === 'application/json' || droppedFile.name.endsWith('.json'))) {
       setFile(droppedFile);
       parseFile(droppedFile);
     } else {
-      setParseError('Endast JSON-filer stöds');
+      setParseError('Endast JSON-filer stöds (.json)');
     }
   }, [parseFile]);
 

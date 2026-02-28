@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       results,
-      summary: `Imported ${results.productsCreated} products across ${results.producersCreated + results.producersExisting} producers`,
+      summary: `Importerade ${results.productsCreated} produkter från ${results.producersCreated + results.producersExisting} producenter`,
     });
 
   } catch (error) {
