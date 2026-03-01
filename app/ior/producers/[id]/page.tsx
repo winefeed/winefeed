@@ -171,10 +171,10 @@ export default function ProducerWorkspacePage() {
 
       {/* Producer header */}
       <div className="px-4 lg:px-6 mb-6">
-        <div className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-start gap-5">
             {/* Logo */}
-            <div className="h-18 w-18 bg-gradient-to-br from-wine/10 to-wine/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-wine/20 shadow-inner">
+            <div className="h-16 w-16 bg-wine/10 rounded-lg flex items-center justify-center flex-shrink-0">
               {producer.logoUrl ? (
                 <img
                   src={producer.logoUrl}
@@ -264,8 +264,8 @@ export default function ProducerWorkspacePage() {
                   href={`/ior/producers/${producerId}/edit`}
                   className={cn(
                     'inline-flex items-center gap-2 px-4 py-2.5 rounded-lg',
-                    'border-2 border-gray-300 text-gray-700 font-medium text-sm',
-                    'hover:bg-gray-50 hover:border-gray-400 transition-all',
+                    'border border-gray-300 text-gray-700 font-medium text-sm',
+                    'hover:bg-gray-50 transition-colors',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2'
                   )}
                 >
@@ -277,7 +277,7 @@ export default function ProducerWorkspacePage() {
                   className={cn(
                     'inline-flex items-center gap-2 px-5 py-2.5 rounded-lg',
                     'bg-wine text-white font-medium text-sm',
-                    'hover:bg-wine/90 transition-all shadow-sm hover:shadow',
+                    'hover:bg-wine/90 transition-colors',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2'
                   )}
                 >
@@ -318,7 +318,7 @@ export default function ProducerWorkspacePage() {
 
       {/* Tabs */}
       <div className="px-4 lg:px-6 mb-6">
-        <div className="border-b-2 border-gray-200">
+        <div className="border-b border-gray-200">
           <nav className="flex gap-1 -mb-px overflow-x-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -328,7 +328,7 @@ export default function ProducerWorkspacePage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-all rounded-t-lg',
+                    'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b whitespace-nowrap transition-colors rounded-t-lg',
                     isActive
                       ? 'border-wine text-wine bg-wine/5'
                       : 'border-transparent text-gray-500 hover:text-wine hover:bg-wine/5 hover:border-wine/30'
@@ -394,7 +394,7 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Contact info */}
-      <div className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-sm">
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Mail className="h-4 w-4 text-wine" />
           Kontaktuppgifter
@@ -432,7 +432,7 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
       </div>
 
       {/* Notes */}
-      <div className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-sm">
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <FileText className="h-4 w-4 text-wine" />
           Anteckningar
@@ -447,7 +447,7 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
       {/* Quick stats cards */}
       {stats && (
         <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-wine/5 to-wine/10 border-2 border-wine/20 rounded-xl p-4 shadow-sm">
+          <div className="bg-wine/5 border border-wine/20 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-wine/20 rounded-lg">
                 <Wine className="h-5 w-5 text-wine" />
@@ -458,7 +458,7 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-200 rounded-xl p-4 shadow-sm">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-emerald-200 rounded-lg">
                 <DollarSign className="h-5 w-5 text-emerald-700" />
@@ -469,7 +469,7 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-200 rounded-xl p-4 shadow-sm">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-amber-200 rounded-lg">
                 <MessageSquare className="h-5 w-5 text-amber-700" />
@@ -481,10 +481,10 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
             </div>
           </div>
           <div className={cn(
-            'rounded-xl p-4 shadow-sm border-2',
+            'rounded-lg p-4 border',
             stats.overdueCasesCount > 0
-              ? 'bg-gradient-to-br from-red-50 to-red-100/50 border-red-300'
-              : 'bg-gradient-to-br from-gray-50 to-gray-100/50 border-gray-200'
+              ? 'bg-red-50 border-red-300'
+              : 'bg-gray-50 border-gray-200'
           )}>
             <div className="flex items-center gap-3">
               <div className={cn(
@@ -512,8 +512,8 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
       )}
 
       {/* Danger zone */}
-      <div className="md:col-span-2 mt-8 border-2 border-red-200 rounded-xl overflow-hidden">
-        <div className="bg-red-50 px-6 py-4 border-b-2 border-red-200">
+      <div className="md:col-span-2 mt-8 border border-red-200 rounded-lg overflow-hidden">
+        <div className="bg-red-50 px-6 py-4 border-b border-red-200">
           <h3 className="font-semibold text-red-800 flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
             Farozon
@@ -529,7 +529,7 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
             </div>
             <button
               onClick={() => setShowDeleteProducer(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-red-300 text-red-600 font-medium hover:bg-red-50 hover:border-red-400 transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-300 text-red-600 font-medium hover:bg-red-50 transition-colors"
             >
               <Trash2 className="h-4 w-4" />
               Ta bort producent
@@ -541,7 +541,7 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
       {/* Delete producer confirmation modal */}
       {showDeleteProducer && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md mx-4 shadow-xl">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-red-100 rounded-full">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
@@ -556,14 +556,14 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
               <button
                 onClick={() => setShowDeleteProducer(false)}
                 disabled={deletingProducer}
-                className="px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               >
                 Avbryt
               </button>
               <button
                 onClick={handleDeleteProducer}
                 disabled={deletingProducer}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {deletingProducer ? (
                   <>
@@ -656,8 +656,8 @@ function CatalogTab({ producerId }: { producerId: string }) {
   };
 
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between p-6 border-b-2 border-gray-100 bg-gradient-to-r from-wine/5 to-transparent">
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between p-6 border-b border-gray-100">
         <div>
           <h3 className="font-semibold text-gray-900 flex items-center gap-2">
             <Wine className="h-4 w-4 text-wine" />
@@ -669,7 +669,7 @@ function CatalogTab({ producerId }: { producerId: string }) {
           {total > 0 && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 hover:border-red-300 transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors"
             >
               <Trash2 className="h-4 w-4" />
               Rensa katalog
@@ -677,7 +677,7 @@ function CatalogTab({ producerId }: { producerId: string }) {
           )}
           <Link
             href={`/ior/producers/${producerId}/products/new`}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-wine text-white text-sm font-medium hover:bg-wine/90 shadow-sm transition-all hover:shadow"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-wine text-white text-sm font-medium hover:bg-wine/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
             Lägg till produkt
@@ -688,7 +688,7 @@ function CatalogTab({ producerId }: { producerId: string }) {
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md mx-4 shadow-xl">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-red-100 rounded-full">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
@@ -703,14 +703,14 @@ function CatalogTab({ producerId }: { producerId: string }) {
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={deleting}
-                className="px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               >
                 Avbryt
               </button>
               <button
                 onClick={handleDeleteCatalog}
                 disabled={deleting}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {deleting ? (
                   <>
@@ -738,7 +738,7 @@ function CatalogTab({ producerId }: { producerId: string }) {
           </div>
         </div>
       ) : products.length === 0 ? (
-        <div className="p-12 text-center bg-gradient-to-b from-gray-50/50">
+        <div className="p-12 text-center bg-gray-50">
           <div className="p-4 bg-wine/10 rounded-full w-fit mx-auto mb-4">
             <Wine className="h-10 w-10 text-wine/50" />
           </div>
@@ -746,7 +746,7 @@ function CatalogTab({ producerId }: { producerId: string }) {
           <p className="text-gray-500 text-sm mb-6">Börja med att lägga till din första produkt</p>
           <Link
             href={`/ior/producers/${producerId}/products/new`}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-wine text-white rounded-lg font-medium hover:bg-wine/90 shadow-sm transition-all hover:shadow"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-wine text-white rounded-lg font-medium hover:bg-wine/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
             Lägg till produkt
@@ -762,7 +762,7 @@ function CatalogTab({ producerId }: { producerId: string }) {
                 !product.isActive && 'opacity-60'
               )}
             >
-              <div className="p-2.5 bg-gradient-to-br from-wine/10 to-wine/20 rounded-lg border border-wine/10">
+              <div className="p-2.5 bg-wine/10 rounded-lg">
                 <Wine className="h-5 w-5 text-wine" />
               </div>
               <div className="flex-1 min-w-0">
@@ -801,18 +801,18 @@ function CatalogTab({ producerId }: { producerId: string }) {
 
 function PricingTab({ producerId }: { producerId: string }) {
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between p-6 border-b-2 border-gray-100 bg-gradient-to-r from-emerald-50/50 to-transparent">
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between p-6 border-b border-gray-100">
         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
           <DollarSign className="h-4 w-4 text-emerald-600" />
           Prislistor
         </h3>
-        <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-gray-300 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all">
+        <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors">
           <Plus className="h-4 w-4" />
           Skapa prislista
         </button>
       </div>
-      <div className="p-8 text-center bg-gradient-to-b from-gray-50/50">
+      <div className="p-8 text-center bg-gray-50">
         <div className="p-4 bg-emerald-100 rounded-full w-fit mx-auto mb-4">
           <DollarSign className="h-10 w-10 text-emerald-500" />
         </div>
@@ -825,14 +825,14 @@ function PricingTab({ producerId }: { producerId: string }) {
 
 function TradeTermsTab({ producerId }: { producerId: string }) {
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      <div className="p-6 border-b-2 border-gray-100 bg-gradient-to-r from-blue-50/50 to-transparent">
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="p-6 border-b border-gray-100">
         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
           <Handshake className="h-4 w-4 text-blue-600" />
           Handelsvillkor
         </h3>
       </div>
-      <div className="p-8 text-center bg-gradient-to-b from-gray-50/50">
+      <div className="p-8 text-center bg-gray-50">
         <div className="p-4 bg-blue-100 rounded-full w-fit mx-auto mb-4">
           <Handshake className="h-10 w-10 text-blue-500" />
         </div>
@@ -845,21 +845,21 @@ function TradeTermsTab({ producerId }: { producerId: string }) {
 
 function CommunicationTab({ producerId, producerName }: { producerId: string; producerName: string }) {
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between p-6 border-b-2 border-gray-100 bg-gradient-to-r from-amber-50/50 to-transparent">
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between p-6 border-b border-gray-100">
         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-amber-600" />
           Ärenden
         </h3>
         <Link
           href={`/ior/cases/new?producerId=${producerId}`}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-wine text-white text-sm font-medium hover:bg-wine/90 shadow-sm transition-all hover:shadow"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-wine text-white text-sm font-medium hover:bg-wine/90 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Nytt ärende
         </Link>
       </div>
-      <div className="p-8 text-center bg-gradient-to-b from-gray-50/50">
+      <div className="p-8 text-center bg-gray-50">
         <div className="p-4 bg-amber-100 rounded-full w-fit mx-auto mb-4">
           <MessageSquare className="h-10 w-10 text-amber-500" />
         </div>
@@ -867,7 +867,7 @@ function CommunicationTab({ producerId, producerName }: { producerId: string; pr
         <p className="text-gray-500 text-sm mb-6">Visa och hantera kommunikation</p>
         <Link
           href={`/ior/cases?producer=${producerId}`}
-          className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-wine text-wine rounded-lg font-medium hover:bg-wine/5 transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 border border-wine text-wine rounded-lg font-medium hover:bg-wine/5 transition-colors"
         >
           Visa alla ärenden
           <ExternalLink className="h-4 w-4" />

@@ -66,6 +66,12 @@ const categoryLabels: Record<string, string> = {
   Other: 'Övrigt',
 };
 
+const severityLabels: Record<string, string> = {
+  Low: 'Låg',
+  Medium: 'Medel',
+  High: 'Hög',
+};
+
 const severityStyles: Record<string, string> = {
   Low: 'bg-gray-100 text-gray-600',
   Medium: 'bg-amber-100 text-amber-700',
@@ -322,7 +328,7 @@ export default function FeedbackListPage() {
                             'px-2 py-0.5 text-xs font-medium rounded-full',
                             severityStyles[item.severity]
                           )}>
-                            {item.severity}
+                            {severityLabels[item.severity] || item.severity}
                           </span>
                           <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
                             {categoryLabels[item.category] || item.category}

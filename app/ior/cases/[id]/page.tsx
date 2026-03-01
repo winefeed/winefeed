@@ -89,6 +89,13 @@ const statusStyles: Record<string, string> = {
   CLOSED: 'bg-gray-100 text-gray-500',
 };
 
+const priorityLabels: Record<string, string> = {
+  URGENT: 'Brådskande',
+  HIGH: 'Hög',
+  NORMAL: 'Normal',
+  LOW: 'Låg',
+};
+
 const priorityStyles: Record<string, string> = {
   URGENT: 'bg-red-100 text-red-700',
   HIGH: 'bg-orange-100 text-orange-700',
@@ -274,7 +281,7 @@ export default function CaseDetailPage() {
       <div className="px-4 lg:px-6 mb-4">
         <Link
           href="/ior/cases"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-wine transition-colors font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
           Tillbaka till ärenden
@@ -295,7 +302,7 @@ export default function CaseDetailPage() {
                   {caseData.priority === 'URGENT' && (
                     <AlertTriangle className="h-3 w-3" />
                   )}
-                  {caseData.priority}
+                  {priorityLabels[caseData.priority] || caseData.priority}
                 </span>
                 <span className={cn(
                   'px-2 py-0.5 text-xs font-medium rounded-full',
