@@ -174,11 +174,13 @@ export async function POST(request: NextRequest) {
           namn: supplier.namn,
           kontakt_email: supplier.kontakt_email,
           min_order_bottles: supplier.min_order_bottles,
+          min_order_value_sek: supplier.min_order_value_sek,
           provorder_enabled: supplier.provorder_enabled,
           provorder_fee_sek: supplier.provorder_fee_sek,
         } : {
           namn: 'Okänd leverantör',
           kontakt_email: null,
+          min_order_value_sek: null,
           provorder_enabled: false,
           provorder_fee_sek: 500,
         },

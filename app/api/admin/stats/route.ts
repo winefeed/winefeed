@@ -133,6 +133,7 @@ export async function GET(request: NextRequest) {
     const activeSuppliers = suppliers?.filter(s => s.is_active !== false).length || 0;
     const totalUsers = supplierUsers?.length || 0;
     const totalRestaurants = restaurants?.length || 0;
+    const totalProducers = suppliers?.filter(s => s.type === 'EU_PRODUCER').length || 0;
 
     // Order stats
     const orderStats = {
@@ -216,6 +217,7 @@ export async function GET(request: NextRequest) {
         activeWines,
         totalUsers,
         totalRestaurants,
+        totalProducers,
       },
       orders: orderStats,
       requests: requestStats,

@@ -39,35 +39,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     },
     {
-      url: `${baseUrl}/login`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
       url: `${baseUrl}/signup`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
-    },
-    // Vinkoll Access static pages
-    {
-      url: `${accessBaseUrl}/admin/access`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${accessBaseUrl}/admin/access/viner`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${accessBaseUrl}/admin/access/privatimport`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
     },
   ];
 

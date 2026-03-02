@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Get full supplier details
     const { data: supplier, error: supplierError } = await adminClient
       .from('suppliers')
-      .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles, provorder_enabled, provorder_fee_sek')
+      .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles, min_order_value_sek, provorder_enabled, provorder_fee_sek')
       .eq('id', actor.supplier_id)
       .single();
 
@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
       hemsida: supplier.hemsida,
       isActive: supplier.is_active,
       minOrderBottles: supplier.min_order_bottles,
+      minOrderValueSek: supplier.min_order_value_sek,
       provorderEnabled: supplier.provorder_enabled || false,
       provorderFeeSek: supplier.provorder_fee_sek || 500,
       userEmail,
@@ -138,6 +139,18 @@ export async function PATCH(request: NextRequest) {
         );
       }
       updates.min_order_bottles = value;
+    }
+
+    // Min order value (SEK)
+    if ('minOrderValueSek' in body) {
+      const value = body.minOrderValueSek;
+      if (value !== null && (typeof value !== 'number' || value < 0 || !Number.isInteger(value))) {
+        return NextResponse.json(
+          { error: 'minOrderValueSek must be a positive integer or null' },
+          { status: 400 }
+        );
+      }
+      updates.min_order_value_sek = value;
     }
 
     // Contact email
@@ -221,7 +234,7 @@ export async function PATCH(request: NextRequest) {
       .from('suppliers')
       .update(updates)
       .eq('id', actor.supplier_id)
-      .select('id, min_order_bottles, kontakt_email, telefon, hemsida, provorder_enabled, provorder_fee_sek')
+      .select('id, min_order_bottles, min_order_value_sek, kontakt_email, telefon, hemsida, provorder_enabled, provorder_fee_sek')
       .single();
 
     if (updateError) {
@@ -235,6 +248,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       minOrderBottles: supplier.min_order_bottles,
+      minOrderValueSek: supplier.min_order_value_sek,
       kontaktEmail: supplier.kontakt_email,
       telefon: supplier.telefon,
       hemsida: supplier.hemsida,

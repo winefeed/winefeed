@@ -27,6 +27,7 @@ export interface WineOffer {
     id: string;
     name: string;
     type?: 'swedish_importer' | 'eu_producer' | 'eu_importer';
+    minOrderValueSek?: number | null;
   };
   pricePerBottle: number;  // SEK
   moq: number;
@@ -76,7 +77,9 @@ export function WineOfferCard({
 
   const { wine, supplier, pricePerBottle, moq, requestedQuantity, adjustedQuantity } = offer;
   const currentQuantity = adjustedQuantity || requestedQuantity;
-  const meetsmoq = currentQuantity >= moq;
+  const meetsQuantity = currentQuantity >= moq;
+  const meetsValue = supplier.minOrderValueSek != null && (currentQuantity * pricePerBottle) >= supplier.minOrderValueSek;
+  const meetsmoq = meetsQuantity || meetsValue;
 
   const handleAdjust = async (newQuantity: number) => {
     if (!onAdjustQuantity) return;
@@ -176,7 +179,7 @@ export function WineOfferCard({
         <div>
           <p className="text-sm text-gray-500">
             Antal
-            {!meetsmoq && <MoqWarningCompact requestedQuantity={currentQuantity} moq={moq} />}
+            {!meetsmoq && <MoqWarningCompact requestedQuantity={currentQuantity} moq={moq} minOrderValueSek={supplier.minOrderValueSek} currentValueSek={totalPrice} />}
           </p>
           <p className="text-xl font-bold text-gray-900">
             {currentQuantity} st
@@ -203,6 +206,8 @@ export function WineOfferCard({
             moq={moq}
             onAdjust={onAdjustQuantity ? handleAdjust : undefined}
             disabled={isAdjusting}
+            minOrderValueSek={supplier.minOrderValueSek}
+            currentValueSek={totalPrice}
           />
         </div>
       )}
@@ -230,7 +235,7 @@ export function WineOfferCard({
       {/* MOQ info footer */}
       <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
         <span>
-          Min. order: {moq} flaskor · {offer.caseSize} fl/kartong
+          Min. order: {moq} flaskor{supplier.minOrderValueSek != null ? ` eller ${supplier.minOrderValueSek.toLocaleString('sv-SE')} kr` : ''} · {offer.caseSize} fl/kartong
         </span>
         {meetsmoq && (
           <span className="text-green-600">

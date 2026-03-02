@@ -12,7 +12,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { getErrorMessage } from '@/lib/utils';
-import { Wine, Users, Building2, TrendingUp, ExternalLink, RefreshCw, ShoppingCart, FileText, Inbox, Store, AlertTriangle, Clock, ChevronRight, Filter } from 'lucide-react';
+import { Wine, Users, Building2, TrendingUp, ExternalLink, RefreshCw, ShoppingCart, FileText, Inbox, Store, AlertTriangle, Clock, ChevronRight, Filter, Grape } from 'lucide-react';
 import { ComplianceStatusBadge, type ComplianceStatus } from '@/components/compliance';
 
 // ============================================================================
@@ -119,6 +119,7 @@ interface Stats {
     activeWines: number;
     totalUsers: number;
     totalRestaurants: number;
+    totalProducers: number;
   };
   orders: OrderStats;
   requests: RequestStats;
@@ -515,12 +516,11 @@ export default function AdminDashboardPage() {
             href="/admin/wines"
           />
           <StatCard
-            title="Användare"
-            value={stats.overview.totalUsers}
-            subtitle="Leverantörkonton"
-            icon={Users}
+            title="Producenter"
+            value={stats.overview.totalProducers}
+            subtitle="EU-producenter"
+            icon={Grape}
             color="purple"
-            href="/admin/users"
           />
         </div>
 

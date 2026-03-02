@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react';
 import { Building2, Mail, Phone, Globe, FileText, MapPin, CheckCircle, XCircle, Package, Loader2, Save, Pencil, X, Wine, Sparkles, Link2, Copy, ExternalLink } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
 
 interface SupplierProfile {
   supplierId: string;
@@ -21,6 +22,7 @@ interface SupplierProfile {
   hemsida: string | null;
   isActive: boolean;
   minOrderBottles: number | null;
+  minOrderValueSek: number | null;
   provorderEnabled: boolean;
   provorderFeeSek: number;
   userEmail: string;
@@ -42,6 +44,11 @@ export default function SupplierProfilePage() {
   const [editingMoq, setEditingMoq] = useState(false);
   const [moqValue, setMoqValue] = useState<string>('');
   const [savingMoq, setSavingMoq] = useState(false);
+
+  // Min order value editing state
+  const [editingMinValue, setEditingMinValue] = useState(false);
+  const [minValueSek, setMinValueSek] = useState<string>('');
+  const [savingMinValue, setSavingMinValue] = useState(false);
 
   // Contact editing state
   const [editingContact, setEditingContact] = useState(false);
@@ -100,7 +107,10 @@ export default function SupplierProfilePage() {
     if (profile?.minOrderBottles !== undefined) {
       setMoqValue(profile.minOrderBottles?.toString() || '');
     }
-  }, [profile?.minOrderBottles]);
+    if (profile?.minOrderValueSek !== undefined) {
+      setMinValueSek(profile.minOrderValueSek?.toString() || '');
+    }
+  }, [profile?.minOrderBottles, profile?.minOrderValueSek]);
 
   // Initialize contact fields when profile loads
   useEffect(() => {
@@ -146,6 +156,42 @@ export default function SupplierProfilePage() {
       setError('Ett fel uppstod vid sparande');
     } finally {
       setSavingMoq(false);
+    }
+  }
+
+  async function saveMinValue() {
+    if (!profile) return;
+
+    setSavingMinValue(true);
+
+    try {
+      const value = minValueSek.trim() === '' ? null : parseInt(minValueSek, 10);
+
+      if (value !== null && (isNaN(value) || value < 0)) {
+        setError('Ange ett positivt heltal eller lämna tomt');
+        setSavingMinValue(false);
+        return;
+      }
+
+      const res = await fetch('/api/supplier/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ minOrderValueSek: value }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setProfile({ ...profile, minOrderValueSek: data.minOrderValueSek });
+        setEditingMinValue(false);
+        toast.success('Minsta ordervärde uppdaterat');
+      } else {
+        const err = await res.json();
+        setError(err.error || 'Kunde inte spara');
+      }
+    } catch (err) {
+      setError('Ett fel uppstod vid sparande');
+    } finally {
+      setSavingMinValue(false);
     }
   }
 
@@ -494,7 +540,10 @@ export default function SupplierProfilePage() {
               <Package className="h-4 w-4 text-gray-600" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500">Minsta totalorder (flaskor)</p>
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                Minsta totalorder (flaskor)
+                <HelpTooltip content="Restaurangen måste beställa minst detta antal flaskor — ELLER uppnå minsta ordervärde nedan. Det räcker att ett av kraven uppfylls." side="right" icon="info" />
+              </p>
               {editingMoq ? (
                 <div className="flex items-center gap-2 mt-1">
                   <input
@@ -538,7 +587,65 @@ export default function SupplierProfilePage() {
                 </div>
               )}
               <p className="text-xs text-gray-400 mt-1">
-                Minsta totala beställning i antal flaskor. Kunden kan kombinera olika viner för att nå minimum.
+                Kunden kan kombinera olika viner för att nå minimum. Lämna tomt om du inte har krav på antal.
+              </p>
+            </div>
+          </div>
+
+          {/* Min order value (SEK) */}
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <span className="text-gray-600 text-sm font-bold">kr</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                Minsta ordervärde (SEK)
+                <HelpTooltip content="Alternativt minimum i kronor. Om en restaurang beställer för t.ex. 5 000 kr men färre flaskor än ditt minimum — godkänns ordern ändå." side="right" icon="info" />
+              </p>
+              {editingMinValue ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="number"
+                    value={minValueSek}
+                    onChange={(e) => setMinValueSek(e.target.value)}
+                    placeholder="t.ex. 4500"
+                    min="0"
+                    className="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+                    autoFocus
+                  />
+                  <button
+                    onClick={saveMinValue}
+                    disabled={savingMinValue}
+                    className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {savingMinValue ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Spara
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingMinValue(false);
+                      setMinValueSek(profile.minOrderValueSek?.toString() || '');
+                    }}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+                  >
+                    Avbryt
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <p className={`text-sm font-medium ${profile.minOrderValueSek ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {profile.minOrderValueSek ? `${profile.minOrderValueSek.toLocaleString('sv-SE')} kr` : 'Ej angivet'}
+                  </p>
+                  <button
+                    onClick={() => setEditingMinValue(true)}
+                    className="text-wine text-sm hover:underline"
+                  >
+                    Ändra
+                  </button>
+                </div>
+              )}
+              <p className="text-xs text-gray-400 mt-1">
+                Det räcker att ett av kraven uppfylls (flaskor eller kronor). Lämna tomt om du inte har krav på ordervärde.
               </p>
             </div>
           </div>

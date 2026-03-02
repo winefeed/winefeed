@@ -15,6 +15,10 @@ export interface MoqWarningProps {
   unit?: 'bottles' | 'cases';
   onAdjust?: (newQuantity: number) => Promise<void>;
   disabled?: boolean;
+  /** Minimum order value in SEK (OR logic with bottle/case MOQ) */
+  minOrderValueSek?: number | null;
+  /** Current order value in SEK */
+  currentValueSek?: number;
 }
 
 export function MoqWarning({
@@ -23,11 +27,16 @@ export function MoqWarning({
   unit = 'bottles',
   onAdjust,
   disabled = false,
+  minOrderValueSek,
+  currentValueSek = 0,
 }: MoqWarningProps) {
   const [isAdjusting, setIsAdjusting] = useState(false);
 
-  // Don't show warning if quantity meets MOQ
-  if (requestedQuantity >= moq) {
+  const meetsQuantity = requestedQuantity >= moq;
+  const meetsValue = minOrderValueSek != null && currentValueSek >= minOrderValueSek;
+
+  // Don't show warning if either threshold is met (OR logic)
+  if (meetsQuantity || meetsValue) {
     return null;
   }
 
@@ -67,10 +76,26 @@ export function MoqWarning({
         <div className="flex-1">
           {/* Warning text */}
           <p className="text-sm font-medium text-amber-800">
-            Minsta order: {moq} {unitLabel}
+            Minsta order: {moq > 0 ? `${moq} ${unitLabel}` : ''}{moq > 0 && minOrderValueSek != null ? ' eller ' : ''}{minOrderValueSek != null ? `${minOrderValueSek.toLocaleString('sv-SE')} kr` : ''}
           </p>
           <p className="mt-1 text-sm text-amber-700">
-            Du frågade om {requestedQuantity} {unitLabel}. Lägg till {difference} {unitLabel} för att nå minsta orderkvantitet.
+            {moq > 0 ? (
+              <>
+                Du frågade om {requestedQuantity} {unitLabel}
+                {minOrderValueSek != null && currentValueSek > 0
+                  ? ` (${currentValueSek.toLocaleString('sv-SE')} kr)`
+                  : ''
+                }. Lägg till {difference} {unitLabel}
+                {minOrderValueSek != null
+                  ? ` eller nå ${minOrderValueSek.toLocaleString('sv-SE')} kr i ordervärde`
+                  : ''
+                } för att nå minimum.
+              </>
+            ) : minOrderValueSek != null ? (
+              <>
+                Ordervärdet är {currentValueSek.toLocaleString('sv-SE')} kr. Nå {minOrderValueSek.toLocaleString('sv-SE')} kr för att uppfylla minimum.
+              </>
+            ) : null}
           </p>
 
           {/* Adjust button */}
@@ -122,8 +147,13 @@ export function MoqWarningCompact({
   requestedQuantity,
   moq,
   unit = 'bottles',
-}: Pick<MoqWarningProps, 'requestedQuantity' | 'moq' | 'unit'>) {
-  if (requestedQuantity >= moq) {
+  minOrderValueSek,
+  currentValueSek = 0,
+}: Pick<MoqWarningProps, 'requestedQuantity' | 'moq' | 'unit' | 'minOrderValueSek' | 'currentValueSek'>) {
+  const meetsQuantity = requestedQuantity >= moq;
+  const meetsValue = minOrderValueSek != null && currentValueSek >= minOrderValueSek;
+
+  if (meetsQuantity || meetsValue) {
     return null;
   }
 
@@ -142,7 +172,7 @@ export function MoqWarningCompact({
           clipRule="evenodd"
         />
       </svg>
-      Min: {moq} {unitLabel}
+      Min: {moq} {unitLabel}{minOrderValueSek != null ? ` / ${minOrderValueSek.toLocaleString('sv-SE')} kr` : ''}
     </span>
   );
 }

@@ -137,6 +137,7 @@ export interface SupplierInfo {
   namn: string;
   kontakt_email: string | null;
   min_order_bottles: number | null;
+  min_order_value_sek: number | null;
   provorder_enabled: boolean;
   provorder_fee_sek: number;
 }

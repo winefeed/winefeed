@@ -43,6 +43,7 @@ interface Supplier {
   kontakt_email: string;
   normalleveranstid_dagar?: number;
   min_order_bottles?: number;
+  min_order_value_sek?: number | null;
   provorder_enabled?: boolean;
   provorder_fee_sek?: number;
 }
@@ -107,6 +108,14 @@ export default function ResultsPage() {
 
   // Toast notifications
   const toast = useToast();
+
+  // Check if an order meets minimum requirements (bottle MOQ OR value threshold)
+  const checkMeetsMinimum = (qty: number, moq: number, pricePerBottle: number, supplier: Supplier): boolean => {
+    const meetsQuantity = moq <= 0 || qty >= moq;
+    const minValueSek = supplier.min_order_value_sek;
+    const meetsValue = minValueSek != null && (qty * pricePerBottle) >= minValueSek;
+    return meetsQuantity || meetsValue;
+  };
 
   // Get quantity for a wine - NO auto-adjustment, user must actively choose
   const getWineQuantity = (wineId: string, moq: number) => {
@@ -428,11 +437,11 @@ export default function ResultsPage() {
       if (suggestion) {
         const moq = suggestion.wine.moq || 1;
         const qty = getWineQuantity(wineId, moq);
-        const isBelowMoq = moq > 1 && qty < moq;
+        const meetsMin = checkMeetsMinimum(qty, moq, suggestion.wine.pris_sek, suggestion.supplier);
         const hasProvorder = provorderWines.has(wineId) && suggestion.supplier.provorder_enabled;
 
-        // Only add to list if meets MOQ or is provorder
-        if (!isBelowMoq || hasProvorder) {
+        // Only add to list if meets minimum or is provorder
+        if (meetsMin || hasProvorder) {
           const existingItem = draftList.items.find(item => item.wine_id === wineId);
           if (!existingItem) {
             draftList.addItem({
@@ -1063,14 +1072,17 @@ export default function ResultsPage() {
                       {(() => {
                         const moq = suggestion.wine.moq || 0;
                         const qty = getWineQuantity(suggestion.wine.id, moq);
-                        const isBelowMoq = moq > 0 && qty < moq;
+                        const minValueSek = suggestion.supplier.min_order_value_sek;
+                        const currentValueSek = qty * (suggestion.wine.pris_sek || 0);
+                        const meetsValue = minValueSek != null && currentValueSek >= minValueSek;
+                        const isBelowMoq = (moq > 0 && qty < moq) && !meetsValue;
 
                         return (
                           <div className="mt-1 text-right space-y-0.5">
                             {/* Always show MOQ badge when MOQ exists */}
-                            {moq > 0 && (
+                            {(moq > 0 || minValueSek != null) && (
                               <p className={`text-xs font-medium ${isBelowMoq ? 'text-orange-600' : 'text-muted-foreground'}`}>
-                                Min. {moq} fl
+                                {moq > 0 ? `Min. ${moq} fl` : ''}{moq > 0 && minValueSek != null ? ' / ' : ''}{minValueSek != null ? `${minValueSek.toLocaleString('sv-SE')} kr` : ''}
                               </p>
                             )}
                             {/* Show current selection total */}
@@ -1105,17 +1117,20 @@ export default function ResultsPage() {
                     const stock = suggestion.wine.lager;
                     const isLowStock = stock !== undefined && stock !== null && currentQty > 0 && stock > 0 && stock < currentQty;
 
-                    // Determine MOQ status
-                    const isBelowMoq = moq > 0 && currentQty < moq;
+                    // Determine MOQ status (OR logic: meets bottle MOQ OR value threshold)
+                    const meetsMin = checkMeetsMinimum(currentQty, moq, suggestion.wine.pris_sek, suggestion.supplier);
+                    const isBelowMoq = !meetsMin;
+                    const originalMeetsMin = originalQty <= 0 || checkMeetsMinimum(originalQty, moq, suggestion.wine.pris_sek, suggestion.supplier);
                     const hasUserAdjusted = userAdjustedToMoq.has(suggestion.wine.id);
                     const isInDraftList = draftList.items.some(item => item.wine_id === suggestion.wine.id);
+                    const minValueSek = suggestion.supplier.min_order_value_sek;
 
                     return (
                       <div className="mb-6 p-4 rounded-xl border bg-muted/30 border-border">
                         {/* MOQ Status Banner - 3 states: Red (needs action), Yellow (adjusted), Green (in list) */}
-                        {moq > 0 && originalQty > 0 && originalQty < moq && (
+                        {!originalMeetsMin && (
                           <>
-                            {/* STATE 1: RED - Below MOQ, needs user action */}
+                            {/* STATE 1: RED - Below minimum, needs user action */}
                             {isBelowMoq && !hasUserAdjusted && (
                               <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                                 <div className="flex items-start gap-3">
@@ -1124,21 +1139,23 @@ export default function ResultsPage() {
                                   </div>
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-red-800">
-                                      Under minsta orderantal
+                                      Under minsta order
                                     </p>
                                     <p className="text-xs text-red-600 mt-0.5">
-                                      Du sökte {originalQty} fl, men minimum är {moq} fl.
+                                      Du sökte {originalQty} fl, men minimum är {moq > 0 ? `${moq} fl` : ''}{moq > 0 && minValueSek != null ? ' eller ' : ''}{minValueSek != null ? `${minValueSek.toLocaleString('sv-SE')} kr` : ''}.
                                     </p>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleAdjustToMoq(suggestion.wine.id, moq);
-                                      }}
-                                      className="mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors"
-                                    >
-                                      Justera till {moq} fl
-                                    </button>
+                                    {moq > 0 && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAdjustToMoq(suggestion.wine.id, moq);
+                                        }}
+                                        className="mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors"
+                                      >
+                                        Justera till {moq} fl
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1184,8 +1201,8 @@ export default function ResultsPage() {
                           </>
                         )}
 
-                        {/* Also show green banner if in list but no MOQ issue */}
-                        {isInDraftList && !(moq > 0 && originalQty > 0 && originalQty < moq) && (
+                        {/* Also show green banner if in list but no minimum issue */}
+                        {isInDraftList && originalMeetsMin && (
                           <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                             <div className="flex items-start gap-3">
                               <div className="p-1.5 bg-green-100 rounded-full">
@@ -1232,23 +1249,25 @@ export default function ResultsPage() {
                               <p className="text-xs text-amber-600 font-medium">({originalQty} → {currentQty})</p>
                             ) : isBelowMoq ? (
                               <p className="text-xs text-red-600 font-medium">Under minimum</p>
-                            ) : currentQty >= moq && moq > 0 ? (
+                            ) : meetsMin ? (
                               <p className="text-xs text-green-600 font-medium">✓ OK</p>
                             ) : null}
                           </div>
 
                           {/* MOQ - with visual connection */}
                           <div className={`text-center p-3 rounded-lg ${
-                            moq > 0 && currentQty < moq ? 'bg-amber-50' : 'bg-background'
+                            isBelowMoq ? 'bg-amber-50' : 'bg-background'
                           }`}>
                             <div className="flex items-center justify-center gap-1 mb-1">
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Minimum</p>
                               <HelpTooltip content={GLOSSARY.moq} side="bottom" />
                             </div>
-                            {moq > 0 ? (
+                            {moq > 0 || minValueSek != null ? (
                               <>
-                                <p className={`text-lg font-bold ${currentQty < moq ? 'text-amber-600' : 'text-foreground'}`}>{moq} fl</p>
-                                {currentQty < moq && (
+                                <p className={`text-lg font-bold ${isBelowMoq ? 'text-amber-600' : 'text-foreground'}`}>
+                                  {moq > 0 ? `${moq} fl` : ''}{moq > 0 && minValueSek != null ? ' / ' : ''}{minValueSek != null ? `${minValueSek.toLocaleString('sv-SE')} kr` : ''}
+                                </p>
+                                {isBelowMoq && moq > 0 && currentQty < moq && (
                                   <p className="text-xs text-amber-600 font-medium">+{moq - currentQty} fl till</p>
                                 )}
                               </>
@@ -1629,10 +1648,12 @@ export default function ResultsPage() {
                       const moq = suggestion.wine.moq || 0;
                       const qty = getWineQuantity(suggestion.wine.id, moq);
                       const isSaved = draftList.hasItem(suggestion.wine.id);
-                      const isBelowMoq = moq > 0 && qty < moq;
+                      const meetsMin = checkMeetsMinimum(qty, moq, suggestion.wine.pris_sek, suggestion.supplier);
+                      const isBelowMoq = !meetsMin;
                       const hasProvorder = provorderWines.has(suggestion.wine.id);
-                      const canAddToList = !isBelowMoq || hasProvorder;
+                      const canAddToList = meetsMin || hasProvorder;
                       const provorderFee = suggestion.supplier.provorder_fee_sek || 500;
+                      const minValueSek = suggestion.supplier.min_order_value_sek;
 
                       return (
                         <div className="flex flex-col items-end gap-1">
@@ -1668,9 +1689,9 @@ export default function ResultsPage() {
                                     <Plus className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
-                                {moq > 0 && !hasProvorder && (
+                                {(moq > 0 || minValueSek != null) && !hasProvorder && (
                                   <span className={`text-xs mt-0.5 ${isBelowMoq ? 'text-orange-600 font-medium' : 'text-muted-foreground'}`}>
-                                    Min. {moq} fl
+                                    Min. {moq > 0 ? `${moq} fl` : ''}{moq > 0 && minValueSek != null ? ' / ' : ''}{minValueSek != null ? `${minValueSek.toLocaleString('sv-SE')} kr` : ''}
                                   </span>
                                 )}
                                 {hasProvorder && (
@@ -1725,7 +1746,7 @@ export default function ResultsPage() {
                                   ? 'bg-green-600 text-white hover:bg-green-700'
                                   : 'bg-amber-500 text-white hover:bg-amber-600'
                               }`}
-                              title={isSaved ? 'Ta bort från din lista' : !canAddToList ? `Öka till minst ${moq} fl eller välj provorder` : hasProvorder ? `Lägg till som provorder (+${provorderFee} kr)` : 'Lägg till i din lista'}
+                              title={isSaved ? 'Ta bort från din lista' : !canAddToList ? `Öka till minst ${moq > 0 ? `${moq} fl` : ''}${moq > 0 && minValueSek != null ? ' eller ' : ''}${minValueSek != null ? `${minValueSek.toLocaleString('sv-SE')} kr` : ''} eller välj provorder` : hasProvorder ? `Lägg till som provorder (+${provorderFee} kr)` : 'Lägg till i din lista'}
                             >
                               {isSaved ? (
                                 <>
@@ -1747,17 +1768,19 @@ export default function ResultsPage() {
                           </div>
                           {!isSaved && isBelowMoq && !hasProvorder && (
                             <div className="flex flex-col items-end gap-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
-                                  setJustAdjustedToMoq(suggestion.wine.id);
-                                  setTimeout(() => setJustAdjustedToMoq(null), 1500);
-                                }}
-                                className="text-xs text-orange-600 hover:text-orange-700 underline"
-                              >
-                                Ändra till {moq} fl
-                              </button>
+                              {moq > 0 && qty < moq && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: moq }));
+                                    setJustAdjustedToMoq(suggestion.wine.id);
+                                    setTimeout(() => setJustAdjustedToMoq(null), 1500);
+                                  }}
+                                  className="text-xs text-orange-600 hover:text-orange-700 underline"
+                                >
+                                  Ändra till {moq} fl
+                                </button>
+                              )}
                               {suggestion.supplier.provorder_enabled && (
                                 <button
                                   onClick={(e) => {

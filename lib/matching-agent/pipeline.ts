@@ -372,7 +372,7 @@ async function fetchSupplierInfo(scoredWines: ScoredWine[]): Promise<Record<stri
   try {
     const { data: suppliers } = await getSupabaseAdmin()
       .from('suppliers')
-      .select('id, namn, kontakt_email, min_order_bottles, provorder_enabled, provorder_fee_sek')
+      .select('id, namn, kontakt_email, min_order_bottles, min_order_value_sek, provorder_enabled, provorder_fee_sek')
       .in('id', supplierIds);
 
     if (suppliers) {
@@ -382,6 +382,7 @@ async function fetchSupplierInfo(scoredWines: ScoredWine[]): Promise<Record<stri
           namn: s.namn,
           kontakt_email: s.kontakt_email,
           min_order_bottles: s.min_order_bottles,
+          min_order_value_sek: s.min_order_value_sek ?? null,
           provorder_enabled: s.provorder_enabled || false,
           provorder_fee_sek: s.provorder_fee_sek || 500,
         };

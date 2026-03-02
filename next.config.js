@@ -51,6 +51,13 @@ const nextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
+      {
+        source: '/(pitch|restauranger|leverantorer|signup)',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'index, follow' },
+          { key: 'X-Content-Signal', value: 'ai-train=yes, search=yes, ai-input=yes' },
+        ],
+      },
     ];
   },
 };
