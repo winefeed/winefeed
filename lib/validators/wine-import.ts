@@ -406,11 +406,12 @@ export function validateWineRow(row: RawWineRow, rowNumber: number): ValidationR
     errors.push(`Ogiltigt price: "${priceInput}". Förväntat: positivt tal`);
   }
 
-  // Validate MOQ
-  const moq = normalizeNumber(moqInput);
-  if (moqInput === undefined || moqInput === null || moqInput === '') {
-    errors.push('Saknar moq');
-  } else if (moq === null || moq <= 0 || !Number.isInteger(moq)) {
+  // Validate MOQ (optional — defaults to case_size if missing)
+  const moqRaw = normalizeNumber(moqInput);
+  const moq = (moqInput === undefined || moqInput === null || moqInput === '')
+    ? (normalizeNumber(row.case_size) ?? 6)
+    : moqRaw;
+  if (moqInput !== undefined && moqInput !== null && moqInput !== '' && (moqRaw === null || moqRaw <= 0 || !Number.isInteger(moqRaw))) {
     errors.push(`Ogiltigt moq: "${moqInput}". Förväntat: positivt heltal`);
   }
 
