@@ -882,7 +882,7 @@ export default function SupplierWinesPage() {
 
             {/* MOQ section */}
             <div className="flex gap-2 items-center border-l border-blue-200 pl-4">
-              <span className="text-sm text-gray-600">MOQ:</span>
+              <span className="text-sm text-gray-600" title="Minimum Order Quantity — minsta antal flaskor per beställning">MOQ:</span>
               {!showBulkMoqInput ? (
                 <>
                   <button
@@ -1388,7 +1388,8 @@ export default function SupplierWinesPage() {
                   </div>
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <h3 className="font-medium text-gray-900 mb-2">Kolumner som krävs:</h3>
-                    <p className="text-sm text-gray-600">wine_name, producer, vintage, region, country, grape, color, price, moq</p>
+                    <p className="text-sm text-gray-600">wine_name, producer, vintage, region, country, grape, color, price</p>
+                    <p className="text-xs text-gray-400 mt-1">Valfritt: moq (min. orderantal — defaultar till case_size), case_size, alcohol_pct, organic, description, sku</p>
                     {supplierId && (
                       <a href={`/api/suppliers/${supplierId}/wines/template?format=xlsx`} className="text-sm text-wine hover:underline mt-2 inline-block">Ladda ner mall &rarr;</a>
                     )}
@@ -1555,7 +1556,7 @@ export default function SupplierWinesPage() {
                               <th className="text-left p-2 font-medium text-gray-600 hidden md:table-cell">Färg</th>
                               <th className="text-center p-2 font-medium text-gray-600">År</th>
                               <th className="text-right p-2 font-medium text-gray-600">Pris</th>
-                              <th className="text-right p-2 font-medium text-gray-600 hidden sm:table-cell">MOQ</th>
+                              <th className="text-right p-2 font-medium text-gray-600 hidden sm:table-cell" title="Minimum Order Quantity — minsta antal flaskor per beställning">MOQ</th>
                             </tr>
                           </thead>
                           <tbody>
