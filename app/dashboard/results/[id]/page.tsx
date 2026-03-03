@@ -46,6 +46,7 @@ interface Supplier {
   min_order_value_sek?: number | null;
   provorder_enabled?: boolean;
   provorder_fee_sek?: number;
+  payment_terms?: string | null;
 }
 
 interface MarketData {
@@ -1639,6 +1640,11 @@ export default function ResultsPage() {
                         {suggestion.supplier.normalleveranstid_dagar && (
                           <p className="text-xs text-muted-foreground">
                             Leverans: {suggestion.supplier.normalleveranstid_dagar} dagar
+                          </p>
+                        )}
+                        {suggestion.supplier.payment_terms && (
+                          <p className="text-xs text-muted-foreground">
+                            Betalvillkor: {suggestion.supplier.payment_terms}
                           </p>
                         )}
                       </div>

@@ -179,15 +179,15 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       );
     }
 
-    // Step 4: Get restaurant names
+    // Step 4: Get restaurant names + profile info for suppliers
     const restaurantIds = [...new Set(requests.map(r => r.restaurant_id))];
     const { data: restaurants } = await adminClient
       .from('restaurants')
-      .select('id, name')
+      .select('id, name, org_number, city, price_segment, cuisine_type, license_municipality, license_case_number, license_verified_at')
       .in('id', restaurantIds);
 
     const restaurantMap = new Map(
-      (restaurants || []).map(r => [r.id, r.name])
+      (restaurants || []).map(r => [r.id, r])
     );
 
     // Step 5: Get offer counts
@@ -244,10 +244,19 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         .filter(i => i.provorder)
         .reduce((sum, i) => sum + (i.provorder_fee || 500), 0);
 
+      const rest = restaurantMap.get(req.restaurant_id);
+
       return {
         id: req.id,
         restaurantId: req.restaurant_id,
-        restaurantName: restaurantMap.get(req.restaurant_id) || 'Okänd restaurang',
+        restaurantName: rest?.name || 'Okänd restaurang',
+        // Rich restaurant profile (non-sensitive fields only)
+        restaurantOrgNumber: rest?.org_number || null,
+        restaurantCity: rest?.city || null,
+        restaurantPriceSegment: rest?.price_segment || null,
+        restaurantCuisineType: rest?.cuisine_type || null,
+        restaurantHasLicense: !!(rest?.license_municipality || rest?.license_case_number),
+        restaurantLicenseVerified: !!rest?.license_verified_at,
         fritext: req.fritext,
         budgetPerFlaska: req.budget_per_flaska,
         antalFlaskor: req.antal_flaskor,

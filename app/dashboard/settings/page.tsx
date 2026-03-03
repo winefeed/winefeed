@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Building2, MapPin, Plus, Pencil, Trash2, Star, Check, X, Bell, Mail, User, Shield, Save, Receipt, Wine } from 'lucide-react';
+import { Building2, MapPin, Plus, Pencil, Trash2, Star, Check, X, Bell, Mail, User, Shield, Save, Receipt, Wine, FileText, Upload, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,6 +38,13 @@ interface Restaurant {
   cuisine_type?: string[];
   price_segment?: string;
   wine_preference_notes?: string;
+  // Serving license
+  license_municipality?: string;
+  license_case_number?: string;
+  license_valid_from?: string;
+  license_valid_until?: string;
+  license_verified_at?: string;
+  serving_license_file_url?: string;
 }
 
 interface DeliveryAddress {
@@ -107,6 +114,16 @@ export default function SettingsPage() {
   });
   const [savingWineProfile, setSavingWineProfile] = useState(false);
 
+  // License edit state
+  const [editingLicense, setEditingLicense] = useState(false);
+  const [licenseForm, setLicenseForm] = useState({
+    license_municipality: '',
+    license_case_number: '',
+    license_valid_until: '',
+  });
+  const [savingLicense, setSavingLicense] = useState(false);
+  const [uploadingLicense, setUploadingLicense] = useState(false);
+
   // Notification settings
   const [notifications, setNotifications] = useState<NotificationSettings>({
     email_new_offer: true,
@@ -164,6 +181,12 @@ export default function SettingsPage() {
           cuisine_type: data.cuisine_type || [],
           price_segment: data.price_segment || '',
           wine_preference_notes: data.wine_preference_notes || '',
+        });
+        // Initialize license form
+        setLicenseForm({
+          license_municipality: data.license_municipality || '',
+          license_case_number: data.license_case_number || '',
+          license_valid_until: data.license_valid_until || '',
         });
         // Initialize billing form
         const hasBillingAddress = data.billing_address || data.billing_postal_code || data.billing_city;
@@ -289,6 +312,63 @@ export default function SettingsPage() {
       toast.error('Kunde inte spara vinprofil');
     } finally {
       setSavingWineProfile(false);
+    }
+  };
+
+  const handleSaveLicense = async () => {
+    setSavingLicense(true);
+    try {
+      const res = await fetch('/api/me/restaurant', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          license_municipality: licenseForm.license_municipality || null,
+          license_case_number: licenseForm.license_case_number || null,
+          license_valid_until: licenseForm.license_valid_until || null,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRestaurant(data);
+        setEditingLicense(false);
+        toast.success('Serveringstillstånd sparat');
+      }
+    } catch (err) {
+      toast.error('Kunde inte spara');
+    } finally {
+      setSavingLicense(false);
+    }
+  };
+
+  const handleUploadLicense = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLicense(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/me/restaurant/license', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRestaurant(prev => prev ? { ...prev, serving_license_file_url: data.url } : prev);
+        toast.success('Fil uppladdad');
+      } else {
+        const err = await res.json();
+        toast.error(err.error || 'Kunde inte ladda upp filen');
+      }
+    } catch (err) {
+      toast.error('Ett fel uppstod vid uppladdning');
+    } finally {
+      setUploadingLicense(false);
+      // Reset file input
+      e.target.value = '';
     }
   };
 
@@ -867,6 +947,152 @@ export default function SettingsPage() {
                   <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Vinpreferenser</span>
                   <p className="font-medium">{restaurant?.wine_preference_notes || '–'}</p>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Serving License */}
+          <div className="bg-card rounded-lg border border-border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-primary" />
+                <div>
+                  <h2 className="text-lg font-semibold">Serveringstillstånd</h2>
+                  <p className="text-sm text-muted-foreground">Visas som badge för leverantörer</p>
+                </div>
+              </div>
+              {!editingLicense && (
+                <Button variant="outline" size="sm" onClick={() => setEditingLicense(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Redigera
+                </Button>
+              )}
+            </div>
+
+            {editingLicense ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="license_municipality">Kommun</Label>
+                    <Input
+                      id="license_municipality"
+                      placeholder="Stockholms kommun"
+                      value={licenseForm.license_municipality}
+                      onChange={(e) => setLicenseForm({ ...licenseForm, license_municipality: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="license_case_number">Diarienummer</Label>
+                    <Input
+                      id="license_case_number"
+                      placeholder="T.ex. 9.1-12345/2024"
+                      value={licenseForm.license_case_number}
+                      onChange={(e) => setLicenseForm({ ...licenseForm, license_case_number: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="license_valid_until">Giltig till</Label>
+                    <Input
+                      id="license_valid_until"
+                      type="date"
+                      value={licenseForm.license_valid_until}
+                      onChange={(e) => setLicenseForm({ ...licenseForm, license_valid_until: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Ladda upp tillstånd (PDF/bild)</Label>
+                    <div className="flex items-center gap-2">
+                      <label className="flex items-center gap-2 px-3 py-2 border border-border rounded-lg cursor-pointer hover:bg-muted text-sm">
+                        {uploadingLicense ? (
+                          <><Loader2 className="h-4 w-4 animate-spin" /> Laddar upp...</>
+                        ) : (
+                          <><Upload className="h-4 w-4" /> Välj fil</>
+                        )}
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png,.webp"
+                          onChange={handleUploadLicense}
+                          className="sr-only"
+                          disabled={uploadingLicense}
+                        />
+                      </label>
+                      {restaurant?.serving_license_file_url && (
+                        <a href={restaurant.serving_license_file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                          Visa uppladdad fil
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end pt-4 border-t">
+                  <Button variant="ghost" onClick={() => {
+                    setEditingLicense(false);
+                    setLicenseForm({
+                      license_municipality: restaurant?.license_municipality || '',
+                      license_case_number: restaurant?.license_case_number || '',
+                      license_valid_until: restaurant?.license_valid_until || '',
+                    });
+                  }}>
+                    Avbryt
+                  </Button>
+                  <Button onClick={handleSaveLicense} disabled={savingLicense}>
+                    {savingLicense ? 'Sparar...' : 'Spara ändringar'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 text-sm">
+                {(() => {
+                  const hasLicense = restaurant?.license_municipality || restaurant?.license_case_number;
+                  const isVerified = !!restaurant?.license_verified_at;
+                  return (
+                    <>
+                      <div className="flex items-center gap-2 mb-3">
+                        {isVerified ? (
+                          <span className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                            <CheckCircle className="h-3.5 w-3.5" /> Verifierat
+                          </span>
+                        ) : hasLicense ? (
+                          <span className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
+                            <FileText className="h-3.5 w-3.5" /> Angivet
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                            Ej angivet
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Kommun</span>
+                          <p className="font-medium">{restaurant?.license_municipality || '–'}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Diarienummer</span>
+                          <p className="font-medium">{restaurant?.license_case_number || '–'}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Giltig till</span>
+                          <p className="font-medium">
+                            {restaurant?.license_valid_until
+                              ? new Date(restaurant.license_valid_until).toLocaleDateString('sv-SE')
+                              : '–'}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Dokument</span>
+                          <p className="font-medium">
+                            {restaurant?.serving_license_file_url ? (
+                              <a href={restaurant.serving_license_file_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                Visa fil
+                              </a>
+                            ) : '–'}
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>

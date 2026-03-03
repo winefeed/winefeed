@@ -24,6 +24,8 @@ import {
   AlertTriangle,
   X,
   Package,
+  FileText,
+  Shield,
 } from 'lucide-react';
 
 interface RequestItem {
@@ -46,6 +48,12 @@ interface QuoteRequest {
   id: string;
   restaurantId: string;
   restaurantName: string;
+  restaurantOrgNumber?: string | null;
+  restaurantCity?: string | null;
+  restaurantPriceSegment?: string | null;
+  restaurantCuisineType?: string[] | null;
+  restaurantHasLicense?: boolean;
+  restaurantLicenseVerified?: boolean;
   fritext: string;
   budgetPerFlaska: number | null;
   antalFlaskor: number | null;
@@ -339,6 +347,36 @@ export default function SupplierRequestDetailPage({
             <div className="flex items-center gap-3 mb-2">
               <Building2 className="h-5 w-5 text-gray-400" />
               <h1 className="text-xl font-bold text-gray-900">{request.restaurantName}</h1>
+              {request.restaurantLicenseVerified ? (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                  <Shield className="h-3 w-3" /> Serveringstillstand &#10003;
+                </span>
+              ) : request.restaurantHasLicense ? (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
+                  <FileText className="h-3 w-3" /> Serveringstillstand
+                </span>
+              ) : null}
+            </div>
+            {/* Restaurant profile details */}
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-2">
+              {request.restaurantCity && (
+                <span>{request.restaurantCity}</span>
+              )}
+              {request.restaurantOrgNumber && (
+                <span>Org: {request.restaurantOrgNumber}</span>
+              )}
+              {request.restaurantPriceSegment && (
+                <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
+                  {{ casual: 'Casual', 'mid-range': 'Mellansegment', 'fine-dining': 'Fine dining' }[request.restaurantPriceSegment] || request.restaurantPriceSegment}
+                </span>
+              )}
+              {request.restaurantCuisineType && request.restaurantCuisineType.length > 0 && (
+                <span className="flex gap-1">
+                  {request.restaurantCuisineType.map(c => (
+                    <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">{c}</span>
+                  ))}
+                </span>
+              )}
             </div>
             <p className="text-gray-600">{request.fritext}</p>
           </div>

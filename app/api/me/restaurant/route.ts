@@ -43,7 +43,9 @@ export async function GET(request: NextRequest) {
         id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code,
         billing_email, billing_contact_person, billing_contact_phone,
         billing_address, billing_postal_code, billing_city, billing_reference,
-        cuisine_type, price_segment, wine_preference_notes
+        cuisine_type, price_segment, wine_preference_notes,
+        license_municipality, license_case_number, license_valid_from, license_valid_until, license_verified_at,
+        serving_license_file_url
       `)
       .eq('id', actor.restaurant_id)
       .single();
@@ -76,6 +78,13 @@ export async function GET(request: NextRequest) {
       cuisine_type: restaurant.cuisine_type,
       price_segment: restaurant.price_segment,
       wine_preference_notes: restaurant.wine_preference_notes,
+      // Serving license fields
+      license_municipality: restaurant.license_municipality,
+      license_case_number: restaurant.license_case_number,
+      license_valid_from: restaurant.license_valid_from,
+      license_valid_until: restaurant.license_valid_until,
+      license_verified_at: restaurant.license_verified_at,
+      serving_license_file_url: restaurant.serving_license_file_url,
     });
 
   } catch (error: any) {
@@ -160,6 +169,12 @@ export async function PATCH(request: NextRequest) {
     }
     if (body.wine_preference_notes !== undefined) updates.wine_preference_notes = body.wine_preference_notes || null;
 
+    // Serving license fields
+    if (body.license_municipality !== undefined) updates.license_municipality = body.license_municipality || null;
+    if (body.license_case_number !== undefined) updates.license_case_number = body.license_case_number || null;
+    if (body.license_valid_until !== undefined) updates.license_valid_until = body.license_valid_until || null;
+    if (body.serving_license_file_url !== undefined) updates.serving_license_file_url = body.serving_license_file_url || null;
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
@@ -178,7 +193,9 @@ export async function PATCH(request: NextRequest) {
         id, name, contact_email, contact_phone, org_number, city, address_line1, postal_code,
         billing_email, billing_contact_person, billing_contact_phone,
         billing_address, billing_postal_code, billing_city, billing_reference,
-        cuisine_type, price_segment, wine_preference_notes
+        cuisine_type, price_segment, wine_preference_notes,
+        license_municipality, license_case_number, license_valid_from, license_valid_until, license_verified_at,
+        serving_license_file_url
       `)
       .single();
 
@@ -210,6 +227,13 @@ export async function PATCH(request: NextRequest) {
       cuisine_type: restaurant.cuisine_type,
       price_segment: restaurant.price_segment,
       wine_preference_notes: restaurant.wine_preference_notes,
+      // Serving license fields
+      license_municipality: restaurant.license_municipality,
+      license_case_number: restaurant.license_case_number,
+      license_valid_from: restaurant.license_valid_from,
+      license_valid_until: restaurant.license_valid_until,
+      license_verified_at: restaurant.license_verified_at,
+      serving_license_file_url: restaurant.serving_license_file_url,
     });
 
   } catch (error: any) {

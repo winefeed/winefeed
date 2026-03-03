@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Get full supplier details
     const { data: supplier, error: supplierError } = await adminClient
       .from('suppliers')
-      .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles, min_order_value_sek, provorder_enabled, provorder_fee_sek')
+      .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles, min_order_value_sek, provorder_enabled, provorder_fee_sek, payment_terms')
       .eq('id', actor.supplier_id)
       .single();
 
@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
       minOrderValueSek: supplier.min_order_value_sek,
       provorderEnabled: supplier.provorder_enabled || false,
       provorderFeeSek: supplier.provorder_fee_sek || 500,
+      paymentTerms: supplier.payment_terms || null,
       userEmail,
     });
 
@@ -220,6 +221,24 @@ export async function PATCH(request: NextRequest) {
       updates.provorder_fee_sek = value;
     }
 
+    // Payment terms
+    if ('paymentTerms' in body) {
+      const value = body.paymentTerms;
+      if (value !== null && typeof value !== 'string') {
+        return NextResponse.json(
+          { error: 'paymentTerms must be a string or null' },
+          { status: 400 }
+        );
+      }
+      if (value && value.length > 500) {
+        return NextResponse.json(
+          { error: 'paymentTerms max 500 tecken' },
+          { status: 400 }
+        );
+      }
+      updates.payment_terms = value || null;
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
@@ -234,7 +253,7 @@ export async function PATCH(request: NextRequest) {
       .from('suppliers')
       .update(updates)
       .eq('id', actor.supplier_id)
-      .select('id, min_order_bottles, min_order_value_sek, kontakt_email, telefon, hemsida, provorder_enabled, provorder_fee_sek')
+      .select('id, min_order_bottles, min_order_value_sek, kontakt_email, telefon, hemsida, provorder_enabled, provorder_fee_sek, payment_terms')
       .single();
 
     if (updateError) {
@@ -254,6 +273,7 @@ export async function PATCH(request: NextRequest) {
       hemsida: supplier.hemsida,
       provorderEnabled: supplier.provorder_enabled || false,
       provorderFeeSek: supplier.provorder_fee_sek || 500,
+      paymentTerms: supplier.payment_terms || null,
     });
 
   } catch (error: any) {

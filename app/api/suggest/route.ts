@@ -177,12 +177,14 @@ export async function POST(request: NextRequest) {
           min_order_value_sek: supplier.min_order_value_sek,
           provorder_enabled: supplier.provorder_enabled,
           provorder_fee_sek: supplier.provorder_fee_sek,
+          payment_terms: supplier.payment_terms,
         } : {
           namn: 'Okänd leverantör',
           kontakt_email: null,
           min_order_value_sek: null,
           provorder_enabled: false,
           provorder_fee_sek: 500,
+          payment_terms: null,
         },
         motivering: wine.description || 'Ett utmärkt val för din restaurang.',
         ranking_score: sw.score / 100, // Normalize to 0-1 for compatibility

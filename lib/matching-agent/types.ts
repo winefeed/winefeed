@@ -140,6 +140,7 @@ export interface SupplierInfo {
   min_order_value_sek: number | null;
   provorder_enabled: boolean;
   provorder_fee_sek: number;
+  payment_terms: string | null;
 }
 
 /** Pipeline result */
