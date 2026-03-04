@@ -349,11 +349,11 @@ export default function SupplierRequestDetailPage({
               <h1 className="text-xl font-bold text-gray-900">{request.restaurantName}</h1>
               {request.restaurantLicenseVerified ? (
                 <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                  <Shield className="h-3 w-3" /> Serveringstillstand &#10003;
+                  <Shield className="h-3 w-3" /> Serveringstillstånd
                 </span>
               ) : request.restaurantHasLicense ? (
                 <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
-                  <FileText className="h-3 w-3" /> Serveringstillstand
+                  <FileText className="h-3 w-3" /> Serveringstillstånd
                 </span>
               ) : null}
             </div>

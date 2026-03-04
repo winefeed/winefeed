@@ -999,30 +999,6 @@ export default function SettingsPage() {
                       onChange={(e) => setLicenseForm({ ...licenseForm, license_valid_until: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Ladda upp tillstånd (PDF/bild)</Label>
-                    <div className="flex items-center gap-2">
-                      <label className="flex items-center gap-2 px-3 py-2 border border-border rounded-lg cursor-pointer hover:bg-muted text-sm">
-                        {uploadingLicense ? (
-                          <><Loader2 className="h-4 w-4 animate-spin" /> Laddar upp...</>
-                        ) : (
-                          <><Upload className="h-4 w-4" /> Välj fil</>
-                        )}
-                        <input
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png,.webp"
-                          onChange={handleUploadLicense}
-                          className="sr-only"
-                          disabled={uploadingLicense}
-                        />
-                      </label>
-                      {restaurant?.serving_license_file_url && (
-                        <a href={restaurant.serving_license_file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                          Visa uppladdad fil
-                        </a>
-                      )}
-                    </div>
-                  </div>
                 </div>
                 <div className="flex gap-2 justify-end pt-4 border-t">
                   <Button variant="ghost" onClick={() => {
@@ -1045,10 +1021,15 @@ export default function SettingsPage() {
                 {(() => {
                   const hasLicense = restaurant?.license_municipality || restaurant?.license_case_number;
                   const isVerified = !!restaurant?.license_verified_at;
+                  const isExpired = restaurant?.license_valid_until && new Date(restaurant.license_valid_until) < new Date();
                   return (
                     <>
                       <div className="flex items-center gap-2 mb-3">
-                        {isVerified ? (
+                        {isExpired ? (
+                          <span className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                            <Shield className="h-3.5 w-3.5" /> Utgånget
+                          </span>
+                        ) : isVerified ? (
                           <span className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                             <CheckCircle className="h-3.5 w-3.5" /> Verifierat
                           </span>
@@ -1062,6 +1043,11 @@ export default function SettingsPage() {
                           </span>
                         )}
                       </div>
+                      {isExpired && (
+                        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-xs">
+                          Ditt serveringstillstånd har gått ut. Uppdatera giltighetsdatum för att leverantörer ska se att tillståndet är giltigt.
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Kommun</span>
@@ -1073,7 +1059,7 @@ export default function SettingsPage() {
                         </div>
                         <div>
                           <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Giltig till</span>
-                          <p className="font-medium">
+                          <p className={`font-medium ${isExpired ? 'text-red-600' : ''}`}>
                             {restaurant?.license_valid_until
                               ? new Date(restaurant.license_valid_until).toLocaleDateString('sv-SE')
                               : '–'}
@@ -1081,13 +1067,29 @@ export default function SettingsPage() {
                         </div>
                         <div>
                           <span className="text-muted-foreground block text-xs uppercase tracking-wide mb-1">Dokument</span>
-                          <p className="font-medium">
+                          <div className="flex items-center gap-2">
                             {restaurant?.serving_license_file_url ? (
-                              <a href={restaurant.serving_license_file_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              <a href={restaurant.serving_license_file_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm font-medium">
                                 Visa fil
                               </a>
-                            ) : '–'}
-                          </p>
+                            ) : (
+                              <span className="font-medium">–</span>
+                            )}
+                            <label className="flex items-center gap-1.5 px-2.5 py-1.5 border border-border rounded-lg cursor-pointer hover:bg-muted text-xs">
+                              {uploadingLicense ? (
+                                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Laddar upp...</>
+                              ) : (
+                                <><Upload className="h-3.5 w-3.5" /> {restaurant?.serving_license_file_url ? 'Byt fil' : 'Ladda upp'}</>
+                              )}
+                              <input
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                onChange={handleUploadLicense}
+                                className="sr-only"
+                                disabled={uploadingLicense}
+                              />
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </>

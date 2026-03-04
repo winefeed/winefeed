@@ -687,71 +687,65 @@ export default function SupplierProfilePage() {
               </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Payment Terms */}
-      <div className="mt-6 bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
-          Betalvillkor
-        </h3>
-
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-gray-100 rounded-lg">
-            <FileText className="h-4 w-4 text-gray-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs text-gray-500 flex items-center gap-1">
-              Betalvillkor
-              <HelpTooltip content="Visas för restauranger när de tar emot din offert. T.ex. '30 dagar netto' eller '10 dagar netto, 2% kassarabatt'." side="right" icon="info" />
-            </p>
-            {editingPaymentTerms ? (
-              <div className="mt-1 space-y-2">
-                <input
-                  type="text"
-                  value={paymentTermsValue}
-                  onChange={(e) => setPaymentTermsValue(e.target.value)}
-                  placeholder="t.ex. 30 dagar netto"
-                  maxLength={500}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
-                  autoFocus
-                />
+          {/* Payment Terms — inside Orderinställningar */}
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <FileText className="h-4 w-4 text-gray-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                Betalvillkor
+                <HelpTooltip content="Visas för restauranger när de tar emot din offert. T.ex. '30 dagar netto' eller '10 dagar netto, 2% kassarabatt'." side="right" icon="info" />
+              </p>
+              {editingPaymentTerms ? (
+                <div className="mt-1 space-y-2">
+                  <input
+                    type="text"
+                    value={paymentTermsValue}
+                    onChange={(e) => setPaymentTermsValue(e.target.value)}
+                    placeholder="t.ex. 30 dagar netto"
+                    maxLength={500}
+                    className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={savePaymentTerms}
+                      disabled={savingPaymentTerms}
+                      className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {savingPaymentTerms ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      Spara
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingPaymentTerms(false);
+                        setPaymentTermsValue(profile.paymentTerms || '');
+                      }}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+                    >
+                      Avbryt
+                    </button>
+                  </div>
+                </div>
+              ) : (
                 <div className="flex items-center gap-2">
+                  <p className={`text-sm font-medium ${profile.paymentTerms ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {profile.paymentTerms || 'Ej angivet'}
+                  </p>
                   <button
-                    onClick={savePaymentTerms}
-                    disabled={savingPaymentTerms}
-                    className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 flex items-center gap-1"
+                    onClick={() => setEditingPaymentTerms(true)}
+                    className="text-wine text-sm hover:underline"
                   >
-                    {savingPaymentTerms ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    Spara
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingPaymentTerms(false);
-                      setPaymentTermsValue(profile.paymentTerms || '');
-                    }}
-                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
-                  >
-                    Avbryt
+                    Ändra
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <p className={`text-sm font-medium ${profile.paymentTerms ? 'text-gray-900' : 'text-gray-400'}`}>
-                  {profile.paymentTerms || 'Ej angivet'}
-                </p>
-                <button
-                  onClick={() => setEditingPaymentTerms(true)}
-                  className="text-wine text-sm hover:underline"
-                >
-                  Ändra
-                </button>
-              </div>
-            )}
-            <p className="text-xs text-gray-400 mt-1">
-              Visas för restauranger tillsammans med dina offerter.
-            </p>
+              )}
+              <p className="text-xs text-gray-400 mt-1">
+                Visas för restauranger tillsammans med dina offerter.
+              </p>
+            </div>
           </div>
         </div>
       </div>
