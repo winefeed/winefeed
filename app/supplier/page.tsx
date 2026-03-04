@@ -21,6 +21,10 @@ import {
   Zap,
   Target,
   Clock,
+  Phone,
+  Settings,
+  X,
+  CheckCircle,
 } from 'lucide-react';
 import { HelpTooltip, GLOSSARY } from '@/components/ui/help-tooltip';
 import { WineCard, type SupplierWine } from '@/components/supplier/WineCard';
@@ -31,6 +35,14 @@ import { ActivityFeed } from '@/components/supplier/ActivityFeed';
 import { UnansweredRequestsWidget } from '@/components/supplier/UnansweredRequestsWidget';
 import { SupplierDashboardSkeleton } from '@/components/ui/skeleton';
 import { ExpiringOffersAlert } from '@/components/supplier/ExpiringOffersAlert';
+
+interface OnboardingProfile {
+  kontaktEmail: string | null;
+  telefon: string | null;
+  minOrderBottles: number | null;
+  minOrderValueSek: number | null;
+  paymentTerms: string | null;
+}
 
 interface DashboardStats {
   totalWines: number;
@@ -63,6 +75,17 @@ export default function SupplierDashboard() {
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [recentWines, setRecentWines] = useState<SupplierWine[]>([]);
   const [selectedWine, setSelectedWine] = useState<SupplierWine | null>(null);
+  const [profile, setProfile] = useState<OnboardingProfile | null>(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+
+  // Read dismissed state from localStorage on mount
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('winefeed-onboarding-dismissed') === 'true') {
+        setOnboardingDismissed(true);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -89,8 +112,23 @@ export default function SupplierDashboard() {
           }
         }
 
-        // Fetch dashboard stats
-        const statsRes = await fetch('/api/supplier/stats');
+        // Fetch dashboard stats + profile in parallel
+        const [statsRes, profileRes] = await Promise.all([
+          fetch('/api/supplier/stats'),
+          fetch('/api/supplier/profile'),
+        ]);
+
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          setProfile({
+            kontaktEmail: profileData.kontaktEmail || null,
+            telefon: profileData.telefon || null,
+            minOrderBottles: profileData.minOrderBottles ?? null,
+            minOrderValueSek: profileData.minOrderValueSek ?? null,
+            paymentTerms: profileData.paymentTerms || null,
+          });
+        }
+
         if (statsRes.ok) {
           const statsData = await statsRes.json();
           setStats(statsData);
@@ -144,6 +182,24 @@ export default function SupplierDashboard() {
 
   const hasActivity = stats && (stats.totalWines > 0 || stats.pendingRequests > 0 || stats.activeOffers > 0);
 
+  // Onboarding completion checks
+  const onboardingComplete = {
+    account: true,
+    contact: !!(profile?.kontaktEmail && profile?.telefon),
+    terms: !!((profile?.minOrderBottles || profile?.minOrderValueSek) && profile?.paymentTerms),
+    catalog: (stats?.totalWines || 0) > 0,
+    request: (stats?.answeredAssignments || 0) > 0,
+  };
+  const allOnboardingComplete = Object.values(onboardingComplete).every(Boolean);
+  const showOnboarding = !onboardingDismissed && !allOnboardingComplete;
+
+  const handleDismissOnboarding = () => {
+    setOnboardingDismissed(true);
+    try {
+      localStorage.setItem('winefeed-onboarding-dismissed', 'true');
+    } catch {}
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header with Quick Stats */}
@@ -182,6 +238,13 @@ export default function SupplierDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Onboarding Checklist — top of page for new suppliers */}
+      {showOnboarding && (
+        <div className="mb-8">
+          <OnboardingProgress stats={stats} profile={profile} onDismiss={handleDismissOnboarding} />
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -257,11 +320,6 @@ export default function SupplierDashboard() {
 
           {/* Matching Suggestions */}
           <MatchingSuggestions limit={3} />
-
-          {/* Onboarding Progress - shown for new users */}
-          {!hasActivity && (
-            <OnboardingProgress stats={stats} />
-          )}
 
           {/* Recent Wines */}
           {recentWines.length > 0 && (
@@ -534,7 +592,7 @@ function QuickAction({ title, description, href, icon: Icon, done }: QuickAction
 
 // Onboarding steps configuration
 interface OnboardingStep {
-  id: string;
+  id: 'account' | 'contact' | 'terms' | 'catalog' | 'request';
   title: string;
   description: string;
   href: string;
@@ -550,6 +608,20 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: Building2,
   },
   {
+    id: 'contact',
+    title: 'Fyll i kontaktuppgifter',
+    description: 'E-post och telefonnummer',
+    href: '/supplier/profile',
+    icon: Phone,
+  },
+  {
+    id: 'terms',
+    title: 'Ange ordervillkor',
+    description: 'Minsta order och betalningsvillkor',
+    href: '/supplier/profile',
+    icon: Settings,
+  },
+  {
     id: 'catalog',
     title: 'Ladda upp vinkatalog',
     description: 'Importera dina viner via Excel eller CSV',
@@ -558,40 +630,57 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 'request',
-    title: 'Svara på förfrågan',
+    title: 'Svara på en förfrågan',
     description: 'Besvara din första restaurangförfrågan',
     href: '/supplier/requests',
     icon: Inbox,
-  },
-  {
-    id: 'offer',
-    title: 'Skicka offert',
-    description: 'Skicka ditt första prisförslag',
-    href: '/supplier/offers',
-    icon: FileText,
   },
 ];
 
 interface OnboardingProgressProps {
   stats: DashboardStats | null;
+  profile: OnboardingProfile | null;
+  onDismiss: () => void;
 }
 
-function OnboardingProgress({ stats }: OnboardingProgressProps) {
-  // Calculate which steps are done
-  const completedSteps = {
-    account: true, // Always done if they're logged in
+function OnboardingProgress({ stats, profile, onDismiss }: OnboardingProgressProps) {
+  const completedSteps: Record<OnboardingStep['id'], boolean> = {
+    account: true,
+    contact: !!(profile?.kontaktEmail && profile?.telefon),
+    terms: !!((profile?.minOrderBottles || profile?.minOrderValueSek) && profile?.paymentTerms),
     catalog: (stats?.totalWines || 0) > 0,
-    request: false, // Would need backend tracking
-    offer: (stats?.activeOffers || 0) > 0 || (stats?.acceptedOffers || 0) > 0,
+    request: (stats?.answeredAssignments || 0) > 0,
   };
 
-  // Find current step (first incomplete step)
   const currentStepIndex = ONBOARDING_STEPS.findIndex(
-    step => !completedSteps[step.id as keyof typeof completedSteps]
+    step => !completedSteps[step.id]
   );
 
   const completedCount = Object.values(completedSteps).filter(Boolean).length;
+  const allComplete = completedCount === ONBOARDING_STEPS.length;
   const progressPercent = (completedCount / ONBOARDING_STEPS.length) * 100;
+
+  // All-done banner
+  if (allComplete) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <CheckCircle className="h-6 w-6 text-green-600" />
+          <div>
+            <p className="font-semibold text-green-800">Allt klart!</p>
+            <p className="text-sm text-green-700">Du har slutfört alla onboarding-steg.</p>
+          </div>
+        </div>
+        <button
+          onClick={onDismiss}
+          className="text-green-600 hover:text-green-800 p-1 rounded-lg hover:bg-green-100 transition-colors"
+          aria-label="Stäng"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -600,9 +689,18 @@ function OnboardingProgress({ stats }: OnboardingProgressProps) {
           <Zap className="h-5 w-5 text-amber-500" />
           Kom igång
         </h2>
-        <span className="text-sm text-gray-500">
-          {completedCount} av {ONBOARDING_STEPS.length} klara
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">
+            {completedCount} av {ONBOARDING_STEPS.length} klara
+          </span>
+          <button
+            onClick={onDismiss}
+            className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="Dölj checklista"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Progress bar */}
@@ -618,7 +716,7 @@ function OnboardingProgress({ stats }: OnboardingProgressProps) {
       {/* Steps list */}
       <div className="space-y-1">
         {ONBOARDING_STEPS.map((step, index) => {
-          const isDone = completedSteps[step.id as keyof typeof completedSteps];
+          const isDone = completedSteps[step.id];
           const isCurrent = index === currentStepIndex;
           const Icon = step.icon;
 
