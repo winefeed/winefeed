@@ -23,6 +23,14 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { checkRateLimit, getRateLimitType, getRateLimitHeaders } from '@/lib/rate-limit';
 
 export async function middleware(request: NextRequest) {
+  // SEO: Permanent redirect non-www → www
+  const host = request.headers.get('host') ?? '';
+  if (host === 'winefeed.se') {
+    const url = new URL(request.url);
+    url.host = 'www.winefeed.se';
+    return NextResponse.redirect(url, 301);
+  }
+
   const { pathname } = request.nextUrl;
 
   // Development/Test: Allow header-based auth for smoke tests

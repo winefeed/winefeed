@@ -9,7 +9,7 @@ import { MetadataRoute } from 'next';
 import { getAccessAdmin } from '@/lib/supabase-server';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://winefeed.se';
+  const baseUrl = 'https://www.winefeed.se';
   const accessBaseUrl = process.env.NEXT_PUBLIC_APP_URL || baseUrl;
 
   // Static pages
