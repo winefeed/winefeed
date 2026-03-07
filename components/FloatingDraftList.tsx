@@ -21,6 +21,7 @@ const COLOR_LABELS: Record<string, { label: string; color: string }> = {
   sparkling: { label: 'Mouss.', color: 'bg-yellow-300' },
   orange: { label: 'Orange', color: 'bg-orange-400' },
   fortified: { label: 'Stark', color: 'bg-amber-600' },
+  spirit: { label: 'Sprit', color: 'bg-violet-500' },
 };
 
 export function FloatingDraftList() {

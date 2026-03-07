@@ -109,6 +109,7 @@ const COLOR_LABELS: Record<string, { label: string; color: string }> = {
   sparkling: { label: 'Mousserande', color: 'bg-yellow-300' },
   orange: { label: 'Orange', color: 'bg-orange-400' },
   fortified: { label: 'Starkvin', color: 'bg-amber-700' },
+  spirit: { label: 'Sprit', color: 'bg-violet-500' },
 };
 
 export default function AdminSupplierDetailPage() {

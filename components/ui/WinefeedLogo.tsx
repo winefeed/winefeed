@@ -2,7 +2,7 @@
  * Winefeed Logo Component
  *
  * CSS-rendered diamond logo matching grafisk profil
- * Colors: Crème #E8DFC4, Rosé #E8B4B8, Vinröd #7A1B2D
+ * Colors: Crème #E8DFC4, Rosé #E8B4B8, Vinröd #722F37
  */
 
 import { cn } from '@/lib/utils';
@@ -42,13 +42,13 @@ export function WinefeedLogo({
         />
         <span
           className={cn(s.diamond, 'rotate-45')}
-          style={{ backgroundColor: '#7A1B2D' }}
+          style={{ backgroundColor: '#722F37' }}
         />
       </div>
 
       {showText && (
         <div>
-          <span className={cn(s.text, 'font-sans')} style={{ color: '#7A1B2D' }}>
+          <span className={cn(s.text, 'font-sans')} style={{ color: '#722F37' }}>
             <span className="font-bold">wine</span>
             <span className="font-light">feed</span>
           </span>
@@ -79,7 +79,7 @@ export function WinefeedLogoDiamonds({ className }: { className?: string }) {
       />
       <span
         className="w-3 h-3 rotate-45"
-        style={{ backgroundColor: '#7A1B2D' }}
+        style={{ backgroundColor: '#722F37' }}
       />
     </div>
   );

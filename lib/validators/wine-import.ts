@@ -9,7 +9,7 @@
 // Types
 // ============================================================================
 
-export type WineColor = 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange' | 'alcohol_free';
+export type WineColor = 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange' | 'alcohol_free' | 'spirit';
 export type PackagingType = 'bottle' | 'keg' | 'bag_in_box' | 'can' | 'tetra' | 'other';
 export type WineLocation = 'domestic' | 'eu' | 'non_eu';
 
@@ -85,7 +85,7 @@ export interface ImportPreview {
 // Constants
 // ============================================================================
 
-const VALID_COLORS: WineColor[] = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange', 'alcohol_free'];
+const VALID_COLORS: WineColor[] = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange', 'alcohol_free', 'spirit'];
 
 // Color aliases for fuzzy matching
 const COLOR_ALIASES: Record<string, WineColor> = {
@@ -135,6 +135,22 @@ const COLOR_ALIASES: Record<string, WineColor> = {
   'armagnac': 'fortified',
   'cognac': 'fortified',
   'grappa': 'fortified',
+
+  'spirit': 'spirit',
+  'sprit': 'spirit',
+  'spirits': 'spirit',
+  'pisco': 'spirit',
+  'rum': 'spirit',
+  'whisky': 'spirit',
+  'whiskey': 'spirit',
+  'gin': 'spirit',
+  'vodka': 'spirit',
+  'tequila': 'spirit',
+  'mezcal': 'spirit',
+  'aquavit': 'spirit',
+  'akvavit': 'spirit',
+  'likör': 'spirit',
+  'liqueur': 'spirit',
 
   'orange': 'orange',
 

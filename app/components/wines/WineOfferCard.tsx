@@ -19,7 +19,7 @@ export interface WineOffer {
     region: string;
     vintage: string | null;
     grape: string;
-    color: 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange';
+    color: 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange' | 'spirit';
     organic?: boolean;
     biodynamic?: boolean;
   };
@@ -53,6 +53,7 @@ const colorLabels: Record<string, string> = {
   sparkling: 'Mousserande',
   fortified: 'Starkvin',
   orange: 'Orange',
+  spirit: 'Sprit',
 };
 
 // Color badge styles
@@ -63,6 +64,7 @@ const colorStyles: Record<string, string> = {
   sparkling: 'bg-amber-100 text-amber-800',
   fortified: 'bg-purple-100 text-purple-800',
   orange: 'bg-orange-100 text-orange-800',
+  spirit: 'bg-violet-100 text-violet-800',
 };
 
 export function WineOfferCard({

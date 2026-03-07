@@ -52,6 +52,7 @@ const COLOR_OPTIONS = [
   { value: 'sparkling', label: 'Mousserande' },
   { value: 'fortified', label: 'Starkvin' },
   { value: 'orange', label: 'Orange' },
+  { value: 'spirit', label: 'Sprit' },
 ];
 
 const BOTTLE_SIZES = [

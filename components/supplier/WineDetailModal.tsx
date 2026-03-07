@@ -24,6 +24,7 @@ const colorConfig: Record<string, { label: string; bg: string; text: string }> =
   sparkling: { label: 'Mousserande', bg: 'bg-amber-100', text: 'text-amber-800' },
   fortified: { label: 'Starkvin', bg: 'bg-purple-100', text: 'text-purple-800' },
   orange: { label: 'Orange', bg: 'bg-orange-100', text: 'text-orange-800' },
+  spirit: { label: 'Sprit', bg: 'bg-violet-100', text: 'text-violet-800' },
 };
 
 export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDetailModalProps) {
@@ -211,6 +212,7 @@ export function WineDetailModal({ wine, onClose, onUpdate, supplierId }: WineDet
                     <option value="sparkling">Mousserande</option>
                     <option value="orange">Orange</option>
                     <option value="fortified">Starkvin</option>
+                    <option value="spirit">Sprit</option>
                   </select>
                 ) : (
                   <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${color.bg} ${color.text}`}>

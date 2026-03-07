@@ -115,7 +115,7 @@ export function Sidebar({ sections, userEmail, userRoles, isAdmin = false, brand
             <div className="flex items-center gap-3">
               <WinefeedLogoDiamonds />
               <div>
-                <h2 className="text-lg tracking-tight text-foreground" style={{ color: '#7A1B2D' }}>
+                <h2 className="text-lg tracking-tight text-foreground" style={{ color: '#722F37' }}>
                   <span className="font-bold">wine</span><span className="font-light">feed</span>
                 </h2>
                 <p className="text-[11px] text-muted-foreground truncate max-w-[140px]">

@@ -49,7 +49,7 @@ export default function OGImage() {
             style={{
               width: "16px",
               height: "16px",
-              backgroundColor: "#7A1B2D",
+              backgroundColor: "#722F37",
               transform: "rotate(45deg)",
               marginRight: "16px",
             }}
@@ -57,7 +57,7 @@ export default function OGImage() {
           <span
             style={{
               fontSize: "32px",
-              color: "#7A1B2D",
+              color: "#722F37",
               fontWeight: 700,
             }}
           >

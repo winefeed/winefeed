@@ -64,6 +64,7 @@ const COLOR_LABELS: Record<string, { label: string; color: string }> = {
   orange: { label: 'Orange', color: 'bg-orange-400' },
   alcohol_free: { label: 'Alkoholfritt', color: 'bg-teal-400' },
   fortified: { label: 'Starkvin', color: 'bg-amber-700' },
+  spirit: { label: 'Sprit', color: 'bg-violet-500' },
 };
 
 function AdminWinesPageContent() {

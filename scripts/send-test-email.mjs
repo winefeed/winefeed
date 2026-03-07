@@ -7,7 +7,7 @@ dotenv.config({ path: join(__dirname, '..', '.env.vercel') });
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const WINE = '#7A1B2D';
+const WINE = '#722F37';
 const ROSE = '#E8B4B8';
 const CREME = '#E8DFC4';
 
@@ -26,8 +26,8 @@ const html = `
       <div style="display: inline-block;">
         <span style="display: inline-block; width: 12px; height: 12px; background: #E8DFC4; transform: rotate(45deg); margin-right: -4px;"></span>
         <span style="display: inline-block; width: 14px; height: 14px; background: #E8B4B8; transform: rotate(45deg); margin-right: -4px; opacity: 0.85;"></span>
-        <span style="display: inline-block; width: 12px; height: 12px; background: #7A1B2D; transform: rotate(45deg); margin-right: 12px;"></span>
-        <span style="font-size: 28px; color: #7A1B2D; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; vertical-align: middle;">
+        <span style="display: inline-block; width: 12px; height: 12px; background: #722F37; transform: rotate(45deg); margin-right: 12px;"></span>
+        <span style="font-size: 28px; color: #722F37; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; vertical-align: middle;">
           <span style="font-weight: 700;">wine</span><span style="font-weight: 300;">feed</span>
         </span>
       </div>
@@ -73,7 +73,7 @@ const html = `
 
     <!-- Footer -->
     <div style="background: ${CREME}; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
-      <p style="margin: 0; color: #7A1B2D; font-size: 12px; font-weight: 500;">Winefeed – Din B2B-marknadsplats för vin</p>
+      <p style="margin: 0; color: #722F37; font-size: 12px; font-weight: 500;">Winefeed – Din B2B-marknadsplats för vin</p>
     </div>
   </div>
 </body>

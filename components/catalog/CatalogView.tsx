@@ -42,6 +42,7 @@ const COLOR_LABELS: Record<string, string> = {
   sparkling: 'Mousserande',
   fortified: 'Starkvin',
   orange: 'Orange',
+  spirit: 'Sprit',
 };
 
 const COLOR_STYLES: Record<string, string> = {
@@ -51,6 +52,7 @@ const COLOR_STYLES: Record<string, string> = {
   sparkling: 'bg-blue-100 text-blue-700',
   fortified: 'bg-amber-100 text-amber-700',
   orange: 'bg-orange-100 text-orange-700',
+  spirit: 'bg-violet-100 text-violet-700',
 };
 
 export default function CatalogView({ supplierName, supplierType, wines }: CatalogViewProps) {

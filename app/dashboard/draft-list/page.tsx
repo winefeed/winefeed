@@ -24,6 +24,7 @@ const COLOR_LABELS: Record<string, { label: string; bg: string; text: string }> 
   sparkling: { label: 'Mousserande', bg: 'bg-yellow-100', text: 'text-yellow-700' },
   orange: { label: 'Orange', bg: 'bg-orange-100', text: 'text-orange-700' },
   fortified: { label: 'Starkvin', bg: 'bg-amber-200', text: 'text-amber-800' },
+  spirit: { label: 'Sprit', bg: 'bg-violet-200', text: 'text-violet-800' },
 };
 
 export default function DraftListPage() {
