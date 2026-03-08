@@ -271,6 +271,21 @@ class OrderService {
     // Total order value = goods + shipping (for Winefeed invoicing)
     const totalOrderValueOre = totalGoodsAmountOre + shippingCostOre;
 
+    // Service fee calculation
+    // Pilot: free until 2026-07-01, then 4% (min 149 kr, max 1995 kr)
+    const PILOT_END_DATE = new Date('2026-07-01T00:00:00Z');
+    const isPilot = new Date() < PILOT_END_DATE;
+    let serviceFeeMode = 'PILOT_FREE';
+    let serviceFeeAmountOre = 0;
+
+    if (!isPilot) {
+      serviceFeeMode = 'PERCENTAGE_4';
+      const feeRaw = Math.round(totalOrderValueOre * 0.04);
+      const MIN_FEE_ORE = 14900;  // 149 kr
+      const MAX_FEE_ORE = 199500; // 1995 kr
+      serviceFeeAmountOre = Math.max(MIN_FEE_ORE, Math.min(MAX_FEE_ORE, feeRaw));
+    }
+
     // Determine initial order status based on supplier type
     // Swedish importers: require supplier confirmation before proceeding
     // EU suppliers: auto-confirmed (IOR handles fulfillment flow)
@@ -298,8 +313,8 @@ class OrderService {
         // Order value for Winefeed invoicing
         total_goods_amount_ore: totalGoodsAmountOre,
         total_order_value_ore: totalOrderValueOre,
-        service_fee_mode: 'PILOT_FREE', // No fee during pilot
-        service_fee_amount_ore: 0,
+        service_fee_mode: serviceFeeMode,
+        service_fee_amount_ore: serviceFeeAmountOre,
         // Delivery location from request
         delivery_city: deliveryCity,
         delivery_address: deliveryAddress,
