@@ -13,7 +13,7 @@
  * - name (cuvée)
  * - vintage (0 for NV)
  * - country
- * - type (color: red, white, rose, sparkling, fortified, orange)
+ * - type (color: red, white, rose, sparkling, fortified, orange, alcohol_free, spirit)
  * - volume (bottle_size_ml)
  * - price (price_ex_vat_sek in öre)
  * - quantity (stock_qty) - total bottles
@@ -30,7 +30,7 @@ import { checkActionGate, createGatedResponse } from '@/lib/feature-gates';
 import { batchTranslateToSwedish } from '@/lib/ai/translate';
 
 // Wine types that match the wine_color enum in database
-const VALID_WINE_TYPES = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange'];
+const VALID_WINE_TYPES = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange', 'alcohol_free', 'spirit'];
 
 // Map common type names to our enum values
 const WINE_TYPE_MAP: Record<string, string> = {
@@ -69,10 +69,32 @@ const WINE_TYPE_MAP: Record<string, string> = {
   'pastis': 'fortified',
   'vermouth': 'fortified',
   'vermut': 'fortified',
-  'armagnac': 'fortified',
-  'cognac': 'fortified',
-  'grappa': 'fortified',
   'orange': 'orange',
+  'spirit': 'spirit',
+  'sprit': 'spirit',
+  'spirits': 'spirit',
+  'pisco': 'spirit',
+  'rum': 'spirit',
+  'whisky': 'spirit',
+  'whiskey': 'spirit',
+  'gin': 'spirit',
+  'vodka': 'spirit',
+  'tequila': 'spirit',
+  'mezcal': 'spirit',
+  'aquavit': 'spirit',
+  'akvavit': 'spirit',
+  'likör': 'spirit',
+  'liqueur': 'spirit',
+  'armagnac': 'spirit',
+  'cognac': 'spirit',
+  'grappa': 'spirit',
+  'calvados': 'spirit',
+  'brandy': 'spirit',
+  'alcohol_free': 'alcohol_free',
+  'alkoholfri': 'alcohol_free',
+  'alkoholfritt': 'alcohol_free',
+  'non-alcoholic': 'alcohol_free',
+  '0%': 'alcohol_free',
 };
 
 interface WineImportRow {
@@ -330,7 +352,7 @@ export async function POST(
         producer: producer!,
         vintage: vintage!,
         country: country!,
-        color: type as 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange',
+        color: type as 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange' | 'alcohol_free' | 'spirit',
         bottle_size_ml: volume ?? 750,
         price_ex_vat_sek: price!,
         stock_qty: quantity ?? 0,
