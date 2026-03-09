@@ -16,5 +16,8 @@
   }, {
     "path": "/api/cron/food-trends",
     "schedule": "0 6 1 * *"
+  }, {
+    "path": "/api/cron/daily-digest",
+    "schedule": "30 4 * * *"
   }]
 }

@@ -9,6 +9,7 @@
  */
 
 import { getAppUrl } from './email-service';
+import type { DigestData } from './daily-digest-service';
 
 // ============================================================================
 // Shared Winefeed email header & footer (v8 — diamonds + text logo)
@@ -1708,6 +1709,248 @@ Har du redan hanterat denna offert? Ignorera detta meddelande.
 
 ---
 Winefeed - Din B2B-marknadsplats för vin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+// ============================================================================
+// WINEFEED — Daily Digest Email (Morgonrapport)
+// ============================================================================
+
+/** Convert markdown-style bullet lines ("- text") to HTML <ul><li> */
+function bulletsToHtml(text: string, color: string = '#4b5563'): string {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const bullets = lines.filter(l => l.startsWith('- ') || l.startsWith('* '));
+
+  if (bullets.length === 0) {
+    // No bullets found — render as paragraph
+    return `<p style="margin: 0; color: ${color}; font-size: 14px; line-height: 1.65;">${text}</p>`;
+  }
+
+  const items = bullets.map(b =>
+    `<li style="margin-bottom: 6px; color: ${color}; font-size: 14px; line-height: 1.55;">${b.replace(/^[-*]\s+/, '')}</li>`
+  ).join('');
+
+  return `<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">${items}</ul>`;
+}
+
+function kpiBox(label: string, value: number | string, color: string = '#722F37'): string {
+  return `
+  <td style="width: 33%; text-align: center; padding: 12px 8px;">
+    <div style="font-size: 28px; font-weight: 700; color: ${color}; line-height: 1.2;">${value}</div>
+    <div style="font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">${label}</div>
+  </td>`;
+}
+
+function actionIcon(type: 'followup' | 'reminder' | 'onboarding'): string {
+  switch (type) {
+    case 'followup': return '&#9888;&#65039;';
+    case 'reminder': return '&#128276;';
+    case 'onboarding': return '&#127828;';
+  }
+}
+
+export function dailyDigestEmail(data: DigestData): { subject: string; html: string; text: string } {
+  const today = new Date().toLocaleDateString('sv-SE', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const subject = `Morgonrapport ${new Date().toLocaleDateString('sv-SE')} — ${data.newOrders.length} ordrar, ${data.newOffers.length} offerter`;
+
+  // --- Actions section ---
+  const actionsHtml = data.actions.length > 0
+    ? `
+    <div style="margin: 24px 0;">
+      <h3 style="color: #722F37; font-size: 16px; font-weight: 600; margin: 0 0 12px 0; border-bottom: 2px solid #E8B4B8; padding-bottom: 8px;">Actions idag</h3>
+      ${data.actions.map(a => `
+      <div style="padding: 10px 0; border-bottom: 1px solid #f3f4f6;">
+        <span style="margin-right: 8px; font-size: 14px;">${actionIcon(a.type)}</span>
+        <span style="color: #4b5563; font-size: 14px; line-height: 1.5;">${a.message}</span>
+      </div>`).join('')}
+    </div>`
+    : `<div style="margin: 24px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; text-align: center; color: #166534; font-size: 14px;">Inga actions idag — allt ser bra ut!</div>`;
+
+  // --- Activity section ---
+  const activityRows: string[] = [];
+
+  if (data.newOrders.length > 0) {
+    activityRows.push(`<tr><td style="padding: 8px 12px; font-weight: 600; color: #1f2937;">Nya ordrar</td><td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #722F37;">${data.newOrders.length}</td></tr>`);
+    for (const o of data.newOrders.slice(0, 5)) {
+      activityRows.push(`<tr><td colspan="2" style="padding: 4px 12px 4px 24px; font-size: 13px; color: #6b7280;">${o.restaurant_name} &larr; ${o.supplier_name} (${o.status})</td></tr>`);
+    }
+  }
+
+  if (data.newOffers.length > 0) {
+    activityRows.push(`<tr><td style="padding: 8px 12px; font-weight: 600; color: #1f2937;">Nya offerter</td><td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #722F37;">${data.newOffers.length}</td></tr>`);
+    for (const o of data.newOffers.slice(0, 5)) {
+      activityRows.push(`<tr><td colspan="2" style="padding: 4px 12px 4px 24px; font-size: 13px; color: #6b7280;">${o.supplier_name} &rarr; ${o.restaurant_name}</td></tr>`);
+    }
+  }
+
+  if (data.newRequests.length > 0) {
+    activityRows.push(`<tr><td style="padding: 8px 12px; font-weight: 600; color: #1f2937;">Nya förfrågningar</td><td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #722F37;">${data.newRequests.length}</td></tr>`);
+    for (const r of data.newRequests.slice(0, 5)) {
+      activityRows.push(`<tr><td colspan="2" style="padding: 4px 12px 4px 24px; font-size: 13px; color: #6b7280;">${r.restaurant_name}: ${r.fritext.substring(0, 60)}${r.fritext.length > 60 ? '...' : ''}</td></tr>`);
+    }
+  }
+
+  if (data.newWines.length > 0) {
+    activityRows.push(`<tr><td style="padding: 8px 12px; font-weight: 600; color: #1f2937;">Nya viner</td><td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #722F37;">${data.newWines.length}</td></tr>`);
+    for (const w of data.newWines.slice(0, 5)) {
+      activityRows.push(`<tr><td colspan="2" style="padding: 4px 12px 4px 24px; font-size: 13px; color: #6b7280;">${w.name} (${w.supplier_name})</td></tr>`);
+    }
+  }
+
+  if (data.newSuppliers.length > 0) {
+    activityRows.push(`<tr><td style="padding: 8px 12px; font-weight: 600; color: #1f2937;">Nya leverantörer</td><td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #722F37;">${data.newSuppliers.length}</td></tr>`);
+    for (const s of data.newSuppliers) {
+      activityRows.push(`<tr><td colspan="2" style="padding: 4px 12px 4px 24px; font-size: 13px; color: #6b7280;">${s.name}</td></tr>`);
+    }
+  }
+
+  if (data.newRestaurants.length > 0) {
+    activityRows.push(`<tr><td style="padding: 8px 12px; font-weight: 600; color: #1f2937;">Nya restauranger</td><td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #722F37;">${data.newRestaurants.length}</td></tr>`);
+    for (const r of data.newRestaurants) {
+      activityRows.push(`<tr><td colspan="2" style="padding: 4px 12px 4px 24px; font-size: 13px; color: #6b7280;">${r.name}</td></tr>`);
+    }
+  }
+
+  if (data.orderStatusChanges.length > 0) {
+    activityRows.push(`<tr><td style="padding: 8px 12px; font-weight: 600; color: #1f2937;">Statusändringar (ordrar)</td><td style="padding: 8px 12px; text-align: right; font-weight: 700; color: #722F37;">${data.orderStatusChanges.length}</td></tr>`);
+  }
+
+  const activityHtml = activityRows.length > 0
+    ? `
+    <div style="margin: 24px 0;">
+      <h3 style="color: #722F37; font-size: 16px; font-weight: 600; margin: 0 0 12px 0; border-bottom: 2px solid #E8B4B8; padding-bottom: 8px;">Senaste 24h</h3>
+      <table style="width: 100%; border-collapse: collapse;">${activityRows.join('')}</table>
+    </div>`
+    : `<div style="margin: 24px 0; padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center; color: #9ca3af; font-size: 14px;">Ingen aktivitet senaste 24h</div>`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
+
+    <h2 style="color: #722F37; margin: 0 0 6px 0; font-size: 20px; font-weight: 600;">Morgonrapport</h2>
+    <p style="color: #9ca3af; font-size: 13px; margin: 0 0 16px 0;">${today}</p>
+
+    <!-- Briefing -->
+    <div style="background: linear-gradient(135deg, rgba(114,47,55,0.06) 0%, rgba(232,223,196,0.15) 100%); border-left: 3px solid #722F37; border-radius: 0 8px 8px 0; padding: 16px 20px; margin-bottom: 24px;">
+      ${bulletsToHtml(data.briefing, '#1f2937')}
+    </div>
+
+    <!-- KPI boxes -->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+      <tr style="background: linear-gradient(135deg, rgba(232,180,184,0.12) 0%, rgba(232,223,196,0.12) 100%); border-radius: 8px;">
+        ${kpiBox('Ordrar (24h)', data.newOrders.length)}
+        ${kpiBox('Offerter (24h)', data.newOffers.length)}
+        ${kpiBox('Nya viner (24h)', data.newWines.length)}
+      </tr>
+    </table>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+      <tr style="background: linear-gradient(135deg, rgba(232,180,184,0.08) 0%, rgba(232,223,196,0.08) 100%); border-radius: 8px;">
+        ${kpiBox('Leverantörer', data.totals.suppliers, '#4b5563')}
+        ${kpiBox('Restauranger', data.totals.restaurants, '#4b5563')}
+        ${kpiBox('Viner totalt', data.totals.wines, '#4b5563')}
+      </tr>
+    </table>
+
+    ${actionsHtml}
+    ${activityHtml}
+
+    <!-- Wine Intel -->
+    <div style="margin: 24px 0;">
+      <h3 style="color: #722F37; font-size: 16px; font-weight: 600; margin: 0 0 12px 0; border-bottom: 2px solid #E8B4B8; padding-bottom: 8px;">Wine Intel</h3>
+      <div style="background: #fefce8; border-radius: 8px; padding: 16px 20px;">
+        ${bulletsToHtml(data.wineIntel, '#1f2937')}
+      </div>
+    </div>
+
+    <!-- Pipeline snapshot -->
+    <div style="margin: 24px 0;">
+      <h3 style="color: #722F37; font-size: 16px; font-weight: 600; margin: 0 0 12px 0; border-bottom: 2px solid #E8B4B8; padding-bottom: 8px;">Pipeline-snapshot</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 8px 12px; color: #4b5563;">Totalt ordrar</td>
+          <td style="padding: 8px 12px; text-align: right; font-weight: 600;">${data.totals.orders}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 8px 12px; color: #4b5563;">Totalt offerter</td>
+          <td style="padding: 8px 12px; text-align: right; font-weight: 600;">${data.totals.offers}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 8px 12px; color: #4b5563;">Leverantörer</td>
+          <td style="padding: 8px 12px; text-align: right; font-weight: 600;">${data.totals.suppliers}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 8px 12px; color: #4b5563;">Restauranger</td>
+          <td style="padding: 8px 12px; text-align: right; font-weight: 600;">${data.totals.restaurants}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 12px; color: #4b5563;">Viner i katalog</td>
+          <td style="padding: 8px 12px; text-align: right; font-weight: 600;">${data.totals.wines}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${getAppUrl('/admin')}" style="display: inline-block; background: #722F37; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(114,47,55,0.25);">
+        Öppna admin
+      </a>
+    </div>
+
+  ${winefeedEmailFooter()}
+</body>
+</html>`;
+
+  // --- Plain text version ---
+  const actionsText = data.actions.length > 0
+    ? `ACTIONS IDAG:\n${data.actions.map(a => `- ${a.message}`).join('\n')}`
+    : 'Inga actions idag.';
+
+  const activityLines: string[] = [];
+  if (data.newOrders.length > 0) activityLines.push(`Nya ordrar: ${data.newOrders.length}`);
+  if (data.newOffers.length > 0) activityLines.push(`Nya offerter: ${data.newOffers.length}`);
+  if (data.newRequests.length > 0) activityLines.push(`Nya förfrågningar: ${data.newRequests.length}`);
+  if (data.newWines.length > 0) activityLines.push(`Nya viner: ${data.newWines.length}`);
+  if (data.newSuppliers.length > 0) activityLines.push(`Nya leverantörer: ${data.newSuppliers.map(s => s.name).join(', ')}`);
+  if (data.newRestaurants.length > 0) activityLines.push(`Nya restauranger: ${data.newRestaurants.map(r => r.name).join(', ')}`);
+  if (data.orderStatusChanges.length > 0) activityLines.push(`Statusändringar: ${data.orderStatusChanges.length}`);
+
+  const text = `
+Morgonrapport — ${today}
+
+${data.briefing}
+
+SAMMANFATTNING (24h):
+Ordrar: ${data.newOrders.length} | Offerter: ${data.newOffers.length} | Nya viner: ${data.newWines.length}
+
+PIPELINE TOTALT:
+Ordrar: ${data.totals.orders} | Offerter: ${data.totals.offers} | Leverantörer: ${data.totals.suppliers} | Restauranger: ${data.totals.restaurants} | Viner: ${data.totals.wines}
+
+${actionsText}
+
+SENASTE 24H:
+${activityLines.length > 0 ? activityLines.join('\n') : 'Ingen aktivitet.'}
+
+WINE INTEL:
+${data.wineIntel}
+
+Öppna admin: ${getAppUrl('/admin')}
+
+---
+Winefeed – Din B2B-marknadsplats för vin
   `.trim();
 
   return { subject, html, text };
