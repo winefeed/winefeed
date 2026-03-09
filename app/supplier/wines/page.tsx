@@ -788,7 +788,7 @@ export default function SupplierWinesPage() {
     });
 
   const colorLabels: Record<string, string> = {
-    red: 'Rött', white: 'Vitt', rose: 'Rosé', sparkling: 'Mousserande', fortified: 'Starkvin', orange: 'Orange',
+    red: 'Rött', white: 'Vitt', rose: 'Rosé', sparkling: 'Mousserande', fortified: 'Starkvin', orange: 'Orange', spirit: 'Sprit', alcohol_free: 'Alkoholfritt',
   };
 
   const getStatusBadge = (status: string) => {

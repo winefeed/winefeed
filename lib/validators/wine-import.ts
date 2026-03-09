@@ -528,7 +528,7 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   wine_name: ['wine_name', 'wine name', 'winename', 'name', 'vinnamn', 'produkt', 'product'],
   producer: ['producer', 'producent', 'winery', 'vingård', 'chateau', 'domaine'],
   region: ['region', 'område', 'area'],
-  color: ['color', 'colour', 'färg', 'wine_type', 'vintyp'],
+  color: ['color', 'colour', 'färg', 'wine_type', 'vintyp', 'type', 'typ', 'kategori', 'category'],
   vintage: ['vintage', 'årgång', 'year', 'år'],
   grape: ['grape', 'grapes', 'druva', 'druvor', 'variety', 'varieties', 'cepage'],
   price: ['price', 'pris', 'price_per_bottle', 'bottle_price', 'flaskpris', 'sek'],

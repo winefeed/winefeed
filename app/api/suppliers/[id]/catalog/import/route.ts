@@ -325,7 +325,7 @@ function validateCatalogRow(row: Record<string, string>, rowNumber: number): Cat
   }
 
   // Parse color (wine type) - optional, defaults to 'red'
-  const validColors = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange'];
+  const validColors = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange', 'alcohol_free', 'spirit'];
   const color = row.color?.trim().toLowerCase();
   if (color && !validColors.includes(color)) {
     throw new Error(`Row ${rowNumber}: Invalid color '${row.color}' (must be: ${validColors.join(', ')})`);
