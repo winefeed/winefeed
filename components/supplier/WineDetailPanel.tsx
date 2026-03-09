@@ -58,6 +58,7 @@ const COLOR_OPTIONS = [
 const BOTTLE_SIZES = [
   { value: 375, label: '375 ml (halv)' },
   { value: 500, label: '500 ml' },
+  { value: 700, label: '700 ml (sprit)' },
   { value: 750, label: '750 ml (standard)' },
   { value: 1500, label: '1500 ml (magnum)' },
 ];
