@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Search, Wine, MapPin, Sparkles } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, Wine, MapPin } from 'lucide-react';
 
 // Wine type chips — matches database enum (wine_color)
 const WINE_TYPES = [
@@ -46,21 +46,22 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
     });
   };
 
-  const placeholderText = 'Beskriv vad du söker... t.ex. Italienskt rött till lamm';
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Main free-text input */}
+      {/* Main search input */}
       <div className="relative">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
           <Search className="h-5 w-5" />
         </div>
-        <textarea
+        <input
+          ref={inputRef}
+          type="text"
           value={freeText}
           onChange={(e) => setFreeText(e.target.value)}
-          placeholder={placeholderText}
-          className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none min-h-[48px]"
-          rows={1}
+          placeholder='T.ex. "Italienskt rött till lamm" eller "12 Ripasso under 150 kr"'
+          className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
         />
       </div>
 
@@ -70,7 +71,8 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
           <Wine className="h-4 w-4" />
           Vintyp
         </label>
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:overflow-visible sm:flex-wrap sm:mx-0 sm:px-0">
+        <div className="relative">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:overflow-visible sm:flex-wrap sm:mx-0 sm:px-0 scrollbar-hide [mask-image:linear-gradient(to_right,black_85%,transparent)] sm:[mask-image:none]">
           {WINE_TYPES.map((type) => (
             <button
               key={type.value}
@@ -82,10 +84,11 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1.5 ${type.dotColor}`} />
+              <span className={`inline-block w-3 h-3 rounded-full mr-1.5 ${type.dotColor}`} />
               {type.label}
             </button>
           ))}
+        </div>
         </div>
       </div>
 
@@ -139,8 +142,8 @@ export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: Free
           </>
         ) : (
           <>
-            <Sparkles className="h-5 w-5" />
-            Visa förslag
+            <Search className="h-5 w-5" />
+            Sök viner
           </>
         )}
       </button>

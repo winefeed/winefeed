@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FreeTextEntry } from '@/components/rfq/FreeTextEntry';
-import { ChevronDown, ChevronUp, Globe2, TrendingUp, Menu, Zap } from 'lucide-react';
+import { ChevronDown, ChevronUp, Globe2, TrendingUp, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function NewRequestPage() {
@@ -12,9 +12,7 @@ export default function NewRequestPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [defaultDeliveryCity, setDefaultDeliveryCity] = useState('');
-  const [quickOrderText, setQuickOrderText] = useState('');
-  const [quickOrderLoading, setQuickOrderLoading] = useState(false);
-  const [quickOrderError, setQuickOrderError] = useState<string | null>(null);
+
 
   // Fetch user's default delivery city from profile
   useEffect(() => {
@@ -38,20 +36,54 @@ export default function NewRequestPage() {
     window.dispatchEvent(new Event('openMobileMenu'));
   };
 
+  // Detect if text contains specific order details (quantity, price, city)
+  const looksLikeQuickOrder = (text: string): boolean => {
+    if (!text) return false;
+    const hasNumber = /\d+\s*(fl|flaskor|st|kartong)/i.test(text);
+    const hasPrice = /\d+\s*(kr|sek|kronor)|under\s+\d+/i.test(text);
+    return hasNumber || hasPrice;
+  };
+
   const handleSubmit = async (data: { freeText: string; wineType: string; deliveryCity?: string }) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Build request for suggestions API
-      // Note: We don't require budget/quantity here - just get initial suggestions
+      // Smart routing: if text contains quantities/prices, use quick-order API for parsing
+      if (looksLikeQuickOrder(data.freeText)) {
+        const response = await fetch('/api/quick-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: data.freeText }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Något gick fel');
+        }
+
+        const result = await response.json();
+
+        sessionStorage.setItem('latest-suggestions', JSON.stringify(result.suggestions));
+        sessionStorage.setItem('rfq-draft', JSON.stringify({
+          freeText: data.freeText,
+          wineType: result.parsed?.wine_type || data.wineType,
+          deliveryCity: result.parsed?.delivery_city || data.deliveryCity,
+          budget: result.parsed?.budget_max || null,
+          quantity: result.parsed?.quantity || null,
+        }));
+
+        router.push(`/dashboard/results/${result.request_id}`);
+        return;
+      }
+
+      // Standard search flow
       const requestData = {
         description: data.freeText || undefined,
         fritext: data.freeText || undefined,
         color: data.wineType !== 'all' ? data.wineType : undefined,
         leverans_ort: data.deliveryCity || undefined,
-        // Set reasonable defaults for initial search (these can be refined later)
-        budget_max: 500, // Default max to get a broad range
+        budget_max: 500,
       };
 
       const response = await fetch('/api/suggest', {
@@ -67,16 +99,14 @@ export default function NewRequestPage() {
 
       const result = await response.json();
 
-      // Store the draft data for the results page
       sessionStorage.setItem('rfq-draft', JSON.stringify({
         freeText: data.freeText,
         wineType: data.wineType,
         deliveryCity: data.deliveryCity,
-        budget: null, // Will be set on results page
-        quantity: null, // Will be set on results page
+        budget: null,
+        quantity: null,
       }));
 
-      // Store suggestions for display
       sessionStorage.setItem('latest-suggestions', JSON.stringify(result.suggestions));
       sessionStorage.setItem('latest-search-params', JSON.stringify({
         freeText: data.freeText,
@@ -84,7 +114,6 @@ export default function NewRequestPage() {
         deliveryCity: data.deliveryCity,
       }));
 
-      // Navigate to results
       router.push(`/dashboard/results/${result.request_id}`);
     } catch (err: any) {
       console.error('Error fetching suggestions:', err);
@@ -102,44 +131,6 @@ export default function NewRequestPage() {
     };
   }, []);
 
-  const handleQuickOrder = async () => {
-    if (!quickOrderText.trim()) return;
-    setQuickOrderLoading(true);
-    setQuickOrderError(null);
-
-    try {
-      const response = await fetch('/api/quick-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: quickOrderText.trim() }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Något gick fel');
-      }
-
-      const result = await response.json();
-
-      // Store suggestions + draft for results page (same as normal search)
-      sessionStorage.setItem('latest-suggestions', JSON.stringify(result.suggestions));
-      sessionStorage.setItem('rfq-draft', JSON.stringify({
-        freeText: quickOrderText.trim(),
-        wineType: result.parsed?.wine_type || 'all',
-        deliveryCity: result.parsed?.delivery_city || '',
-        budget: result.parsed?.budget_max || null,
-        quantity: result.parsed?.quantity || null,
-      }));
-
-      // Navigate to results page — user picks wines before sending
-      router.push(`/dashboard/results/${result.request_id}`);
-    } catch (err: any) {
-      console.error('Quick order error:', err);
-      setQuickOrderError(err.message || 'Något gick fel. Försök igen.');
-    } finally {
-      setQuickOrderLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50">
@@ -179,9 +170,9 @@ export default function NewRequestPage() {
           </div>
         </div>
 
-        {/* Wave Divider */}
-        <div className="relative h-4 sm:h-8">
-          <svg className="absolute bottom-0 w-full h-4 sm:h-8" preserveAspectRatio="none" viewBox="0 0 1440 54">
+        {/* Wave Divider — hidden on mobile for tighter layout */}
+        <div className="relative hidden sm:block h-8">
+          <svg className="absolute bottom-0 w-full h-8" preserveAspectRatio="none" viewBox="0 0 1440 54">
             <path fill="white" d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,21,1320,10.7L1440,0L1440,54L1320,54C1200,54,960,54,720,54C480,54,240,54,120,54L0,54Z"></path>
           </svg>
         </div>
@@ -209,41 +200,6 @@ export default function NewRequestPage() {
               )}
             </div>
           </div>
-        </div>
-
-        {/* Snabbbeställning — för den som vet vad hen vill ha */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="h-4 w-4 text-primary" />
-            <p className="text-sm font-medium text-gray-900">Vet du redan vad du vill ha?</p>
-          </div>
-          <textarea
-            value={quickOrderText}
-            onChange={(e) => setQuickOrderText(e.target.value)}
-            placeholder='T.ex. "12 flaskor Ripasso under 150 kr, leverans Stockholm denna vecka"'
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm resize-none focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
-            rows={2}
-          />
-          {quickOrderError && (
-            <p className="text-xs text-red-600 mt-1">{quickOrderError}</p>
-          )}
-          <button
-            onClick={handleQuickOrder}
-            disabled={quickOrderLoading || !quickOrderText.trim()}
-            className="mt-2 w-full py-3 bg-primary text-white rounded-xl font-medium text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-          >
-            {quickOrderLoading ? (
-              <>
-                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Skickar...
-              </>
-            ) : (
-              'Skicka direkt till leverantörer'
-            )}
-          </button>
-          <p className="text-xs text-gray-400 mt-2 text-center">
-            AI:n tolkar din text och skapar en komplett förfrågan
-          </p>
         </div>
 
         {/* Feature Cards Grid — hidden on mobile */}

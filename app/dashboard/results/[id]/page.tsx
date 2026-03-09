@@ -610,6 +610,7 @@ export default function ResultsPage() {
               <button
                 onClick={handleRequestConfirmation}
                 disabled={draftList.items.length === 0}
+                title={draftList.items.length === 0 ? 'Välj minst ett vin' : 'Skicka förfrågan'}
                 className="px-4 py-2 bg-primary-foreground text-primary rounded-lg hover:bg-primary-foreground/90 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
               >
                 <Send className="h-4 w-4" />
@@ -713,10 +714,6 @@ export default function ResultsPage() {
             quantity={requestedQuantity}
             onBudgetChange={(budget) => {
               setBudgetMax(budget);
-              // Auto-enable "within budget" filter when budget is selected
-              if (budget) {
-                setQuickFilters(f => ({ ...f, withinBudget: true }));
-              }
             }}
             onQuantityChange={setRequestedQuantity}
             deliveryCity={deliveryCity}
@@ -814,14 +811,14 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        {/* Advanced Filter Section — hidden on mobile */}
-        <div className="hidden md:block mb-6">
+        {/* Advanced Filter Section — collapsible on all screens */}
+        <div className="mb-6">
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:bg-accent transition-colors"
           >
             <Filter className="h-4 w-4" />
-            <span className="font-medium">Fler filter & sortering</span>
+            <span className="font-medium text-sm sm:text-base">Filter & sortering</span>
             {activeFilterCount > 0 && (
               <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
                 {activeFilterCount}
@@ -832,7 +829,7 @@ export default function ResultsPage() {
 
           {showFilters && (
             <div className="mt-4 p-4 bg-card border border-border rounded-lg">
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
                 {/* Min Price */}
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-1">
@@ -1129,170 +1126,74 @@ export default function ResultsPage() {
 
                     return (
                       <div className="mb-6 p-4 rounded-xl border bg-muted/30 border-border">
-                        {/* MOQ Status Banner - 3 states: Red (needs action), Yellow (adjusted), Green (in list) */}
-                        {!originalMeetsMin && (
-                          <>
-                            {/* STATE 1: RED - Below minimum, needs user action */}
-                            {isBelowMoq && !hasUserAdjusted && (
-                              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <div className="flex items-start gap-3">
-                                  <div className="p-1.5 bg-red-100 rounded-full">
-                                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <p className="text-sm font-medium text-red-800">
-                                      Under minsta order
-                                    </p>
-                                    <p className="text-xs text-red-600 mt-0.5">
-                                      Du sökte {originalQty} fl, men minimum är {moq > 0 ? `${moq} fl` : ''}{moq > 0 && minValueSek != null ? ' eller ' : ''}{minValueSek != null ? `${minValueSek.toLocaleString('sv-SE')} kr` : ''}.
-                                    </p>
-                                    {moq > 0 && (
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleAdjustToMoq(suggestion.wine.id, moq);
-                                        }}
-                                        className="mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors"
-                                      >
-                                        Justera till {moq} fl
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
+                        {/* Compact MOQ status — single inline row */}
+                        {isBelowMoq && !hasUserAdjusted && (
+                          <div className="mb-3 flex items-center gap-2 p-2.5 bg-red-50 border border-red-200 rounded-lg">
+                            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                            <p className="text-xs text-red-700 flex-1">
+                              Under minimum ({moq > 0 ? `${moq} fl` : ''}{moq > 0 && minValueSek != null ? ' / ' : ''}{minValueSek != null ? `${minValueSek.toLocaleString('sv-SE')} kr` : ''})
+                            </p>
+                            {moq > 0 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAdjustToMoq(suggestion.wine.id, moq);
+                                }}
+                                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors flex-shrink-0"
+                              >
+                                Justera till {moq} fl
+                              </button>
                             )}
-
-                            {/* STATE 2: YELLOW - User has adjusted to MOQ */}
-                            {hasUserAdjusted && !isInDraftList && (
-                              <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                                <div className="flex items-start gap-3">
-                                  <div className="p-1.5 bg-amber-100 rounded-full">
-                                    <CheckCircle2 className="h-4 w-4 text-amber-600" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <p className="text-sm font-medium text-amber-800">
-                                      Justerat till minsta order
-                                    </p>
-                                    <p className="text-xs text-amber-600 mt-0.5">
-                                      Du sökte {originalQty} fl → ändrat till {currentQty} fl
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* STATE 3: GREEN - In draft list */}
-                            {isInDraftList && (
-                              <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <div className="flex items-start gap-3">
-                                  <div className="p-1.5 bg-green-100 rounded-full">
-                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <p className="text-sm font-medium text-green-800">
-                                      I din lista
-                                    </p>
-                                    <p className="text-xs text-green-600 mt-0.5">
-                                      {currentQty} fl tillagda
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </>
+                          </div>
                         )}
-
-                        {/* Also show green banner if in list but no minimum issue */}
-                        {isInDraftList && originalMeetsMin && (
-                          <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-start gap-3">
-                              <div className="p-1.5 bg-green-100 rounded-full">
-                                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-green-800">
-                                  I din lista
-                                </p>
-                                <p className="text-xs text-green-600 mt-0.5">
-                                  {currentQty} fl tillagda
-                                </p>
-                              </div>
-                            </div>
+                        {hasUserAdjusted && !isInDraftList && (
+                          <div className="mb-3 flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                            <CheckCircle2 className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                            <p className="text-xs text-amber-700">
+                              Justerat: {originalQty} → {currentQty} fl
+                            </p>
+                          </div>
+                        )}
+                        {isInDraftList && (
+                          <div className="mb-3 flex items-center gap-2 p-2.5 bg-green-50 border border-green-200 rounded-lg">
+                            <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                            <p className="text-xs text-green-700">{currentQty} fl i din lista</p>
                           </div>
                         )}
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-                          {/* Order Quantity - color based on state */}
-                          <div className={`text-center p-3 rounded-lg ${
-                            isInDraftList
-                              ? 'bg-green-100 border-2 border-green-300'
-                              : hasUserAdjusted
-                                ? 'bg-amber-100 border-2 border-amber-300'
-                                : isBelowMoq
-                                  ? 'bg-red-100 border-2 border-red-300'
-                                  : 'bg-green-100 border-2 border-green-300'
-                          }`}>
+                          {/* Order Quantity */}
+                          <div className="text-center p-3 rounded-lg bg-background border border-border">
                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Att beställa</p>
-                            <p className={`text-lg font-bold ${
-                              isInDraftList
-                                ? 'text-green-700'
-                                : hasUserAdjusted
-                                  ? 'text-amber-700'
-                                  : isBelowMoq
-                                    ? 'text-red-700'
-                                    : 'text-green-700'
-                            }`}>
+                            <p className="text-lg font-bold text-foreground">
                               {currentQty > 0 ? `${currentQty} fl` : '–'}
                             </p>
-                            {isInDraftList ? (
-                              <p className="text-xs text-green-600 font-medium">✓ I lista</p>
-                            ) : hasUserAdjusted ? (
-                              <p className="text-xs text-amber-600 font-medium">({originalQty} → {currentQty})</p>
-                            ) : isBelowMoq ? (
-                              <p className="text-xs text-red-600 font-medium">Under minimum</p>
-                            ) : meetsMin ? (
-                              <p className="text-xs text-green-600 font-medium">✓ OK</p>
-                            ) : null}
                           </div>
 
-                          {/* MOQ - with visual connection */}
-                          <div className={`text-center p-3 rounded-lg ${
-                            isBelowMoq ? 'bg-amber-50' : 'bg-background'
-                          }`}>
+                          {/* MOQ */}
+                          <div className="text-center p-3 rounded-lg bg-background border border-border">
                             <div className="flex items-center justify-center gap-1 mb-1">
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Minimum</p>
                               <HelpTooltip content={GLOSSARY.moq} side="bottom" />
                             </div>
                             {moq > 0 || minValueSek != null ? (
-                              <>
-                                <p className={`text-lg font-bold ${isBelowMoq ? 'text-amber-600' : 'text-foreground'}`}>
-                                  {moq > 0 ? `${moq} fl` : ''}{moq > 0 && minValueSek != null ? ' / ' : ''}{minValueSek != null ? `${minValueSek.toLocaleString('sv-SE')} kr` : ''}
-                                </p>
-                                {isBelowMoq && moq > 0 && currentQty < moq && (
-                                  <p className="text-xs text-amber-600 font-medium">+{moq - currentQty} fl till</p>
-                                )}
-                              </>
+                              <p className="text-lg font-bold text-foreground">
+                                {moq > 0 ? `${moq} fl` : ''}{moq > 0 && minValueSek != null ? ' / ' : ''}{minValueSek != null ? `${minValueSek.toLocaleString('sv-SE')} kr` : ''}
+                              </p>
                             ) : (
                               <p className="text-lg font-bold text-green-600">Ingen</p>
                             )}
                           </div>
 
                           {/* Stock */}
-                          <div className={`text-center p-3 rounded-lg ${isLowStock ? 'bg-amber-100' : 'bg-background'}`}>
+                          <div className={`text-center p-3 rounded-lg border ${isLowStock ? 'bg-amber-50 border-amber-200' : 'bg-background border-border'}`}>
                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">I lager</p>
                             {stock !== undefined && stock !== null ? (
                               stock > 0 ? (
-                                <>
-                                  <p className={`text-lg font-bold ${isLowStock ? 'text-amber-600' : 'text-green-600'}`}>
-                                    {stock} fl
-                                  </p>
-                                  {isLowStock && (
-                                    <p className="text-xs text-amber-600 font-medium mt-1">
-                                      Endast {stock} fl
-                                    </p>
-                                  )}
-                                </>
+                                <p className={`text-lg font-bold ${isLowStock ? 'text-amber-600' : 'text-green-600'}`}>
+                                  {stock} fl
+                                </p>
                               ) : (
                                 <p className="text-sm font-medium text-orange-500">Beställningsvara</p>
                               )
@@ -1301,18 +1202,18 @@ export default function ResultsPage() {
                             )}
                           </div>
 
-                          {/* Lead Time — hidden on mobile */}
-                          <div className="hidden md:block text-center p-3 bg-background rounded-lg">
+                          {/* Lead Time — visible on all screens */}
+                          <div className="text-center p-3 bg-background border border-border rounded-lg">
                             <div className="flex items-center justify-center gap-1 mb-1">
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Leveranstid</p>
                               <HelpTooltip content={GLOSSARY.leadtime} side="bottom" />
                             </div>
                             {suggestion.wine.ledtid_dagar ? (
-                              <p className="text-lg font-bold text-foreground">{suggestion.wine.ledtid_dagar} dagar</p>
+                              <p className="text-lg font-bold text-foreground">{suggestion.wine.ledtid_dagar} d</p>
                             ) : suggestion.supplier.normalleveranstid_dagar ? (
-                              <p className="text-lg font-bold text-foreground">{suggestion.supplier.normalleveranstid_dagar} dagar</p>
+                              <p className="text-lg font-bold text-foreground">{suggestion.supplier.normalleveranstid_dagar} d</p>
                             ) : (
-                              <p className="text-sm font-medium text-muted-foreground">Ej angivet</p>
+                              <p className="text-sm font-medium text-muted-foreground">–</p>
                             )}
                           </div>
                         </div>
@@ -1332,7 +1233,6 @@ export default function ResultsPage() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Reset to original quantity and mark as provorder
                               setWineQuantities(prev => ({ ...prev, [suggestion.wine.id]: originalQty }));
                               setProvorderWines(prev => {
                                 const newSet = new Set(prev);
@@ -1340,9 +1240,9 @@ export default function ResultsPage() {
                                 return newSet;
                               });
                             }}
-                            className="mt-2 text-xs text-blue-600 hover:text-blue-700 underline"
+                            className="mt-2 w-full p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium hover:bg-blue-100 transition-colors text-center"
                           >
-                            Vill du ha {originalQty} fl istället? Provorder +{suggestion.supplier.provorder_fee_sek || 500} kr
+                            Provorder: {originalQty} fl (+{suggestion.supplier.provorder_fee_sek || 500} kr avgift)
                           </button>
                         )}
 
@@ -1593,41 +1493,60 @@ export default function ResultsPage() {
                     );
                   })()}
 
-                  {/* Market Data — hidden on mobile */}
+                  {/* Market Data — compact on mobile, full on desktop */}
                   {suggestion.market_data && (
-                    <div className="hidden md:block mb-6 p-4 bg-secondary/10 border border-secondary/20 rounded-xl">
-                      <div className="flex items-start gap-3">
-                        <span className="text-2xl">💰</span>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground mb-2">Marknadsprisinfo</p>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Lägsta marknadspris</p>
-                              <p className="text-lg font-bold text-foreground">
-                                {formatPrice(suggestion.market_data.lowest_price)}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                från {suggestion.market_data.merchant_name}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Prisjämförelse</p>
-                              <p className={`text-lg font-bold ${
-                                parseFloat(suggestion.market_data.price_difference_percent) > 0
-                                  ? 'text-destructive'
-                                  : 'text-green-600'
-                              }`}>
-                                {parseFloat(suggestion.market_data.price_difference_percent) > 0 ? '+' : ''}
-                                {suggestion.market_data.price_difference_percent}%
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {suggestion.market_data.merchant_count} återförsäljare
-                              </p>
+                    <>
+                      {/* Mobile: compact badge */}
+                      <div className="md:hidden mb-4 flex items-center gap-2 p-2.5 bg-secondary/10 border border-secondary/20 rounded-lg">
+                        <span className="text-sm">💰</span>
+                        <p className={`text-xs font-medium ${
+                          parseFloat(suggestion.market_data.price_difference_percent) <= 0
+                            ? 'text-green-600' : 'text-foreground'
+                        }`}>
+                          {parseFloat(suggestion.market_data.price_difference_percent) <= 0
+                            ? `${Math.abs(parseFloat(suggestion.market_data.price_difference_percent))}% under marknad`
+                            : `+${suggestion.market_data.price_difference_percent}% vs marknad`
+                          }
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          ({suggestion.market_data.merchant_count} återförsäljare)
+                        </span>
+                      </div>
+                      {/* Desktop: full panel */}
+                      <div className="hidden md:block mb-6 p-4 bg-secondary/10 border border-secondary/20 rounded-xl">
+                        <div className="flex items-start gap-3">
+                          <span className="text-2xl">💰</span>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-foreground mb-2">Marknadsprisinfo</p>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Lägsta marknadspris</p>
+                                <p className="text-lg font-bold text-foreground">
+                                  {formatPrice(suggestion.market_data.lowest_price)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  från {suggestion.market_data.merchant_name}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Prisjämförelse</p>
+                                <p className={`text-lg font-bold ${
+                                  parseFloat(suggestion.market_data.price_difference_percent) > 0
+                                    ? 'text-destructive'
+                                    : 'text-green-600'
+                                }`}>
+                                  {parseFloat(suggestion.market_data.price_difference_percent) > 0 ? '+' : ''}
+                                  {suggestion.market_data.price_difference_percent}%
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {suggestion.market_data.merchant_count} återförsäljare
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </>
                   )}
 
                   {/* Supplier Info */}

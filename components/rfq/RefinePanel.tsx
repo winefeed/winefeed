@@ -92,7 +92,7 @@ export function RefinePanel({
     const dtLabel = DELIVERY_TIME_OPTIONS.find(o => o.value === deliveryTime)?.label;
     if (dtLabel) summaryParts.push(dtLabel);
   }
-  const summaryText = summaryParts.length > 0 ? summaryParts.join(' · ') : 'Budget, antal, leverans...';
+  const summaryText = summaryParts.length > 0 ? summaryParts.join(' · ') : 'Förfina sökning';
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
