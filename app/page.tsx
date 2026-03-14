@@ -73,15 +73,15 @@ export default function LandingPage() {
           <div className="flex gap-12">
             <div className="flex flex-col">
               <span className="font-serif text-4xl font-bold text-wine-dark">
-                150+
+                5+
               </span>
               <span className="text-sm text-wine-black-2">
-                Europeiska leverantörer
+                Handplockade leverantörer
               </span>
             </div>
             <div className="flex flex-col">
               <span className="font-serif text-4xl font-bold text-wine-dark">
-                3000+
+                60+
               </span>
               <span className="text-sm text-wine-black-2">
                 Viner i sortimentet

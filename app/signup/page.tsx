@@ -9,7 +9,8 @@
 
 import { getErrorMessage } from '@/lib/utils';
 import { useState } from 'react';
-import { Wine, Building2, MapPin, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Building2, MapPin, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { WinefeedLogo } from '@/components/ui/WinefeedLogo';
 
 export default function SignupPage() {
   const [loading, setLoading] = useState(false);
@@ -95,9 +96,7 @@ export default function SignupPage() {
       {/* Logo & Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-            <Wine className="h-7 w-7 text-white" />
-          </div>
+          <WinefeedLogo size="md" />
         </div>
         <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
           Registrera restaurang

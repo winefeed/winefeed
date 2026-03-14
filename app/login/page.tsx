@@ -14,7 +14,8 @@
 
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Wine, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { WinefeedLogo } from '@/components/ui/WinefeedLogo';
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -73,12 +74,10 @@ function LoginForm() {
       {/* Logo & Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-            <Wine className="h-7 w-7 text-white" />
-          </div>
+          <WinefeedLogo size="md" />
         </div>
         <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
-          Vinkoll
+          Logga in
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Logga in för att fortsätta
@@ -184,18 +183,18 @@ function LoginForm() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white text-gray-500">
-                  Ny leverantör?
+                  Ny restaurang?
                 </span>
               </div>
             </div>
 
-            {/* Register Link */}
+            {/* Signup Link */}
             <div className="mt-6">
               <a
-                href="/supplier/register"
+                href="/signup"
                 className="w-full flex justify-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
-                Registrera ditt företag
+                Skapa restaurangkonto
               </a>
             </div>
           </div>
