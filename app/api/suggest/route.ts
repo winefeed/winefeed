@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
       specialkrav,
     } = body;
 
-    // Use new fields if available, fall back to legacy, then default
-    const effectiveBudgetMax = budget_max || budget_per_flaska || 500; // Default 500 SEK
+    // Use new fields if available, fall back to legacy — no default cap
+    const effectiveBudgetMax = budget_max || budget_per_flaska || null;
     const effectiveCertifications = certifications || specialkrav;
 
     // Use authenticated user's restaurant, or fallback for admins

@@ -33,6 +33,21 @@ export default function LandingPage() {
             Logga in
           </Link>
         </nav>
+        {/* Mobile: show key actions */}
+        <div className="flex md:hidden items-center gap-3">
+          <Link
+            href="/login"
+            className="text-wine-dark text-sm font-medium"
+          >
+            Logga in
+          </Link>
+          <Link
+            href="/signup"
+            className="bg-wine-dark text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-wine-medium transition-colors"
+          >
+            Ansök
+          </Link>
+        </div>
       </header>
 
       {/* Hero Section */}

@@ -83,7 +83,6 @@ export default function NewRequestPage() {
         fritext: data.freeText || undefined,
         color: data.wineType !== 'all' ? data.wineType : undefined,
         leverans_ort: data.deliveryCity || undefined,
-        budget_max: 500,
       };
 
       const response = await fetch('/api/suggest', {
