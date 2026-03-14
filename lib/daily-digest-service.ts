@@ -436,6 +436,9 @@ REGLER:
     return result.trim();
   } catch (error) {
     console.warn('⚠️  Wine intel generation failed:', error);
-    return headlines.slice(0, 3).map(h => h.title).join(' | ');
+    // Fallback: Swedish-formatted list instead of raw English titles
+    return headlines.slice(0, 3).map(h =>
+      `- ${h.title}${h.source ? ` — ${h.source}` : ''}`
+    ).join('\n');
   }
 }

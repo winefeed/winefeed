@@ -1769,7 +1769,10 @@ export function dailyDigestEmail(data: DigestData): { subject: string; html: str
       ${data.actions.map(a => `
       <div style="padding: 10px 0; border-bottom: 1px solid #f3f4f6;">
         <span style="margin-right: 8px; font-size: 14px;">${actionIcon(a.type)}</span>
-        <span style="color: #4b5563; font-size: 14px; line-height: 1.5;">${a.message}</span>
+        ${a.link
+          ? `<a href="${getAppUrl(a.link)}" style="color: #722F37; font-size: 14px; line-height: 1.5; text-decoration: underline;">${a.message}</a>`
+          : `<span style="color: #4b5563; font-size: 14px; line-height: 1.5;">${a.message}</span>`
+        }
       </div>`).join('')}
     </div>`
     : `<div style="margin: 24px 0; padding: 16px; background: #f0fdf4; border-radius: 8px; text-align: center; color: #166534; font-size: 14px;">Inga actions idag — allt ser bra ut!</div>`;
