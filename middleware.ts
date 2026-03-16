@@ -86,6 +86,9 @@ export async function middleware(request: NextRequest) {
     '/api/cron',                      // Vercel Cron jobs (own CRON_SECRET auth)
     '/catalog',                       // Public supplier catalog (token-based)
     '/api/catalog',                   // Public catalog API (token-based)
+    '/vinforslag',                    // Public wine proposal pages (ID-based)
+    '/api/vinforslag',                // Wine proposal API (public respond)
+    '/demo',                          // Public interactive demo tour
     '/restauranger',                  // Public landing page for restaurants
     '/leverantorer',                  // Public landing page for suppliers
     '/sitemap.xml',                   // SEO sitemap

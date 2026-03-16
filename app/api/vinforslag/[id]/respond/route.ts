@@ -1,0 +1,97 @@
+/**
+ * WINE PROPOSAL RESPOND API
+ *
+ * POST /api/vinforslag/[id]/respond?s={signature}
+ * Public endpoint — requires valid HMAC signature.
+ * Records a restaurant's interest response for a wine proposal.
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { verifyProposalSignature } from '@/lib/proposal-token';
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function POST(request: NextRequest, context: RouteContext) {
+  const { id } = await context.params;
+
+  if (!UUID_REGEX.test(id)) {
+    return NextResponse.json({ error: 'Ogiltigt förslags-ID' }, { status: 400 });
+  }
+
+  // Verify HMAC signature
+  const sig = request.nextUrl.searchParams.get('s');
+  if (!sig || !verifyProposalSignature(id, sig)) {
+    return NextResponse.json({ error: 'Ogiltig länk' }, { status: 403 });
+  }
+
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Ogiltig JSON' }, { status: 400 });
+  }
+
+  const { contact_name, contact_email, message, interested_wine_ids } = body;
+
+  // Validate required fields
+  if (!contact_name || typeof contact_name !== 'string' || contact_name.trim().length === 0) {
+    return NextResponse.json({ error: 'Namn krävs' }, { status: 400 });
+  }
+
+  if (!contact_email || typeof contact_email !== 'string' || !EMAIL_REGEX.test(contact_email)) {
+    return NextResponse.json({ error: 'Giltig e-postadress krävs' }, { status: 400 });
+  }
+
+  // Validate interested_wine_ids is array of UUIDs (if provided)
+  if (interested_wine_ids !== undefined && interested_wine_ids !== null) {
+    if (!Array.isArray(interested_wine_ids)) {
+      return NextResponse.json({ error: 'interested_wine_ids måste vara en array' }, { status: 400 });
+    }
+    for (const wineId of interested_wine_ids) {
+      if (!UUID_REGEX.test(wineId)) {
+        return NextResponse.json({ error: 'Ogiltigt vin-ID i listan' }, { status: 400 });
+      }
+    }
+  }
+
+  const adminClient = getSupabaseAdmin();
+
+  // Verify proposal exists and is not expired
+  const { data: proposal, error: proposalError } = await adminClient
+    .from('wine_proposals')
+    .select('id, expires_at')
+    .eq('id', id)
+    .single();
+
+  if (proposalError || !proposal) {
+    return NextResponse.json({ error: 'Förslaget hittades inte' }, { status: 404 });
+  }
+
+  if (proposal.expires_at && new Date(proposal.expires_at) < new Date()) {
+    return NextResponse.json({ error: 'Förslaget har gått ut' }, { status: 410 });
+  }
+
+  // Insert response
+  const { error: insertError } = await adminClient
+    .from('wine_proposal_responses')
+    .insert({
+      proposal_id: id,
+      contact_name: contact_name.trim(),
+      contact_email: contact_email.trim().toLowerCase(),
+      message: message?.trim() || null,
+      interested_wine_ids: interested_wine_ids?.length > 0 ? interested_wine_ids : null,
+    });
+
+  if (insertError) {
+    console.error('[vinforslag] Error inserting response:', insertError);
+    return NextResponse.json({ error: 'Kunde inte spara svar' }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true }, { status: 201 });
+}
