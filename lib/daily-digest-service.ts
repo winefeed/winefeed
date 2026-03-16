@@ -42,6 +42,7 @@ export interface DigestData {
 
   // Wine intel — latest news/trends
   wineIntel: string;
+  wineIntelSources: { title: string; source: string; link: string }[];
 
   // Metadata
   generatedAt: string;
@@ -202,6 +203,12 @@ export async function buildDailyDigest(): Promise<DigestData> {
   // Generate AI briefing + wine intel in parallel
   const wineNewsHeadlines = await fetchWineNews();
 
+  // Build source links for wine intel section
+  const wineIntelSources = wineNewsHeadlines
+    .filter(h => h.link)
+    .slice(0, 5)
+    .map(h => ({ title: h.title, source: h.source, link: h.link }));
+
   const [briefing, wineIntel] = await Promise.all([
     generateBriefing({
     newOrders: ordersResult.data?.length || 0,
@@ -262,6 +269,7 @@ export async function buildDailyDigest(): Promise<DigestData> {
     actions,
     briefing,
     wineIntel,
+    wineIntelSources,
     generatedAt: now.toISOString(),
     periodStart: twentyFourHoursAgo,
     periodEnd: now.toISOString(),
@@ -341,6 +349,7 @@ interface NewsItem {
   title: string;
   source: string;
   pubDate: string;
+  link: string;
 }
 
 const NEWS_FEEDS = [
@@ -404,9 +413,10 @@ function parseRssItems(xml: string): NewsItem[] {
     const title = block.match(/<title>([\s\S]*?)<\/title>/)?.[1]?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() || '';
     const source = block.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1]?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() || '';
     const pubDate = block.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]?.trim() || '';
+    const link = block.match(/<link>([\s\S]*?)<\/link>/)?.[1]?.trim() || '';
 
     if (title) {
-      items.push({ title, source, pubDate });
+      items.push({ title, source, pubDate, link });
     }
   }
 

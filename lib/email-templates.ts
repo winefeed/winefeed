@@ -1877,6 +1877,13 @@ export function dailyDigestEmail(data: DigestData): { subject: string; html: str
       <h3 style="color: #722F37; font-size: 16px; font-weight: 600; margin: 0 0 12px 0; border-bottom: 2px solid #E8B4B8; padding-bottom: 8px;">Wine Intel</h3>
       <div style="background: #fefce8; border-radius: 8px; padding: 16px 20px;">
         ${bulletsToHtml(data.wineIntel, '#1f2937')}
+        ${data.wineIntelSources && data.wineIntelSources.length > 0 ? `
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e0c8;">
+          <p style="font-size: 11px; color: #9ca3af; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Källor</p>
+          ${data.wineIntelSources.map(s =>
+            `<p style="margin: 2px 0; font-size: 12px;"><a href="${s.link}" style="color: #722F37; text-decoration: underline;">${s.title}</a>${s.source ? ` <span style="color: #9ca3af;">— ${s.source}</span>` : ''}</p>`
+          ).join('')}
+        </div>` : ''}
       </div>
     </div>
 
