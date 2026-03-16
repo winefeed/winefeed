@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/navigation/Sidebar';
 import { ADMIN_NAVIGATION } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
+import { useActor } from '@/lib/hooks/useActor';
 
 const STORAGE_KEY = 'sidebar-collapsed';
 
@@ -19,6 +20,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { actor } = useActor();
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -42,8 +44,8 @@ export default function AdminLayout({
     <div className="flex min-h-screen bg-background">
       <Sidebar
         sections={ADMIN_NAVIGATION}
-        userEmail="hej@winefeed.se"
-        userRoles={['ADMIN']}
+        userEmail={actor?.user_email ?? ''}
+        userRoles={actor?.roles ?? []}
         isAdmin={true}
       />
 

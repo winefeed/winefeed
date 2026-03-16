@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { actorService, type ActorContext } from '@/lib/actor-service';
 import { type IORContext } from '@/lib/ior-portfolio-service';
 
@@ -80,5 +81,13 @@ export function validateInboundSecret(request: NextRequest): boolean {
   }
 
   const providedSecret = request.headers.get('x-wf-inbound-secret');
-  return providedSecret === secret;
+  if (!providedSecret) return false;
+
+  try {
+    const a = Buffer.from(secret, 'utf-8');
+    const b = Buffer.from(providedSecret, 'utf-8');
+    return a.length === b.length && timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }
