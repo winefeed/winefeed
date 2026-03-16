@@ -314,7 +314,7 @@ function WineCard({ wine, interested, expanded, onToggleInterest, onToggleExpand
 
   return (
     <div
-      className={`bg-white rounded-lg border p-4 sm:p-5 transition-colors ${
+      className={`bg-white rounded-lg border p-4 sm:p-5 transition-colors flex flex-col ${
         interested ? 'border-[#722F37] ring-1 ring-[#722F37]/20' : 'border-gray-200'
       }`}
     >
@@ -415,7 +415,7 @@ function WineCard({ wine, interested, expanded, onToggleInterest, onToggleExpand
       {/* Interest toggle */}
       <button
         onClick={onToggleInterest}
-        className={`w-full mt-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
+        className={`w-full mt-auto pt-3 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
           interested
             ? 'bg-[#722F37] text-white'
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
