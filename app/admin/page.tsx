@@ -427,7 +427,7 @@ export default function AdminDashboardPage() {
                   <div className={`px-2 py-1 rounded text-xs font-medium ${
                     item.type === 'request' ? 'bg-blue-100 text-blue-800' :
                     item.type === 'order' ? 'bg-orange-100 text-orange-800' :
-                    'bg-purple-100 text-purple-800'
+                    'bg-wine-rose/30 text-wine-dark'
                   }`}>
                     {getTypeLabel(item.type)}
                   </div>
@@ -555,7 +555,7 @@ export default function AdminDashboardPage() {
             className="bg-card rounded-lg border border-border p-5 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer block"
           >
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600">
+              <div className="p-2 rounded-lg bg-wine-dark/10 text-wine-dark">
                 <Inbox className="h-5 w-5" />
               </div>
               <span className="text-sm font-medium text-muted-foreground">Förfrågningar</span>
@@ -576,7 +576,7 @@ export default function AdminDashboardPage() {
             className="bg-card rounded-lg border border-border p-5 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer block"
           >
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-teal-500/10 text-teal-600">
+              <div className="p-2 rounded-lg bg-wine-dark/10 text-wine-dark">
                 <FileText className="h-5 w-5" />
               </div>
               <span className="text-sm font-medium text-muted-foreground">Offerter</span>
@@ -779,10 +779,10 @@ interface StatCardProps {
 
 function StatCard({ title, value, subtitle, icon: Icon, color, suffix = '', href }: StatCardProps) {
   const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-600',
+    blue: 'bg-wine-dark/10 text-wine-dark',
     red: 'bg-primary/10 text-primary',
     green: 'bg-green-500/10 text-green-600',
-    purple: 'bg-purple-500/10 text-purple-600',
+    purple: 'bg-wine-dark/10 text-wine-dark',
   };
 
   const content = (

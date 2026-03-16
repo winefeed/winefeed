@@ -189,16 +189,16 @@ export default function PilotAdminPage() {
       case 'UPDATED': return 'bg-yellow-500';
       case 'ACCEPTED': return 'bg-green-500';
       case 'REJECTED': return 'bg-red-500';
-      case 'MAIL_SENT': return 'bg-purple-500';
+      case 'MAIL_SENT': return 'bg-wine-dark';
       default: return 'bg-gray-500';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-wine-rose/10 via-white to-wine-riesling/10 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wine-dark mx-auto mb-4"></div>
           <p className="text-xl text-gray-600">Laddar pilot overview...</p>
         </div>
       </div>
@@ -207,7 +207,7 @@ export default function PilotAdminPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-wine-rose/10 via-white to-wine-riesling/10 flex items-center justify-center">
         <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
           <div className="text-center">
             <span className="text-6xl mb-4 block">🚫</span>
@@ -215,7 +215,7 @@ export default function PilotAdminPage() {
             <p className="text-gray-600 mb-4">{error}</p>
             <button
               onClick={() => router.push('/dashboard')}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-2 bg-wine-dark text-white rounded-lg hover:bg-wine-deep transition-colors"
             >
               ← Tillbaka till Dashboard
             </button>
@@ -230,9 +230,9 @@ export default function PilotAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-wine-rose/10 via-white to-wine-riesling/10">
       {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg">
+      <header className="bg-gradient-to-r from-wine-dark to-wine-medium text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -251,7 +251,7 @@ export default function PilotAdminPage() {
               </button>
               <button
                 onClick={() => router.push('/dashboard')}
-                className="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-white/90 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-white text-wine-dark rounded-lg hover:bg-white/90 transition-colors text-sm font-medium"
               >
                 ← Dashboard
               </button>
@@ -304,11 +304,11 @@ export default function PilotAdminPage() {
                         <div
                           key={item.id || index}
                           onClick={() => item.id && router.push(`/ior/orders/${item.id}`)}
-                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-purple-300 transition-colors"
+                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-mono text-purple-600">{item.id?.substring(0, 16) || 'N/A'}...</div>
-                            <span className="text-purple-600">→</span>
+                            <div className="font-mono text-wine-dark">{item.id?.substring(0, 16) || 'N/A'}...</div>
+                            <span className="text-wine-dark">→</span>
                           </div>
                           <div className="text-gray-500 mt-1">Created: {formatDate(item.created_at!)}</div>
                         </div>
@@ -345,11 +345,11 @@ export default function PilotAdminPage() {
                         <div
                           key={item.id || index}
                           onClick={() => item.id && router.push(`/ior/orders/${item.id}`)}
-                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-purple-300 transition-colors"
+                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-mono text-purple-600">{item.id?.substring(0, 16) || 'N/A'}...</div>
-                            <span className="text-purple-600">→</span>
+                            <div className="font-mono text-wine-dark">{item.id?.substring(0, 16) || 'N/A'}...</div>
+                            <span className="text-wine-dark">→</span>
                           </div>
                           <div className="text-gray-500 mt-1">
                             DDL Status: <span className="font-medium">{item.ddl_status || 'MISSING'}</span>
@@ -389,11 +389,11 @@ export default function PilotAdminPage() {
                         <div
                           key={item.id || index}
                           onClick={() => item.id && router.push(`/ior/orders/${item.id}`)}
-                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-purple-300 transition-colors"
+                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-mono text-purple-600">{item.id?.substring(0, 16) || 'N/A'}...</div>
-                            <span className="text-purple-600">→</span>
+                            <div className="font-mono text-wine-dark">{item.id?.substring(0, 16) || 'N/A'}...</div>
+                            <span className="text-wine-dark">→</span>
                           </div>
                           <div className="text-gray-500 mt-1">Created: {formatDate(item.created_at!)}</div>
                         </div>
@@ -411,7 +411,7 @@ export default function PilotAdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="text-xs font-medium text-purple-600 uppercase mb-1">Fastnade ordrar</div>
+                      <div className="text-xs font-medium text-wine-dark uppercase mb-1">Fastnade ordrar</div>
                       <div className="text-sm text-gray-700">Ingen uppdatering &gt; 3 dagar</div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -430,11 +430,11 @@ export default function PilotAdminPage() {
                         <div
                           key={item.id || index}
                           onClick={() => item.id && router.push(`/ior/orders/${item.id}`)}
-                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-purple-300 transition-colors"
+                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-mono text-purple-600">{item.id?.substring(0, 16) || 'N/A'}...</div>
-                            <span className="text-purple-600">→</span>
+                            <div className="font-mono text-wine-dark">{item.id?.substring(0, 16) || 'N/A'}...</div>
+                            <span className="text-wine-dark">→</span>
                           </div>
                           <div className="text-gray-500 mt-1">Status: <span className="font-medium">{item.status}</span></div>
                           <div className="text-gray-500">Last Update: {formatDate(item.updated_at!)}</div>
@@ -486,7 +486,7 @@ export default function PilotAdminPage() {
                             key={item.event_id || item.id || index}
                             onClick={() => linkPath && router.push(linkPath)}
                             className={`text-xs bg-white p-3 rounded border border-gray-200 ${
-                              linkPath ? 'cursor-pointer hover:bg-gray-50 hover:border-purple-300 transition-colors' : ''
+                              linkPath ? 'cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors' : ''
                             }`}
                           >
                             {/* Header: Source badge + Template */}
@@ -506,12 +506,12 @@ export default function PilotAdminPage() {
                                 )}
                               </div>
                               {linkPath && (
-                                <span className="text-purple-600 text-xs">→</span>
+                                <span className="text-wine-dark text-xs">→</span>
                               )}
                             </div>
 
                             {/* Entity ID */}
-                            <div className="font-mono text-purple-600 mb-1 text-sm">
+                            <div className="font-mono text-wine-dark mb-1 text-sm">
                               {entityType}: {entityId?.substring(0, 16)}...
                             </div>
 
@@ -531,7 +531,7 @@ export default function PilotAdminPage() {
                             {item.action_hint && (
                               <div className="mt-2 pt-2 border-t border-gray-200">
                                 <div className="text-xs text-gray-600">
-                                  <span className="font-medium text-blue-600">💡 Åtgärd:</span> {item.action_hint}
+                                  <span className="font-medium text-wine-dark">💡 Åtgärd:</span> {item.action_hint}
                                 </div>
                               </div>
                             )}
@@ -565,14 +565,14 @@ export default function PilotAdminPage() {
               <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">Konverteringstratt</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                 {/* Requests */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-700">{data.pilot_metrics.counts.requests_created}</div>
+                <div className="bg-gradient-to-br from-wine-riesling/20 to-wine-riesling/30 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-wine-dark">{data.pilot_metrics.counts.requests_created}</div>
                   <div className="text-xs text-gray-600 mt-1">Förfrågningar</div>
                 </div>
 
                 {/* Offers Created */}
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-purple-700">{data.pilot_metrics.counts.offers_created}</div>
+                <div className="bg-gradient-to-br from-wine-rose/20 to-wine-rose/30 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-wine-dark">{data.pilot_metrics.counts.offers_created}</div>
                   <div className="text-xs text-gray-600 mt-1">Offerter skapade</div>
                 </div>
 
@@ -589,8 +589,8 @@ export default function PilotAdminPage() {
                 </div>
 
                 {/* Orders */}
-                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-indigo-700">{data.pilot_metrics.counts.orders_created}</div>
+                <div className="bg-gradient-to-br from-wine-dark/10 to-wine-dark/20 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-wine-dark">{data.pilot_metrics.counts.orders_created}</div>
                   <div className="text-xs text-gray-600 mt-1">Ordrar</div>
                 </div>
 
@@ -625,13 +625,13 @@ export default function PilotAdminPage() {
                     <div className="flex gap-4">
                       <div className="flex-1">
                         <div className="text-xs text-gray-500">Median</div>
-                        <div className="text-lg font-semibold text-blue-600">
+                        <div className="text-lg font-semibold text-wine-dark">
                           {data.pilot_metrics.timings.request_to_offer_created.median_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
                         <div className="text-xs text-gray-500">P90</div>
-                        <div className="text-lg font-semibold text-purple-600">
+                        <div className="text-lg font-semibold text-wine-dark">
                           {data.pilot_metrics.timings.request_to_offer_created.p90_hours}h
                         </div>
                       </div>
@@ -656,13 +656,13 @@ export default function PilotAdminPage() {
                     <div className="flex gap-4">
                       <div className="flex-1">
                         <div className="text-xs text-gray-500">Median</div>
-                        <div className="text-lg font-semibold text-blue-600">
+                        <div className="text-lg font-semibold text-wine-dark">
                           {data.pilot_metrics.timings.offer_created_to_accepted.median_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
                         <div className="text-xs text-gray-500">P90</div>
-                        <div className="text-lg font-semibold text-purple-600">
+                        <div className="text-lg font-semibold text-wine-dark">
                           {data.pilot_metrics.timings.offer_created_to_accepted.p90_hours}h
                         </div>
                       </div>
@@ -687,13 +687,13 @@ export default function PilotAdminPage() {
                     <div className="flex gap-4">
                       <div className="flex-1">
                         <div className="text-xs text-gray-500">Median</div>
-                        <div className="text-lg font-semibold text-blue-600">
+                        <div className="text-lg font-semibold text-wine-dark">
                           {data.pilot_metrics.timings.accept_to_order_created.median_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
                         <div className="text-xs text-gray-500">P90</div>
-                        <div className="text-lg font-semibold text-purple-600">
+                        <div className="text-lg font-semibold text-wine-dark">
                           {data.pilot_metrics.timings.accept_to_order_created.p90_hours}h
                         </div>
                       </div>
@@ -718,13 +718,13 @@ export default function PilotAdminPage() {
                     <div className="flex gap-4">
                       <div className="flex-1">
                         <div className="text-xs text-gray-500">Median</div>
-                        <div className="text-lg font-semibold text-blue-600">
+                        <div className="text-lg font-semibold text-wine-dark">
                           {data.pilot_metrics.timings.order_created_to_import_approved.median_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
                         <div className="text-xs text-gray-500">P90</div>
-                        <div className="text-lg font-semibold text-purple-600">
+                        <div className="text-lg font-semibold text-wine-dark">
                           {data.pilot_metrics.timings.order_created_to_import_approved.p90_hours}h
                         </div>
                       </div>
@@ -754,7 +754,7 @@ export default function PilotAdminPage() {
               onClick={() => setActiveTab('requests')}
               className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
                 activeTab === 'requests'
-                  ? 'bg-purple-50 text-purple-700 border-b-2 border-purple-600'
+                  ? 'bg-wine-rose/30 text-wine-dark border-b-2 border-wine-dark'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -764,7 +764,7 @@ export default function PilotAdminPage() {
               onClick={() => setActiveTab('offers')}
               className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
                 activeTab === 'offers'
-                  ? 'bg-purple-50 text-purple-700 border-b-2 border-purple-600'
+                  ? 'bg-wine-rose/30 text-wine-dark border-b-2 border-wine-dark'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -774,7 +774,7 @@ export default function PilotAdminPage() {
               onClick={() => setActiveTab('events')}
               className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
                 activeTab === 'events'
-                  ? 'bg-purple-50 text-purple-700 border-b-2 border-purple-600'
+                  ? 'bg-wine-rose/30 text-wine-dark border-b-2 border-wine-dark'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -813,7 +813,7 @@ export default function PilotAdminPage() {
                             <td className="px-4 py-3">
                               <button
                                 onClick={() => router.push(`/dashboard/requests/${req.id}`)}
-                                className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                                className="text-wine-dark hover:text-wine-deep text-sm font-medium"
                               >
                                 View →
                               </button>
@@ -862,7 +862,7 @@ export default function PilotAdminPage() {
                             <td className="px-4 py-3">
                               <button
                                 onClick={() => router.push(`/offers/${offer.id}`)}
-                                className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                                className="text-wine-dark hover:text-wine-deep text-sm font-medium"
                               >
                                 View →
                               </button>
@@ -903,7 +903,7 @@ export default function PilotAdminPage() {
                             <td className="px-4 py-3">
                               <button
                                 onClick={() => router.push(`/offers/${event.offer_id}`)}
-                                className="font-mono text-xs text-purple-600 hover:text-purple-800"
+                                className="font-mono text-xs text-wine-dark hover:text-wine-deep"
                               >
                                 {event.offer_id.substring(0, 8)}...
                               </button>

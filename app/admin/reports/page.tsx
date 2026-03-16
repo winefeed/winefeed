@@ -73,9 +73,9 @@ interface ReportData {
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   PENDING_SUPPLIER_CONFIRMATION: { label: 'Väntar på leverantör', color: 'bg-yellow-100 text-yellow-800' },
-  CONFIRMED: { label: 'Bekräftad', color: 'bg-blue-100 text-blue-800' },
-  IN_FULFILLMENT: { label: 'Under hantering', color: 'bg-indigo-100 text-indigo-800' },
-  SHIPPED: { label: 'Skickad', color: 'bg-purple-100 text-purple-800' },
+  CONFIRMED: { label: 'Bekräftad', color: 'bg-wine-riesling/30 text-wine-dark' },
+  IN_FULFILLMENT: { label: 'Under hantering', color: 'bg-wine-dark/10 text-wine-dark' },
+  SHIPPED: { label: 'Skickad', color: 'bg-wine-rose/30 text-wine-dark' },
   DELIVERED: { label: 'Levererad', color: 'bg-green-100 text-green-800' },
   CANCELLED: { label: 'Avbruten', color: 'bg-red-100 text-red-800' },
 };
@@ -505,10 +505,10 @@ interface SummaryCardProps {
 
 function SummaryCard({ title, value, icon: Icon, color, highlight }: SummaryCardProps) {
   const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-600',
+    blue: 'bg-wine-dark/10 text-wine-dark',
     green: 'bg-green-500/10 text-green-600',
     orange: 'bg-orange-500/10 text-orange-600',
-    purple: 'bg-purple-500/10 text-purple-600',
+    purple: 'bg-wine-dark/10 text-wine-dark',
   };
 
   return (

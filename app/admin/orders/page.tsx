@@ -58,25 +58,25 @@ interface Order {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Package; color: string }> = {
-  CONFIRMED: { label: 'Bekräftad', icon: CheckCircle, color: 'bg-blue-100 text-blue-800' },
+  CONFIRMED: { label: 'Bekräftad', icon: CheckCircle, color: 'bg-wine-riesling/30 text-wine-dark' },
   IN_FULFILLMENT: { label: 'Under hantering', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
-  SHIPPED: { label: 'Skickad', icon: Truck, color: 'bg-purple-100 text-purple-800' },
+  SHIPPED: { label: 'Skickad', icon: Truck, color: 'bg-wine-rose/30 text-wine-dark' },
   DELIVERED: { label: 'Levererad', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
   CANCELLED: { label: 'Avbruten', icon: XCircle, color: 'bg-red-100 text-red-800' },
 };
 
 const PAYMENT_CONFIG: Record<string, { label: string; color: string }> = {
   pending: { label: 'Ej fakturerad', color: 'bg-gray-100 text-gray-700' },
-  invoiced: { label: 'Fakturerad', color: 'bg-blue-100 text-blue-700' },
+  invoiced: { label: 'Fakturerad', color: 'bg-wine-riesling/30 text-wine-dark' },
   paid: { label: 'Betald', color: 'bg-green-100 text-green-700' },
   overdue: { label: 'Förfallen', color: 'bg-red-100 text-red-700' },
-  refunded: { label: 'Återbetald', color: 'bg-purple-100 text-purple-700' },
+  refunded: { label: 'Återbetald', color: 'bg-wine-rose/30 text-wine-dark' },
 };
 
 const DISPUTE_CONFIG: Record<string, { label: string; color: string }> = {
   none: { label: 'Ingen', color: 'bg-gray-100 text-gray-500' },
   reported: { label: 'Rapporterad', color: 'bg-amber-100 text-amber-700' },
-  investigating: { label: 'Utreds', color: 'bg-blue-100 text-blue-700' },
+  investigating: { label: 'Utreds', color: 'bg-wine-riesling/30 text-wine-dark' },
   resolved: { label: 'Löst', color: 'bg-green-100 text-green-700' },
 };
 

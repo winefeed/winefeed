@@ -73,11 +73,11 @@ interface Stats {
 
 const STATUS_BADGE: Record<string, string> = {
   identified: 'bg-gray-100 text-gray-800',
-  researched: 'bg-blue-100 text-blue-800',
-  outreach_drafted: 'bg-indigo-100 text-indigo-800',
+  researched: 'bg-wine-riesling/30 text-wine-dark',
+  outreach_drafted: 'bg-wine-dark/10 text-wine-dark',
   contacted: 'bg-yellow-100 text-yellow-800',
   responded: 'bg-emerald-100 text-emerald-800',
-  meeting_booked: 'bg-purple-100 text-purple-800',
+  meeting_booked: 'bg-wine-rose/30 text-wine-dark',
   onboarded: 'bg-green-100 text-green-800',
   rejected: 'bg-red-100 text-red-800',
   paused: 'bg-orange-100 text-orange-800',
@@ -380,16 +380,16 @@ export default function AdminGrowthPage() {
           <button
             onClick={() => toggleCard('contacted')}
             className={`bg-white rounded-lg border-2 p-5 text-left transition-colors ${
-              cardFilter === 'contacted' ? 'border-blue-500 ring-1 ring-blue-300' : 'border-gray-200 hover:border-gray-300'
+              cardFilter === 'contacted' ? 'border-wine-dark ring-1 ring-wine-light' : 'border-gray-200 hover:border-gray-300'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Phone className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-wine-dark/10 rounded-lg">
+                <Phone className="h-5 w-5 text-wine-dark" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Kontaktade</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl font-bold text-wine-dark">
                   {stats.contacted + stats.responded}
                 </p>
               </div>
@@ -398,16 +398,16 @@ export default function AdminGrowthPage() {
           <button
             onClick={() => toggleCard('meeting_booked')}
             className={`bg-white rounded-lg border-2 p-5 text-left transition-colors ${
-              cardFilter === 'meeting_booked' ? 'border-purple-500 ring-1 ring-purple-300' : 'border-gray-200 hover:border-gray-300'
+              cardFilter === 'meeting_booked' ? 'border-wine-dark ring-1 ring-wine-light' : 'border-gray-200 hover:border-gray-300'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <CalendarCheck className="h-5 w-5 text-purple-600" />
+              <div className="p-2 bg-wine-dark/10 rounded-lg">
+                <CalendarCheck className="h-5 w-5 text-wine-dark" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Möte bokat</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.meeting_booked}</p>
+                <p className="text-2xl font-bold text-wine-dark">{stats.meeting_booked}</p>
               </div>
             </div>
           </button>

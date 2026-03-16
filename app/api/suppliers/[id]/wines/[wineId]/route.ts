@@ -37,7 +37,7 @@ const EDITABLE_FIELDS = [
   'case_size',
 ];
 
-const VALID_COLORS = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange'];
+const VALID_COLORS = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange', 'alcohol_free', 'spirit'];
 
 type RouteParams = {
   params: Promise<{ id: string; wineId: string }>;
