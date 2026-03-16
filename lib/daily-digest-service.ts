@@ -344,10 +344,10 @@ interface NewsItem {
 }
 
 const NEWS_FEEDS = [
-  'https://news.google.com/rss/search?q=wine+industry+Sweden&hl=sv&gl=SE&ceid=SE:sv',
-  'https://news.google.com/rss/search?q=vin+import+Sverige&hl=sv&gl=SE&ceid=SE:sv',
-  'https://news.google.com/rss/search?q=wine+trade+Europe+2026&hl=en&gl=US&ceid=US:en',
-  'https://news.google.com/rss/search?q=Systembolaget+vin&hl=sv&gl=SE&ceid=SE:sv',
+  'https://news.google.com/rss/search?q=vin+Sverige+when:3d&hl=sv&gl=SE&ceid=SE:sv',
+  'https://news.google.com/rss/search?q=vinimport+OR+vinhandel+OR+restaurang+vin+when:3d&hl=sv&gl=SE&ceid=SE:sv',
+  'https://news.google.com/rss/search?q=Systembolaget+lansering+OR+nyhet+when:3d&hl=sv&gl=SE&ceid=SE:sv',
+  'https://news.google.com/rss/search?q=wine+trade+Europe+Sweden+when:3d&hl=en&gl=SE&ceid=SE:en',
 ];
 
 async function fetchWineNews(): Promise<NewsItem[]> {
@@ -375,15 +375,20 @@ async function fetchWineNews(): Promise<NewsItem[]> {
     console.warn('⚠️  Failed to fetch wine news:', error);
   }
 
-  // Deduplicate by title, take latest 20
+  // Filter: only items from last 3 days, deduplicate by title
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
   const seen = new Set<string>();
   const unique: NewsItem[] = [];
   for (const item of allItems) {
     const key = item.title.toLowerCase().substring(0, 50);
-    if (!seen.has(key)) {
-      seen.add(key);
-      unique.push(item);
+    if (seen.has(key)) continue;
+    // Filter out old items
+    if (item.pubDate) {
+      const itemDate = new Date(item.pubDate);
+      if (!isNaN(itemDate.getTime()) && itemDate < threeDaysAgo) continue;
     }
+    seen.add(key);
+    unique.push(item);
   }
 
   return unique.slice(0, 20);
