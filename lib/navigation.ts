@@ -214,6 +214,11 @@ export const ADMIN_NAVIGATION: NavSection[] = [
         href: '/admin/compliance',
         icon: Shield,
       },
+      {
+        label: 'Vinförslag',
+        href: '/admin/proposals',
+        icon: Sparkles,
+      },
     ],
   },
   {
