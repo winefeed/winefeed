@@ -1,0 +1,177 @@
+[
+  {
+    "id": "b6a25fad-440f-4bd9-9a0d-2dea1015be70",
+    "name": "Artémise",
+    "producer": "Artez",
+    "old": "An artisanal pastis, highly aromatic and well-balanced, perfect with water or in modern cocktails.",
+    "new": "Hantverksmässig pastis med intensiv doft av stjärnanis, fänkål och lakrits, kompletterad av subtila örttoner som påminner om vild timjan och vermouth. Fyllig och välbalanserad på gommen med en len, kryddig eftersmak. Ekologiskt framställd i Armagnac-regionen. Utmärkt som aperitif med is och vatten, eller som smakförhöjare i cocktails och skaldjursrätter."
+  },
+  {
+    "id": "a43da6d9-271b-45f8-afb5-dd461f37b875",
+    "name": "Beaujolais Villages Blanc « Beur Blanc » 2024",
+    "producer": "Karim Vionnet",
+    "old": null,
+    "new": "Doftar av vita blommor, mogen persika och en fräsch ton av citrus. I munnen en livlig syra som bärs upp av rundhet och en mineralisk kärna typisk för Beaujolais kalkrika jordar. Ung Chardonnay med fin längd och elegans utan ektunnor. Passar fint till grillad brax, getostsallad eller kräftor med dill."
+  },
+  {
+    "id": "e4053ec8-3cb5-491e-ba1d-418026333a9d",
+    "name": "Bourgogne Blanc",
+    "producer": "Camille & Laurent Schaller",
+    "old": "Floral, fruity, mineral",
+    "new": "Klassisk vit Bourgogne med doft av vita blommor, grönt äpple och en diskret mineralton. Smaken är ren och fokuserad med fin syra, stenfrukt och en smörig antydan i eftersmaken. Elegant och okomplicerad Chardonnay som visar Schallers handlag med druvan. Perfekt till panerad fisk, kyckling i gräddsås eller en mild chèvre."
+  },
+  {
+    "id": "642822c8-7cf6-4d68-9d05-da103fa9eb5f",
+    "name": "Carpe Libre",
+    "producer": "Banjo Vino",
+    "old": "A smooth and refined wine, full of ripe black fruits. Light tannins enhance the wine's structure.",
+    "new": "Ekologisk Pinot Noir från Languedoc med generös doft av mogna björnbär, körsbär och en nyans av violer. Len och rund i munnen med mjuka tanniner och en fruktdriven karaktär som känns frisk utan att tappa djup. Elegant vin med lågmäld struktur. Passar utmärkt till ankconfit, svamprisotto eller en tallrik charkuterier."
+  },
+  {
+    "id": "e8bc84e8-a5de-4f03-a557-21fc7959b886",
+    "name": "Chablis",
+    "producer": "Camille & Laurent Schaller",
+    "old": "Pure, very mineral, fine, floral",
+    "new": "Ren och mineraldriven Chablis med doft av flinta, citronzest och vita blommor. I munnen en stram, fokuserad syra som ramar in toner av grönt äpple och ostron. Elegant och precisionsdriven — precis vad Chablis ska vara. Självklar till ostron och skaldjur, men även grym till friterad sötvattensfisk eller ceviche."
+  },
+  {
+    "id": "e8956682-ae38-4f24-8a0f-59ab29250272",
+    "name": "Château Bonalgue Bel Air",
+    "producer": "Tour Calon",
+    "old": null,
+    "new": "En mogen Bordeaux från exceptionella 1994 med doft av torkade plommon, cederträ, tobak och en antydan av läder. Smaken är mjuk och rund med upplösta tanniner, mörk frukt och en jordnära mineralitet som vittnar om årgångens mognad. Lång, varm eftersmak. Passa till viltgryta, entrecôte med rödvinssås eller lagrade hårdostar."
+  },
+  {
+    "id": "8edac971-bdac-40ed-9111-31be05073d31",
+    "name": "Château La Rose de Haut Mouschet",
+    "producer": "Tour Calon",
+    "old": "Oaky, medium body, dark fruit",
+    "new": "Ekologisk Bordeaux-blend med doft av mörka körsbär, plommon och diskret ektunna som bidrar med vanilj och rostade toner. Medelfylligt vin med stadiga tanniner, en kärna av mörk frukt och en kryddig avslutning. Merlot, Cabernet Franc och Cabernet Sauvignon i fin balans. Servera till lamm, grillad entrecôte eller ratatouille."
+  },
+  {
+    "id": "8a89d680-61d3-4fb6-bcb0-3b7c8276704b",
+    "name": "Château Tour Calon",
+    "producer": "Tour Calon",
+    "old": "Elegant, light, natural fermentation",
+    "new": "Ekologiskt odlad Merlot och Malbec från Bordeaux, naturligt jäst för att behålla druvans renhet. Doftar av röda bär, viol och en subtil jordighet. Överraskande lätt och elegant för sina 14% alkohol — silkiga tanniner och en frisk syra som ger lyft. Passar till grillad kyckling med örter, vitlöksmarinerad lammsida eller en tallrik med mogna ostar."
+  },
+  {
+    "id": "9ca4f241-71c3-4e46-9c48-7f2137fce58b",
+    "name": "Château Tour Calon Premier des Tours",
+    "producer": "Tour Calon",
+    "old": "Balanced, fresh, very elegant, red berries, a little spicy, long finish",
+    "new": "Ekologisk Merlot från Bordeaux 2016 — en mogen årgång som börjar visa sin potential. Doftar av röda vinbär, hallon och en fin kryddighet av svartpeppar och nejlika. Balanserad och elegant i munnen med frisk syra, sammetslena tanniner och en imponerande lång avslutning. Flaggskeppsvinet från Tour Calon. Servera till oxfilé, lammentrecôte eller tryffelrisotto."
+  },
+  {
+    "id": "66649525-2679-491c-9cd5-94d8afb9a031",
+    "name": "Crémant d'Alsace Blanc",
+    "producer": "G. Metz",
+    "old": "Crisp traditional sparkling with fine bubbles and citrus freshness.",
+    "new": "Ekologisk crémant med fina, ihållande bubblor och doft av grönt äpple, citrus och ett stänk av brioche. Fräsch och krispig i munnen med livlig syra och en ren, fruktig avslutning. Traditionell metod från Alsace som ger ett seriöst alternativ till champagne. Perfekt som aperitif, till skaldjur eller en lättare fiskrätt med citronsmör."
+  },
+  {
+    "id": "099a3b75-239a-46c3-be41-36d9294fde54",
+    "name": "Crocodile Bock",
+    "producer": "Banjo Vino",
+    "old": "A lively and fruity Sauvignon, bursting with notes of lime, orange, and grapefruit. A refreshing palate that finishes with a touch of bitterness.",
+    "new": "Livlig ekologisk Sauvignon Blanc som sprudlar av lime, blodapelsin och grapefrukt redan i doften. Smaken är fräsch och intensiv med saftig syra och en spännande bitter ton i avslutningen som ger komplexitet. Från Languedocs soliga marker med en ovanlig karaktär för druvan. Utmärkt till ceviche, friterade sardiner eller en thailändsk papayasallad."
+  },
+  {
+    "id": "deeaa570-ca61-482c-b78f-e520e8836c9a",
+    "name": "Fleurie 2021",
+    "producer": "Karim Vionnet",
+    "old": null,
+    "new": "Klassisk Fleurie med charmig doft av violer, pioner och krossade hallon — typiskt för Gamay på sin bästa. Lätt till medelfyllig i kroppen med silkig textur, livlig syra och en kryddig ton av vit peppar. Oemotståndligt drickbar och elegant. Servera svalt till charkuterier, grillade grönsaker eller en enkel coq au vin."
+  },
+  {
+    "id": "b4dcd13d-ce87-473e-8c0d-a66c42467264",
+    "name": "Frankenstein – Blend",
+    "producer": "Charles Frey",
+    "old": "Terroir-driven blend expressing granite minerality and freshness.",
+    "new": "En unik ekologisk blend av Riesling, Pinot Gris och Gewurztraminer som speglar Alsaces granitjordar. Doftar av mogen persika, citrus och en mineralton som påminner om våt sten. I munnen möts riklighet och fräschör — Gewurztraminer ger fylld, Riesling ger syra och Pinot Gris binder samman. Perfekt till asiatisk mat, curry med kyckling eller kryddiga skaldjursrätter."
+  },
+  {
+    "id": "005a1e78-1387-4945-8c2c-0de90b3dd253",
+    "name": "Guru",
+    "producer": "Banjo Vino",
+    "old": "In a more consensus-driven approach, this Syrah-Grenache blend reveals itself to be round and spicy. On the palate, it offers beautiful freshness accompanied by light tannins.",
+    "new": "Ekologisk Rhône-blend av Syrah och Grenache med rund doft av mogna mörka bär, svartpeppar och en kryddig ton av lakrits. I munnen mjuk och generös med lätta tanniner, fin fräschör och en varm avslutning. Vinet är lättillgängligt men med tillräckligt djup för att imponera. Passar grillat lamm, merguezkorv eller en kryddig grönsaksgratäng."
+  },
+  {
+    "id": "1544c979-ddf5-4a92-a282-7f26a532b618",
+    "name": "Josita",
+    "producer": "Banjo Vino",
+    "old": "A harmonious blend of fresh red fruits and dry notes, where great freshness and remarkable minerality come together.",
+    "new": "Ekologisk rosé från Languedoc med en blandning av Caladoc och Mourvèdre. Doftar av färska hallon, jordgubbar och en subtil örtighet som påminner om rosmarin. Torr och fräsch i munnen med finkornig mineralitet och livlig syra. Elegant och matanpassad rosé med fin längd. Servera till grillad fisk, skaldjurspasta eller en provençalsk sallad med tomat och getost."
+  },
+  {
+    "id": "4413da06-a618-42c8-aa05-bd4536a4ad8e",
+    "name": "Macération - Dry",
+    "producer": "Charles Frey",
+    "old": "Orange wine with lychee, roses, substantial texture.",
+    "new": "Ekologiskt orangevin med fascinerande doft av litchi, rosenblad, torkad aprikos och en nyans av kardemumma. Texturstarkt i munnen med en fyllig kropp, diskret tanninstruktur från skalkontakten och en fin balans mellan frukt och bitterhet. Gewurztraminer och Riesling från Alsace i en oväntad tappning. Spännande till kryddstarka rätter, thai-inspirerad mat eller mogna mjukostar."
+  },
+  {
+    "id": "4c483527-21cd-4e04-9222-029e25ec5437",
+    "name": "Massé",
+    "producer": "Banjo Vino",
+    "old": "A short-maceration orange wine, offering aromas of stone fruits, white flowers, and citrus zest. The finish expresses a delicate bitterness!",
+    "new": "Kort maceration ger detta ekologiska orangevin en doft av vita persikor, kaprifol och citruszest. Lätt och lekfull i munnen med fin syra, en elegant bitterhet i avslutningen och en krämig textur från Grenache Blanc, Roussanne och Viognier. Tillgängligt orangevin utan att tappa komplexitet. Utmärkt till grillad bläckfisk, vitlöksräkor eller antipasti med burrata."
+  },
+  {
+    "id": "51a6fe98-5ad7-4a64-9b9b-24db50280d4e",
+    "name": "Pétillant Naturel (PET NAT)",
+    "producer": "Karim Vionnet",
+    "old": null,
+    "new": "Naturligt mousserande Gamay från Beaujolais — spontanjäst på flaska enligt den äldsta bubbliga metoden. Doftar av röda körsbär, hallon och en lekfull jästighet. Fina, oregelbundna bubblor med en saftig, fruktdriven smak och livlig syra. Ofiltrerat och charmigt rustikt. Servera väl kyld som aperitif, till charkuterier eller en enkel pasta med tomat och basilika."
+  },
+  {
+    "id": "855d2792-3a63-415b-98d2-5711979452d2",
+    "name": "PetLat",
+    "producer": "Lateyron",
+    "old": "Aromatic, fresh, Anjou pears, light, fine",
+    "new": "Ekologisk pétillant naturel på Sémillon från Bordeaux — ovanligt och spännande. Doftar av mogna Anjou-päron, vit persika och en blommig ton av akacia. Lätt och fräsch i munnen med fina bubblor, låg alkohol (11%) och en elegant avslutning. Perfekt som aperitif, till ostron eller en lätt förrätt med rökt fisk och citron."
+  },
+  {
+    "id": "bcd34c0b-1001-435d-98e1-6616fbe9b1cf",
+    "name": "Pinot Gris Symbiose - Dry",
+    "producer": "Charles Frey",
+    "old": "Supple, delicate wine with rich fruit and smoke hints.",
+    "new": "Ekologisk Pinot Gris från Alsace med doft av mogen persika, päron och en diskret rökton som ger djup. Len och mjuk i munnen med rik frukt, balanserad syra och en smörig textur utan ekfat. Torr och matanpassad med fin längd. Utmärkt till grillad torsk, kycklingrätt med gräddsås eller en mild curry med sötpotatis."
+  },
+  {
+    "id": "0cb2d459-0cf9-4aae-9f15-22f1556a2f82",
+    "name": "Pinot Noir Harmonie - Dry",
+    "producer": "Charles Frey",
+    "old": "Supple red with bright cherry, smooth finish.",
+    "new": "Ekologisk Pinot Noir från Alsace 2024 med ljus, inbjudande doft av körsbär, röda vinbär och en antydan av kryddor. Mjuk och tillgänglig i munnen med silkig textur, fina tanniner och en ren fruktighet. Lättdrucken med charm och elegans. Servera lätt kyld till laxterrin, ankbröst eller svamppajer."
+  },
+  {
+    "id": "6a22a025-fe54-49e5-9116-89f53245f565",
+    "name": "Riesling Granite - Dry",
+    "producer": "Charles Frey",
+    "old": "Pure, citrus-fresh Riesling with pronounced minerality.",
+    "new": "Ekologisk Riesling från Alsaces granitjordar med ren doft av citron, lime och en distinkt mineralton som påminner om flinta. Stram och fokuserad i munnen med en nästan elektrisk syra, stenfrukt och en lång, saltmineralisk avslutning. Klassisk torr Riesling med terroir-känsla. Perfekt till sushi, musslor, grillad hummer eller sparris med hollandaise."
+  },
+  {
+    "id": "a064d00d-ebfe-4222-9be9-eccbee02fefb",
+    "name": "Tradition",
+    "producer": "Clos Fantine",
+    "old": "Deep, long finish, juicy berry fruit, schists",
+    "new": "Djup och seriös Languedoc-blend av Carignan, Grenache och Syrah från skifferrika jordar. Doftar av mogna björnbär, svarta körsbär och en jordnära mineralitet som avslöjar terroiren. Fyllig kropp med saftiga tanniner, intensiv bärfrukt och en imponerande lång avslutning. Vinet har karaktär och muskler. Passa till viltgryta, lammstek med timjan eller grillad oxrygg."
+  },
+  {
+    "id": "fb4823a2-c973-4333-a001-44ba741aeacd",
+    "name": "Wine Note Blanc – Natural wine - 23/24",
+    "producer": "G. Metz",
+    "old": "Lively natural white with ripe orchard fruit notes.",
+    "new": "Ekologiskt naturvin på Riesling från Alsace — levande och ofiltrerat. Doftar av mogna äpplen, päron och en spännande jästton som ger komplexitet. I munnen frisk syra, saftig frukt och en lätt grumlig textur som känns autentisk och ärlig. Allt gjort med minimal intervention. Utmärkt till flammkuchen, rökt öring eller en rustik terrin."
+  },
+  {
+    "id": "53f737cc-a872-48cf-8d2e-7516b7e4c485",
+    "name": "Wine Note Orange – Natural wine - 23/24",
+    "producer": "G. Metz",
+    "old": "Textured orange wine with expressive skin-contact character.",
+    "new": "Ekologiskt orangevin på Gewurztraminer med lång skalkontakt som ger karaktär och textur. Doftar av litchi, rosenvatten, mango och en kryddig ton av ingefära. Fyllig och strukturerad i munnen med en gripande tanninyta, bärnstens färg och en exotisk avslutning. Modigt och uttrycksfullt. Perfekt till marokkanska taginer, indiska curries eller en tallrik lagrade ostar."
+  }
+]
