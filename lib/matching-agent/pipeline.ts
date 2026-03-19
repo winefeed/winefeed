@@ -35,6 +35,7 @@ import { rankWinesEnhanced } from '../ai/rank-wines';
 import { buildKnowledgeContext } from './knowledge';
 import { enrichWithKnowledge } from '../rag/wine-knowledge-store';
 import { buildMarketContext, getMarketLeaderSubsidiaries } from './market-context';
+import { inferWineStyle } from './style-inference';
 
 function getSupabaseAdmin() {
   return createAdminClient(
@@ -125,6 +126,24 @@ export async function runMatchingAgentPipeline(
   }
 
   // -------------------------------------------------------------------------
+  // Step 4a: Enrich wines with inferred style profiles (sync, <1ms)
+  // If DB columns body/tannin/acidity are null, infer from grape+color
+  // -------------------------------------------------------------------------
+  let enrichedCount = 0;
+  for (const wine of wines) {
+    if (!wine.body || !wine.tannin || !wine.acidity) {
+      const inferred = inferWineStyle(wine.grape || '', wine.color || '', wine.region || undefined);
+      if (!wine.body) wine.body = inferred.body;
+      if (!wine.tannin) wine.tannin = inferred.tannin;
+      if (!wine.acidity) wine.acidity = inferred.acidity;
+      enrichedCount++;
+    }
+  }
+  if (enrichedCount > 0) {
+    console.log(`[MatchingAgent] Style inference: enriched ${enrichedCount}/${wines.length} wines`);
+  }
+
+  // -------------------------------------------------------------------------
   // Step 4b: Build knowledge context (sync, <1ms)
   // -------------------------------------------------------------------------
   const tKnowledge = Date.now();
@@ -184,7 +203,7 @@ export async function runMatchingAgentPipeline(
     scoredWines = wines.slice(0, options.preScoreTopN).map(wine => ({
       wine,
       score: 50,
-      breakdown: { price: 12, color: 10, region: 10, grape: 8, food: 5, availability: 5, certification: 0 },
+      breakdown: { price: 10, color: 10, region: 8, grape: 10, food: 7, styleMatch: 8, availability: 5, certification: 0 },
     }));
   }
 

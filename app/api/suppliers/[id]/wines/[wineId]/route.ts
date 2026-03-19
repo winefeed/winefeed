@@ -35,6 +35,9 @@ const EDITABLE_FIELDS = [
   'biodynamic',
   'sku',
   'case_size',
+  'body',
+  'tannin',
+  'acidity',
 ];
 
 const VALID_COLORS = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange', 'alcohol_free', 'spirit'];
@@ -194,6 +197,27 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: 'Kartongstorlek måste vara ett positivt heltal' }, { status: 400 });
       }
       updates.case_size = cs;
+    }
+
+    // Validate body
+    if (updates.body !== undefined && updates.body !== null) {
+      if (!['light', 'medium', 'full'].includes(updates.body)) {
+        return NextResponse.json({ error: 'Kropp måste vara light, medium eller full' }, { status: 400 });
+      }
+    }
+
+    // Validate tannin
+    if (updates.tannin !== undefined && updates.tannin !== null) {
+      if (!['low', 'medium', 'high'].includes(updates.tannin)) {
+        return NextResponse.json({ error: 'Tannin måste vara low, medium eller high' }, { status: 400 });
+      }
+    }
+
+    // Validate acidity
+    if (updates.acidity !== undefined && updates.acidity !== null) {
+      if (!['low', 'medium', 'high'].includes(updates.acidity)) {
+        return NextResponse.json({ error: 'Syra måste vara low, medium eller high' }, { status: 400 });
+      }
     }
 
     const { adminClient } = await createRouteClients();

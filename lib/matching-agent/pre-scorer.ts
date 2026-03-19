@@ -16,6 +16,8 @@ import { SupplierWineRow, MergedPreferences, StructuredFilters, ScoredWine, Scor
 import { lookupCountryFromRegion } from '../catalog-agent/enrichment';
 import { FOOD_TO_WINE_STYLES } from './food-pairing';
 import { findGrape, isRegionRelated } from './knowledge';
+import { FOOD_STYLE_PREFERENCES } from './food-style-preferences';
+import { inferWineStyle } from './style-inference';
 
 /**
  * Score and sort wines. Returns top N by score.
@@ -28,7 +30,7 @@ export function preScoreWines(
 ): ScoredWine[] {
   const scored: ScoredWine[] = wines.map(wine => {
     const breakdown = scoreWine(wine, preferences, structuredFilters);
-    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.availability + breakdown.certification;
+    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification;
     return { wine, score, breakdown };
   });
 
@@ -49,6 +51,7 @@ function scoreWine(
     region: scoreRegion(wine, prefs),
     grape: scoreGrape(wine, prefs),
     food: scoreFood(wine, prefs),
+    styleMatch: scoreStyleMatch(wine, prefs),
     availability: scoreAvailability(wine),
     certification: scoreCertification(wine, prefs),
   };
@@ -246,6 +249,114 @@ function scoreFood(wine: SupplierWineRow, prefs: MergedPreferences): number {
 }
 
 // ============================================================================
+// Style match scoring (0-15) — body/tannin/acidity distance
+// Uses food→style preferences and the wine's style profile (DB or inferred)
+// ============================================================================
+
+function scoreStyleMatch(wine: SupplierWineRow, prefs: MergedPreferences): number {
+  // If wine has no style data, try to infer from grape+color
+  if (!wine.body && !wine.tannin && !wine.acidity) {
+    if (wine.grape || wine.color) {
+      const inferred = inferWineStyle(wine.grape || '', wine.color || '', wine.region || undefined);
+      wine.body = inferred.body;
+      wine.tannin = inferred.tannin;
+      wine.acidity = inferred.acidity;
+    } else {
+      return 7; // No data to work with — neutral
+    }
+  }
+
+  // If no food context, check against preferred_style from AI parser
+  if (prefs.food_pairing.length === 0) {
+    const ps = prefs.preferred_style;
+    if (!ps || (!ps.body && !ps.tannin && !ps.acidity)) return 7;
+    return scoreAgainstPreferred(wine, ps);
+  }
+
+  // Score against food style preferences
+  let bestScore = 0;
+  let matched = false;
+
+  for (const food of prefs.food_pairing) {
+    const stylePref = FOOD_STYLE_PREFERENCES[food.toLowerCase()];
+    if (!stylePref) continue;
+    matched = true;
+
+    let foodScore = 7; // Start neutral
+
+    // Body match/mismatch
+    if (wine.body && stylePref.body.length > 0) {
+      if (stylePref.body.includes(wine.body)) {
+        foodScore += 3; // Body match bonus
+      } else {
+        // Light food + full wine = bigger penalty (overpowering)
+        if (stylePref.body.includes('light') && wine.body === 'full') {
+          foodScore -= 4;
+        }
+        // Full food + light wine = smaller penalty (underwhelming but drinkable)
+        else if (stylePref.body.includes('full') && wine.body === 'light') {
+          foodScore -= 3;
+        }
+        else {
+          foodScore -= 1;
+        }
+      }
+    }
+
+    // Tannin match/mismatch
+    if (wine.tannin && stylePref.tannin.length > 0) {
+      if (stylePref.tannin.includes(wine.tannin)) {
+        foodScore += 3; // Tannin match bonus
+      } else if (stylePref.tannin.includes('low') && wine.tannin === 'high') {
+        foodScore -= 3; // High tannin clashes with delicate food
+      } else {
+        foodScore -= 1;
+      }
+    }
+
+    // Acidity match/mismatch
+    if (wine.acidity && stylePref.acidity.length > 0) {
+      if (stylePref.acidity.includes(wine.acidity)) {
+        foodScore += 2; // Acidity match bonus
+      } else {
+        foodScore -= 1;
+      }
+    }
+
+    bestScore = Math.max(bestScore, foodScore);
+  }
+
+  if (!matched) {
+    // No food style preferences found — fall back to preferred_style
+    const ps = prefs.preferred_style;
+    if (ps && (ps.body || ps.tannin || ps.acidity)) {
+      return scoreAgainstPreferred(wine, ps);
+    }
+    return 7;
+  }
+
+  return Math.min(Math.max(bestScore, 0), 15);
+}
+
+/** Score wine against a single preferred style profile (from AI parser) */
+function scoreAgainstPreferred(
+  wine: SupplierWineRow,
+  ps: { body: string | null; tannin: string | null; acidity: string | null },
+): number {
+  let score = 7;
+  if (ps.body && wine.body) {
+    score += wine.body === ps.body ? 3 : -2;
+  }
+  if (ps.tannin && wine.tannin) {
+    score += wine.tannin === ps.tannin ? 3 : -1;
+  }
+  if (ps.acidity && wine.acidity) {
+    score += wine.acidity === ps.acidity ? 2 : -1;
+  }
+  return Math.min(Math.max(score, 0), 15);
+}
+
+// ============================================================================
 // Certification scoring (0-5 bonus)
 // ============================================================================
 
@@ -268,6 +379,10 @@ function scoreCertification(wine: SupplierWineRow, prefs: MergedPreferences): nu
   return 0;
 }
 
+// ============================================================================
+// Style match scoring (0-15)
+// Compares wine's body/tannin/acidity to the ideal style from AI parser.
+// This is the key layer that makes food pairing scale without lookup tables.
 // ============================================================================
 // Availability scoring (0-10)
 // ============================================================================

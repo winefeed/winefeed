@@ -5,6 +5,13 @@
  * fritext parse → lookup → smart query → pre-score → AI re-rank
  */
 
+/** Wine style profile — the universal middle layer between food and wine */
+export interface StyleProfile {
+  body: 'light' | 'medium' | 'full' | null;
+  tannin: 'low' | 'medium' | 'high' | null;
+  acidity: 'low' | 'medium' | 'high' | null;
+}
+
 /** Result of AI-parsing free text into structured wine criteria */
 export interface ParsedFritext {
   food_pairing: string[];        // ["lamm", "fisk"]
@@ -14,10 +21,13 @@ export interface ParsedFritext {
   implied_country: string | null;
   implied_region: string | null;
   implied_grapes: string[];
+  implied_style: StyleProfile;   // AI-inferred ideal style from food+color+context
   organic: boolean;
   biodynamic: boolean;
   price_sensitivity: 'budget' | 'premium' | 'any';
 }
+
+export const EMPTY_STYLE: StyleProfile = { body: null, tannin: null, acidity: null };
 
 /** Empty ParsedFritext — used as fallback when parsing fails */
 export const EMPTY_PARSED: ParsedFritext = {
@@ -28,18 +38,20 @@ export const EMPTY_PARSED: ParsedFritext = {
   implied_country: null,
   implied_region: null,
   implied_grapes: [],
+  implied_style: { ...EMPTY_STYLE },
   organic: false,
   biodynamic: false,
   price_sensitivity: 'any',
 };
 
-/** Score breakdown per category (max sum = 105) */
+/** Score breakdown per category */
 export interface ScoreBreakdown {
-  price: number;          // 0-25
+  price: number;          // 0-20
   color: number;          // 0-20
-  region: number;         // 0-20
-  grape: number;          // 0-15
-  food: number;           // 0-10
+  region: number;         // 0-15
+  grape: number;          // 0-20
+  food: number;           // 0-15
+  styleMatch: number;     // 0-15 — body/tannin/acidity distance
   availability: number;   // 0-10
   certification: number;  // 0-5 bonus
 }
@@ -77,6 +89,9 @@ export interface SupplierWineRow {
   lead_time_days: number | null;
   delivery_areas: string[] | null;
   is_active: boolean;
+  body: string | null;
+  tannin: string | null;
+  acidity: string | null;
 }
 
 /** Structured filters from the UI (chips, dropdowns) */
@@ -126,6 +141,7 @@ export interface MergedPreferences {
   food_pairing: string[];
   occasion: string | null;
   style: string[];
+  preferred_style: StyleProfile;  // Ideal wine style for this request (from AI parser or food table)
   organic: boolean;
   biodynamic: boolean;
   price_sensitivity: 'budget' | 'premium' | 'any';

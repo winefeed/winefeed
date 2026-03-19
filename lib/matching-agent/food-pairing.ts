@@ -755,6 +755,7 @@ export function mergePreferences(
     food_pairing: parsed.food_pairing,
     occasion: parsed.occasion,
     style: parsed.style,
+    preferred_style: parsed.implied_style,  // AI-inferred ideal style for this request
     organic,
     biodynamic,
     price_sensitivity,

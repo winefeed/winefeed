@@ -7,7 +7,7 @@
  */
 
 import { callOpenRouter } from '../ai/openrouter';
-import { ParsedFritext, EMPTY_PARSED, StructuredFilters } from './types';
+import { ParsedFritext, EMPTY_PARSED, EMPTY_STYLE, StyleProfile, StructuredFilters } from './types';
 
 /**
  * Parse free text into structured wine criteria using AI.
@@ -50,6 +50,11 @@ Returnera ENBART ett JSON-objekt (ingen markdown, ingen förklaring) med denna s
   "implied_country": "land på engelska eller null",
   "implied_region": "region på originalspråk eller null",
   "implied_grapes": ["druva1"],
+  "implied_style": {
+    "body": "light/medium/full eller null",
+    "tannin": "low/medium/high eller null",
+    "acidity": "low/medium/high eller null"
+  },
   "organic": false,
   "biodynamic": false,
   "price_sensitivity": "budget/premium/any"
@@ -72,6 +77,14 @@ REGLER:
   Om druva redan är vald i filter, sätt tom array
 - organic: true om "ekologisk", "eko", "organic" nämns
 - biodynamic: true om "biodynamisk", "biodynamic" nämns
+- implied_style: den IDEALA stilprofilen för förfrågan (mat + färg + tillfälle kombinerat).
+  Tänk som en sommelier: vilken kropp, tanninnivå och syra passar bäst?
+  Exempel:
+  "rött vin till fisk" → { body: "light", tannin: "low", acidity: "high" }
+  "kraftigt rött till grillat kött" → { body: "full", tannin: "high", acidity: "medium" }
+  "vitt till skaldjur" → { body: "light", tannin: null, acidity: "high" }
+  "vin till ostbricka" → { body: "medium", tannin: "medium", acidity: "medium" }
+  Sätt null på dimensioner där det inte spelar roll.
 - price_sensitivity: "budget" om billigt/prisvärt, "premium" om exklusivt/lyxigt, "any" annars
 - Sätt till null/tom array/false om inget relevant finns i texten`;
 
@@ -88,6 +101,11 @@ REGLER:
     const raw = JSON.parse(jsonMatch[0]);
 
     // Validate and sanitize the response
+    const validBody = ['light', 'medium', 'full'];
+    const validTannin = ['low', 'medium', 'high'];
+    const validAcidity = ['low', 'medium', 'high'];
+    const rawStyle = raw.implied_style || {};
+
     return {
       food_pairing: Array.isArray(raw.food_pairing) ? raw.food_pairing.filter((s: any) => typeof s === 'string') : [],
       style: Array.isArray(raw.style) ? raw.style.filter((s: any) => typeof s === 'string') : [],
@@ -96,6 +114,11 @@ REGLER:
       implied_country: typeof raw.implied_country === 'string' ? raw.implied_country : null,
       implied_region: typeof raw.implied_region === 'string' ? raw.implied_region : null,
       implied_grapes: Array.isArray(raw.implied_grapes) ? raw.implied_grapes.filter((s: any) => typeof s === 'string') : [],
+      implied_style: {
+        body: validBody.includes(rawStyle.body) ? rawStyle.body : null,
+        tannin: validTannin.includes(rawStyle.tannin) ? rawStyle.tannin : null,
+        acidity: validAcidity.includes(rawStyle.acidity) ? rawStyle.acidity : null,
+      } as StyleProfile,
       organic: raw.organic === true,
       biodynamic: raw.biodynamic === true,
       price_sensitivity: ['budget', 'premium', 'any'].includes(raw.price_sensitivity) ? raw.price_sensitivity : 'any',
