@@ -60,7 +60,7 @@ export function HelpTooltip({
       </button>
       {isVisible && (
         <div
-          className={`absolute ${positions[side]} z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg max-w-[250px] text-left`}
+          className={`absolute ${positions[side]} z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg w-[280px] sm:w-[320px] text-left`}
           role="tooltip"
         >
           {content}
