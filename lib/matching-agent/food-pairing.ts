@@ -717,12 +717,26 @@ export function mergePreferences(
   allRegions.push(...stylePref.regions);
 
   // Grapes: structured filter > parsed + food + style
+  // AI-parsed implied_grapes are context-aware (considers food+color together),
+  // so they take priority. Food table grapes may conflict with color
+  // (e.g. "fisk" suggests Chardonnay, but user asked for red).
   const allGrapes: string[] = [];
   if (structuredGrape && structuredGrape !== 'all' && structuredGrape !== 'other') {
     allGrapes.push(structuredGrape);
   } else {
+    // AI-parsed grapes first (already consider the full context: food + color + style)
     allGrapes.push(...parsed.implied_grapes);
-    allGrapes.push(...foodPref.grapes);
+
+    // Only add food/style table grapes if they don't conflict with the chosen color.
+    // If user said "rött" but food table suggests white-grape Chardonnay, skip it.
+    const effectiveColor = (structuredColor && structuredColor !== 'all')
+      ? structuredColor
+      : parsed.implied_color;
+    const foodColorConflict = effectiveColor && !foodPref.colors.includes(effectiveColor);
+
+    if (!foodColorConflict) {
+      allGrapes.push(...foodPref.grapes);
+    }
     allGrapes.push(...stylePref.grapes);
   }
 

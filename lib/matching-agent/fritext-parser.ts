@@ -65,7 +65,11 @@ REGLER:
   fisk/skaldjur → "white", rött kött → "red", tartar/carpaccio → "red"
 - implied_country: BARA om texten antyder land som INTE redan är valt, skriv på engelska (France, Italy, Spain)
 - implied_region: vinregion om nämnd (Bordeaux, Toscana, Rioja)
-- implied_grapes: BARA om texten antyder druvor som INTE redan är valt
+- implied_grapes: druvor som passar HELHETEN av förfrågan (mat + färg + stil kombinerat).
+  Även om användaren inte nämner druvor explicit, föreslå druvor som en sommelier skulle rekommendera.
+  Exempel: "rött vin till fisk" → ["Pinot Noir", "Gamay", "Grenache"] (lättare röda druvor).
+  "vitt vin till lamm" → ["Chardonnay"] (fetare vita med kropp).
+  Om druva redan är vald i filter, sätt tom array
 - organic: true om "ekologisk", "eko", "organic" nämns
 - biodynamic: true om "biodynamisk", "biodynamic" nämns
 - price_sensitivity: "budget" om billigt/prisvärt, "premium" om exklusivt/lyxigt, "any" annars

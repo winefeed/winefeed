@@ -2,11 +2,11 @@
  * Matching Agent — Deterministic Pre-Scorer
  *
  * Scores each wine 0-100 without AI, based on:
- * - Price proximity to budget (0-25)
+ * - Price proximity to budget (0-20)
  * - Color match (0-20)
- * - Region/country match (0-20)
- * - Grape match (0-15)
- * - Food pairing compatibility (0-10)
+ * - Region/country match (0-15)
+ * - Grape match (0-20) — high weight because AI parser infers grapes from food+color context
+ * - Food pairing compatibility (0-15)
  * - Availability/stock (0-10)
  *
  * Runs in <5ms for 100 wines. Sorts and returns top N for AI re-ranking.
@@ -55,24 +55,24 @@ function scoreWine(
 }
 
 // ============================================================================
-// Price scoring (0-25)
+// Price scoring (0-20)
 // ============================================================================
 
 function scorePrice(wine: SupplierWineRow, filters: StructuredFilters): number {
   const budgetMax = filters.budget_max;
-  if (!budgetMax) return 15; // No budget = neutral score
+  if (!budgetMax) return 12; // No budget = neutral score
 
   const priceSek = wine.price_ex_vat_sek / 100; // Convert öre to SEK
   const ratio = priceSek / budgetMax;
 
   // Under budget is good for restaurants (better value)
-  if (ratio <= 0.5) return 15;   // Way under budget — decent but maybe too cheap
-  if (ratio <= 0.8) return 22;   // Nice sweet spot — good value
-  if (ratio <= 0.9) return 25;   // Just under budget — perfect
-  if (ratio <= 1.0) return 25;   // At budget — perfect
-  if (ratio <= 1.1) return 20;   // Slightly over — acceptable
-  if (ratio <= 1.2) return 15;   // 20% over — stretch
-  if (ratio <= 1.3) return 10;   // 30% over — max tolerance
+  if (ratio <= 0.5) return 12;   // Way under budget — decent but maybe too cheap
+  if (ratio <= 0.8) return 18;   // Nice sweet spot — good value
+  if (ratio <= 0.9) return 20;   // Just under budget — perfect
+  if (ratio <= 1.0) return 20;   // At budget — perfect
+  if (ratio <= 1.1) return 16;   // Slightly over — acceptable
+  if (ratio <= 1.2) return 12;   // 20% over — stretch
+  if (ratio <= 1.3) return 8;    // 30% over — max tolerance
   return 0;                       // Over 30% — too expensive
 }
 
@@ -97,7 +97,7 @@ function scoreColor(wine: SupplierWineRow, prefs: MergedPreferences, filters: St
 }
 
 // ============================================================================
-// Region/country scoring (0-20)
+// Region/country scoring (0-15)
 // ============================================================================
 
 function scoreRegion(wine: SupplierWineRow, prefs: MergedPreferences): number {
@@ -108,7 +108,7 @@ function scoreRegion(wine: SupplierWineRow, prefs: MergedPreferences): number {
     const wineCountryLower = (wine.country || '').toLowerCase();
     const countryMatch = prefs.countries.some(c => c.toLowerCase() === wineCountryLower);
     if (countryMatch) {
-      score += 15;
+      score += 10;
     }
   }
 
@@ -117,38 +117,41 @@ function scoreRegion(wine: SupplierWineRow, prefs: MergedPreferences): number {
     const wineRegionLower = wine.region.toLowerCase();
     const regionMatch = prefs.regions.some(r => wineRegionLower.includes(r.toLowerCase()));
     if (regionMatch) {
-      score = 20; // Region match is strongest — overrides country-only score
+      score = 15; // Region match is strongest — overrides country-only score
     }
   }
 
   // Knowledge base: check subregion relationships
-  if (score < 15 && prefs.regions.length > 0 && wine.region) {
+  if (score < 10 && prefs.regions.length > 0 && wine.region) {
     const subMatch = prefs.regions.some(r => isRegionRelated(r, wine.region || ''));
-    if (subMatch) score = Math.max(score, 15);
+    if (subMatch) score = Math.max(score, 10);
   }
 
   // If wine's region is in a preferred country (indirect match)
   if (score === 0 && prefs.countries.length > 0 && wine.region) {
     const regionCountry = lookupCountryFromRegion(wine.region);
     if (regionCountry && prefs.countries.some(c => c.toLowerCase() === regionCountry.toLowerCase())) {
-      score = 10;
+      score = 7;
     }
   }
 
   // No country/region preferences — neutral
   if (prefs.countries.length === 0 && prefs.regions.length === 0) {
-    score = 10;
+    score = 8;
   }
 
-  return Math.min(score, 20);
+  return Math.min(score, 15);
 }
 
 // ============================================================================
-// Grape scoring (0-15)
+// Grape scoring (0-20)
+// Higher weight because AI parser infers ideal grapes from food+color context.
+// E.g. "rött vin till fisk" → implied_grapes: [Pinot Noir, Gamay]
+// This makes grape match the strongest content signal after color.
 // ============================================================================
 
 function scoreGrape(wine: SupplierWineRow, prefs: MergedPreferences): number {
-  if (prefs.grapes.length === 0) return 8; // No grape pref — neutral
+  if (prefs.grapes.length === 0) return 10; // No grape pref — neutral
 
   if (!wine.grape) return 3; // No grape data — low but not zero
 
@@ -156,11 +159,11 @@ function scoreGrape(wine: SupplierWineRow, prefs: MergedPreferences): number {
 
   // Exact match (grape contains preferred grape name)
   const exactMatch = prefs.grapes.some(g => wineGrapeLower.includes(g.toLowerCase()));
-  if (exactMatch) return 15;
+  if (exactMatch) return 20;
 
   // Check if wine grape appears in any preferred grape (reverse check)
   const reverseMatch = prefs.grapes.some(g => g.toLowerCase().includes(wineGrapeLower));
-  if (reverseMatch) return 12;
+  if (reverseMatch) return 16;
 
   // Knowledge base: check synonym match (e.g., Shiraz = Syrah)
   const wineGrapeProfile = findGrape(wine.grape);
@@ -168,7 +171,7 @@ function scoreGrape(wine: SupplierWineRow, prefs: MergedPreferences): number {
     for (const prefGrape of prefs.grapes) {
       const prefProfile = findGrape(prefGrape);
       if (prefProfile && prefProfile.name === wineGrapeProfile.name) {
-        return 15; // Same grape via synonym
+        return 20; // Same grape via synonym
       }
     }
   }
@@ -177,11 +180,11 @@ function scoreGrape(wine: SupplierWineRow, prefs: MergedPreferences): number {
 }
 
 // ============================================================================
-// Food pairing scoring (0-10)
+// Food pairing scoring (0-15)
 // ============================================================================
 
 function scoreFood(wine: SupplierWineRow, prefs: MergedPreferences): number {
-  if (prefs.food_pairing.length === 0) return 5; // No food context — neutral
+  if (prefs.food_pairing.length === 0) return 7; // No food context — neutral
 
   let score = 0;
 
@@ -239,7 +242,7 @@ function scoreFood(wine: SupplierWineRow, prefs: MergedPreferences): number {
     }
   }
 
-  return Math.min(score, 10);
+  return Math.min(score, 15);
 }
 
 // ============================================================================
