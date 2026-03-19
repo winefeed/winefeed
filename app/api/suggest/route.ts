@@ -186,7 +186,9 @@ export async function POST(request: NextRequest) {
           provorder_fee_sek: 500,
           payment_terms: null,
         },
-        motivering: wine.description || 'Ett utmärkt val för din restaurang.',
+        motivering: wine.description && !wine.description.startsWith('Baserat på dina kriterier')
+          ? wine.description
+          : buildFallbackMotivation(wine),
         ranking_score: sw.score / 100, // Normalize to 0-1 for compatibility
       };
     });
@@ -216,5 +218,23 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/** Build a descriptive fallback when AI motivation is unavailable */
+function buildFallbackMotivation(wine: Record<string, any>): string {
+  const parts: string[] = [];
+  const colorMap: Record<string, string> = { red: 'Rött', white: 'Vitt', rose: 'Rosé', sparkling: 'Mousserande', orange: 'Orange', fortified: 'Starkvin' };
+  const colorLabel = colorMap[wine.color] || wine.color;
+  if (wine.grape && wine.region) {
+    parts.push(`${colorLabel} vin på ${wine.grape} från ${wine.region}, ${wine.country}.`);
+  } else if (wine.region) {
+    parts.push(`${colorLabel} vin från ${wine.region}, ${wine.country}.`);
+  } else if (wine.country) {
+    parts.push(`${colorLabel} vin från ${wine.country}.`);
+  }
+  if (wine.producer) {
+    parts.push(`Producent: ${wine.producer}.`);
+  }
+  return parts.join(' ') || `${colorLabel} vin från ${wine.producer || 'okänd producent'}.`;
 }
 

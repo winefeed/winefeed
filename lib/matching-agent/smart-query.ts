@@ -23,13 +23,22 @@ function getSupabaseAdmin() {
  * 1. Full filters (color + budget + country + region + grape + organic)
  * 2. Relaxed (color + budget only)
  * 3. Color only
- * 4. All wines
+ * 4. All wines — BUT only if no explicit color was requested
+ *
+ * If the user explicitly requested a color (e.g. "rött vin"), we NEVER
+ * fall back to showing other colors. Better to return fewer results
+ * than irrelevant ones.
  */
 export async function runSmartQuery(
   structuredFilters: StructuredFilters,
   preferences: MergedPreferences,
   options: MatchingAgentOptions,
 ): Promise<SupplierWineRow[]> {
+  const hasExplicitColor = !!(
+    (structuredFilters.color && structuredFilters.color !== 'all') ||
+    preferences.colors.length > 0
+  );
+
   // Try full smart query first
   const fullResult = await queryWithFilters(structuredFilters, preferences, options, 'full');
   if (fullResult.length > 0) return fullResult;
@@ -46,9 +55,16 @@ export async function runSmartQuery(
   const colorResult = await queryWithFilters(structuredFilters, preferences, options, 'color-only');
   if (colorResult.length > 0) return colorResult;
 
+  // If user explicitly asked for a color, do NOT fall back to all wines.
+  // Showing a white wine when someone asked for red is worse than showing nothing.
+  if (hasExplicitColor) {
+    console.log('[MatchingAgent] Color-only returned 0 results, but color was explicit — not falling back to all wines');
+    return [];
+  }
+
   console.log('[MatchingAgent] Color-only returned 0 results, fetching all wines...');
 
-  // All wines
+  // All wines (only when no color preference was expressed)
   return queryWithFilters(structuredFilters, preferences, options, 'all');
 }
 
