@@ -29,7 +29,7 @@ import {
 import { parseFritext } from './fritext-parser';
 import { mergePreferences, setRuntimeOverrides } from './food-pairing';
 import { loadPairingOverrides } from '../food-scan/pairing-loader';
-import { runSmartQuery } from './smart-query';
+import { runSmartQuery, SmartQueryResult } from './smart-query';
 import { preScoreWines } from './pre-scorer';
 import { rankWinesEnhanced } from '../ai/rank-wines';
 import { buildKnowledgeContext } from './knowledge';
@@ -106,10 +106,11 @@ export async function runMatchingAgentPipeline(
   // Step 3+4: Smart query (async, with fallback cascade)
   // -------------------------------------------------------------------------
   const tQuery = Date.now();
-  const wines = await runSmartQuery(input.structuredFilters, preferences, options);
+  const queryResult: SmartQueryResult = await runSmartQuery(input.structuredFilters, preferences, options);
+  const wines = queryResult.wines;
   timing.query = Date.now() - tQuery;
   const totalDbMatches = wines.length;
-  console.log(`[MatchingAgent] Query returned ${wines.length} wines in ${timing.query}ms`);
+  console.log(`[MatchingAgent] Query returned ${wines.length} wines in ${timing.query}ms${queryResult.relaxedFrom ? ` (relaxed: ${queryResult.relaxedFrom})` : ''}`);
 
   if (wines.length === 0) {
     return {
@@ -119,6 +120,7 @@ export async function runMatchingAgentPipeline(
       preferences,
       timing: { ...timing, total: Date.now() - t0 },
       totalDbMatches: 0,
+      relaxedFrom: queryResult.relaxedFrom,
     };
   }
 
@@ -311,6 +313,7 @@ export async function runMatchingAgentPipeline(
     preferences,
     timing,
     totalDbMatches,
+    relaxedFrom: queryResult.relaxedFrom,
   };
 }
 

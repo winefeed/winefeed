@@ -205,6 +205,7 @@ export async function POST(request: NextRequest) {
       },
       total_matches: result.totalDbMatches,
       pipeline_timing: result.timing,
+      ...(result.relaxedFrom && { relaxed_message: result.relaxedFrom }),
     });
 
   } catch (error: any) {

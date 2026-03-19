@@ -151,4 +151,6 @@ export interface MatchingAgentResult {
   preferences: MergedPreferences;
   timing: Record<string, number>;
   totalDbMatches: number;
+  /** If the query was relaxed to get results, describes what was dropped */
+  relaxedFrom?: string;
 }

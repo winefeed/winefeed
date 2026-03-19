@@ -29,43 +29,76 @@ function getSupabaseAdmin() {
  * fall back to showing other colors. Better to return fewer results
  * than irrelevant ones.
  */
+export interface SmartQueryResult {
+  wines: SupplierWineRow[];
+  /** Human-readable description of what was relaxed, or undefined if exact match */
+  relaxedFrom?: string;
+}
+
 export async function runSmartQuery(
   structuredFilters: StructuredFilters,
   preferences: MergedPreferences,
   options: MatchingAgentOptions,
-): Promise<SupplierWineRow[]> {
+): Promise<SmartQueryResult> {
   const hasExplicitColor = !!(
     (structuredFilters.color && structuredFilters.color !== 'all') ||
     preferences.colors.length > 0
   );
 
+  const effectiveColor = resolveColor(structuredFilters.color, preferences);
+  const effectiveCountry = resolveCountry(structuredFilters.country, preferences);
+
+  const colorLabel: Record<string, string> = {
+    red: 'röda', white: 'vita', rose: 'rosé', sparkling: 'mousserande',
+    orange: 'orange', fortified: 'starkvin',
+  };
+
   // Try full smart query first
   const fullResult = await queryWithFilters(structuredFilters, preferences, options, 'full');
-  if (fullResult.length > 0) return fullResult;
+  if (fullResult.length > 0) return { wines: fullResult };
 
   console.log('[MatchingAgent] Full query returned 0 results, trying relaxed...');
 
   // Relaxed: color + budget only
   const relaxedResult = await queryWithFilters(structuredFilters, preferences, options, 'relaxed');
-  if (relaxedResult.length > 0) return relaxedResult;
+  if (relaxedResult.length > 0) {
+    const dropped: string[] = [];
+    if (effectiveCountry) dropped.push(effectiveCountry);
+    if (preferences.regions.length > 0) dropped.push(preferences.regions[0]);
+    if (preferences.grapes.length > 0) dropped.push(preferences.grapes[0]);
+    return {
+      wines: relaxedResult,
+      relaxedFrom: dropped.length > 0
+        ? `Inga exakta träffar för ${dropped.join(', ')}. Visar ${effectiveColor ? colorLabel[effectiveColor] || effectiveColor : ''} viner inom budget istället.`
+        : undefined,
+    };
+  }
 
   console.log('[MatchingAgent] Relaxed query returned 0 results, trying color-only...');
 
   // Color only
   const colorResult = await queryWithFilters(structuredFilters, preferences, options, 'color-only');
-  if (colorResult.length > 0) return colorResult;
+  if (colorResult.length > 0) {
+    return {
+      wines: colorResult,
+      relaxedFrom: effectiveCountry
+        ? `Vi hittade inga ${colorLabel[effectiveColor || ''] || ''} viner från ${effectiveCountry}, men här är ${colorLabel[effectiveColor || ''] || ''} viner från andra länder.`
+        : `Inga exakta träffar. Visar alla ${colorLabel[effectiveColor || ''] || ''} viner.`,
+    };
+  }
 
   // If user explicitly asked for a color, do NOT fall back to all wines.
-  // Showing a white wine when someone asked for red is worse than showing nothing.
   if (hasExplicitColor) {
     console.log('[MatchingAgent] Color-only returned 0 results, but color was explicit — not falling back to all wines');
-    return [];
+    return { wines: [] };
   }
 
   console.log('[MatchingAgent] Color-only returned 0 results, fetching all wines...');
 
-  // All wines (only when no color preference was expressed)
-  return queryWithFilters(structuredFilters, preferences, options, 'all');
+  return {
+    wines: await queryWithFilters(structuredFilters, preferences, options, 'all'),
+    relaxedFrom: 'Inga exakta träffar. Visar alla tillgängliga viner.',
+  };
 }
 
 type QueryMode = 'full' | 'relaxed' | 'color-only' | 'all';

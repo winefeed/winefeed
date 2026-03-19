@@ -83,6 +83,7 @@ export default function ResultsPage() {
   const params = useParams<{ id: string }>();
   const requestId = params.id;
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [relaxedMessage, setRelaxedMessage] = useState<string | null>(null);
   const [selectedWines, setSelectedWines] = useState<Set<string>>(new Set());
   const [expandedWines, setExpandedWines] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -203,12 +204,14 @@ export default function ResultsPage() {
       try {
         const parsed = JSON.parse(stored);
         setSuggestions(parsed);
-        // Start with empty selection - user must actively choose wines to include
-        // This is better UX for B2B: deliberate opt-in rather than opt-out
         setSelectedWines(new Set());
       } catch (e) {
         console.error('Failed to parse suggestions:', e);
       }
+    }
+    const storedRelaxed = sessionStorage.getItem('latest-relaxed-message');
+    if (storedRelaxed) {
+      setRelaxedMessage(storedRelaxed);
     }
 
     // Get RFQ draft from sessionStorage (new flow)
@@ -676,6 +679,11 @@ export default function ResultsPage() {
             <p className="text-sm text-muted-foreground mt-1 truncate">
               &quot;{searchDescription}&quot;
             </p>
+          )}
+          {relaxedMessage && (
+            <div className="mt-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+              {relaxedMessage}
+            </div>
           )}
         </div>
 

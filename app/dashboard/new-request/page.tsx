@@ -65,6 +65,11 @@ export default function NewRequestPage() {
         const result = await response.json();
 
         sessionStorage.setItem('latest-suggestions', JSON.stringify(result.suggestions));
+        if (result.relaxed_message) {
+          sessionStorage.setItem('latest-relaxed-message', result.relaxed_message);
+        } else {
+          sessionStorage.removeItem('latest-relaxed-message');
+        }
         sessionStorage.setItem('rfq-draft', JSON.stringify({
           freeText: data.freeText,
           wineType: result.parsed?.wine_type || data.wineType,
@@ -107,6 +112,11 @@ export default function NewRequestPage() {
       }));
 
       sessionStorage.setItem('latest-suggestions', JSON.stringify(result.suggestions));
+      if (result.relaxed_message) {
+        sessionStorage.setItem('latest-relaxed-message', result.relaxed_message);
+      } else {
+        sessionStorage.removeItem('latest-relaxed-message');
+      }
       sessionStorage.setItem('latest-search-params', JSON.stringify({
         freeText: data.freeText,
         color: data.wineType,
