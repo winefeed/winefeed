@@ -27,7 +27,7 @@ import {
   SupplierInfo,
 } from './types';
 import { parseFritext } from './fritext-parser';
-import { mergePreferences, setRuntimeOverrides } from './food-pairing';
+import { mergePreferences, setRuntimeOverrides, FOOD_TO_WINE_STYLES } from './food-pairing';
 import { loadPairingOverrides } from '../food-scan/pairing-loader';
 import { runSmartQuery, SmartQueryResult } from './smart-query';
 import { preScoreWines } from './pre-scorer';
@@ -124,6 +124,27 @@ export async function runMatchingAgentPipeline(
         console.log(`[MatchingAgent] Regex fallback: extracted country="${country}" from fritext`);
         break;
       }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Step 1c: Regex fallback — extract food keywords from fritext
+  // Scans against our food pairing tables so food scoring works without AI
+  // -------------------------------------------------------------------------
+  if (input.fritext && parsed.food_pairing.length === 0) {
+    const ft = input.fritext.toLowerCase();
+    // Import food keywords from our tables
+    const foodKeys = Object.keys(FOOD_TO_WINE_STYLES);
+    const matched: string[] = [];
+    // Sort by length descending so "lammracks" matches before "lamm"
+    for (const food of foodKeys.sort((a, b) => b.length - a.length)) {
+      if (ft.includes(food) && !matched.some(m => m.includes(food) || food.includes(m))) {
+        matched.push(food);
+      }
+    }
+    if (matched.length > 0) {
+      parsed.food_pairing = matched;
+      console.log(`[MatchingAgent] Regex fallback: extracted food=${matched.join(', ')} from fritext`);
     }
   }
 
