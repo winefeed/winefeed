@@ -59,6 +59,7 @@ export const FOOD_TO_WINE_STYLES: Record<string, FoodWinePreference> = {
   'hamburgare': { colors: ['red'], regions: ['languedoc', 'mendoza', 'barossa'], grapes: ['Malbec', 'Shiraz', 'Grenache'] },
 
   'steak': { colors: ['red'], regions: ['bordeaux', 'napa valley', 'mendoza', 'ribera del duero'], grapes: ['Cabernet Sauvignon', 'Malbec', 'Tempranillo'] },
+  'stek': { colors: ['red'], regions: ['bordeaux', 'napa valley', 'mendoza', 'ribera del duero'], grapes: ['Cabernet Sauvignon', 'Malbec', 'Tempranillo', 'Syrah'] },
   'pepparstek': { colors: ['red'], regions: ['bordeaux', 'rhône', 'ribera del duero'], grapes: ['Cabernet Sauvignon', 'Syrah', 'Tempranillo'] },
   'steak au poivre': { colors: ['red'], regions: ['bordeaux', 'rhône', 'ribera del duero'], grapes: ['Cabernet Sauvignon', 'Syrah', 'Tempranillo'] },
   'högrev': { colors: ['red'], regions: ['rhône', 'languedoc', 'mendoza', 'alentejo'], grapes: ['Syrah', 'Grenache', 'Malbec', 'Touriga Nacional'] },

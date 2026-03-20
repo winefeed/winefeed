@@ -149,6 +149,47 @@ export async function runMatchingAgentPipeline(
   }
 
   // -------------------------------------------------------------------------
+  // Step 1d: Regex fallback — extract grape keywords + synonyms from fritext
+  // -------------------------------------------------------------------------
+  if (input.fritext && parsed.implied_grapes.length === 0 && !input.structuredFilters.grape) {
+    const ft = input.fritext.toLowerCase();
+    const grapeKeywords: Record<string, string> = {
+      'shiraz': 'Syrah', 'syrah': 'Syrah',
+      'cabernet sauvignon': 'Cabernet Sauvignon', 'cabernet': 'Cabernet Sauvignon', 'cab sauv': 'Cabernet Sauvignon',
+      'cabernet franc': 'Cabernet Franc',
+      'pinot noir': 'Pinot Noir', 'pinot': 'Pinot Noir',
+      'merlot': 'Merlot',
+      'malbec': 'Malbec',
+      'nebbiolo': 'Nebbiolo', 'barolo': 'Nebbiolo', 'barbaresco': 'Nebbiolo',
+      'sangiovese': 'Sangiovese', 'chianti': 'Sangiovese',
+      'tempranillo': 'Tempranillo', 'rioja': 'Tempranillo',
+      'grenache': 'Grenache', 'garnacha': 'Grenache',
+      'gamay': 'Gamay', 'beaujolais': 'Gamay',
+      'chardonnay': 'Chardonnay', 'chablis': 'Chardonnay',
+      'sauvignon blanc': 'Sauvignon Blanc', 'sancerre': 'Sauvignon Blanc',
+      'riesling': 'Riesling',
+      'chenin blanc': 'Chenin Blanc',
+      'pinot gris': 'Pinot Gris', 'pinot grigio': 'Pinot Gris',
+      'gewürztraminer': 'Gewürztraminer', 'gewurztraminer': 'Gewürztraminer',
+      'viognier': 'Viognier',
+      'grüner veltliner': 'Grüner Veltliner',
+      'albariño': 'Albariño', 'albarino': 'Albariño',
+      'zinfandel': 'Zinfandel', 'primitivo': 'Zinfandel',
+      'carignan': 'Carignan',
+      'mourvèdre': 'Mourvèdre', 'mourvedre': 'Mourvèdre',
+      'cinsault': 'Cinsault',
+    };
+    // Sort by key length descending so "cabernet sauvignon" matches before "cabernet"
+    const sorted = Object.entries(grapeKeywords).sort((a, b) => b[0].length - a[0].length);
+    for (const [keyword, grape] of sorted) {
+      if (ft.includes(keyword) && !parsed.implied_grapes.includes(grape)) {
+        parsed.implied_grapes.push(grape);
+        console.log(`[MatchingAgent] Regex fallback: extracted grape="${grape}" from "${keyword}"`);
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // Step 1b: Load DB pairing overrides (async, cached 5 min)
   // -------------------------------------------------------------------------
   try {

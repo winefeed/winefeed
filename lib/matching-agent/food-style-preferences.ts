@@ -37,6 +37,7 @@ export const FOOD_STYLE_PREFERENCES: Record<string, StylePreference> = {
   'entrecôte':      { body: ['full'],             tannin: ['medium', 'high'],   acidity: ['medium'] },
   'oxfilé':         { body: ['full'],             tannin: ['medium', 'high'],   acidity: ['medium'] },
   'steak':          { body: ['full'],             tannin: ['medium', 'high'],   acidity: ['medium'] },
+  'stek':           { body: ['full'],             tannin: ['medium', 'high'],   acidity: ['medium'] },
 
   // Game — full body, good structure
   'vilt':           { body: ['medium', 'full'],   tannin: ['medium', 'high'],   acidity: ['medium', 'high'] },
