@@ -99,12 +99,24 @@ export async function runMatchingAgentPipeline(
   if (input.fritext && !parsed.implied_country && !input.structuredFilters.country) {
     const ft = input.fritext.toLowerCase();
     const countryKeywords: Record<string, string> = {
-      'frankrike': 'France', 'fransk': 'France', 'italia': 'Italy', 'italiensk': 'Italy',
-      'spanien': 'Spain', 'spansk': 'Spain', 'argentina': 'Argentina', 'argentinsk': 'Argentina',
-      'chile': 'Chile', 'chilensk': 'Chile', 'sydafrika': 'South Africa',
-      'australien': 'Australia', 'nya zeeland': 'New Zealand', 'portugal': 'Portugal',
-      'tyskland': 'Germany', 'tysk': 'Germany', 'österrike': 'Austria',
-      'grekland': 'Greece', 'grekisk': 'Greece',
+      'frankrike': 'France', 'fransk': 'France', 'franskt': 'France', 'franska': 'France',
+      'italia': 'Italy', 'italien': 'Italy', 'italiensk': 'Italy', 'italienskt': 'Italy', 'italienska': 'Italy',
+      'spanien': 'Spain', 'spansk': 'Spain', 'spanskt': 'Spain', 'spanska': 'Spain',
+      'argentina': 'Argentina', 'argentinsk': 'Argentina', 'argentinskt': 'Argentina',
+      'chile': 'Chile', 'chilensk': 'Chile', 'chilenskt': 'Chile',
+      'sydafrika': 'South Africa', 'sydafrikansk': 'South Africa', 'sydafrikanskt': 'South Africa',
+      'australien': 'Australia', 'australisk': 'Australia', 'australiskt': 'Australia',
+      'nya zeeland': 'New Zealand', 'nyzeeländsk': 'New Zealand',
+      'portugal': 'Portugal', 'portugisisk': 'Portugal', 'portugisiskt': 'Portugal',
+      'tyskland': 'Germany', 'tysk': 'Germany', 'tyskt': 'Germany', 'tyska': 'Germany',
+      'österrike': 'Austria', 'österrikisk': 'Austria', 'österrikiskt': 'Austria',
+      'grekland': 'Greece', 'grekisk': 'Greece', 'grekiskt': 'Greece', 'grekiska': 'Greece', 'greksikt': 'Greece',
+      'libanon': 'Lebanon', 'libanesisk': 'Lebanon', 'libanesiskt': 'Lebanon',
+      'usa': 'United States', 'amerikanskt': 'United States', 'amerikansk': 'United States',
+      'ungern': 'Hungary', 'ungersk': 'Hungary', 'ungerskt': 'Hungary',
+      'kroatien': 'Croatia', 'kroatisk': 'Croatia',
+      'slovenien': 'Slovenia', 'slovensk': 'Slovenia',
+      'georgien': 'Georgia', 'georgisk': 'Georgia', 'georgiskt': 'Georgia',
     };
     for (const [keyword, country] of Object.entries(countryKeywords)) {
       if (ft.includes(keyword)) {
