@@ -531,6 +531,106 @@ export const FOOD_TO_WINE_STYLES: Record<string, FoodWinePreference> = {
   'smörgåstårta': { colors: ['white', 'sparkling'], regions: ['champagne', 'bourgogne', 'alsace'], grapes: ['Chardonnay', 'Pinot Noir', 'Riesling'] },
   'västerbottenpaj': { colors: ['white'], regions: ['bourgogne', 'chablis', 'alsace'], grapes: ['Chardonnay', 'Riesling'] },
 
+  // ==========================================================================
+  // GAP FILL — Swedish restaurant menu coverage (2026-03)
+  // ==========================================================================
+
+  // --- Swedish classics (missing) ---
+  'räkmacka': { colors: ['white', 'sparkling'], regions: ['chablis', 'champagne', 'sancerre'], grapes: ['Chardonnay', 'Sauvignon Blanc'] },
+  'kålpudding': { colors: ['red', 'white'], regions: ['beaujolais', 'alsace', 'bourgogne'], grapes: ['Gamay', 'Riesling', 'Pinot Noir'] },
+  'stekt strömming': { colors: ['white', 'sparkling'], regions: ['alsace', 'champagne', 'muscadet'], grapes: ['Riesling', 'Chardonnay', 'Melon de Bourgogne'] },
+  'flygande jacob': { colors: ['white', 'rose'], regions: ['alsace', 'provence', 'mosel'], grapes: ['Gewürztraminer', 'Grenache', 'Riesling'] },
+  'fläskpannkaka': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'loire'], grapes: ['Riesling', 'Gamay', 'Chenin Blanc'] },
+  'svartsoppa': { colors: ['red', 'fortified'], regions: ['douro', 'madiran', 'cahors'], grapes: ['Touriga Nacional', 'Tannat', 'Malbec'] },
+  'kåldolmar': { colors: ['red', 'white'], regions: ['beaujolais', 'alsace', 'bourgogne'], grapes: ['Gamay', 'Riesling', 'Pinot Noir'] },
+  'sillbricka': { colors: ['white', 'sparkling'], regions: ['alsace', 'champagne', 'chablis'], grapes: ['Riesling', 'Chardonnay'] },
+  'tunnbrödsrulle': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'loire'], grapes: ['Riesling', 'Gamay', 'Chenin Blanc'] },
+  'semla': { colors: ['white', 'sparkling'], regions: ['asti', 'mosel', 'champagne'], grapes: ['Muscat', 'Riesling', 'Chardonnay'] },
+  'prinsesstårta': { colors: ['sparkling', 'white'], regions: ['asti', 'champagne', 'mosel'], grapes: ['Muscat', 'Chardonnay', 'Riesling'] },
+  'mazarin': { colors: ['white', 'fortified'], regions: ['sauternes', 'alsace', 'mosel'], grapes: ['Sémillon', 'Gewürztraminer', 'Riesling'] },
+
+  // --- Nordic modern / seasonal ingredients ---
+  'lingon': { colors: ['red', 'rose'], regions: ['bourgogne', 'beaujolais', 'loire'], grapes: ['Pinot Noir', 'Gamay', 'Cabernet Franc'] },
+  'havtorn': { colors: ['white', 'orange'], regions: ['alsace', 'jura', 'friuli'], grapes: ['Riesling', 'Savagnin', 'Ribolla Gialla'] },
+  'fermenterade grönsaker': { colors: ['white', 'orange', 'sparkling'], regions: ['jura', 'friuli', 'alsace'], grapes: ['Savagnin', 'Ribolla Gialla', 'Riesling'] },
+  'gädda': { colors: ['white'], regions: ['chablis', 'loire', 'alsace'], grapes: ['Chardonnay', 'Sauvignon Blanc', 'Riesling'] },
+  'sik': { colors: ['white'], regions: ['chablis', 'alsace', 'loire'], grapes: ['Chardonnay', 'Riesling', 'Sauvignon Blanc'] },
+  'makrill': { colors: ['white', 'rose'], regions: ['muscadet', 'vinho verde', 'provence'], grapes: ['Melon de Bourgogne', 'Albariño', 'Grenache'] },
+  'grönkål': { colors: ['white', 'red'], regions: ['loire', 'beaujolais', 'alto adige'], grapes: ['Sauvignon Blanc', 'Gamay', 'Pinot Bianco'] },
+  'rotfrukter': { colors: ['white', 'red'], regions: ['bourgogne', 'alsace', 'rhône'], grapes: ['Chardonnay', 'Riesling', 'Grenache'] },
+  'ramslök': { colors: ['white'], regions: ['loire', 'alsace', 'alto adige'], grapes: ['Sauvignon Blanc', 'Riesling', 'Pinot Bianco'] },
+  'hjortron': { colors: ['white', 'fortified'], regions: ['sauternes', 'mosel', 'alsace'], grapes: ['Sémillon', 'Riesling', 'Gewürztraminer'] },
+  'kantareller': { colors: ['white', 'red'], regions: ['bourgogne', 'piemonte', 'jura'], grapes: ['Chardonnay', 'Nebbiolo', 'Savagnin'] },
+  'karl-johan': { colors: ['red'], regions: ['bourgogne', 'piemonte', 'umbria'], grapes: ['Pinot Noir', 'Nebbiolo', 'Barbera'] },
+  'trattkantareller': { colors: ['white', 'red'], regions: ['bourgogne', 'jura', 'alsace'], grapes: ['Chardonnay', 'Savagnin', 'Pinot Noir'] },
+
+  // --- Italian (missing) ---
+  'pesto': { colors: ['white', 'rose'], regions: ['liguria', 'provence', 'sicilia'], grapes: ['Vermentino', 'Grenache', 'Grillo'] },
+  'ragù': { colors: ['red'], regions: ['toscana', 'emilia-romagna', 'piemonte'], grapes: ['Sangiovese', 'Barbera', 'Nebbiolo'] },
+  'prosciutto e melone': { colors: ['sparkling', 'white', 'rose'], regions: ['lambrusco', 'friuli', 'provence'], grapes: ['Lambrusco', 'Friulano', 'Grenache'] },
+  'nduja': { colors: ['red', 'rose'], regions: ['calabria', 'sicilia', 'languedoc'], grapes: ['Gaglioppo', 'Nero d\'Avola', 'Grenache'] },
+  'parmigiano': { colors: ['red', 'sparkling'], regions: ['emilia-romagna', 'toscana', 'lambrusco'], grapes: ['Lambrusco', 'Sangiovese'] },
+  'insalata': { colors: ['white', 'rose'], regions: ['campania', 'sicilia', 'provence'], grapes: ['Falanghina', 'Grillo', 'Grenache'] },
+
+  // --- Middle Eastern (missing) ---
+  'lahmacun': { colors: ['red', 'rose'], regions: ['rhône', 'languedoc', 'naoussa'], grapes: ['Syrah', 'Grenache', 'Xinomavro'] },
+  'kofta': { colors: ['red', 'rose'], regions: ['rhône', 'naoussa', 'languedoc'], grapes: ['Syrah', 'Xinomavro', 'Grenache'] },
+  'muhammara': { colors: ['red', 'rose', 'white'], regions: ['rhône', 'santorini', 'languedoc'], grapes: ['Grenache', 'Assyrtiko', 'Syrah'] },
+  'manakish': { colors: ['white', 'rose'], regions: ['santorini', 'loire', 'provence'], grapes: ['Assyrtiko', 'Sauvignon Blanc', 'Grenache'] },
+  'sabich': { colors: ['white', 'rose'], regions: ['santorini', 'loire', 'provence'], grapes: ['Assyrtiko', 'Chenin Blanc', 'Grenache'] },
+  'börek': { colors: ['white', 'rose'], regions: ['santorini', 'provence', 'naoussa'], grapes: ['Assyrtiko', 'Grenache', 'Xinomavro'] },
+
+  // --- Asian trending (missing) ---
+  'donburi': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'mosel'], grapes: ['Riesling', 'Gamay', 'Pinot Gris'] },
+  'tonkotsu': { colors: ['white', 'red'], regions: ['beaujolais', 'alsace', 'mosel'], grapes: ['Gamay', 'Riesling', 'Pinot Gris'] },
+  'tantanmen': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'mosel'], grapes: ['Riesling', 'Gamay', 'Gewürztraminer'] },
+  'bún bò': { colors: ['white'], regions: ['alsace', 'mosel', 'loire'], grapes: ['Riesling', 'Gewürztraminer', 'Chenin Blanc'] },
+  'crispy pork belly': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'clare valley'], grapes: ['Riesling', 'Gamay', 'Grenache'] },
+  'som tum': { colors: ['white'], regions: ['alsace', 'mosel', 'loire'], grapes: ['Riesling', 'Sauvignon Blanc', 'Chenin Blanc'] },
+  'japansk curry': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'mosel'], grapes: ['Riesling', 'Gamay', 'Gewürztraminer'] },
+  'ssam': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'mosel'], grapes: ['Riesling', 'Gamay', 'Pinot Gris'] },
+  'tteokbokki': { colors: ['white', 'sparkling'], regions: ['alsace', 'champagne', 'mosel'], grapes: ['Riesling', 'Chardonnay', 'Gewürztraminer'] },
+  'char siu bao': { colors: ['sparkling', 'white'], regions: ['champagne', 'alsace', 'mosel'], grapes: ['Chardonnay', 'Riesling', 'Pinot Noir'] },
+
+  // --- Vegetarian/vegan (missing) ---
+  'kikärtor': { colors: ['white', 'rose', 'red'], regions: ['rhône', 'loire', 'languedoc'], grapes: ['Grenache', 'Chenin Blanc', 'Syrah'] },
+  'tempeh': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'loire'], grapes: ['Riesling', 'Gamay', 'Chenin Blanc'] },
+  'seitan': { colors: ['red'], regions: ['rhône', 'languedoc', 'beaujolais'], grapes: ['Syrah', 'Grenache', 'Gamay'] },
+  'spenat': { colors: ['white'], regions: ['loire', 'alto adige', 'alsace'], grapes: ['Sauvignon Blanc', 'Pinot Bianco', 'Riesling'] },
+  'zucchini': { colors: ['white', 'rose'], regions: ['provence', 'sicilia', 'loire'], grapes: ['Vermentino', 'Grillo', 'Sauvignon Blanc'] },
+  'morot': { colors: ['white', 'red'], regions: ['alsace', 'rhône', 'bourgogne'], grapes: ['Pinot Gris', 'Viognier', 'Chardonnay'] },
+  'palsternacka': { colors: ['white'], regions: ['bourgogne', 'alsace', 'jura'], grapes: ['Chardonnay', 'Riesling', 'Savagnin'] },
+  'kål': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'loire'], grapes: ['Riesling', 'Gamay', 'Chenin Blanc'] },
+  'bondbönor': { colors: ['white', 'rose'], regions: ['loire', 'provence', 'sicilia'], grapes: ['Sauvignon Blanc', 'Grenache', 'Grillo'] },
+
+  // --- Desserts (missing) ---
+  'crumble': { colors: ['white', 'sparkling'], regions: ['loire', 'mosel', 'asti'], grapes: ['Chenin Blanc', 'Riesling', 'Muscat'] },
+  'brownie': { colors: ['red', 'fortified'], regions: ['douro', 'banyuls', 'barossa'], grapes: ['Touriga Nacional', 'Grenache', 'Shiraz'] },
+  'mousse': { colors: ['white', 'sparkling'], regions: ['champagne', 'mosel', 'asti'], grapes: ['Chardonnay', 'Riesling', 'Muscat'] },
+  'crème caramel': { colors: ['white', 'fortified'], regions: ['sauternes', 'tokaj', 'mosel'], grapes: ['Sémillon', 'Furmint', 'Riesling'] },
+  'pavlova': { colors: ['sparkling', 'white'], regions: ['champagne', 'mosel', 'asti'], grapes: ['Chardonnay', 'Riesling', 'Muscat'] },
+  'glasstårta': { colors: ['sparkling', 'white'], regions: ['asti', 'champagne', 'mosel'], grapes: ['Muscat', 'Chardonnay', 'Riesling'] },
+
+  // --- Bistro / comfort food trending ---
+  'benmärg': { colors: ['red'], regions: ['bordeaux', 'barolo', 'rhône'], grapes: ['Cabernet Sauvignon', 'Nebbiolo', 'Syrah'] },
+  'benmarrow': { colors: ['red'], regions: ['bordeaux', 'barolo', 'rhône'], grapes: ['Cabernet Sauvignon', 'Nebbiolo', 'Syrah'] },
+  'smash burger': { colors: ['red'], regions: ['languedoc', 'mendoza', 'barossa'], grapes: ['Grenache', 'Malbec', 'Shiraz'] },
+  'toast': { colors: ['white', 'sparkling'], regions: ['champagne', 'chablis', 'alsace'], grapes: ['Chardonnay', 'Riesling'] },
+  'croque madame': { colors: ['white', 'sparkling'], regions: ['bourgogne', 'champagne', 'alsace'], grapes: ['Chardonnay', 'Pinot Noir', 'Riesling'] },
+  'brioche': { colors: ['white', 'sparkling'], regions: ['champagne', 'alsace', 'loire'], grapes: ['Chardonnay', 'Riesling', 'Chenin Blanc'] },
+  'flammkuchen': { colors: ['white'], regions: ['alsace', 'loire', 'niederösterreich'], grapes: ['Riesling', 'Pinot Blanc', 'Grüner Veltliner'] },
+  'fish tacos': { colors: ['white', 'rose'], regions: ['provence', 'rías baixas', 'marlborough'], grapes: ['Albariño', 'Grenache', 'Sauvignon Blanc'] },
+  'pokébowl': { colors: ['white', 'rose'], regions: ['txakoli', 'marlborough', 'provence'], grapes: ['Sauvignon Blanc', 'Albariño', 'Grenache'] },
+  'nudlar': { colors: ['white', 'red'], regions: ['alsace', 'beaujolais', 'mosel'], grapes: ['Riesling', 'Gamay', 'Pinot Gris'] },
+  'open sandwich': { colors: ['white', 'rose', 'sparkling'], regions: ['alsace', 'champagne', 'provence'], grapes: ['Riesling', 'Chardonnay', 'Grenache'] },
+
+  // --- Specific fish common on Swedish menus ---
+  'rödspätta': { colors: ['white'], regions: ['chablis', 'muscadet', 'loire'], grapes: ['Chardonnay', 'Melon de Bourgogne', 'Sauvignon Blanc'] },
+  'kummel': { colors: ['white'], regions: ['chablis', 'muscadet', 'bourgogne'], grapes: ['Chardonnay', 'Melon de Bourgogne', 'Albariño'] },
+  'vitling': { colors: ['white'], regions: ['muscadet', 'chablis', 'vinho verde'], grapes: ['Melon de Bourgogne', 'Chardonnay', 'Albariño'] },
+  'hälleflundra': { colors: ['white'], regions: ['bourgogne', 'chablis', 'bordeaux'], grapes: ['Chardonnay', 'Sauvignon Blanc', 'Sémillon'] },
+  'kräftskiva': { colors: ['white', 'sparkling'], regions: ['alsace', 'champagne', 'bourgogne'], grapes: ['Riesling', 'Chardonnay', 'Pinot Noir'] },
+
 };
 
 // ============================================================================

@@ -8,11 +8,19 @@
  */
 
 import { findGrape } from './knowledge';
+import { inferStyleFromDescription, DescriptorInferenceResult } from './descriptor-inference';
 
 export interface WineStyle {
   body: 'light' | 'medium' | 'full';
   tannin: 'low' | 'medium' | 'high';
   acidity: 'low' | 'medium' | 'high';
+}
+
+/** Partial style where any dimension may be null (gap-filled by descriptor inference) */
+interface PartialWineStyle {
+  body: 'light' | 'medium' | 'full' | null;
+  tannin: 'low' | 'medium' | 'high' | null;
+  acidity: 'low' | 'medium' | 'high' | null;
 }
 
 // ============================================================================
@@ -206,18 +214,25 @@ function levelFromScale(n: number): 'low' | 'medium' | 'high' {
 // ============================================================================
 
 /**
- * Infer wine style (body, tannin, acidity) from grape and color.
+ * Infer wine style (body, tannin, acidity) from grape, color, and/or description.
  *
  * Resolution order:
  * 1. Direct match in GRAPE_STYLE_MAP (case-insensitive, handles synonyms)
  * 2. Grape encyclopedia lookup (numeric scale → categorical)
- * 3. Color-based fallback
+ * 3. Description-based inference (free-text tasting notes)
+ * 4. Color-based fallback
+ *
+ * When grape inference provides partial results (e.g. body+tannin but no acidity),
+ * description inference fills the gaps. Grape-based data always takes priority.
  */
 export function inferWineStyle(
   grape: string,
   color: string,
   _region?: string,
+  description?: string,
 ): WineStyle {
+  let grapeStyle: PartialWineStyle | null = null;
+
   // 1. Try direct map lookup (handles synonyms, common misspellings)
   if (grape) {
     // For blends like "Cabernet Sauvignon, Merlot" use the primary (first) grape
@@ -225,21 +240,56 @@ export function inferWineStyle(
     if (primaryGrape) {
       const normalized = primaryGrape.toLowerCase();
       const directMatch = GRAPE_STYLE_MAP[normalized];
-      if (directMatch) return { ...directMatch };
+      if (directMatch) {
+        grapeStyle = { ...directMatch };
+      }
     }
 
     // 2. Try grape encyclopedia (uses its own synonym resolution)
-    const profile = findGrape(grape.split(/[,/&+]/)[0]?.trim() || grape);
-    if (profile) {
+    if (!grapeStyle) {
+      const profile = findGrape(grape.split(/[,/&+]/)[0]?.trim() || grape);
+      if (profile) {
+        grapeStyle = {
+          body: bodyFromScale(profile.body),
+          tannin: levelFromScale(profile.tannin),
+          acidity: levelFromScale(profile.acidity),
+        };
+      }
+    }
+  }
+
+  // If grape gave a complete style, return it directly
+  if (grapeStyle && grapeStyle.body && grapeStyle.tannin && grapeStyle.acidity) {
+    return grapeStyle as WineStyle;
+  }
+
+  // 3. Description-based inference (fills gaps or provides full style)
+  let descStyle: DescriptorInferenceResult | null = null;
+  if (description) {
+    descStyle = inferStyleFromDescription(description);
+  }
+
+  // Merge: grape takes priority, description fills gaps
+  if (grapeStyle || (descStyle && descStyle.confidence > 0)) {
+    const merged: PartialWineStyle = {
+      body: grapeStyle?.body ?? descStyle?.body ?? null,
+      tannin: grapeStyle?.tannin ?? descStyle?.tannin ?? null,
+      acidity: grapeStyle?.acidity ?? descStyle?.acidity ?? null,
+    };
+
+    // If we have at least one dimension, fill remaining from color defaults
+    if (merged.body || merged.tannin || merged.acidity) {
+      const colorLower = (color || '').toLowerCase();
+      const colorFallback = COLOR_DEFAULTS[colorLower] || COLOR_DEFAULTS['red'];
       return {
-        body: bodyFromScale(profile.body),
-        tannin: levelFromScale(profile.tannin),
-        acidity: levelFromScale(profile.acidity),
+        body: merged.body ?? colorFallback.body,
+        tannin: merged.tannin ?? colorFallback.tannin,
+        acidity: merged.acidity ?? colorFallback.acidity,
       };
     }
   }
 
-  // 3. Color-based fallback
+  // 4. Color-based fallback
   const colorLower = (color || '').toLowerCase();
   return { ...(COLOR_DEFAULTS[colorLower] || COLOR_DEFAULTS['red']) };
 }

@@ -132,7 +132,7 @@ export async function runMatchingAgentPipeline(
   let enrichedCount = 0;
   for (const wine of wines) {
     if (!wine.body || !wine.tannin || !wine.acidity) {
-      const inferred = inferWineStyle(wine.grape || '', wine.color || '', wine.region || undefined);
+      const inferred = inferWineStyle(wine.grape || '', wine.color || '', wine.region || undefined, wine.description || undefined);
       if (!wine.body) wine.body = inferred.body;
       if (!wine.tannin) wine.tannin = inferred.tannin;
       if (!wine.acidity) wine.acidity = inferred.acidity;
@@ -203,7 +203,7 @@ export async function runMatchingAgentPipeline(
     scoredWines = wines.slice(0, options.preScoreTopN).map(wine => ({
       wine,
       score: 50,
-      breakdown: { price: 10, color: 10, region: 8, grape: 10, food: 7, styleMatch: 8, availability: 5, certification: 0 },
+      breakdown: { price: 10, color: 10, region: 8, grape: 10, food: 7, styleMatch: 8, availability: 5, certification: 0, goldenPair: 0 },
     }));
   }
 

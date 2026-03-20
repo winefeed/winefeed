@@ -54,6 +54,7 @@ export interface ScoreBreakdown {
   styleMatch: number;     // 0-15 — body/tannin/acidity distance
   availability: number;   // 0-10
   certification: number;  // 0-5 bonus
+  goldenPair: number;     // 0-10 bonus — classic food+wine pairing match
 }
 
 /** A wine with its deterministic pre-score */

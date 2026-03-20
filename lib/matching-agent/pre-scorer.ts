@@ -18,6 +18,7 @@ import { FOOD_TO_WINE_STYLES } from './food-pairing';
 import { findGrape, isRegionRelated } from './knowledge';
 import { FOOD_STYLE_PREFERENCES } from './food-style-preferences';
 import { inferWineStyle } from './style-inference';
+import { matchGoldenPair } from './golden-pairs';
 
 /**
  * Score and sort wines. Returns top N by score.
@@ -30,7 +31,7 @@ export function preScoreWines(
 ): ScoredWine[] {
   const scored: ScoredWine[] = wines.map(wine => {
     const breakdown = scoreWine(wine, preferences, structuredFilters);
-    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification;
+    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair;
     return { wine, score, breakdown };
   });
 
@@ -54,7 +55,29 @@ function scoreWine(
     styleMatch: scoreStyleMatch(wine, prefs),
     availability: scoreAvailability(wine),
     certification: scoreCertification(wine, prefs),
+    goldenPair: scoreGoldenPair(wine, prefs),
   };
+}
+
+// ============================================================================
+// Golden pair scoring (0-10 bonus)
+// Classic food+wine pairings that every sommelier knows.
+// ============================================================================
+
+function scoreGoldenPair(wine: SupplierWineRow, prefs: MergedPreferences): number {
+  if (prefs.food_pairing.length === 0) return 0; // No food context — no golden pair
+
+  const match = matchGoldenPair(
+    prefs.food_pairing,
+    wine.grape,
+    wine.region,
+    wine.color,
+  );
+
+  if (!match) return 0;
+
+  // Cap at 10 (golden pair score_boost ranges 5-15 but we cap the breakdown bucket)
+  return Math.min(match.boost, 10);
 }
 
 // ============================================================================
