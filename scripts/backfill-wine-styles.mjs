@@ -11,7 +11,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { config } from 'dotenv';
 
-config({ path: new URL('../.env.local', import.meta.url).pathname });
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: join(__dirname, '..', '.env.local') });
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -303,7 +306,7 @@ async function main() {
   // Fetch ALL wines with any NULL style columns
   const { data: wines, error } = await sb
     .from('supplier_wines')
-    .select('id, name, grape_variety, wine_type, region, description, body, tannin, acidity')
+    .select('id, name, grape, color, region, description, body, tannin, acidity')
     .or('body.is.null,tannin.is.null,acidity.is.null');
 
   if (error) {
@@ -328,8 +331,8 @@ async function main() {
     for (const wine of batch) {
       try {
         const style = inferWineStyle(
-          wine.grape_variety || '',
-          wine.wine_type || '',
+          wine.grape || '',
+          wine.color || '',
           wine.region || undefined,
           wine.description || undefined,
         );
