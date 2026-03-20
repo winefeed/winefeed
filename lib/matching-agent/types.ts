@@ -55,6 +55,7 @@ export interface ScoreBreakdown {
   availability: number;   // 0-10
   certification: number;  // 0-5 bonus
   goldenPair: number;     // 0-10 bonus — classic food+wine pairing match
+  cuisineMatch: number;   // 0-8 bonus — restaurant cuisine affinity
 }
 
 /** A wine with its deterministic pre-score */
@@ -146,6 +147,7 @@ export interface MergedPreferences {
   organic: boolean;
   biodynamic: boolean;
   price_sensitivity: 'budget' | 'premium' | 'any';
+  cuisineTypes: string[];         // Restaurant cuisine(s) from DB profile — used for cuisine boost
 }
 
 /** Supplier info for response */

@@ -859,5 +859,6 @@ export function mergePreferences(
     organic,
     biodynamic,
     price_sensitivity,
+    cuisineTypes: [],  // Populated by pipeline from restaurant context
   };
 }

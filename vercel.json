@@ -19,5 +19,8 @@
   }, {
     "path": "/api/cron/daily-digest",
     "schedule": "30 4 * * *"
+  }, {
+    "path": "/api/cron/enrich-styles",
+    "schedule": "0 3 * * 0"
   }]
 }

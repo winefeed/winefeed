@@ -106,6 +106,10 @@ export default function ResultsPage() {
   // Track wines where user has actively chosen to adjust to MOQ
   const [userAdjustedToMoq, setUserAdjustedToMoq] = useState<Set<string>>(new Set());
 
+  // Food suggestions per wine (keyed by wineId)
+  const [foodSuggestionsMap, setFoodSuggestionsMap] = useState<Record<string, { food: string; score: number; isGoldenPair: boolean; reason?: string }[]>>({});
+  const [foodSuggestionsLoading, setFoodSuggestionsLoading] = useState<Set<string>>(new Set());
+
   // Draft list (Spara till lista)
   const draftList = useDraftList();
 
@@ -480,6 +484,29 @@ export default function ResultsPage() {
         newSet.delete(wineId);
       } else {
         newSet.add(wineId);
+        // Fetch food suggestions when expanding
+        if (!foodSuggestionsMap[wineId] && !foodSuggestionsLoading.has(wineId)) {
+          const matchingSuggestion = suggestions.find(s => s.wine.id === wineId);
+          const suppId = matchingSuggestion?.supplier?.id;
+          if (suppId) {
+            setFoodSuggestionsLoading(prev => new Set(prev).add(wineId));
+            fetch(`/api/suppliers/${suppId}/wines/${wineId}/food-suggestions`)
+              .then(res => res.ok ? res.json() : null)
+              .then(data => {
+                if (data?.suggestions) {
+                  setFoodSuggestionsMap(prev => ({ ...prev, [wineId]: data.suggestions }));
+                }
+              })
+              .catch(() => {})
+              .finally(() => {
+                setFoodSuggestionsLoading(prev => {
+                  const next = new Set(prev);
+                  next.delete(wineId);
+                  return next;
+                });
+              });
+          }
+        }
       }
       return newSet;
     });
@@ -1495,6 +1522,39 @@ export default function ResultsPage() {
                             )}
                           </div>
                         )}
+
+                        {/* Food Suggestions */}
+                        {(() => {
+                          const wineFs = foodSuggestionsMap[suggestion.wine.id];
+                          const isLoadingFs = foodSuggestionsLoading.has(suggestion.wine.id);
+                          if (isLoadingFs) {
+                            return (
+                              <div className="pt-3 border-t border-border">
+                                <p className="text-xs text-muted-foreground">Laddar matforslag...</p>
+                              </div>
+                            );
+                          }
+                          if (wineFs && wineFs.length > 0) {
+                            return (
+                              <div className="pt-3 border-t border-border">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Passar till</p>
+                                <p className="text-sm text-foreground">
+                                  {wineFs.map((fs, i) => (
+                                    <span key={fs.food}>
+                                      {fs.isGoldenPair ? (
+                                        <span className="font-semibold text-amber-700" title={fs.reason}>{fs.food}</span>
+                                      ) : (
+                                        <span>{fs.food}</span>
+                                      )}
+                                      {i < wineFs.length - 1 ? ', ' : ''}
+                                    </span>
+                                  ))}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     )}
                   </div>

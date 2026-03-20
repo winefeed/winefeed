@@ -8,8 +8,8 @@
  * immediate save for selects/toggles.
  */
 
-import { useState, useRef } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Loader2, Star } from 'lucide-react';
 
 interface SupplierWine {
   id: string;
@@ -67,6 +67,13 @@ const STATUS_OPTIONS = [
   { value: 'END_OF_VINTAGE', label: 'Årgången slut' },
 ];
 
+interface FoodSuggestion {
+  food: string;
+  score: number;
+  isGoldenPair: boolean;
+  reason?: string;
+}
+
 const inputClass = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-wine focus:border-wine';
 const selectClass = `${inputClass} bg-white`;
 const labelClass = 'block text-xs font-medium text-gray-500 mb-1';
@@ -79,6 +86,25 @@ function SavingIndicator({ field, savingField }: { field: string; savingField: s
 export default function WineDetailPanel({ wine, supplierId, onSave, onError }: WineDetailPanelProps) {
   const [savingField, setSavingField] = useState<string | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const [foodSuggestions, setFoodSuggestions] = useState<FoodSuggestion[]>([]);
+  const [foodLoading, setFoodLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setFoodLoading(true);
+    fetch(`/api/suppliers/${supplierId}/wines/${wine.id}/food-suggestions`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (!cancelled && data?.suggestions) {
+          setFoodSuggestions(data.suggestions);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setFoodLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [supplierId, wine.id]);
 
   const saveField = async (field: string, value: string | number | boolean | null) => {
     setSavingField(field);
@@ -473,6 +499,36 @@ export default function WineDetailPanel({ wine, supplierId, onSave, onError }: W
               </div>
             </div>
           </div>
+        </div>
+
+        {/* === MATFORSLAG === */}
+        <div>
+          <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Matforslag</h4>
+          {foodLoading ? (
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Laddar matforslag...</span>
+            </div>
+          ) : foodSuggestions.length === 0 ? (
+            <p className="text-sm text-gray-400">Inga matforslag tillgangliga. Lagg till druva, farg och region for battre forslag.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {foodSuggestions.map((suggestion) => (
+                <span
+                  key={suggestion.food}
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    suggestion.isGoldenPair
+                      ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                      : 'bg-gray-100 text-gray-700 border border-gray-200'
+                  }`}
+                  title={suggestion.reason || `Matchpoang: ${suggestion.score}`}
+                >
+                  {suggestion.isGoldenPair && <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />}
+                  {suggestion.food}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
       </div>

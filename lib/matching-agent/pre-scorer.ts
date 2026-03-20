@@ -19,6 +19,7 @@ import { findGrape, isRegionRelated } from './knowledge';
 import { FOOD_STYLE_PREFERENCES } from './food-style-preferences';
 import { inferWineStyle } from './style-inference';
 import { matchGoldenPair } from './golden-pairs';
+import { getMergedCuisineProfile, CuisineWineProfile } from './cuisine-profiles';
 
 /**
  * Score and sort wines. Returns top N by score.
@@ -29,9 +30,14 @@ export function preScoreWines(
   structuredFilters: StructuredFilters,
   topN: number,
 ): ScoredWine[] {
+  // Resolve cuisine profile once for all wines (not per-wine)
+  const cuisineProfile = preferences.cuisineTypes.length > 0
+    ? getMergedCuisineProfile(preferences.cuisineTypes)
+    : null;
+
   const scored: ScoredWine[] = wines.map(wine => {
-    const breakdown = scoreWine(wine, preferences, structuredFilters);
-    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair;
+    const breakdown = scoreWine(wine, preferences, structuredFilters, cuisineProfile);
+    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch;
     return { wine, score, breakdown };
   });
 
@@ -45,6 +51,7 @@ function scoreWine(
   wine: SupplierWineRow,
   prefs: MergedPreferences,
   filters: StructuredFilters,
+  cuisineProfile: CuisineWineProfile | null,
 ): ScoreBreakdown {
   return {
     price: scorePrice(wine, filters),
@@ -56,7 +63,51 @@ function scoreWine(
     availability: scoreAvailability(wine),
     certification: scoreCertification(wine, prefs),
     goldenPair: scoreGoldenPair(wine, prefs),
+    cuisineMatch: scoreCuisineMatch(wine, cuisineProfile),
   };
+}
+
+// ============================================================================
+// Cuisine match scoring (0-8 bonus)
+// Boosts wines that match the restaurant's cuisine profile.
+// Pure bonus — never penalizes non-matching wines.
+// ============================================================================
+
+function scoreCuisineMatch(wine: SupplierWineRow, profile: CuisineWineProfile | null): number {
+  if (!profile) return 0; // No cuisine profile — no boost
+
+  let score = 0;
+
+  // Country match (0-3)
+  if (wine.country) {
+    const wineCountryLower = wine.country.toLowerCase();
+    if (profile.preferred_countries.some(c => c.toLowerCase() === wineCountryLower)) {
+      score += 3;
+    }
+  }
+
+  // Region match (0-2)
+  if (wine.region) {
+    const wineRegionLower = wine.region.toLowerCase();
+    if (profile.preferred_regions.some(r => wineRegionLower.includes(r.toLowerCase()))) {
+      score += 2;
+    }
+  }
+
+  // Grape match (0-2)
+  if (wine.grape) {
+    const wineGrapeLower = wine.grape.toLowerCase();
+    if (profile.preferred_grapes.some(g => wineGrapeLower.includes(g.toLowerCase()))) {
+      score += 2;
+    }
+  }
+
+  // Style match (0-1) — only if wine has style data
+  if (wine.body && profile.preferred_style.body.includes(wine.body as any)) {
+    score += 1;
+  }
+
+  return Math.min(score, 8);
 }
 
 // ============================================================================

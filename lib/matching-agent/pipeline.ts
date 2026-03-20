@@ -36,6 +36,7 @@ import { buildKnowledgeContext } from './knowledge';
 import { enrichWithKnowledge } from '../rag/wine-knowledge-store';
 import { buildMarketContext, getMarketLeaderSubsidiaries } from './market-context';
 import { inferWineStyle } from './style-inference';
+import { parseCuisineFromContext } from './cuisine-profiles';
 
 function getSupabaseAdmin() {
   return createAdminClient(
@@ -93,6 +94,14 @@ export async function runMatchingAgentPipeline(
     input.structuredFilters.country,
     input.structuredFilters.grape,
   );
+
+  // Extract cuisine types from restaurant context (e.g. "Kök: Italiensk, Nordisk")
+  const cuisineTypes = parseCuisineFromContext(input.restaurantContext);
+  if (cuisineTypes.length > 0) {
+    preferences.cuisineTypes = cuisineTypes;
+    console.log('[MatchingAgent] Cuisine types from restaurant profile:', cuisineTypes);
+  }
+
   timing.lookup = Date.now() - tLookup;
   console.log('[MatchingAgent] Merged preferences:', JSON.stringify({
     colors: preferences.colors,
@@ -101,6 +110,7 @@ export async function runMatchingAgentPipeline(
     grapes: preferences.grapes.slice(0, 3),
     food: preferences.food_pairing,
     occasion: preferences.occasion,
+    cuisineTypes: preferences.cuisineTypes,
   }));
 
   // -------------------------------------------------------------------------
@@ -203,7 +213,7 @@ export async function runMatchingAgentPipeline(
     scoredWines = wines.slice(0, options.preScoreTopN).map(wine => ({
       wine,
       score: 50,
-      breakdown: { price: 10, color: 10, region: 8, grape: 10, food: 7, styleMatch: 8, availability: 5, certification: 0, goldenPair: 0 },
+      breakdown: { price: 10, color: 10, region: 8, grape: 10, food: 7, styleMatch: 8, availability: 5, certification: 0, goldenPair: 0, cuisineMatch: 0 },
     }));
   }
 
