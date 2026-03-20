@@ -75,6 +75,47 @@ export async function runMatchingAgentPipeline(
   }
 
   // -------------------------------------------------------------------------
+  // Step 1b: Regex fallback — extract basic signals if AI parser failed
+  // This ensures color/country keywords in fritext are never ignored.
+  // -------------------------------------------------------------------------
+  if (input.fritext && !parsed.implied_color && !input.structuredFilters.color) {
+    const ft = input.fritext.toLowerCase();
+    const colorKeywords: Record<string, string> = {
+      'rött': 'red', 'röda': 'red', 'rödvin': 'red', 'rött vin': 'red',
+      'vitt': 'white', 'vita': 'white', 'vitvin': 'white', 'vitt vin': 'white',
+      'rosé': 'rose', 'rosévin': 'rose',
+      'mousserande': 'sparkling', 'bubbel': 'sparkling', 'champagne': 'sparkling',
+      'orange': 'orange', 'orangevin': 'orange',
+    };
+    for (const [keyword, color] of Object.entries(colorKeywords)) {
+      if (ft.includes(keyword)) {
+        parsed.implied_color = color;
+        console.log(`[MatchingAgent] Regex fallback: extracted color="${color}" from fritext`);
+        break;
+      }
+    }
+  }
+
+  if (input.fritext && !parsed.implied_country && !input.structuredFilters.country) {
+    const ft = input.fritext.toLowerCase();
+    const countryKeywords: Record<string, string> = {
+      'frankrike': 'France', 'fransk': 'France', 'italia': 'Italy', 'italiensk': 'Italy',
+      'spanien': 'Spain', 'spansk': 'Spain', 'argentina': 'Argentina', 'argentinsk': 'Argentina',
+      'chile': 'Chile', 'chilensk': 'Chile', 'sydafrika': 'South Africa',
+      'australien': 'Australia', 'nya zeeland': 'New Zealand', 'portugal': 'Portugal',
+      'tyskland': 'Germany', 'tysk': 'Germany', 'österrike': 'Austria',
+      'grekland': 'Greece', 'grekisk': 'Greece',
+    };
+    for (const [keyword, country] of Object.entries(countryKeywords)) {
+      if (ft.includes(keyword)) {
+        parsed.implied_country = country;
+        console.log(`[MatchingAgent] Regex fallback: extracted country="${country}" from fritext`);
+        break;
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // Step 1b: Load DB pairing overrides (async, cached 5 min)
   // -------------------------------------------------------------------------
   try {
