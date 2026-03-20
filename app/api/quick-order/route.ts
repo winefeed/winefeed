@@ -185,7 +185,17 @@ Beställning: "${text.trim()}"`;
           provorder_fee_sek: 500,
         },
         motivering: wine.description || 'Ett utmärkt val för din restaurang.',
-        ranking_score: sw.score / 100,
+        ranking_score: Math.min(sw.score / 138, 1.0),
+        score_breakdown: {
+          stil: sw.breakdown.styleMatch,
+          druva: sw.breakdown.grape,
+          mat: sw.breakdown.food,
+          region: sw.breakdown.region,
+          pris: sw.breakdown.price,
+          klassiker: sw.breakdown.goldenPair,
+          kok: sw.breakdown.cuisineMatch,
+        },
+        golden_pair_reason: sw.goldenPairReason || null,
       };
     });
 

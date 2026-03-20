@@ -144,6 +144,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Max possible score: price(20) + color(20) + region(15) + grape(20) + food(15) + style(15) + availability(10) + certification(5) + goldenPair(10) + cuisine(8) = 138
+    const MAX_SCORE = 138;
+
     // Build suggestions response — same format as before for results page compatibility
     const suggestions = result.wines.map((sw) => {
       const wine = sw.wine;
@@ -189,7 +192,17 @@ export async function POST(request: NextRequest) {
         motivering: wine.description && !wine.description.startsWith('Baserat på dina kriterier')
           ? wine.description
           : buildFallbackMotivation(wine),
-        ranking_score: sw.score / 100, // Normalize to 0-1 for compatibility
+        ranking_score: Math.min(sw.score / MAX_SCORE, 1.0),
+        score_breakdown: {
+          stil: sw.breakdown.styleMatch,
+          druva: sw.breakdown.grape,
+          mat: sw.breakdown.food,
+          region: sw.breakdown.region,
+          pris: sw.breakdown.price,
+          klassiker: sw.breakdown.goldenPair,
+          kok: sw.breakdown.cuisineMatch,
+        },
+        golden_pair_reason: sw.goldenPairReason || null,
       };
     });
 

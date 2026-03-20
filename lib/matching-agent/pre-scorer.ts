@@ -38,7 +38,22 @@ export function preScoreWines(
   const scored: ScoredWine[] = wines.map(wine => {
     const breakdown = scoreWine(wine, preferences, structuredFilters, cuisineProfile);
     const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch;
-    return { wine, score, breakdown };
+
+    // Get golden pair reason if applicable
+    let goldenPairReason: string | undefined;
+    if (breakdown.goldenPair > 0 && preferences.food_pairing.length > 0) {
+      const gpMatch = matchGoldenPair(
+        preferences.food_pairing,
+        wine.grape,
+        wine.region,
+        wine.color,
+      );
+      if (gpMatch) {
+        goldenPairReason = gpMatch.pair.reason;
+      }
+    }
+
+    return { wine, score, breakdown, goldenPairReason };
   });
 
   // Sort descending by score

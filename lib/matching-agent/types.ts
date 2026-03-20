@@ -63,6 +63,7 @@ export interface ScoredWine {
   wine: SupplierWineRow;
   score: number;           // 0-100
   breakdown: ScoreBreakdown;
+  goldenPairReason?: string; // Swedish explanation from golden pairs (e.g. "Lamm + Bordeaux")
 }
 
 /** Raw supplier_wines row from Supabase */

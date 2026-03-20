@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
 import { useDraftList } from '@/lib/hooks/useDraftList';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine, HelpCircle, Send, Menu } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine, HelpCircle, Send, Menu, Star } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { FloatingDraftList } from '@/components/FloatingDraftList';
 import { Spinner } from '@/components/ui/spinner';
@@ -57,11 +57,23 @@ interface MarketData {
   price_difference_percent: string;
 }
 
+interface ScoreBreakdownData {
+  stil: number;       // 0-15
+  druva: number;      // 0-20
+  mat: number;        // 0-15
+  region: number;     // 0-15
+  pris: number;       // 0-20
+  klassiker: number;  // 0-10
+  kok: number;        // 0-8
+}
+
 interface Suggestion {
   wine: Wine;
   supplier: Supplier;
   motivering: string;
   ranking_score: number;
+  score_breakdown?: ScoreBreakdownData;
+  golden_pair_reason?: string | null;
   market_data?: MarketData | null;
 }
 
@@ -105,6 +117,9 @@ export default function ResultsPage() {
   const [provorderWines, setProvorderWines] = useState<Set<string>>(new Set());
   // Track wines where user has actively chosen to adjust to MOQ
   const [userAdjustedToMoq, setUserAdjustedToMoq] = useState<Set<string>>(new Set());
+
+  // Score breakdown expanded state
+  const [expandedBreakdowns, setExpandedBreakdowns] = useState<Set<string>>(new Set());
 
   // Food suggestions per wine (keyed by wineId)
   const [foodSuggestionsMap, setFoodSuggestionsMap] = useState<Record<string, { food: string; score: number; isGoldenPair: boolean; reason?: string }[]>>({});
@@ -586,6 +601,81 @@ export default function ResultsPage() {
   const totalBottles = useMemo(() => {
     return draftList.items.reduce((sum, item) => sum + item.quantity, 0);
   }, [draftList.items]);
+
+  // Toggle score breakdown visibility
+  const toggleBreakdown = (wineId: string) => {
+    setExpandedBreakdowns(prev => {
+      const next = new Set(prev);
+      if (next.has(wineId)) {
+        next.delete(wineId);
+      } else {
+        next.add(wineId);
+      }
+      return next;
+    });
+  };
+
+  // Render a single breakdown bar row
+  const renderBreakdownBar = (label: string, score: number, max: number) => {
+    if (score <= 0) return null;
+    const pct = Math.round((score / max) * 100);
+    const barColor = pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-400' : 'bg-gray-400';
+    return (
+      <div key={label} className="flex items-center gap-2 text-xs">
+        <span className="w-16 text-muted-foreground truncate">{label}</span>
+        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+        </div>
+        <span className="w-10 text-right text-muted-foreground tabular-nums">{score}/{max}</span>
+      </div>
+    );
+  };
+
+  // Render the full score breakdown for a suggestion
+  const renderScoreBreakdown = (suggestion: Suggestion) => {
+    const bd = suggestion.score_breakdown;
+    if (!bd) return null;
+
+    const isExpanded = expandedBreakdowns.has(suggestion.wine.id);
+
+    // Check if motivering is useful (not generic)
+    const hasUsefulMotivering = suggestion.motivering &&
+      !suggestion.motivering.includes('Baserat på dina kriterier') &&
+      suggestion.motivering.length > 30;
+
+    if (!isExpanded) return null;
+
+    return (
+      <div className="mt-2 space-y-2">
+        {/* AI motivation quote */}
+        {hasUsefulMotivering && (
+          <p className="text-xs italic text-muted-foreground border-l-2 border-primary/30 pl-2 mb-2">
+            {suggestion.motivering}
+          </p>
+        )}
+
+        {/* Breakdown bars */}
+        <div className="space-y-1.5">
+          {renderBreakdownBar('Druva', bd.druva, 20)}
+          {renderBreakdownBar('Pris', bd.pris, 20)}
+          {renderBreakdownBar('Stil', bd.stil, 15)}
+          {renderBreakdownBar('Mat', bd.mat, 15)}
+          {renderBreakdownBar('Region', bd.region, 15)}
+          {renderBreakdownBar('Kök', bd.kok, 8)}
+        </div>
+
+        {/* Golden pair special display */}
+        {bd.klassiker > 0 && (
+          <div className="flex items-center gap-1.5 text-xs text-amber-600">
+            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+            <span className="font-medium">
+              {suggestion.golden_pair_reason || `Klassisk kombination (+${bd.klassiker})`}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -1312,35 +1402,23 @@ export default function ResultsPage() {
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-medium text-muted-foreground">Matchning</span>
-                              <div className="relative">
+                              {suggestion.score_breakdown && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setOpenTooltip(openTooltip === suggestion.wine.id ? null : suggestion.wine.id);
+                                    toggleBreakdown(suggestion.wine.id);
                                   }}
                                   className="p-1 -m-1 rounded hover:bg-muted/50 transition-colors"
+                                  title="Visa matchningsdetaljer"
                                 >
-                                  <Info className="h-3.5 w-3.5 text-muted-foreground/60" />
+                                  {expandedBreakdowns.has(suggestion.wine.id) ? (
+                                    <ChevronUp className="h-3.5 w-3.5 text-muted-foreground/60" />
+                                  ) : (
+                                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/60" />
+                                  )}
                                 </button>
-                                {openTooltip === suggestion.wine.id && (
-                                  <div className="absolute top-full left-0 mt-2 z-50 w-64">
-                                    <div className="bg-gray-900 text-white text-xs p-3 rounded-lg shadow-xl border border-gray-700">
-                                      <div className="absolute -top-1.5 left-3 w-3 h-3 bg-gray-900 border-l border-t border-gray-700 rotate-45"></div>
-                                      <p className="font-medium mb-2">Så beräknas matchningen:</p>
-                                      <ul className="space-y-1 text-gray-300">
-                                        <li>• Vintyp (rött/vitt etc)</li>
-                                        <li>• Land/region matchar</li>
-                                        <li>• Druva/stil passar</li>
-                                        <li>• Certifieringar (eko etc)</li>
-                                      </ul>
-                                      <p className="mt-2 text-gray-400 text-[10px]">
-                                        OBS: Lägre pris än budget är positivt!
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                              )}
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="w-24 bg-muted rounded-full h-1.5 overflow-hidden">
@@ -1428,9 +1506,12 @@ export default function ResultsPage() {
                           {/* Price advantage badge */}
                           {budgetMax && suggestion.wine.pris_sek < budgetMax * 0.7 && (
                             <p className="text-xs text-green-600 font-medium">
-                              💰 {Math.round((1 - suggestion.wine.pris_sek / budgetMax) * 100)}% under budget
+                              {Math.round((1 - suggestion.wine.pris_sek / budgetMax) * 100)}% under budget
                             </p>
                           )}
+
+                          {/* Score breakdown (collapsible) */}
+                          {renderScoreBreakdown(suggestion)}
                         </div>
                       </div>
                     );
