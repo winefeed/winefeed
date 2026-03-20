@@ -37,6 +37,7 @@ import { enrichWithKnowledge } from '../rag/wine-knowledge-store';
 import { buildMarketContext, getMarketLeaderSubsidiaries } from './market-context';
 import { inferWineStyle } from './style-inference';
 import { parseCuisineFromContext } from './cuisine-profiles';
+import { fuzzyMatchFood } from './fuzzy-food';
 
 function getSupabaseAdmin() {
   return createAdminClient(
@@ -133,18 +134,11 @@ export async function runMatchingAgentPipeline(
   // -------------------------------------------------------------------------
   if (input.fritext && parsed.food_pairing.length === 0) {
     const ft = input.fritext.toLowerCase();
-    // Import food keywords from our tables
     const foodKeys = Object.keys(FOOD_TO_WINE_STYLES);
-    const matched: string[] = [];
-    // Sort by length descending so "lammracks" matches before "lamm"
-    for (const food of foodKeys.sort((a, b) => b.length - a.length)) {
-      if (ft.includes(food) && !matched.some(m => m.includes(food) || food.includes(m))) {
-        matched.push(food);
-      }
-    }
+    const matched = fuzzyMatchFood(ft, foodKeys);
     if (matched.length > 0) {
       parsed.food_pairing = matched;
-      console.log(`[MatchingAgent] Regex fallback: extracted food=${matched.join(', ')} from fritext`);
+      console.log(`[MatchingAgent] Fuzzy food match: extracted food=${matched.join(', ')} from fritext`);
     }
   }
 
