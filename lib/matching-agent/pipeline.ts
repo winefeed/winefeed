@@ -90,10 +90,11 @@ export async function runMatchingAgentPipeline(
   }
 
   // -------------------------------------------------------------------------
-  // Step 1b: Regex fallback — extract basic signals if AI parser failed
-  // This ensures color/country keywords in fritext are never ignored.
+  // Step 1b: Regex validation + fallback — ALWAYS runs
+  // Extracts color/country from fritext. If AI parser already set a value,
+  // validates it against what the user actually typed and corrects if needed.
   // -------------------------------------------------------------------------
-  if (input.fritext && !parsed.implied_color && !input.structuredFilters.color) {
+  if (input.fritext && !input.structuredFilters.color) {
     const ft = input.fritext.toLowerCase();
     const colorKeywords: Record<string, string> = {
       'rött': 'red', 'röda': 'red', 'rödvin': 'red', 'rött vin': 'red',
@@ -102,16 +103,27 @@ export async function runMatchingAgentPipeline(
       'mousserande': 'sparkling', 'bubbel': 'sparkling', 'champagne': 'sparkling',
       'orange': 'orange', 'orangevin': 'orange',
     };
+    let regexColor: string | null = null;
     for (const [keyword, color] of Object.entries(colorKeywords)) {
       if (ft.includes(keyword)) {
-        parsed.implied_color = color;
-        console.log(`[MatchingAgent] Regex fallback: extracted color="${color}" from fritext`);
+        regexColor = color;
         break;
+      }
+    }
+
+    if (regexColor) {
+      if (!parsed.implied_color) {
+        parsed.implied_color = regexColor;
+        console.log(`[MatchingAgent] Regex: extracted color="${regexColor}" from fritext`);
+      } else if (parsed.implied_color !== regexColor) {
+        // AI and regex disagree — trust regex (user's explicit words)
+        console.log(`[MatchingAgent] Regex override: AI said "${parsed.implied_color}" but user wrote "${regexColor}" — using regex`);
+        parsed.implied_color = regexColor;
       }
     }
   }
 
-  if (input.fritext && !parsed.implied_country && !input.structuredFilters.country) {
+  if (input.fritext && !input.structuredFilters.country) {
     const ft = input.fritext.toLowerCase();
     const countryKeywords: Record<string, string> = {
       'frankrike': 'France', 'fransk': 'France', 'franskt': 'France', 'franska': 'France',
@@ -133,11 +145,20 @@ export async function runMatchingAgentPipeline(
       'slovenien': 'Slovenia', 'slovensk': 'Slovenia',
       'georgien': 'Georgia', 'georgisk': 'Georgia', 'georgiskt': 'Georgia',
     };
+    let regexCountry: string | null = null;
     for (const [keyword, country] of Object.entries(countryKeywords)) {
       if (ft.includes(keyword)) {
-        parsed.implied_country = country;
-        console.log(`[MatchingAgent] Regex fallback: extracted country="${country}" from fritext`);
+        regexCountry = country;
         break;
+      }
+    }
+    if (regexCountry) {
+      if (!parsed.implied_country) {
+        parsed.implied_country = regexCountry;
+        console.log(`[MatchingAgent] Regex: extracted country="${regexCountry}" from fritext`);
+      } else if (parsed.implied_country !== regexCountry) {
+        console.log(`[MatchingAgent] Regex override: AI said "${parsed.implied_country}" but user wrote "${regexCountry}" — using regex`);
+        parsed.implied_country = regexCountry;
       }
     }
   }
@@ -159,7 +180,7 @@ export async function runMatchingAgentPipeline(
   // -------------------------------------------------------------------------
   // Step 1d: Regex fallback — extract grape keywords + synonyms from fritext
   // -------------------------------------------------------------------------
-  if (input.fritext && parsed.implied_grapes.length === 0 && !input.structuredFilters.grape) {
+  if (input.fritext && !input.structuredFilters.grape) {
     const ft = input.fritext.toLowerCase();
     const grapeKeywords: Record<string, string> = {
       'shiraz': 'Syrah', 'syrah': 'Syrah',
@@ -196,20 +217,28 @@ export async function runMatchingAgentPipeline(
       }
     }
 
-    // If we extracted a grape and no color is set, infer color from grape
-    if (!parsed.implied_color && !input.structuredFilters.color && parsed.implied_grapes.length > 0) {
+    // Infer or validate color from grape
+    if (!input.structuredFilters.color && parsed.implied_grapes.length > 0) {
       const whiteGrapes = new Set(['Chardonnay', 'Sauvignon Blanc', 'Riesling', 'Chenin Blanc',
         'Pinot Gris', 'Gewürztraminer', 'Viognier', 'Grüner Veltliner', 'Albariño']);
       const redGrapes = new Set(['Syrah', 'Cabernet Sauvignon', 'Cabernet Franc', 'Pinot Noir',
         'Merlot', 'Malbec', 'Nebbiolo', 'Sangiovese', 'Tempranillo', 'Grenache', 'Gamay',
         'Zinfandel', 'Carignan', 'Mourvèdre', 'Cinsault']);
-      const primary = parsed.implied_grapes[0];
-      if (whiteGrapes.has(primary)) {
-        parsed.implied_color = 'white';
-        console.log(`[MatchingAgent] Regex fallback: inferred color=white from grape=${primary}`);
-      } else if (redGrapes.has(primary)) {
-        parsed.implied_color = 'red';
-        console.log(`[MatchingAgent] Regex fallback: inferred color=red from grape=${primary}`);
+
+      // Count how many grapes are red vs white
+      const redCount = parsed.implied_grapes.filter(g => redGrapes.has(g)).length;
+      const whiteCount = parsed.implied_grapes.filter(g => whiteGrapes.has(g)).length;
+      const grapeColor = redCount > whiteCount ? 'red' : whiteCount > redCount ? 'white' : null;
+
+      if (grapeColor) {
+        if (!parsed.implied_color) {
+          parsed.implied_color = grapeColor;
+          console.log(`[MatchingAgent] Inferred color=${grapeColor} from grapes (${redCount} red, ${whiteCount} white)`);
+        } else if (parsed.implied_color !== grapeColor) {
+          // AI said one color but all grapes point to another — trust grapes
+          console.log(`[MatchingAgent] Grape override: AI color="${parsed.implied_color}" but grapes are ${grapeColor} (${redCount}r/${whiteCount}w) — using grape color`);
+          parsed.implied_color = grapeColor;
+        }
       }
     }
   }
