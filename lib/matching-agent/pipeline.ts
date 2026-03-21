@@ -73,6 +73,20 @@ export async function runMatchingAgentPipeline(
       console.warn('[MatchingAgent] Parse failed, continuing with empty parsed:', err?.message);
     }
     timing.parse = Date.now() - tParse;
+
+    // Normalize AI-parsed color (AI sometimes returns Swedish or variant forms)
+    if (parsed.implied_color) {
+      const colorNorm: Record<string, string> = {
+        'rosa': 'rose', 'rosé': 'rose', 'rod': 'red', 'röd': 'red',
+        'vit': 'white', 'vitt': 'white', 'rött': 'red',
+        'bubbel': 'sparkling', 'starkvin': 'fortified',
+      };
+      const normalized = colorNorm[parsed.implied_color.toLowerCase()];
+      if (normalized) {
+        console.log(`[MatchingAgent] Normalized color: "${parsed.implied_color}" → "${normalized}"`);
+        parsed.implied_color = normalized;
+      }
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -180,6 +194,43 @@ export async function runMatchingAgentPipeline(
         parsed.implied_grapes.push(grape);
         console.log(`[MatchingAgent] Regex fallback: extracted grape="${grape}" from "${keyword}"`);
       }
+    }
+
+    // If we extracted a grape and no color is set, infer color from grape
+    if (!parsed.implied_color && !input.structuredFilters.color && parsed.implied_grapes.length > 0) {
+      const whiteGrapes = new Set(['Chardonnay', 'Sauvignon Blanc', 'Riesling', 'Chenin Blanc',
+        'Pinot Gris', 'Gewürztraminer', 'Viognier', 'Grüner Veltliner', 'Albariño']);
+      const redGrapes = new Set(['Syrah', 'Cabernet Sauvignon', 'Cabernet Franc', 'Pinot Noir',
+        'Merlot', 'Malbec', 'Nebbiolo', 'Sangiovese', 'Tempranillo', 'Grenache', 'Gamay',
+        'Zinfandel', 'Carignan', 'Mourvèdre', 'Cinsault']);
+      const primary = parsed.implied_grapes[0];
+      if (whiteGrapes.has(primary)) {
+        parsed.implied_color = 'white';
+        console.log(`[MatchingAgent] Regex fallback: inferred color=white from grape=${primary}`);
+      } else if (redGrapes.has(primary)) {
+        parsed.implied_color = 'red';
+        console.log(`[MatchingAgent] Regex fallback: inferred color=red from grape=${primary}`);
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Step 1e: Regex fallback — extract organic/naturvin signals
+  // -------------------------------------------------------------------------
+  if (input.fritext) {
+    const ft = input.fritext.toLowerCase();
+    if (ft.includes('ekologisk') || ft.includes('eko ') || ft.includes('organic')) {
+      parsed.organic = true;
+      console.log('[MatchingAgent] Regex fallback: extracted organic=true');
+    }
+    if (ft.includes('biodynami')) {
+      parsed.biodynamic = true;
+      console.log('[MatchingAgent] Regex fallback: extracted biodynamic=true');
+    }
+    // naturvin → set organic as a signal (most naturvins are organic)
+    if (ft.includes('naturvin') || ft.includes('natural wine') || ft.includes('lågintervention')) {
+      parsed.organic = true;
+      console.log('[MatchingAgent] Regex fallback: naturvin → organic=true');
     }
   }
 

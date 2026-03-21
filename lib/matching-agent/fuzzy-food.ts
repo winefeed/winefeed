@@ -117,12 +117,17 @@ export function fuzzyMatchFood(input: string, foodKeys: string[]): string[] {
 
   // -------------------------------------------------------------------
   // Pass 1: Multi-word exact matches (longest first)
-  // Check 3-word, 2-word, then 1-word phrases against foodKeys
+  // Check 3-word, 2-word, then 1-word phrases against foodKeys.
+  // Use word-boundary matching to avoid "till" matching "tortilla".
   // -------------------------------------------------------------------
   const sortedKeys = [...foodKeys].sort((a, b) => b.length - a.length);
 
   for (const food of sortedKeys) {
-    if (ft.includes(food)) {
+    if (food.length < 3) continue; // Skip very short keys
+    // Check word-boundary match: food must appear as whole word(s)
+    const escaped = food.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(?:^|\\s|,)${escaped}(?:$|\\s|,|\\.)`, 'i');
+    if (regex.test(ft)) {
       // Avoid adding if a longer match already covers this
       if (!Array.from(matched).some(m => m.includes(food))) {
         matched.add(food);
