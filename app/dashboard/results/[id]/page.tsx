@@ -125,6 +125,31 @@ export default function ResultsPage() {
   const [foodSuggestionsMap, setFoodSuggestionsMap] = useState<Record<string, { food: string; score: number; isGoldenPair: boolean; reason?: string }[]>>({});
   const [foodSuggestionsLoading, setFoodSuggestionsLoading] = useState<Set<string>>(new Set());
 
+  // Similar wines per wine (keyed by wineId)
+  interface SimilarWineResult {
+    wine: {
+      id: string;
+      name: string;
+      producer: string;
+      country: string;
+      region?: string;
+      grape?: string;
+      color?: string;
+      vintage?: number;
+      price_ex_vat_sek: number;
+      supplier_id: string;
+      supplier_name: string;
+      moq?: number;
+      stock_qty?: number;
+      organic?: boolean;
+      biodynamic?: boolean;
+    };
+    similarity: number;
+    reasons: string[];
+  }
+  const [similarWinesMap, setSimilarWinesMap] = useState<Record<string, SimilarWineResult[]>>({});
+  const [similarWinesLoading, setSimilarWinesLoading] = useState<Set<string>>(new Set());
+
   // Draft list (Spara till lista)
   const draftList = useDraftList();
 
@@ -515,6 +540,32 @@ export default function ResultsPage() {
               .catch(() => {})
               .finally(() => {
                 setFoodSuggestionsLoading(prev => {
+                  const next = new Set(prev);
+                  next.delete(wineId);
+                  return next;
+                });
+              });
+          }
+        }
+
+        // Fetch similar wines when expanding
+        if (!similarWinesMap[wineId] && !similarWinesLoading.has(wineId)) {
+          const matchingSuggestion = suggestions.find(s => s.wine.id === wineId);
+          const suppId = matchingSuggestion?.supplier?.id;
+          if (suppId) {
+            setSimilarWinesLoading(prev => new Set(prev).add(wineId));
+            fetch(`/api/suppliers/${suppId}/wines/${wineId}/similar`)
+              .then(res => res.ok ? res.json() : null)
+              .then(data => {
+                if (data?.similar) {
+                  // Only show wines with >= 40% similarity
+                  const filtered = data.similar.filter((s: SimilarWineResult) => s.similarity >= 40);
+                  setSimilarWinesMap(prev => ({ ...prev, [wineId]: filtered }));
+                }
+              })
+              .catch(() => {})
+              .finally(() => {
+                setSimilarWinesLoading(prev => {
                   const next = new Set(prev);
                   next.delete(wineId);
                   return next;
@@ -1631,6 +1682,84 @@ export default function ResultsPage() {
                                     </span>
                                   ))}
                                 </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+
+                        {/* Similar Wines */}
+                        {(() => {
+                          const similarWines = similarWinesMap[suggestion.wine.id];
+                          const isLoadingSw = similarWinesLoading.has(suggestion.wine.id);
+                          if (isLoadingSw) {
+                            return (
+                              <div className="pt-3 border-t border-border">
+                                <p className="text-xs text-muted-foreground">Laddar liknande viner...</p>
+                              </div>
+                            );
+                          }
+                          if (similarWines && similarWines.length > 0) {
+                            return (
+                              <div className="pt-3 border-t border-border">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Liknande viner</p>
+                                <div className="space-y-2">
+                                  {similarWines.slice(0, 5).map((sw) => (
+                                    <div key={sw.wine.id} className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-100">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-foreground truncate">{sw.wine.name}</p>
+                                        <p className="text-xs text-muted-foreground truncate">
+                                          {sw.wine.producer} {sw.wine.vintage ? `${sw.wine.vintage}` : ''} — {sw.wine.supplier_name}
+                                        </p>
+                                        {sw.reasons.length > 0 && (
+                                          <p className="text-xs text-muted-foreground/70 mt-0.5">{sw.reasons.join(' · ')}</p>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-3 ml-3 flex-shrink-0">
+                                        <div className="text-right">
+                                          <p className="text-sm font-semibold text-foreground">{formatPrice(sw.wine.price_ex_vat_sek)}</p>
+                                          <p className="text-xs text-muted-foreground">{sw.similarity}% match</p>
+                                        </div>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const alreadySaved = draftList.items.some(item => item.wine_id === sw.wine.id);
+                                            if (!alreadySaved) {
+                                              draftList.addItem({
+                                                wine_id: sw.wine.id,
+                                                wine_name: sw.wine.name,
+                                                producer: sw.wine.producer,
+                                                country: sw.wine.country,
+                                                region: sw.wine.region,
+                                                vintage: sw.wine.vintage,
+                                                color: sw.wine.color,
+                                                supplier_id: sw.wine.supplier_id,
+                                                supplier_name: sw.wine.supplier_name,
+                                                quantity: sw.wine.moq || 6,
+                                                moq: sw.wine.moq || 6,
+                                                price_sek: sw.wine.price_ex_vat_sek,
+                                                stock: sw.wine.stock_qty,
+                                              });
+                                              toast.success('Tillagt', `${sw.wine.name} tillagd i listan`);
+                                            }
+                                          }}
+                                          disabled={draftList.items.some(item => item.wine_id === sw.wine.id)}
+                                          className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${
+                                            draftList.items.some(item => item.wine_id === sw.wine.id)
+                                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                              : 'bg-wine/10 text-wine hover:bg-wine/20'
+                                          }`}
+                                        >
+                                          {draftList.items.some(item => item.wine_id === sw.wine.id) ? (
+                                            <span className="flex items-center gap-1"><Check className="h-3 w-3" /> Tillagd</span>
+                                          ) : (
+                                            <span className="flex items-center gap-1"><ListPlus className="h-3 w-3" /> Lagg till</span>
+                                          )}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             );
                           }

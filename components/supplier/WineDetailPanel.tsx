@@ -83,11 +83,31 @@ function SavingIndicator({ field, savingField }: { field: string; savingField: s
   return <Loader2 className="inline h-3 w-3 animate-spin ml-1" />;
 }
 
+interface SimilarWineItem {
+  wine: {
+    id: string;
+    name: string;
+    producer: string;
+    country: string;
+    region?: string;
+    grape?: string;
+    color?: string;
+    vintage?: number;
+    price_ex_vat_sek: number;
+    supplier_id: string;
+    supplier_name: string;
+  };
+  similarity: number;
+  reasons: string[];
+}
+
 export default function WineDetailPanel({ wine, supplierId, onSave, onError }: WineDetailPanelProps) {
   const [savingField, setSavingField] = useState<string | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const [foodSuggestions, setFoodSuggestions] = useState<FoodSuggestion[]>([]);
   const [foodLoading, setFoodLoading] = useState(true);
+  const [similarWines, setSimilarWines] = useState<SimilarWineItem[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +122,23 @@ export default function WineDetailPanel({ wine, supplierId, onSave, onError }: W
       .catch(() => {})
       .finally(() => {
         if (!cancelled) setFoodLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [supplierId, wine.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSimilarLoading(true);
+    fetch(`/api/suppliers/${supplierId}/wines/${wine.id}/similar?same_supplier=true`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (!cancelled && data?.similar) {
+          setSimilarWines(data.similar.filter((s: SimilarWineItem) => s.similarity >= 40));
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setSimilarLoading(false);
       });
     return () => { cancelled = true; };
   }, [supplierId, wine.id]);
@@ -526,6 +563,39 @@ export default function WineDetailPanel({ wine, supplierId, onSave, onError }: W
                   {suggestion.isGoldenPair && <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />}
                   {suggestion.food}
                 </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* === LIKNANDE VINER I KATALOGEN === */}
+        <div>
+          <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Liknande viner i katalogen</h4>
+          {similarLoading ? (
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Laddar liknande viner...</span>
+            </div>
+          ) : similarWines.length === 0 ? (
+            <p className="text-sm text-gray-400">Inga tillrackligt liknande viner hittades i din katalog.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {similarWines.slice(0, 5).map((sw) => (
+                <div key={sw.wine.id} className="flex items-center justify-between py-1.5 px-2 bg-white rounded border border-gray-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{sw.wine.name}</p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {sw.wine.producer} {sw.wine.vintage ? `${sw.wine.vintage}` : ''} — {sw.wine.grape || ''}
+                    </p>
+                    {sw.reasons.length > 0 && (
+                      <p className="text-xs text-gray-400 mt-0.5">{sw.reasons.join(' · ')}</p>
+                    )}
+                  </div>
+                  <div className="text-right ml-3 flex-shrink-0">
+                    <p className="text-sm font-semibold text-gray-800">{sw.wine.price_ex_vat_sek} kr</p>
+                    <p className="text-xs text-gray-400">{sw.similarity}% match</p>
+                  </div>
+                </div>
               ))}
             </div>
           )}
