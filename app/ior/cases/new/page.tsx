@@ -61,6 +61,7 @@ export default function NewCasePage() {
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Form state
   const [selectedProducerId, setSelectedProducerId] = useState(preselectedProducerId || '');
@@ -175,7 +176,7 @@ export default function NewCasePage() {
       router.push(`/ior/cases/${newCase.id}`);
     } catch (err) {
       console.error('Submit error:', err);
-      alert('Kunde inte skapa ärende. Försök igen.');
+      setError('Kunde inte skapa ärende. Försök igen.');
       setSubmitting(false);
     }
   };
@@ -217,6 +218,16 @@ export default function NewCasePage() {
           Skapa ett nytt kommunikationsärende med en producent
         </p>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="px-4 lg:px-6 mb-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 text-sm font-medium">Stäng</button>
+          </div>
+        </div>
+      )}
 
       {/* Form */}
       <div className="px-4 lg:px-6">

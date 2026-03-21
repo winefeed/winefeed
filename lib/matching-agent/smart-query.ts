@@ -39,6 +39,7 @@ export async function runSmartQuery(
   structuredFilters: StructuredFilters,
   preferences: MergedPreferences,
   options: MatchingAgentOptions,
+  fritext?: string,
 ): Promise<SmartQueryResult> {
   const hasExplicitColor = !!(
     (structuredFilters.color && structuredFilters.color !== 'all') ||
@@ -47,6 +48,9 @@ export async function runSmartQuery(
 
   const effectiveColor = resolveColor(structuredFilters.color, preferences);
   const effectiveCountry = resolveCountry(structuredFilters.country, preferences);
+
+  // Only mention things in relaxation messages that the user actually typed
+  const ft = (fritext || '').toLowerCase();
 
   const colorLabel: Record<string, string> = {
     red: 'röda', white: 'vita', rose: 'rosé', sparkling: 'mousserande',
@@ -62,10 +66,11 @@ export async function runSmartQuery(
   // Relaxed: color + budget only
   const relaxedResult = await queryWithFilters(structuredFilters, preferences, options, 'relaxed');
   if (relaxedResult.length > 0) {
+    // Only mention dropped filters that the user actually typed
     const dropped: string[] = [];
-    if (effectiveCountry) dropped.push(effectiveCountry);
-    if (preferences.regions.length > 0) dropped.push(preferences.regions[0]);
-    if (preferences.grapes.length > 0) dropped.push(preferences.grapes[0]);
+    if (effectiveCountry && ft.includes(effectiveCountry.toLowerCase())) dropped.push(effectiveCountry);
+    if (preferences.regions.length > 0 && ft.includes(preferences.regions[0].toLowerCase())) dropped.push(preferences.regions[0]);
+    if (preferences.grapes.length > 0 && ft.includes(preferences.grapes[0].toLowerCase())) dropped.push(preferences.grapes[0]);
     return {
       wines: relaxedResult,
       relaxedFrom: dropped.length > 0
@@ -79,11 +84,14 @@ export async function runSmartQuery(
   // Color only
   const colorResult = await queryWithFilters(structuredFilters, preferences, options, 'color-only');
   if (colorResult.length > 0) {
+    const colorName = colorLabel[effectiveColor || ''] || '';
+    // Only mention country if user actually typed it
+    const userMentionedCountry = effectiveCountry && ft.includes(effectiveCountry.toLowerCase());
     return {
       wines: colorResult,
-      relaxedFrom: effectiveCountry
-        ? `Vi hittade inga ${colorLabel[effectiveColor || ''] || ''} viner från ${effectiveCountry}, men här är ${colorLabel[effectiveColor || ''] || ''} viner från andra länder.`
-        : `Inga exakta träffar. Visar alla ${colorLabel[effectiveColor || ''] || ''} viner.`,
+      relaxedFrom: userMentionedCountry
+        ? `Vi hittade inga ${colorName} viner från ${effectiveCountry}, men här är ${colorName} viner från andra länder.`
+        : undefined, // Don't show confusing message about things user didn't ask for
     };
   }
 

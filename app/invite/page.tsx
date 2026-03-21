@@ -140,9 +140,9 @@ function InvitePageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-xl text-gray-600">Verifierar inbjudan...</p>
         </div>
       </div>
@@ -151,7 +151,7 @@ function InvitePageContent() {
 
   if (error && !inviteDetails) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
           <div className="text-center">
             <span className="text-6xl mb-4 block">❌</span>
@@ -163,7 +163,7 @@ function InvitePageContent() {
             </p>
             <button
               onClick={() => router.push('/login')}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
               → Gå till login
             </button>
@@ -178,10 +178,10 @@ function InvitePageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-8 text-center">
+        <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-8 text-center">
           <span className="text-6xl mb-4 block">🍷</span>
           <h1 className="text-2xl font-bold">Välkommen till Winefeed!</h1>
           <p className="text-sm text-white/80 mt-2">Du har blivit inbjuden</p>
@@ -190,12 +190,12 @@ function InvitePageContent() {
         {/* Content */}
         <div className="p-8">
           {/* Invite Details */}
-          <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+          <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-2xl">{inviteDetails.role && getRoleIcon(inviteDetails.role)}</span>
               <div>
                 <p className="text-sm font-medium text-gray-600">Du bjuds in som</p>
-                <p className="text-lg font-bold text-purple-700">
+                <p className="text-lg font-bold text-primary">
                   {inviteDetails.role && getRoleText(inviteDetails.role)}
                 </p>
               </div>
@@ -234,7 +234,7 @@ function InvitePageContent() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="För- och efternamn"
               />
             </div>
@@ -249,7 +249,7 @@ function InvitePageContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Minst 8 tecken"
               />
             </div>
@@ -264,7 +264,7 @@ function InvitePageContent() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Upprepa lösenord"
               />
             </div>
@@ -272,7 +272,7 @@ function InvitePageContent() {
             <button
               type="submit"
               disabled={submitting || !password || password !== confirmPassword}
-              className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+              className="w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {submitting ? 'Skapar konto...' : '✓ Acceptera inbjudan'}
             </button>
@@ -291,9 +291,9 @@ function InvitePageContent() {
 export default function InvitePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-xl text-gray-600">Laddar...</p>
         </div>
       </div>

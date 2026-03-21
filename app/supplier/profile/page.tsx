@@ -507,7 +507,7 @@ export default function SupplierProfilePage() {
                     <button
                       onClick={saveContact}
                       disabled={savingContact}
-                      className="flex-1 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {savingContact ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                       Spara
@@ -596,7 +596,7 @@ export default function SupplierProfilePage() {
                   <button
                     onClick={saveMoq}
                     disabled={savingMoq}
-                    className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 flex items-center gap-1"
+                    className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
                   >
                     {savingMoq ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     Spara
@@ -654,7 +654,7 @@ export default function SupplierProfilePage() {
                   <button
                     onClick={saveMinValue}
                     disabled={savingMinValue}
-                    className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 flex items-center gap-1"
+                    className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
                   >
                     {savingMinValue ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     Spara
@@ -713,7 +713,7 @@ export default function SupplierProfilePage() {
                     <button
                       onClick={savePaymentTerms}
                       disabled={savingPaymentTerms}
-                      className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 flex items-center gap-1"
+                      className="px-3 py-1.5 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
                     >
                       {savingPaymentTerms ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                       Spara

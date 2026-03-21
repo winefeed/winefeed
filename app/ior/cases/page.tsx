@@ -298,19 +298,22 @@ export default function IORCasesPage() {
           {data.items.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-200">
               <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
                 {hasActiveFilters
                   ? 'Inga ärenden matchar dina filter'
                   : 'Inga ärenden ännu'}
-              </p>
+              </h3>
               {!hasActiveFilters && (
-                <Link
-                  href="/ior/cases/new"
-                  className="inline-flex items-center gap-2 text-wine hover:text-wine/80 font-medium"
-                >
-                  <Plus className="h-4 w-4" />
-                  Skapa ditt första ärende
-                </Link>
+                <>
+                  <p className="text-gray-500 mb-4">Ärenden skapas för att hantera kommunikation med dina producenter</p>
+                  <Link
+                    href="/ior/cases/new"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Skapa ditt första ärende
+                  </Link>
+                </>
               )}
             </div>
           ) : (

@@ -226,7 +226,7 @@ export async function runMatchingAgentPipeline(
   // Step 3+4: Smart query (async, with fallback cascade)
   // -------------------------------------------------------------------------
   const tQuery = Date.now();
-  const queryResult: SmartQueryResult = await runSmartQuery(input.structuredFilters, preferences, options);
+  const queryResult: SmartQueryResult = await runSmartQuery(input.structuredFilters, preferences, options, input.fritext);
   const wines = queryResult.wines;
   timing.query = Date.now() - tQuery;
   const totalDbMatches = wines.length;

@@ -129,7 +129,7 @@ export default function FeedbackDetailPage() {
       setFeedback(data.feedback);
     } catch (err) {
       console.error('Update error:', err);
-      alert('Kunde inte uppdatera status');
+      setError('Kunde inte uppdatera status');
     } finally {
       setUpdating(false);
     }

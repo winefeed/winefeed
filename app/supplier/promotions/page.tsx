@@ -453,7 +453,7 @@ export default function PromotionsPage() {
                         <button
                           onClick={() => handleAssignSlot(category.id)}
                           disabled={actionLoading === category.id}
-                          className="w-full py-2 px-4 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-sm disabled:opacity-50"
+                          className="w-full py-2 px-4 bg-wine text-white rounded-lg hover:bg-primary/90 transition-colors text-sm disabled:opacity-50"
                         >
                           {actionLoading === category.id ? (
                             <span className="flex items-center justify-center">

@@ -155,6 +155,14 @@ export default function RestaurantOverview() {
 
   const hasActivity = stats && (stats.activeRequests > 0 || stats.pendingOffers > 0);
 
+  // Onboarding progress calculation
+  const hasRequests = stats ? stats.activeRequests > 0 : false;
+  const hasOffers = stats ? (stats.pendingOffers > 0 || stats.acceptedOffers > 0) : false;
+  const hasOrders = stats ? (stats.pendingOrders > 0 || stats.completedOrders > 0) : false;
+  const completedSteps = [hasRequests, hasOffers, hasOrders].filter(Boolean).length;
+  const progressPercent = Math.round((completedSteps / 3) * 100);
+  const currentStep = !hasRequests ? 1 : !hasOffers ? 2 : !hasOrders ? 3 : 0;
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -172,7 +180,7 @@ export default function RestaurantOverview() {
           {/* Quick action */}
           <a
             href="/dashboard/new-request"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
           >
             <Plus className="h-4 w-4" />
             Ny förfrågan
@@ -266,7 +274,7 @@ export default function RestaurantOverview() {
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <a
                           href={`/dashboard/offers/${offer.id}`}
-                          className="px-3 py-1.5 bg-wine text-white text-sm font-medium rounded-lg hover:bg-wine-hover transition-colors"
+                          className="px-3 py-1.5 bg-wine text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
                         >
                           Granska
                         </a>
@@ -299,11 +307,11 @@ export default function RestaurantOverview() {
                   <Zap className="h-5 w-5 text-amber-500" />
                   3 steg till första beställning
                 </h2>
-                <span className="text-sm text-gray-500">0/3 klart</span>
+                <span className="text-sm text-gray-500">{completedSteps}/3 klart</span>
               </div>
               {/* Progress bar */}
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                <div className="bg-wine h-2 rounded-full" style={{ width: '0%' }}></div>
+                <div className="bg-wine h-2 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
               </div>
               <div className="space-y-3">
                 <OnboardingStep
@@ -311,22 +319,24 @@ export default function RestaurantOverview() {
                   title="Skapa din första förfrågan"
                   description="Berätta vad du söker så matchar vi rätt leverantörer"
                   href="/dashboard/new-request"
-                  completed={false}
-                  current
+                  completed={hasRequests}
+                  current={currentStep === 1}
                 />
                 <OnboardingStep
                   number={2}
                   title="Granska din första offert"
                   description="Jämför priser och villkor från leverantörer"
                   href="/dashboard/offers"
-                  completed={false}
+                  completed={hasOffers}
+                  current={currentStep === 2}
                 />
                 <OnboardingStep
                   number={3}
                   title="Skapa din första beställning"
                   description="Acceptera en offert för att lägga beställning"
                   href="/dashboard/offers"
-                  completed={false}
+                  completed={hasOrders}
+                  current={currentStep === 3}
                 />
               </div>
             </div>
@@ -382,9 +392,17 @@ export default function RestaurantOverview() {
             ) : (
               <div className="text-center py-8">
                 <Clock className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">
+                <p className="text-sm font-medium text-gray-700 mb-1">
                   Ingen aktivitet ännu
                 </p>
+                <p className="text-xs text-gray-500 mb-3">Här visas offerter och ordrar när de kommer in</p>
+                <a
+                  href="/dashboard/new-request"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Skapa förfrågan
+                </a>
               </div>
             )}
           </div>

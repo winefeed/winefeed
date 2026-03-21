@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Inbox, Clock, AlertTriangle, ChevronRight, Filter } from 'lucide-react';
+import { Inbox, Clock, AlertTriangle, ChevronRight, Filter, CheckCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -116,7 +116,15 @@ export function UnansweredRequestsWidget() {
   }
 
   if (requests.length === 0) {
-    return null; // Don't show widget if no requests
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="text-center py-4">
+          <CheckCircle className="h-8 w-8 text-green-400 mx-auto mb-2" />
+          <p className="text-sm font-medium text-gray-700 mb-1">Alla förfrågningar har besvarats</p>
+          <p className="text-xs text-gray-500">Nya förfrågningar visas här när de kommer in</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -632,6 +632,23 @@ export const FOOD_TO_WINE_STYLES: Record<string, FoodWinePreference> = {
   'hälleflundra': { colors: ['white'], regions: ['bourgogne', 'chablis', 'bordeaux'], grapes: ['Chardonnay', 'Sauvignon Blanc', 'Sémillon'] },
   'kräftskiva': { colors: ['white', 'sparkling'], regions: ['alsace', 'champagne', 'bourgogne'], grapes: ['Riesling', 'Chardonnay', 'Pinot Noir'] },
 
+  // ========================================================================
+  // Occasions & styles (not food, but common search terms)
+  // ========================================================================
+  'uteservering': { colors: ['rose', 'white', 'sparkling'], regions: ['provence', 'languedoc', 'tavel', 'marlborough'], grapes: ['Grenache', 'Sauvignon Blanc', 'Cinsault'] },
+  'aperitif': { colors: ['sparkling', 'white', 'rose'], regions: ['champagne', 'prosecco', 'cava', 'provence'], grapes: ['Chardonnay', 'Glera', 'Grenache'] },
+  'aperitivo': { colors: ['sparkling', 'white', 'orange', 'rose'], regions: ['prosecco', 'veneto', 'sicilia', 'friuli'], grapes: ['Glera', 'Vermentino', 'Ribolla Gialla'] },
+  'sommar': { colors: ['rose', 'white', 'sparkling'], regions: ['provence', 'marlborough', 'rías baixas', 'tavel'], grapes: ['Grenache', 'Sauvignon Blanc', 'Albariño', 'Cinsault'] },
+  'sommarvin': { colors: ['rose', 'white', 'sparkling'], regions: ['provence', 'marlborough', 'rías baixas'], grapes: ['Grenache', 'Sauvignon Blanc', 'Albariño'] },
+  'picknick': { colors: ['rose', 'white', 'red'], regions: ['beaujolais', 'provence', 'loire'], grapes: ['Gamay', 'Grenache', 'Cabernet Franc'] },
+  'fest': { colors: ['sparkling', 'rose', 'white'], regions: ['champagne', 'prosecco', 'cava', 'crémant'], grapes: ['Chardonnay', 'Pinot Noir', 'Glera'] },
+  'mingel': { colors: ['sparkling', 'white', 'rose'], regions: ['champagne', 'prosecco', 'cava'], grapes: ['Chardonnay', 'Glera', 'Grenache'] },
+  'brunch': { colors: ['sparkling', 'rose', 'white'], regions: ['champagne', 'prosecco', 'alsace'], grapes: ['Chardonnay', 'Glera', 'Riesling'] },
+  'afterwork': { colors: ['sparkling', 'white', 'rose'], regions: ['prosecco', 'cava', 'provence'], grapes: ['Glera', 'Grenache', 'Sauvignon Blanc'] },
+  'husvin': { colors: ['red', 'white'], regions: ['languedoc', 'sicilia', 'mendoza', 'alentejo'], grapes: ['Grenache', 'Grillo', 'Malbec', 'Castelão'] },
+  'glasvin': { colors: ['red', 'white', 'rose'], regions: ['languedoc', 'sicilia', 'mendoza'], grapes: ['Grenache', 'Grillo', 'Malbec'] },
+  'vinlista': { colors: ['red', 'white', 'sparkling'], regions: ['bourgogne', 'bordeaux', 'champagne', 'toscana'], grapes: ['Chardonnay', 'Cabernet Sauvignon', 'Pinot Noir', 'Sangiovese'] },
+
 };
 
 // ============================================================================

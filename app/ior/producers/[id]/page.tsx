@@ -370,6 +370,7 @@ export default function ProducerWorkspacePage() {
 function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats: ProducerStats | null; onDeleted: () => void }) {
   const [showDeleteProducer, setShowDeleteProducer] = useState(false);
   const [deletingProducer, setDeletingProducer] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDeleteProducer = async () => {
     setDeletingProducer(true);
@@ -381,11 +382,11 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
         onDeleted();
       } else {
         const data = await response.json();
-        alert(data.error || 'Kunde inte ta bort producenten');
+        setError(data.error || 'Kunde inte ta bort producenten');
       }
     } catch (err) {
       console.error('Delete failed:', err);
-      alert('Ett fel uppstod');
+      setError('Ett fel uppstod');
     } finally {
       setDeletingProducer(false);
     }
@@ -393,6 +394,13 @@ function OverviewTab({ producer, stats, onDeleted }: { producer: Producer; stats
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Error toast */}
+      {error && (
+        <div className="md:col-span-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 text-sm font-medium">Stäng</button>
+        </div>
+      )}
       {/* Contact info */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -614,6 +622,7 @@ function CatalogTab({ producerId }: { producerId: string }) {
   const [total, setTotal] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -645,11 +654,11 @@ function CatalogTab({ producerId }: { producerId: string }) {
         setShowDeleteConfirm(false);
       } else {
         const data = await response.json();
-        alert(data.error || 'Kunde inte rensa katalogen');
+        setCatalogError(data.error || 'Kunde inte rensa katalogen');
       }
     } catch (err) {
       console.error('Delete failed:', err);
-      alert('Ett fel uppstod');
+      setCatalogError('Ett fel uppstod');
     } finally {
       setDeleting(false);
     }
@@ -657,6 +666,12 @@ function CatalogTab({ producerId }: { producerId: string }) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      {catalogError && (
+        <div className="bg-red-50 border-b border-red-200 text-red-700 px-4 py-3 flex items-center justify-between">
+          <span className="text-sm">{catalogError}</span>
+          <button onClick={() => setCatalogError(null)} className="text-red-500 hover:text-red-700 text-sm font-medium">Stäng</button>
+        </div>
+      )}
       <div className="flex items-center justify-between p-6 border-b border-gray-100">
         <div>
           <h3 className="font-semibold text-gray-900 flex items-center gap-2">

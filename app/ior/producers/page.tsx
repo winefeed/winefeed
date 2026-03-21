@@ -305,15 +305,13 @@ export default function IORProducersPage() {
         <>
           {data.items.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-              <div className="p-4 bg-wine/10 rounded-full w-fit mx-auto mb-4">
-                <Building2 className="h-10 w-10 text-wine/50" />
-              </div>
-              <p className="text-gray-600 font-medium mb-2">
+              <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
                 {hasActiveFilters
                   ? 'Inga producenter matchar dina filter'
                   : 'Inga producenter ännu'}
-              </p>
-              <p className="text-gray-500 text-sm mb-6">
+              </h3>
+              <p className="text-gray-500 mb-4">
                 {hasActiveFilters
                   ? 'Prova att ändra dina sökkriterier'
                   : 'Börja med att lägga till din första producent'}
@@ -321,7 +319,7 @@ export default function IORProducersPage() {
               {!hasActiveFilters && (
                 <Link
                   href="/ior/producers/new"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-wine text-white rounded-lg font-medium hover:bg-wine/90 shadow-sm transition-all hover:shadow"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
                 >
                   <Plus className="h-4 w-4" />
                   Lägg till producent

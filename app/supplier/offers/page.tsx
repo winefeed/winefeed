@@ -117,7 +117,7 @@ export default function SupplierOffersPage() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Success Message */}
       {showSuccessMessage && (
         <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 relative">

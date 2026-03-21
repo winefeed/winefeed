@@ -34,7 +34,7 @@ export default function DashboardPage() {
         if (roles.includes('ADMIN')) {
           router.replace('/admin');
         } else if (roles.includes('IOR')) {
-          router.replace('/ior/orders');
+          router.replace('/ior');
         } else if (roles.includes('SELLER')) {
           router.replace('/supplier');
         } else if (roles.includes('RESTAURANT')) {

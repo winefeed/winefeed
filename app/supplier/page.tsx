@@ -218,7 +218,7 @@ export default function SupplierDashboard() {
           <div className="flex gap-2">
             <a
               href="/supplier/wines"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors text-sm font-medium"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
             >
               <Wine className="h-4 w-4" />
               Vinkatalog

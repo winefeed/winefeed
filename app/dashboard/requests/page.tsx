@@ -57,7 +57,7 @@ export default function RequestsListPage() {
       setRequests(data.requests || []);
     } catch (err) {
       console.error('Failed to fetch requests:', err);
-      setError(getErrorMessage(err, 'Kunde inte ladda requests'));
+      setError(getErrorMessage(err, 'Kunde inte ladda förfrågningar'));
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ export default function RequestsListPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-secondary/10 flex items-center justify-center">
-        <p className="text-xl">Laddar requests...</p>
+        <p className="text-xl">Laddar förfrågningar...</p>
       </div>
     );
   }
@@ -88,7 +88,7 @@ export default function RequestsListPage() {
             <div className="flex items-center gap-3">
               <span className="text-4xl">📋</span>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Quote Requests</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Förfrågningar</h1>
                 <p className="text-sm text-primary-foreground/80">Öppna förfrågningar från restauranger</p>
               </div>
             </div>
@@ -105,7 +105,7 @@ export default function RequestsListPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {requests.length === 0 ? (
           <div className="text-center py-12 bg-card border border-border rounded-lg">
-            <p className="text-muted-foreground text-lg">Inga öppna requests</p>
+            <p className="text-muted-foreground text-lg">Inga öppna förfrågningar</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -118,7 +118,7 @@ export default function RequestsListPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-foreground mb-2">
-                      {req.title || 'Request ' + req.id.slice(0, 8)}
+                      {req.title || 'Förfrågan ' + req.id.slice(0, 8)}
                     </h3>
                     {req.freetext && (
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
@@ -130,7 +130,7 @@ export default function RequestsListPage() {
                         <span>Budget: {req.budget_sek.toLocaleString('sv-SE')} SEK</span>
                       )}
                       {req.quantity_bottles && (
-                        <span>Qty: {req.quantity_bottles} flaskor</span>
+                        <span>Antal: {req.quantity_bottles} flaskor</span>
                       )}
                       {req.delivery_date_requested && (
                         <span>Leverans: {new Date(req.delivery_date_requested).toLocaleDateString('sv-SE')}</span>
@@ -143,7 +143,7 @@ export default function RequestsListPage() {
                     </div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-medium">
                       <span>📤</span>
-                      <span>{req.offers_count} offers</span>
+                      <span>{req.offers_count} offerter</span>
                     </div>
                   </div>
                 </div>

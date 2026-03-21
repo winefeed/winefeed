@@ -842,7 +842,7 @@ export default function SupplierWinesPage() {
           )}
           <button
             onClick={() => setShowUpload(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90"
           >
             <Upload className="h-4 w-4" />
             Importera viner
@@ -942,7 +942,7 @@ export default function SupplierWinesPage() {
                       if (val > 0) bulkUpdateMoq(val);
                     }}
                     disabled={bulkUpdating || !bulkMoqValue || parseInt(bulkMoqValue) <= 0}
-                    className="px-3 py-1 text-sm font-medium bg-wine text-white rounded-lg hover:bg-wine-hover disabled:opacity-50"
+                    className="px-3 py-1 text-sm font-medium bg-wine text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
                   >
                     {bulkUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sätt'}
                   </button>
@@ -1331,7 +1331,7 @@ export default function SupplierWinesPage() {
           {!searchTerm && statusFilter === 'ALL' && colorFilter === 'ALL' && countryFilter === 'ALL' && priceFilter === 'ALL' && (
             <button
               onClick={() => setShowUpload(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90"
             >
               <Upload className="h-4 w-4" />
               Importera viner
@@ -1719,7 +1719,7 @@ export default function SupplierWinesPage() {
                     <button
                       onClick={handleImport}
                       disabled={importing || preview.valid.length === 0}
-                      className="px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                      className="px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                     >
                       {importing ? (
                         <>

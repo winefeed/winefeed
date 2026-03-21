@@ -152,7 +152,7 @@ export default function AdminRequestsCockpit() {
   async function handleForward(reqId: string) {
     const email = forwardEmail[reqId];
     if (!email) {
-      alert('Ange importörens e-postadress');
+      showToast('Ange importörens e-postadress');
       return;
     }
     setActionLoading(reqId);
@@ -164,7 +164,7 @@ export default function AdminRequestsCockpit() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Något gick fel');
+        showToast(data.error || 'Något gick fel');
         return;
       }
       setExpandedId(null);
@@ -184,7 +184,7 @@ export default function AdminRequestsCockpit() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Något gick fel');
+        showToast(data.error || 'Något gick fel');
         return;
       }
       setExpandedId(null);
@@ -199,7 +199,7 @@ export default function AdminRequestsCockpit() {
     const req = requests.find(r => r.id === reqId);
     const email = forwardEmail[reqId] || req?.importer?.contact_email;
     if (!email) {
-      alert('Ange importörens e-post');
+      showToast('Ange importörens e-post');
       return;
     }
     setActionLoading(reqId);
@@ -211,7 +211,7 @@ export default function AdminRequestsCockpit() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Något gick fel');
+        showToast(data.error || 'Något gick fel');
         return;
       }
       setExpandedId(null);
@@ -225,7 +225,7 @@ export default function AdminRequestsCockpit() {
   async function handleRemind(reqId: string) {
     const email = forwardEmail[reqId];
     if (!email) {
-      alert('Ange importörens e-postadress');
+      showToast('Ange importörens e-postadress');
       return;
     }
     if (!confirm(`Skicka påminnelse till ${email}? (Ny länk skapas)`)) return;
@@ -238,7 +238,7 @@ export default function AdminRequestsCockpit() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Något gick fel');
+        showToast(data.error || 'Något gick fel');
         return;
       }
       setExpandedId(null);
@@ -258,7 +258,7 @@ export default function AdminRequestsCockpit() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Något gick fel');
+        showToast(data.error || 'Något gick fel');
         return;
       }
       setExpandedId(null);

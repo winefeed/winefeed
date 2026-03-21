@@ -256,7 +256,7 @@ export default function AdminSponsoredCategoriesPage() {
         </div>
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Ny kategori
@@ -279,7 +279,7 @@ export default function AdminSponsoredCategoriesPage() {
           <p className="text-gray-500 mb-6">Skapa din första sponsrade kategori för att komma igång.</p>
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-primary/90"
           >
             <Plus className="w-4 h-4" />
             Skapa kategori
@@ -606,7 +606,7 @@ export default function AdminSponsoredCategoriesPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-wine text-white rounded-lg hover:bg-wine-hover disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-wine text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? (
                     <>

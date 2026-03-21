@@ -49,7 +49,7 @@ const config: Config = {
         },
         // Vinogram färgpalett (direktåtkomst)
         wine: {
-          DEFAULT: "#7B1E1E",
+          DEFAULT: "#722F37",
           hover: "#6B1818",
           active: "#9B2C2C",
           deep: "#4A1A1F",

@@ -332,4 +332,18 @@ export const FOOD_STYLE_PREFERENCES: Record<string, StylePreference> = {
   'sparris':        { body: ['light'],            tannin: ['low'],              acidity: ['medium', 'high'] },
   'grönsaker':      { body: ['light'],            tannin: ['low'],              acidity: ['medium', 'high'] },
   'avokado':        { body: ['light'],            tannin: ['low'],              acidity: ['medium'] },
+
+  // --- Occasions & styles ---
+  'uteservering':   { body: ['light'],            tannin: ['low'],              acidity: ['medium', 'high'] },
+  'aperitif':       { body: ['light'],            tannin: ['low'],              acidity: ['high'] },
+  'aperitivo':      { body: ['light'],            tannin: ['low'],              acidity: ['high'] },
+  'sommar':         { body: ['light'],            tannin: ['low'],              acidity: ['medium', 'high'] },
+  'sommarvin':      { body: ['light'],            tannin: ['low'],              acidity: ['medium', 'high'] },
+  'picknick':       { body: ['light'],            tannin: ['low'],              acidity: ['medium'] },
+  'fest':           { body: ['light'],            tannin: ['low'],              acidity: ['high'] },
+  'mingel':         { body: ['light'],            tannin: ['low'],              acidity: ['high'] },
+  'brunch':         { body: ['light'],            tannin: ['low'],              acidity: ['medium', 'high'] },
+  'afterwork':      { body: ['light'],            tannin: ['low'],              acidity: ['medium'] },
+  'husvin':         { body: ['medium'],           tannin: ['medium'],           acidity: ['medium'] },
+  'glasvin':        { body: ['medium'],           tannin: ['medium'],           acidity: ['medium'] },
 };

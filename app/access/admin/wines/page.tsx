@@ -388,13 +388,13 @@ export default function AdminWinesPage() {
       const res = await fetch(`/api/admin/access/wines/${wine.id}`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Något gick fel');
+        showToast(data.error || 'Något gick fel');
         return;
       }
       showToast('Vinet har arkiverats');
       await fetchWines(search, statusFilter);
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message);
     }
   }
 
@@ -407,13 +407,13 @@ export default function AdminWinesPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Något gick fel');
+        showToast(data.error || 'Något gick fel');
         return;
       }
       showToast('Vinet har återställts som utkast');
       await fetchWines(search, statusFilter);
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message);
     }
   }
 

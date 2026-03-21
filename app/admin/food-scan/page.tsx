@@ -155,7 +155,7 @@ export default function FoodScanPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.key
-                ? 'border-[#722F37] text-[#722F37]'
+                ? 'border-primary text-[#722F37]'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -330,7 +330,7 @@ function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => voi
         <button
           onClick={handleSearch}
           disabled={isLoading || !query.trim()}
-          className="px-4 py-2 bg-[#722F37] text-white rounded-lg text-sm font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center gap-2"
+          className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
         >
           {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           Sök
@@ -349,7 +349,7 @@ function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => voi
               <button
                 onClick={() => handleScan(venue)}
                 disabled={isLoading}
-                className="px-3 py-1.5 bg-[#722F37] text-white rounded text-xs font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center gap-1"
+                className="px-3 py-1.5 bg-primary text-white rounded text-xs font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
               >
                 {scanning ? <Loader2 className="h-3 w-3 animate-spin" /> : <ScanLine className="h-3 w-3" />}
                 Analysera meny
@@ -399,8 +399,8 @@ function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => voi
             {...getRootProps()}
             className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
               isDragActive
-                ? 'border-[#722F37] bg-[#722F37]/5'
-                : 'border-gray-200 hover:border-[#722F37]/40 hover:bg-gray-50'
+                ? 'border-primary bg-primary/5'
+                : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50'
             }`}
           >
             <input {...getInputProps()} />
@@ -419,7 +419,7 @@ function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => voi
         <button
           onClick={handlePdfScan}
           disabled={isLoading || !pdfRestaurantName.trim() || !pdfFile}
-          className="px-4 py-2 bg-[#722F37] text-white rounded-lg text-sm font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center gap-2"
+          className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
         >
           {scanningPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
           {scanningPdf ? 'Analyserar PDF...' : 'Analysera PDF'}
@@ -530,7 +530,7 @@ function ScanResultView({
         <button
           onClick={onGenerateRecommendation}
           disabled={generating}
-          className="w-full px-4 py-3 bg-[#722F37] text-white rounded-lg text-sm font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+          className="w-full px-4 py-3 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
         >
           {generating ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -646,7 +646,7 @@ function VinforslagTab() {
   return (
     <div className="space-y-6 relative">
       {toast && (
-        <div className="fixed top-4 right-4 bg-[#722F37] text-white px-4 py-2 rounded-lg text-sm shadow-lg z-50">
+        <div className="fixed top-4 right-4 bg-primary text-white px-4 py-2 rounded-lg text-sm shadow-lg z-50">
           {toast}
         </div>
       )}
@@ -689,7 +689,7 @@ function VinforslagTab() {
                     ) : (
                       <button
                         onClick={() => isExpanded ? setExpandedId(null) : startSend(rec)}
-                        className="px-3 py-1.5 bg-[#722F37] text-white rounded text-xs font-medium hover:bg-[#5a252c] flex items-center gap-1"
+                        className="px-3 py-1.5 bg-primary text-white rounded text-xs font-medium hover:bg-primary/90 flex items-center gap-1"
                       >
                         <Send className="h-3 w-3" />
                         {isExpanded ? 'Stäng' : 'Granska & skicka'}
@@ -760,7 +760,7 @@ function VinforslagTab() {
                           <button
                             onClick={() => handleSend(rec.id)}
                             disabled={sendingId === rec.id || !editRecipient.trim()}
-                            className="px-4 py-2 bg-[#722F37] text-white rounded-lg text-sm font-medium hover:bg-[#5a252c] disabled:opacity-50 flex items-center gap-2"
+                            className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
                           >
                             {sendingId === rec.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />

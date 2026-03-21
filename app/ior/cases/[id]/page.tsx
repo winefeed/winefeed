@@ -193,7 +193,7 @@ export default function CaseDetailPage() {
       setTemplateVariables({});
     } catch (err) {
       console.error('Send error:', err);
-      alert('Kunde inte skicka meddelande. Försök igen.');
+      setError('Kunde inte skicka meddelande. Försök igen.');
     } finally {
       setSending(false);
     }
@@ -236,7 +236,7 @@ export default function CaseDetailPage() {
       setShowStatusMenu(false);
     } catch (err) {
       console.error('Status update error:', err);
-      alert('Kunde inte uppdatera status');
+      setError('Kunde inte uppdatera status');
     } finally {
       setUpdatingStatus(false);
     }

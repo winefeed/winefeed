@@ -195,7 +195,7 @@ export default function PricingPage() {
                     tier.buttonVariant === 'outline'
                       ? 'border-2 border-gray-300 text-gray-500 cursor-not-allowed'
                       : tier.buttonVariant === 'primary'
-                      ? 'bg-wine text-white hover:bg-wine-hover disabled:opacity-50'
+                      ? 'bg-wine text-white hover:bg-primary/90 disabled:opacity-50'
                       : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 disabled:opacity-50'
                   }`}
                 >

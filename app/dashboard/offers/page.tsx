@@ -166,7 +166,7 @@ export default function RestaurantOffersPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>

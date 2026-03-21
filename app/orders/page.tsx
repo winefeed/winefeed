@@ -42,8 +42,8 @@ interface Order {
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'Alla' },
-  { value: 'PENDING_SUPPLIER_CONFIRMATION', label: 'Vantande' },
-  { value: 'CONFIRMED', label: 'Bekraftad' },
+  { value: 'PENDING_SUPPLIER_CONFIRMATION', label: 'Väntande' },
+  { value: 'CONFIRMED', label: 'Bekräftad' },
   { value: 'IN_FULFILLMENT', label: 'I leverans' },
   { value: 'SHIPPED', label: 'Skickad' },
   { value: 'DELIVERED', label: 'Levererad' },
@@ -85,9 +85,9 @@ export default function OrdersPage() {
 
       if (!response.ok) {
         if (response.status === 403) {
-          throw new Error('Atkomst nekad');
+          throw new Error('Åtkomst nekad');
         }
-        throw new Error('Kunde inte hamta ordrar');
+        throw new Error('Kunde inte hämta ordrar');
       }
 
       const data = await response.json();
@@ -104,7 +104,7 @@ export default function OrdersPage() {
     if (!actorLoading && actor) {
       const hasAccess = actor.roles.includes('ADMIN') || (actor.roles.includes('RESTAURANT') && actor.restaurant_id);
       if (!hasAccess) {
-        setError('Du saknar behorighet att se ordrar');
+        setError('Du saknar behörighet att se ordrar');
         setLoading(false);
         return;
       }
@@ -242,7 +242,7 @@ export default function OrdersPage() {
       <div className="p-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
           <div className="text-destructive text-5xl mb-4">!</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
             onClick={() => router.push('/dashboard')}
@@ -290,14 +290,14 @@ export default function OrdersPage() {
         <div className="flex flex-wrap gap-4 items-end">
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-foreground mb-1">Sok</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Sök</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sok order-ID, leverantor, restaurang..."
+                placeholder="Sök order-ID, leverantör, restaurang..."
                 className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -355,9 +355,9 @@ export default function OrdersPage() {
                 {isAdmin && (
                   <SortableHeader column="restaurant_name" label="Restaurang" className="text-left" />
                 )}
-                <SortableHeader column="supplier_name" label="Leverantor" className="text-left" />
+                <SortableHeader column="supplier_name" label="Leverantör" className="text-left" />
                 <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">
-                  Importor
+                  Importör
                 </th>
                 <SortableHeader column="status" label="Status" className="text-left" />
                 <SortableHeader column="lines_count" label="Rader" className="text-right" />

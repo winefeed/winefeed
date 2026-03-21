@@ -175,14 +175,15 @@ export default function SupplierLoginPage() {
               </div>
             </div>
 
-            {/* Register Link */}
-            <div className="mt-6">
-              <a
-                href="/supplier/register"
-                className="w-full flex justify-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Registrera ditt företag
-              </a>
+            {/* Register Info */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Kontakta oss på{' '}
+                <a href="mailto:hej@winefeed.se" className="text-primary font-medium hover:underline">
+                  hej@winefeed.se
+                </a>{' '}
+                för att registrera ditt företag
+              </p>
             </div>
           </div>
         </div>

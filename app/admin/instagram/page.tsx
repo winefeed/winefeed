@@ -740,7 +740,7 @@ export default function InstagramGeneratorPage() {
                     onClick={() => setFormat(key)}
                     className={`p-3 rounded-lg border text-center transition-colors ${
                       format === key
-                        ? 'border-[#722F37] bg-[#722F37]/5 text-[#722F37]'
+                        ? 'border-primary bg-primary/5 text-primary'
                         : 'border-border hover:bg-muted/50'
                     }`}
                   >
@@ -766,7 +766,7 @@ export default function InstagramGeneratorPage() {
                   onClick={() => setBgIndex(i)}
                   className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                     bgIndex === i && !uploadedImg
-                      ? 'border-[#722F37] ring-2 ring-[#722F37]/20'
+                      ? 'border-primary ring-2 ring-primary/20'
                       : 'border-transparent hover:border-border'
                   }`}
                   title={BACKGROUNDS[i].label}
@@ -783,7 +783,7 @@ export default function InstagramGeneratorPage() {
                 onClick={() => fileInputRef.current?.click()}
                 className={`aspect-square rounded-lg border-2 border-dashed flex items-center justify-center transition-all ${
                   uploadedImg
-                    ? 'border-[#722F37] bg-[#722F37]/5'
+                    ? 'border-primary bg-primary/5'
                     : 'border-border hover:border-muted-foreground'
                 }`}
                 title="Ladda upp bild"
@@ -846,7 +846,7 @@ export default function InstagramGeneratorPage() {
                   onClick={() => setLayout(key)}
                   className={`p-2 rounded-lg border text-center transition-colors ${
                     layout === key
-                      ? 'border-[#722F37] bg-[#722F37]/5 text-[#722F37]'
+                      ? 'border-primary bg-primary/5 text-primary'
                       : 'border-border hover:bg-muted/50'
                   }`}
                 >
@@ -925,7 +925,7 @@ export default function InstagramGeneratorPage() {
           {/* Download */}
           <button
             onClick={handleDownload}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#722F37] text-white rounded-lg hover:bg-[#5a252c] transition-colors text-sm font-medium"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
           >
             <Download className="h-4 w-4" />
             Ladda ner ({fmtW}x{fmtH})
@@ -958,10 +958,10 @@ export default function InstagramGeneratorPage() {
               }}
             />
             {isDragging && (
-              <div className="absolute inset-0 rounded-xl border-2 border-dashed border-[#722F37] bg-[#722F37]/10 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-xl border-2 border-dashed border-primary bg-primary/10 flex items-center justify-center">
                 <div className="text-center">
-                  <ImageIcon className="h-8 w-8 text-[#722F37] mx-auto mb-2" />
-                  <p className="text-sm font-medium text-[#722F37]">
+                  <ImageIcon className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <p className="text-sm font-medium text-primary">
                     Slapp bilden har
                   </p>
                 </div>

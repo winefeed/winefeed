@@ -78,7 +78,7 @@ export default function ContactPage() {
             )}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-wine text-white px-6 py-3 rounded-lg font-medium hover:bg-wine-hover transition-colors"
+            className="inline-flex items-center gap-2 bg-wine text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors"
           >
             <Mail className="h-5 w-5" />
             Skicka e-post till support

@@ -347,9 +347,12 @@ export default function IOROrdersPage() {
             <div className="p-4 bg-gray-100 rounded-full w-fit mx-auto mb-4">
               <Inbox className="h-10 w-10 text-gray-400" />
             </div>
-            <p className="text-gray-600 font-medium mb-1">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
               {searchQuery ? 'Inga ordrar matchar sökningen' : 'Inga ordrar ännu'}
-            </p>
+            </h3>
+            {!searchQuery && statusFilter === 'ALL' && (
+              <p className="text-gray-500 mb-4">Ordrar visas här när leverantörer bekräftar beställningar</p>
+            )}
             {(statusFilter !== 'ALL' || searchQuery) && (
               <div className="flex items-center justify-center gap-3 mt-2">
                 {searchQuery && (

@@ -406,7 +406,7 @@ export default function PitchPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
                 <a
                   href="mailto:hej@winefeed.se?subject=Intresserad%20av%20Winefeed-pilot&body=Hej%2C%0A%0AJag%20%C3%A4r%20intresserad%20av%20Winefeed-piloten.%0A%0A"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-wine hover:bg-wine-hover text-white rounded-xl transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-wine hover:bg-primary/90 text-white rounded-xl transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
                 >
                   <Mail className="h-5 w-5" />
                   Kontakta oss
@@ -486,7 +486,7 @@ export default function PitchPage() {
           <div className="mb-6">
             <a
               href="mailto:hej@winefeed.se"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-wine hover:bg-wine-hover rounded-lg transition-colors font-medium"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-wine hover:bg-primary/90 rounded-lg transition-colors font-medium"
             >
               <Mail className="h-5 w-5" />
               hej@winefeed.se

@@ -251,7 +251,7 @@ export default function RestaurantOrdersPage() {
           {orders.length === 0 && (
             <a
               href="/dashboard/offers"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-wine-hover"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90"
             >
               Se inkomna offerter
             </a>

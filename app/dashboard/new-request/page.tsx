@@ -248,70 +248,101 @@ export default function NewRequestPage() {
           </div>
         </div>
 
-        {/* How It Works - Modern Collapsible — hidden on mobile */}
-        <div className="hidden sm:block mt-8">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden hover:shadow-md transition-shadow duration-300">
-            <button
-              onClick={() => setShowHowItWorks(!showHowItWorks)}
-              className="w-full flex items-center justify-center p-5 sm:p-6 hover:bg-gray-50/50 transition-colors touch-manipulation min-h-[60px] relative"
-            >
-              <span className="font-semibold text-gray-900 text-base sm:text-lg">
-                Så fungerar det
-              </span>
-              <div className="absolute right-5">
-                {showHowItWorks ? (
-                  <ChevronUp className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
-                )}
+        {/* How It Works - Condensed on mobile, collapsible on desktop */}
+        <div className="mt-6 sm:mt-8">
+          {/* Mobile: always-visible condensed version */}
+          <div className="sm:hidden bg-white rounded-2xl shadow-sm border border-gray-200/60 p-4">
+            <h3 className="font-semibold text-gray-900 text-base mb-3 text-center">Så fungerar det</h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>1</div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Beskriv fritt</p>
+                  <p className="text-xs text-gray-600">Skriv vad du söker med egna ord</p>
+                </div>
               </div>
-            </button>
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>2</div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Se förslag</p>
+                  <p className="text-xs text-gray-600">Få matchande viner direkt</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>3</div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Skicka förfrågan</p>
+                  <p className="text-xs text-gray-600">Välj viner och skicka för offert</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <div
-              className={cn(
-                'grid transition-all duration-300 ease-in-out',
-                showHowItWorks
-                  ? 'grid-rows-[1fr] opacity-100'
-                  : 'grid-rows-[0fr] opacity-0'
-              )}
-            >
-              <div className="overflow-hidden">
-                <div className="p-5 sm:p-6 pt-0 border-t border-gray-100">
-                  <div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
-                    {/* Step 1 */}
-                    <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 hover:shadow-md transition-all duration-300">
-                      <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
-                        1
-                      </div>
-                      <div className="text-3xl mb-3">💬</div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Beskriv fritt</h4>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        Skriv vad du söker med egna ord - &quot;italienskt till lamm&quot;
-                      </p>
-                    </div>
+          {/* Desktop: collapsible detailed version */}
+          <div className="hidden sm:block">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden hover:shadow-md transition-shadow duration-300">
+              <button
+                onClick={() => setShowHowItWorks(!showHowItWorks)}
+                className="w-full flex items-center justify-center p-5 sm:p-6 hover:bg-gray-50/50 transition-colors touch-manipulation min-h-[60px] relative"
+              >
+                <span className="font-semibold text-gray-900 text-base sm:text-lg">
+                  Så fungerar det
+                </span>
+                <div className="absolute right-5">
+                  {showHowItWorks ? (
+                    <ChevronUp className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+                  )}
+                </div>
+              </button>
 
-                    {/* Step 2 */}
-                    <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 hover:shadow-md transition-all duration-300">
-                      <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
-                        2
+              <div
+                className={cn(
+                  'grid transition-all duration-300 ease-in-out',
+                  showHowItWorks
+                    ? 'grid-rows-[1fr] opacity-100'
+                    : 'grid-rows-[0fr] opacity-0'
+                )}
+              >
+                <div className="overflow-hidden">
+                  <div className="p-5 sm:p-6 pt-0 border-t border-gray-100">
+                    <div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
+                      {/* Step 1 */}
+                      <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 hover:shadow-md transition-all duration-300">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
+                          1
+                        </div>
+                        <div className="text-3xl mb-3">💬</div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Beskriv fritt</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          Skriv vad du söker med egna ord - &quot;italienskt till lamm&quot;
+                        </p>
                       </div>
-                      <div className="text-3xl mb-3">🔍</div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Se förslag</h4>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        Få matchande viner direkt - förfina med budget och antal
-                      </p>
-                    </div>
 
-                    {/* Step 3 */}
-                    <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 hover:shadow-md transition-all duration-300">
-                      <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
-                        3
+                      {/* Step 2 */}
+                      <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 hover:shadow-md transition-all duration-300">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
+                          2
+                        </div>
+                        <div className="text-3xl mb-3">🔍</div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Se förslag</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          Få matchande viner direkt - förfina med budget och antal
+                        </p>
                       </div>
-                      <div className="text-3xl mb-3">📨</div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Skicka förfrågan</h4>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        Välj viner och skicka till leverantörer för offert
-                      </p>
+
+                      {/* Step 3 */}
+                      <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 hover:shadow-md transition-all duration-300">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
+                          3
+                        </div>
+                        <div className="text-3xl mb-3">📨</div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Skicka förfrågan</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          Välj viner och skicka till leverantörer för offert
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
