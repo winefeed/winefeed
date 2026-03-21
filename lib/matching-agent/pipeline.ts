@@ -232,6 +232,12 @@ export async function runMatchingAgentPipeline(
       parsed.organic = true;
       console.log('[MatchingAgent] Regex fallback: naturvin → organic=true');
     }
+    // pet-nat → sparkling + organic
+    if (ft.includes('pet nat') || ft.includes('pet-nat') || ft.includes('pétillant')) {
+      parsed.implied_color = parsed.implied_color || 'sparkling';
+      parsed.organic = true;
+      console.log('[MatchingAgent] Regex fallback: pet-nat → sparkling + organic');
+    }
   }
 
   // -------------------------------------------------------------------------

@@ -163,24 +163,28 @@ export function fuzzyMatchFood(input: string, foodKeys: string[]): string[] {
 
   // -------------------------------------------------------------------
   // Pass 3: Substring matching (foodKey inside a word, min 4 chars)
+  // Skip common Swedish stop words that cause false positives
   // -------------------------------------------------------------------
+  const stopWords = new Set(['till', 'från', 'eller', 'under', 'över', 'inte', 'utan', 'alla', 'vara', 'viner', 'vinet', 'wine', 'lite', 'gärna', 'kanske', 'bästa', 'bäst', 'mitt', 'vill', 'finn', 'hitta']);
+
   for (const word of words) {
     if (word.length < 4) continue;
+    if (stopWords.has(word)) continue;
 
     for (const food of foodKeys) {
       if (food.length < 4) continue;
       if (matched.has(food)) continue;
 
-      // Check if food key is a substring of the word
-      if (word.includes(food) && word !== food) {
-        // Avoid if a longer match already covers this food
+      // Check if food key is a substring of the word (word must be longer)
+      if (word.includes(food) && word !== food && word.length > food.length) {
         if (!Array.from(matched).some(m => m.includes(food))) {
           matched.add(food);
         }
       }
 
       // Check if word is a substring of a food key (e.g. "grill" in "grillat")
-      if (food.includes(word) && food !== word && word.length >= 4) {
+      // Only if word is at least 5 chars to avoid false positives
+      if (food.includes(word) && food !== word && word.length >= 5) {
         if (!Array.from(matched).some(m => m.includes(word) || word.includes(m))) {
           matched.add(food);
         }

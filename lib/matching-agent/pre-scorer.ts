@@ -450,20 +450,17 @@ function scoreAgainstPreferred(
 // ============================================================================
 
 function scoreCertification(wine: SupplierWineRow, prefs: MergedPreferences): number {
-  // Only give bonus if certifications are relevant:
-  // - User explicitly asked for organic/biodynamic, OR
-  // - The wine has certifications (sustainability is a growing market trend)
   const userWantsCerts = prefs.organic || prefs.biodynamic;
 
   if (wine.biodynamic) {
-    return userWantsCerts ? 5 : 3; // Biodynamic is strongest signal
+    return userWantsCerts ? 10 : 3; // Biodynamic + user asked = strong signal
   }
   if (wine.organic) {
-    return userWantsCerts ? 3 : 2; // Organic is common but valued
+    return userWantsCerts ? 8 : 2;  // Organic + user asked = clear boost
   }
 
-  // No certification — small penalty only if user explicitly asked
-  if (userWantsCerts) return 0;
+  // No certification — penalty if user explicitly asked for it
+  if (userWantsCerts) return -3;
 
   return 0;
 }
