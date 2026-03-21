@@ -190,6 +190,304 @@ const COLOR_DEFAULTS = {
 };
 
 // ============================================================================
+// Regional overrides — adjusts grape defaults when a specific region is detected.
+// Mirrors REGIONAL_OVERRIDES from lib/matching-agent/style-inference.ts
+// ============================================================================
+
+const REGIONAL_OVERRIDES = {
+  'northern rhône': {
+    'syrah': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+  },
+  'rhône': {
+    'syrah': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+  },
+  'côtes du rhône': {
+    'syrah': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+  },
+  'languedoc': {
+    'syrah': { body: 'medium', tannin: 'medium' },
+  },
+  'barossa': {
+    'syrah': { body: 'full', tannin: 'high' },
+    'shiraz': { body: 'full', tannin: 'high' },
+    'grenache': { body: 'full', tannin: 'low', acidity: 'low' },
+    'garnacha': { body: 'full', tannin: 'low', acidity: 'low' },
+  },
+  'mclaren vale': {
+    'syrah': { body: 'full', tannin: 'high' },
+    'shiraz': { body: 'full', tannin: 'high' },
+  },
+  'hawkes bay': {
+    'syrah': { body: 'full', tannin: 'medium' },
+    'shiraz': { body: 'full', tannin: 'medium' },
+    'chardonnay': { body: 'medium', tannin: 'low', acidity: 'medium' },
+  },
+  "hawke's bay": {
+    'syrah': { body: 'full', tannin: 'medium' },
+    'shiraz': { body: 'full', tannin: 'medium' },
+    'chardonnay': { body: 'medium', tannin: 'low', acidity: 'medium' },
+  },
+  'swartland': {
+    'syrah': { body: 'full', tannin: 'high' },
+    'shiraz': { body: 'full', tannin: 'high' },
+  },
+  'washington': {
+    'syrah': { body: 'full', tannin: 'medium' },
+    'shiraz': { body: 'full', tannin: 'medium' },
+    'cabernet sauvignon': { body: 'full', tannin: 'high' },
+  },
+  'bourgogne': {
+    'pinot noir': { body: 'light', tannin: 'low', acidity: 'high' },
+    'chardonnay': { body: 'medium', tannin: 'low', acidity: 'medium' },
+  },
+  'burgundy': {
+    'pinot noir': { body: 'light', tannin: 'low', acidity: 'high' },
+    'chardonnay': { body: 'medium', tannin: 'low', acidity: 'medium' },
+  },
+  'alsace': {
+    'pinot noir': { body: 'light', tannin: 'low', acidity: 'high' },
+    'riesling': { body: 'light', tannin: 'low', acidity: 'high' },
+    'pinot gris': { body: 'medium', tannin: 'low', acidity: 'medium' },
+  },
+  'central otago': {
+    'pinot noir': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'marlborough': {
+    'pinot noir': { body: 'light', tannin: 'low', acidity: 'high' },
+    'sauvignon blanc': { body: 'light', tannin: 'low', acidity: 'high' },
+    'chardonnay': { body: 'light', tannin: 'low', acidity: 'high' },
+    'riesling': { body: 'light', tannin: 'low', acidity: 'high' },
+  },
+  'oregon': {
+    'pinot noir': { body: 'light', tannin: 'low', acidity: 'high' },
+    'chardonnay': { body: 'medium', tannin: 'low', acidity: 'medium' },
+  },
+  'sonoma': {
+    'pinot noir': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+    'chardonnay': { body: 'full', tannin: 'low', acidity: 'low' },
+    'cabernet sauvignon': { body: 'full', tannin: 'high', acidity: 'low' },
+  },
+  'waipara': {
+    'pinot noir': { body: 'light', tannin: 'medium', acidity: 'high' },
+  },
+  'chablis': {
+    'chardonnay': { body: 'light', tannin: 'low', acidity: 'high' },
+  },
+  'napa': {
+    'chardonnay': { body: 'full', tannin: 'low', acidity: 'low' },
+    'cabernet sauvignon': { body: 'full', tannin: 'high', acidity: 'low' },
+    'cabernet': { body: 'full', tannin: 'high', acidity: 'low' },
+    'merlot': { body: 'full', tannin: 'medium', acidity: 'low' },
+  },
+  'california': {
+    'pinot noir': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+    'chardonnay': { body: 'full', tannin: 'low', acidity: 'low' },
+    'cabernet sauvignon': { body: 'full', tannin: 'high', acidity: 'low' },
+    'zinfandel': { body: 'full', tannin: 'medium', acidity: 'medium' },
+  },
+  'gisborne': {
+    'chardonnay': { body: 'medium', tannin: 'low', acidity: 'medium' },
+  },
+  'bordeaux': {
+    'cabernet sauvignon': { body: 'full', tannin: 'high', acidity: 'medium' },
+    'cabernet': { body: 'full', tannin: 'high', acidity: 'medium' },
+    'merlot': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+    'cabernet franc': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'mendoza': {
+    'cabernet sauvignon': { body: 'full', tannin: 'medium', acidity: 'medium' },
+    'malbec': { body: 'full', tannin: 'medium', acidity: 'low' },
+  },
+  'coonawarra': {
+    'cabernet sauvignon': { body: 'full', tannin: 'high', acidity: 'medium' },
+  },
+  'saint-émilion': {
+    'merlot': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+  },
+  'pomerol': {
+    'merlot': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+  },
+  'chile': {
+    'merlot': { body: 'medium', tannin: 'low', acidity: 'medium' },
+    'cabernet sauvignon': { body: 'full', tannin: 'medium', acidity: 'medium' },
+    'carménère': { body: 'full', tannin: 'medium', acidity: 'medium' },
+    'carmenere': { body: 'full', tannin: 'medium', acidity: 'medium' },
+  },
+  'southern rhône': {
+    'grenache': { body: 'medium', tannin: 'low', acidity: 'medium' },
+    'garnacha': { body: 'medium', tannin: 'low', acidity: 'medium' },
+  },
+  'châteauneuf': {
+    'grenache': { body: 'full', tannin: 'medium', acidity: 'medium' },
+    'garnacha': { body: 'full', tannin: 'medium', acidity: 'medium' },
+  },
+  'priorat': {
+    'grenache': { body: 'full', tannin: 'medium', acidity: 'high' },
+    'garnacha': { body: 'full', tannin: 'medium', acidity: 'high' },
+  },
+  'mosel': {
+    'riesling': { body: 'light', tannin: 'low', acidity: 'high' },
+  },
+  'rheingau': {
+    'riesling': { body: 'light', tannin: 'low', acidity: 'high' },
+  },
+  'clare valley': {
+    'riesling': { body: 'light', tannin: 'low', acidity: 'high' },
+  },
+  'eden valley': {
+    'riesling': { body: 'light', tannin: 'low', acidity: 'high' },
+  },
+  'wachau': {
+    'riesling': { body: 'medium', tannin: 'low', acidity: 'high' },
+    'grüner veltliner': { body: 'medium', tannin: 'low', acidity: 'high' },
+    'gruner veltliner': { body: 'medium', tannin: 'low', acidity: 'high' },
+  },
+  'rioja': {
+    'tempranillo': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+    'graciano': { body: 'medium', tannin: 'high', acidity: 'high' },
+  },
+  'ribera del duero': {
+    'tempranillo': { body: 'full', tannin: 'high', acidity: 'medium' },
+    'tinto fino': { body: 'full', tannin: 'high', acidity: 'medium' },
+  },
+  'toro': {
+    'tempranillo': { body: 'full', tannin: 'high', acidity: 'low' },
+    'tinta de toro': { body: 'full', tannin: 'high', acidity: 'low' },
+  },
+  'chianti': {
+    'sangiovese': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'montalcino': {
+    'sangiovese': { body: 'full', tannin: 'high', acidity: 'high' },
+    'brunello': { body: 'full', tannin: 'high', acidity: 'high' },
+  },
+  'brunello': {
+    'sangiovese': { body: 'full', tannin: 'high', acidity: 'high' },
+  },
+  'romagna': {
+    'sangiovese': { body: 'light', tannin: 'medium', acidity: 'high' },
+  },
+  'montepulciano': {
+    'sangiovese': { body: 'medium', tannin: 'medium', acidity: 'high' },
+    'prugnolo gentile': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'barolo': {
+    'nebbiolo': { body: 'full', tannin: 'high', acidity: 'high' },
+  },
+  'barbaresco': {
+    'nebbiolo': { body: 'full', tannin: 'high', acidity: 'high' },
+  },
+  'langhe': {
+    'nebbiolo': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'roero': {
+    'nebbiolo': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'stellenbosch': {
+    'cabernet sauvignon': { body: 'full', tannin: 'high', acidity: 'medium' },
+    'pinotage': { body: 'full', tannin: 'medium', acidity: 'medium' },
+    'chenin blanc': { body: 'medium', tannin: 'low', acidity: 'high' },
+  },
+  'sancerre': {
+    'sauvignon blanc': { body: 'light', tannin: 'low', acidity: 'high' },
+  },
+  'loire': {
+    'sauvignon blanc': { body: 'light', tannin: 'low', acidity: 'high' },
+    'chenin blanc': { body: 'medium', tannin: 'low', acidity: 'high' },
+    'cabernet franc': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'pouilly-fumé': {
+    'sauvignon blanc': { body: 'light', tannin: 'low', acidity: 'high' },
+  },
+  'etna': {
+    'nerello mascalese': { body: 'medium', tannin: 'high', acidity: 'high' },
+  },
+  'valpolicella': {
+    'corvina': { body: 'light', tannin: 'medium', acidity: 'high' },
+  },
+  'amarone': {
+    'corvina': { body: 'full', tannin: 'high', acidity: 'medium' },
+  },
+  'douro': {
+    'touriga nacional': { body: 'full', tannin: 'high', acidity: 'medium' },
+  },
+  'dao': {
+    'touriga nacional': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'dão': {
+    'touriga nacional': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'margaret river': {
+    'cabernet sauvignon': { body: 'full', tannin: 'high', acidity: 'medium' },
+    'chardonnay': { body: 'full', tannin: 'low', acidity: 'medium' },
+  },
+  'hunter valley': {
+    'semillon': { body: 'light', tannin: 'low', acidity: 'high' },
+    'sémillon': { body: 'light', tannin: 'low', acidity: 'high' },
+    'shiraz': { body: 'medium', tannin: 'medium', acidity: 'medium' },
+  },
+  'beaujolais': {
+    'gamay': { body: 'light', tannin: 'low', acidity: 'high' },
+  },
+  'kamptal': {
+    'grüner veltliner': { body: 'medium', tannin: 'low', acidity: 'high' },
+    'gruner veltliner': { body: 'medium', tannin: 'low', acidity: 'high' },
+  },
+  'santorini': {
+    'assyrtiko': { body: 'medium', tannin: 'low', acidity: 'high' },
+  },
+  'jerez': {
+    'palomino': { body: 'light', tannin: 'low', acidity: 'medium' },
+  },
+  'cahors': {
+    'malbec': { body: 'full', tannin: 'high', acidity: 'medium' },
+    'côt': { body: 'full', tannin: 'high', acidity: 'medium' },
+  },
+  'bierzo': {
+    'mencía': { body: 'medium', tannin: 'medium', acidity: 'high' },
+    'mencia': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'sicily': {
+    "nero d'avola": { body: 'full', tannin: 'medium', acidity: 'medium' },
+    'nerello mascalese': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'sicilia': {
+    "nero d'avola": { body: 'full', tannin: 'medium', acidity: 'medium' },
+    'nerello mascalese': { body: 'medium', tannin: 'medium', acidity: 'high' },
+  },
+  'jumilla': {
+    'monastrell': { body: 'full', tannin: 'high', acidity: 'low' },
+  },
+  'bandol': {
+    'mourvèdre': { body: 'full', tannin: 'high', acidity: 'medium' },
+  },
+};
+
+function normalizeRegion(region) {
+  return region
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function findRegionalOverride(region, grape) {
+  if (!region || !grape) return null;
+
+  const normalizedRegion = normalizeRegion(region);
+  const normalizedGrape = grape.toLowerCase();
+
+  for (const [regionKey, grapeOverrides] of Object.entries(REGIONAL_OVERRIDES)) {
+    const normalizedKey = normalizeRegion(regionKey);
+    if (normalizedRegion.includes(normalizedKey) || normalizedKey.includes(normalizedRegion)) {
+      const override = grapeOverrides[normalizedGrape];
+      if (override) return override;
+    }
+  }
+
+  return null;
+}
+
+// ============================================================================
 // Simplified descriptor inference (key descriptors only, no encyclopedia)
 // ============================================================================
 
@@ -248,21 +546,32 @@ function inferFromDescription(description) {
 // Inference function (mirrors style-inference.ts logic)
 // ============================================================================
 
-function inferWineStyle(grape, color, _region, description) {
+function inferWineStyle(grape, color, region, description) {
   let grapeStyle = null;
 
-  if (grape) {
-    const primaryGrape = grape.split(/[,/&+]/).map(g => g.trim()).filter(Boolean)[0];
-    if (primaryGrape) {
-      const normalized = primaryGrape.toLowerCase();
-      const directMatch = GRAPE_STYLE_MAP[normalized];
-      if (directMatch) {
-        grapeStyle = { ...directMatch };
-      }
+  const primaryGrape = grape
+    ? (grape.split(/[,/&+]/).map(g => g.trim()).filter(Boolean)[0] || '')
+    : '';
+
+  if (primaryGrape) {
+    const normalized = primaryGrape.toLowerCase();
+    const directMatch = GRAPE_STYLE_MAP[normalized];
+    if (directMatch) {
+      grapeStyle = { ...directMatch };
     }
   }
 
-  // If grape gave a complete style, return it
+  // Apply regional overrides — merge on top of grape defaults
+  if (region && primaryGrape && grapeStyle) {
+    const regionalOverride = findRegionalOverride(region, primaryGrape);
+    if (regionalOverride) {
+      if (regionalOverride.body) grapeStyle.body = regionalOverride.body;
+      if (regionalOverride.tannin) grapeStyle.tannin = regionalOverride.tannin;
+      if (regionalOverride.acidity) grapeStyle.acidity = regionalOverride.acidity;
+    }
+  }
+
+  // If grape (possibly region-corrected) gave a complete style, return it
   if (grapeStyle && grapeStyle.body && grapeStyle.tannin && grapeStyle.acidity) {
     return grapeStyle;
   }
