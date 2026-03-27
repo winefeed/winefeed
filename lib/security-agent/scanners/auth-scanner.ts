@@ -87,7 +87,7 @@ export function classifyRoute(routePath: string): RouteType {
   if (routePath.startsWith('/api/admin/')) {
     return 'admin';
   }
-  if (routePath.startsWith('/api/ior/')) {
+  if (routePath.startsWith('/api/direct-import/')) {
     return 'ior';
   }
   if (routePath.startsWith('/api/access/importer/')) {

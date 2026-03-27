@@ -451,8 +451,8 @@ function printURLs(data: PilotData) {
   console.log('─────────────────────────────────────────');
   console.log('IOR VIEW (Compliance Console):');
   console.log('─────────────────────────────────────────');
-  console.log(`🏛️  View All Orders: ${baseURL}/ior/orders`);
-  console.log(`📑 View Order:     ${baseURL}/ior/orders/${data.order_id}`);
+  console.log(`🏛️  View All Orders: ${baseURL}/direct-import/orders`);
+  console.log(`📑 View Order:     ${baseURL}/direct-import/orders/${data.order_id}`);
   if (data.import_id) {
     console.log(`🛂 View Import:    ${baseURL}/imports/${data.import_id}`);
   }

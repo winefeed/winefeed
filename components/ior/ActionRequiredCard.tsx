@@ -72,7 +72,7 @@ export function ActionRequiredCard({
 
   return (
     <Link
-      href={`/ior/cases/${id}`}
+      href={`/direct-import/cases/${id}`}
       className={cn(
         'block bg-white border rounded-lg p-4 transition-all',
         'hover:shadow-md',

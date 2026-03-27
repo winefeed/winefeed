@@ -213,7 +213,7 @@ export default function AdminDashboardPage() {
     switch (item.type) {
       case 'request': return `/dashboard/requests/${item.id}`;
       case 'order': return `/admin/reports`;
-      case 'import_case': return `/ior/orders`;
+      case 'import_case': return `/direct-import/orders`;
       default: return '#';
     }
   };

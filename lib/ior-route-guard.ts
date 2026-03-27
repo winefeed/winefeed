@@ -1,7 +1,7 @@
 /**
  * IOR ROUTE GUARD
  *
- * Helper to consistently resolve IORContext in all /api/ior/* routes.
+ * Helper to consistently resolve IORContext in all /api/direct-import/* routes.
  * Keeps routes thin: just call requireIORContext(request) and get ctx.
  */
 

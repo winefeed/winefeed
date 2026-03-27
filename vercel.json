@@ -8,6 +8,16 @@
       "has": [{ "type": "host", "value": "winefeed.se" }],
       "destination": "https://www.winefeed.se/:path",
       "permanent": true
+    },
+    {
+      "source": "/ior/:path*",
+      "destination": "/direct-import/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/api/ior/:path*",
+      "destination": "/api/direct-import/:path*",
+      "permanent": true
     }
   ],
   "crons": [{

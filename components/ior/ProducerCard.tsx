@@ -68,7 +68,7 @@ export function ProducerCard({
 
   return (
     <Link
-      href={`/ior/producers/${id}`}
+      href={`/direct-import/producers/${id}`}
       className={cn(
         'block bg-white border rounded-lg overflow-hidden transition-all',
         'hover:shadow-md hover:border-wine/30',

@@ -38,7 +38,7 @@ const ROLE_COLORS: Record<ActorRole, string> = {
 const ROLE_LINKS: Record<ActorRole, string> = {
   RESTAURANT: '/dashboard/new-request',
   SELLER: '/supplier',
-  IOR: '/ior/orders',
+  IOR: '/direct-import/orders',
   ADMIN: '/admin',
 };
 

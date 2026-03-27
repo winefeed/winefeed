@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
  * Redirects users to the appropriate sub-page based on their role:
  * - ADMIN -> /admin
  * - SELLER -> /supplier
- * - IOR -> /ior/orders
+ * - IOR -> /direct-import
  * - RESTAURANT -> /dashboard/new-request
  */
 export default function DashboardPage() {
@@ -34,7 +34,7 @@ export default function DashboardPage() {
         if (roles.includes('ADMIN')) {
           router.replace('/admin');
         } else if (roles.includes('IOR')) {
-          router.replace('/ior');
+          router.replace('/direct-import');
         } else if (roles.includes('SELLER')) {
           router.replace('/supplier');
         } else if (roles.includes('RESTAURANT')) {

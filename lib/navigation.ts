@@ -117,7 +117,7 @@ export const MAIN_NAVIGATION: NavSection[] = [
     items: [
       {
         label: 'IOR Ordrar',
-        href: '/ior/orders',
+        href: '/direct-import/orders',
         icon: Globe,
         roles: ['IOR'],
       },
@@ -373,7 +373,7 @@ export const SUPPLIER_NAVIGATION: NavSection[] = [
       },
       {
         label: 'EU-import',
-        href: '/ior/orders',
+        href: '/direct-import/orders',
         icon: Globe,
         roles: ['IOR', 'ADMIN'],
       },
@@ -402,17 +402,17 @@ export const IOR_NAVIGATION: NavSection[] = [
     items: [
       {
         label: 'Dashboard',
-        href: '/ior',
+        href: '/direct-import',
         icon: LayoutDashboard,
       },
       {
         label: 'Producenter',
-        href: '/ior/producers',
+        href: '/direct-import/producers',
         icon: Building2,
       },
       {
         label: 'Ärenden',
-        href: '/ior/cases',
+        href: '/direct-import/cases',
         icon: Mail,
       },
     ],
@@ -422,7 +422,7 @@ export const IOR_NAVIGATION: NavSection[] = [
     items: [
       {
         label: 'IOR Ordrar',
-        href: '/ior/orders',
+        href: '/direct-import/orders',
         icon: Globe,
       },
     ],
@@ -432,17 +432,17 @@ export const IOR_NAVIGATION: NavSection[] = [
     items: [
       {
         label: 'Företagsprofil',
-        href: '/ior/settings',
+        href: '/direct-import/settings',
         icon: Settings,
       },
       {
         label: 'Hjälp',
-        href: '/ior/help',
+        href: '/direct-import/help',
         icon: HelpCircle,
       },
       {
         label: 'Feedback',
-        href: '/ior/feedback',
+        href: '/direct-import/feedback',
         icon: MessageSquarePlus,
       },
     ],

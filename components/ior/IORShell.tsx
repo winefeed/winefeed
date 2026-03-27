@@ -141,7 +141,7 @@ export function IORShell({ children }: IORShellProps) {
             {/* Right side - user */}
             <div className="flex items-center gap-2">
               <a
-                href="/ior/settings"
+                href="/direct-import/settings"
                 className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <div className="w-8 h-8 bg-wine/10 rounded-full flex items-center justify-center">

@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
             roleInfos.push({
               role: 'IOR',
               label: 'Importör',
-              path: '/ior/orders',
+              path: '/direct-import/orders',
               entityId: actor.importer_id,
               entityName: importer?.company_name,
             });

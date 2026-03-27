@@ -303,7 +303,7 @@ export default function PilotAdminPage() {
                       {data.alerts.eu_orders_without_import_case.items.map((item, index) => (
                         <div
                           key={item.id || index}
-                          onClick={() => item.id && router.push(`/ior/orders/${item.id}`)}
+                          onClick={() => item.id && router.push(`/direct-import/orders/${item.id}`)}
                           className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
                         >
                           <div className="flex items-center justify-between">
@@ -344,7 +344,7 @@ export default function PilotAdminPage() {
                       {data.alerts.import_cases_missing_ddl_or_not_approved.items.map((item, index) => (
                         <div
                           key={item.id || index}
-                          onClick={() => item.id && router.push(`/ior/orders/${item.id}`)}
+                          onClick={() => item.id && router.push(`/direct-import/orders/${item.id}`)}
                           className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
                         >
                           <div className="flex items-center justify-between">
@@ -388,7 +388,7 @@ export default function PilotAdminPage() {
                       {data.alerts.approved_import_cases_missing_5369.items.map((item, index) => (
                         <div
                           key={item.id || index}
-                          onClick={() => item.id && router.push(`/ior/orders/${item.id}`)}
+                          onClick={() => item.id && router.push(`/direct-import/orders/${item.id}`)}
                           className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
                         >
                           <div className="flex items-center justify-between">
@@ -429,7 +429,7 @@ export default function PilotAdminPage() {
                       {data.alerts.orders_stuck_over_3_days.items.map((item, index) => (
                         <div
                           key={item.id || index}
-                          onClick={() => item.id && router.push(`/ior/orders/${item.id}`)}
+                          onClick={() => item.id && router.push(`/direct-import/orders/${item.id}`)}
                           className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
                         >
                           <div className="flex items-center justify-between">
@@ -473,7 +473,7 @@ export default function PilotAdminPage() {
                         const entityId = item.entity?.offer_id || item.entity?.order_id || item.offer_id || item.id;
                         const entityType = item.source === 'order_events' ? 'Order' : item.source === 'offer_events' ? 'Offer' : 'Entity';
                         const linkPath = item.source === 'order_events' && item.entity?.order_id
-                          ? `/ior/orders/${item.entity.order_id}`
+                          ? `/direct-import/orders/${item.entity.order_id}`
                           : item.entity?.offer_id
                           ? `/offers/${item.entity.offer_id}`
                           : item.offer_id

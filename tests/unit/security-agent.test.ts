@@ -58,7 +58,7 @@ describe('auth-scanner', () => {
         return NextResponse.json({ data: [] });
       }
     `;
-    const findings = analyzeRouteContent(content, 'app/api/ior/dashboard/route.ts', '/api/ior/dashboard');
+    const findings = analyzeRouteContent(content, 'app/api/direct-import/dashboard/route.ts', '/api/direct-import/dashboard');
     expect(findings.length).toBe(1);
     expect(findings[0].severity).toBe('high');
   });
@@ -71,7 +71,7 @@ describe('auth-scanner', () => {
         return NextResponse.json({ ok: true });
       }
     `;
-    const findings = analyzeRouteContent(content, 'app/api/ior/cases/route.ts', '/api/ior/cases');
+    const findings = analyzeRouteContent(content, 'app/api/direct-import/cases/route.ts', '/api/direct-import/cases');
     expect(findings.length).toBe(0);
   });
 
@@ -103,7 +103,7 @@ describe('auth-scanner', () => {
   it('classifies routes correctly', () => {
     expect(classifyRoute('/api/admin/users')).toBe('admin');
     expect(classifyRoute('/api/admin/access/requests')).toBe('access_admin');
-    expect(classifyRoute('/api/ior/dashboard')).toBe('ior');
+    expect(classifyRoute('/api/direct-import/dashboard')).toBe('ior');
     expect(classifyRoute('/api/access/importer/respond/abc')).toBe('access_importer');
     expect(classifyRoute('/api/wines')).toBe('general');
     expect(classifyRoute('/api/webhook/inbound')).toBe('webhook');
