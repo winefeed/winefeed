@@ -44,3 +44,9 @@ ENV/
 
 # Scripts output
 scripts/wines-import.json
+.env.vercel
+final-pairings*.txt
+generated-pairings.txt
+new-pairings-clean.txt
+generate-pairings.log
+scripts/portfolio-check.*
