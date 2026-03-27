@@ -45,6 +45,28 @@ const nextConfig = {
     // Enable instrumentation for Sentry
     instrumentationHook: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/ior/:path*',
+        destination: '/direct-import/:path*',
+        permanent: true,
+      },
+      {
+        source: '/api/ior/:path*',
+        destination: '/api/direct-import/:path*',
+        permanent: true,
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/brasri',
+        destination: '/catalog/brasri',
+      },
+    ];
+  },
   async headers() {
     return [
       {

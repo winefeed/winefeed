@@ -93,6 +93,7 @@ export async function middleware(request: NextRequest) {
     '/leverantorer',                  // Public landing page for suppliers
     '/sitemap.xml',                   // SEO sitemap
     '/robots.txt',                    // SEO robots
+    '/brasri',                        // Vanity slug: Brasri catalog
   ];
 
   // Exact match for root landing page

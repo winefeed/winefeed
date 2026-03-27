@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     const { data: supplier, error } = await adminClient
       .from('suppliers')
-      .select('catalog_shared, catalog_token')
+      .select('catalog_shared, catalog_token, catalog_slug')
       .eq('id', actor.supplier_id)
       .single();
 
@@ -44,11 +44,16 @@ export async function GET(request: NextRequest) {
     const catalogUrl = supplier.catalog_token
       ? `${baseUrl}/catalog/${supplier.catalog_token}`
       : null;
+    const vanityUrl = supplier.catalog_slug
+      ? `${baseUrl}/${supplier.catalog_slug}`
+      : null;
 
     return NextResponse.json({
       catalogShared: supplier.catalog_shared || false,
       catalogToken: supplier.catalog_token,
       catalogUrl,
+      catalogSlug: supplier.catalog_slug || null,
+      vanityUrl,
     });
   } catch (error: any) {
     console.error('Error fetching catalog settings:', error);
@@ -104,7 +109,7 @@ export async function PATCH(request: NextRequest) {
       .from('suppliers')
       .update(updates)
       .eq('id', actor.supplier_id)
-      .select('catalog_shared, catalog_token')
+      .select('catalog_shared, catalog_token, catalog_slug')
       .single();
 
     if (error) {
@@ -116,11 +121,16 @@ export async function PATCH(request: NextRequest) {
     const catalogUrl = supplier.catalog_token
       ? `${baseUrl}/catalog/${supplier.catalog_token}`
       : null;
+    const vanityUrl = supplier.catalog_slug
+      ? `${baseUrl}/${supplier.catalog_slug}`
+      : null;
 
     return NextResponse.json({
       catalogShared: supplier.catalog_shared || false,
       catalogToken: supplier.catalog_token,
       catalogUrl,
+      catalogSlug: supplier.catalog_slug || null,
+      vanityUrl,
     });
   } catch (error: any) {
     console.error('Error updating catalog settings:', error);

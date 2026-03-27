@@ -18,17 +18,22 @@ type PageProps = {
 };
 
 async function getCatalog(token: string) {
-  if (!UUID_REGEX.test(token)) return null;
-
   const adminClient = getSupabaseAdmin();
+  const isUuid = UUID_REGEX.test(token);
 
-  // Look up supplier by catalog token + must be shared
-  const { data: supplier, error: supplierError } = await adminClient
+  // Look up supplier by catalog token (UUID) or catalog slug (vanity) + must be shared
+  let query = adminClient
     .from('suppliers')
     .select('id, namn, type')
-    .eq('catalog_token', token)
-    .eq('catalog_shared', true)
-    .single();
+    .eq('catalog_shared', true);
+
+  if (isUuid) {
+    query = query.eq('catalog_token', token);
+  } else {
+    query = query.eq('catalog_slug', token);
+  }
+
+  const { data: supplier, error: supplierError } = await query.single();
 
   if (supplierError || !supplier) return null;
 
