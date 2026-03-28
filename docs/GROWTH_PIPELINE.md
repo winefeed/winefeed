@@ -488,7 +488,184 @@ Tesen: restauranger i mindre städer har **sämre tillgång till importörer** =
 - **Kvalificering:** wine_focus: 3, pilot_fit: 4. Internationellt kunnig ägare, curated vinlista, vill bli en "destination".
 - **Outreach-vinkel:** "Med er destinationsambition kan Winefeed hjälpa er sourca viner som sticker ut."
 
-**Strategi småstäder:** Kristianstad (31) och Vetlanda (29) först — starkast vin-DNA + tydligast behov. Sedan Nynäshamn (30, 40), Österlen (34-36), Gotland (37, 41-52), Öland (53-59), Båstad (38), Karlskrona (39).
+**Strategi småstäder:** Kristianstad (31) och Vetlanda (29) först — starkast vin-DNA + tydligast behov. Sedan Nynäshamn (30, 40), Österlen (34-36), Gotland (37, 41-52), Öland (53-59), Båstad (38), Karlskrona (39). Norrland (60-77) — extremt underservade av importörer.
+
+---
+
+## Norrland — researched 2026-03-27 🟡
+
+Norrlands-argumentet: 500–1 200 km från Stockholm. Importörer besöker sällan. Seriösa vinprogram utan tillgång. Perfekt Winefeed-case.
+
+### Umeå
+
+### 60. Tornhuset (3 koncept) — Umeå 🟡
+- **Typ:** Bröd & Vin (bistro) + På Taket (takterrass) + Ateljé Vita Duken (fine dining)
+- **Adress:** Östra Rådhusgatan 2C, 903 26 Umeå
+- **Kontakt:** info@tornhusetumea.se | hanna@tornhusetumea.se | 090-690 30 70 | @tornhusetumea (5 590 followers)
+- **Ägare:** Mathias Dahlgren (Michelin-stjärnkock) + Per "Perka" Söderberg (Umeå-veteran)
+- **Vinteam:** Hanna Eriksson (Lily Bollinger Award 2018, verksamhetschef), Sara Fritzell Collin (sommelier, restaurangchef Ateljé)
+- **Öppnat:** April 2025 (Bröd & Vin), september 2025 (Ateljé)
+- **Profil:** Star Wine List White Star. Vinpairing 995–1 995 kr. Tre koncept = tre olika vinbehov. Siktar på Michelin-stjärna. Historiskt elverk från 1892.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Lily Bollinger-sommelier + Dahlgren + nyöppnat + Umeå = perfekt. TOPPKANDIDAT.
+- **Personlig koppling:** Markus har träffat Hanna vid presentation av chilenska viner i Umeå.
+- **Outreach-vinkel:** Personlig referens till mötet + "Ni bygger vinkällare i Umeå — Winefeed kopplar er till importörer som annars inte når norr om Stockholm."
+
+### 61. HarleQuin — Umeå 🟡
+- **Typ:** Vinbar & restaurang
+- **Adress:** Rådhuseplanaden 2E, Umeå
+- **Kontakt:** info@harlequinumea.com | 090-77 85 88 | @harlequinumea
+- **Ägare:** Jörgen Engdahl (driver även Hunger & Torst, Facit Bar)
+- **Sommeliers:** Anette Andersson, Lukas, Mattia
+- **Profil:** 4 druvor (Munskänkarna), Star Wine List. 3 sommeliers som ständigt uppdaterar vinlistan.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Flaggskepp vinbar i Umeå med aktivt sommelier-team.
+
+### 62. Köksbaren — Umeå 🟡
+- **Typ:** Kvarterskrog med seriöst vinfokus
+- **Adress:** Rådhuseplanaden 17, 903 28 Umeå
+- **Kontakt:** info@koksbaren.com | 090-13 56 60
+- **Profil:** **500–550 viner** på listan. Europa-fokus. Privat "Vinrummet" (4-6 pers). Temafredagar (champagne & ost). 4 druvor.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Störst vinlista i Umeå = enormt inköpsbehov.
+
+### 63. Bodegan — Umeå 🟡
+- **Typ:** Vinrestaurang / steakhouse
+- **Adress:** Storgatan 50, Umeå
+- **Kontakt:** 090-171217 | @bodegan_umea
+- **Profil:** 4 druvor, Star Wine List. Bourgogne/Piemonte-fokus. Ulysse-Colin, Chassorney, Roagna. Månatliga vinfester i källaren.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4. Seriös vinkällare men eventuellt nöjd med befintliga leverantörer.
+
+### 64. Gotthards Krog — Umeå 🟡
+- **Typ:** Fine dining & bar (Stora Hotellet)
+- **Adress:** Storgatan 46, 903 26 Umeå
+- **Kontakt:** info@gotthardskrog.se | +46 90 690 33 00 | @gotthardskrog
+- **Profil:** 4 druvor, Star Wine List. Champagne, Bourgogne, Bordeaux, Piemonte. Vinkällare med rariteter. Vinprovningar.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4. Hotellrestaurang med köpkraft.
+
+### 65. Sjöbris — Umeå 🟡
+- **Typ:** Fisk/pizza vid ån
+- **Adress:** Kajen 10, 903 26 Umeå
+- **Kontakt:** @sjobrisumea
+- **Profil:** 4 druvor (ny 2024). Två sommeliers. Stort vin- och ölutbud.
+- **Kvalificering:** wine_focus: 4, pilot_fit: 4.
+
+### 66. Bistro Le Garage — Umeå 🟡
+- **Typ:** Bistro i Umedalens skulpturpark
+- **Adress:** Umedalssallén 15, Umeå
+- **Kontakt:** @bistrolegarageumea
+- **Ägare:** Victor & Sindy
+- **Profil:** 4 druvor, Star Wine List. Franskt-dominerad vinlista. Vinprovningar (4 viner + mat, 585 kr).
+- **Kvalificering:** wine_focus: 4, pilot_fit: 4.
+
+### Östersund
+
+### 67. Krogen Astrid — Östersund 🟡
+- **Typ:** Asiatisk fusion vinbar, sharing plates
+- **Adress:** Postgrund 11, 831 31 Östersund
+- **Kontakt:** krogenastrid@gmail.com | 076-3128000 | @krogenastrid
+- **Sommelier:** Astrid
+- **Profil:** 4 druvor. 30+ glasviner inkl. champagne och Rioja. Handplockade viner. Vinprovningar.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5. UNESCO-matstad, stark sommelier, hög rotation.
+
+### 68. Jazzköket — Östersund 🟡
+- **Typ:** Fine dining / konsertlokal
+- **Adress:** Prästgatan 44, Östersund
+- **Kontakt:** info@jazzkoket.se | 063-101575 | @jazzkoket
+- **Profil:** Star Wine List White Star. Argon-system = de flesta viner på glas. Naturvins-fokus.
+- **Status:** Öppet bara för konserter/event/privata bokningar.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 3. Begränsad drift.
+
+### Sundsvall
+
+### 69. Naturaj — Sundsvall 🟡
+- **Typ:** Ny nordisk fine dining, 40 platser
+- **Adress:** Torggatan 1, 852 30 Sundsvall
+- **Kontakt:** info@naturaj.se | @restaurant_naturaj
+- **Kock:** Johan Backeus (Årets Kock 2017)
+- **Profil:** Bara europeiska viner, hållbarhetsfilosofi. Tasting menu 1 150 kr.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Toppkock, curad vinlista, liten restaurang.
+
+### 70. La Bise — Sundsvall 🟡
+- **Typ:** Fransk bistro & vinbar
+- **Adress:** Kyrkogatan 24, 852 32 Sundsvall
+- **Kontakt:** contact@labise.se | 070-851 34 91
+- **Profil:** Bourgogne, Rhône, Loire. Noggrant utvalda flaskor.
+- **Kvalificering:** wine_focus: 4, pilot_fit: 4. Franskt vinfokus, bra storlek.
+
+### Luleå
+
+### 71. Restaurang CG — Luleå 🟡
+- **Typ:** Fine dining, vilt, lokalt
+- **Adress:** Storgatan 9, 972 38 Luleå
+- **Kontakt:** +46 920-200 700 | @restaurangcg
+- **Sommelier:** Petter Nyberg
+- **Profil:** Star Wine List **finalist 2026**. Exklusiv vinkällare "gömd skattkammare". Vinprovningar, mousserande events. Nordligaste Star Wine List-stället.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Dedikerad sommelier, Star Wine List finalist, nordligast = maximalt underservad.
+
+### 72. Bistron — Luleå 🟡
+- **Typ:** Restaurang vid vattnet
+- **Adress:** Norra Strandgatan 3, 972 39 Luleå
+- **Kontakt:** info@bistron.se | +46 920-52 31 00 | @bistron_lulea
+- **Profil:** Ny Munskänkarna-entrant 2024, White Guide.
+- **Kvalificering:** wine_focus: 4, pilot_fit: 4.
+
+### Skellefteå
+
+### 73. Bryggargatan — Skellefteå 🟡
+- **Typ:** Restaurang & cocktailbar vid älven
+- **Adress:** Strandgatan 32, Skellefteå
+- **Kontakt:** 0910-21 16 50
+- **Ägare:** Runar, Jon Oskar & Sarah (isländska rötter)
+- **Profil:** 4 druvor, dedikerad sommelier från Piteå.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+
+### 74. Kork Vinbar — Skellefteå 🟡
+- **Typ:** Dedikerad vinbar
+- **Adress:** Nygatan 42, 931 30 Skellefteå
+- **Kontakt:** info@korkvinbar.se | 0709660341 | @kork_vinbar
+- **Ägare:** Ägare av La Cena + Robert Hunt
+- **Profil:** 3 druvor. Vinbar = vin är kärnan. Samma ägare som La Cena = multi-venue.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Dedikerad vinbar i Skellefteå.
+
+### Fjällen & Höga Kusten
+
+### 75. Fjällnäs — Tänndalen 🟡
+- **Typ:** Fine dining, Sveriges äldsta fjällhotell
+- **Kontakt:** fjallnas.se
+- **Sommelier:** Christopher Smeds Bjerlö + Daniel Pettersson + Rovilla Hansson
+- **Profil:** Star Wine List **GULD 2024 + 2026**, vann även internationella finalen! 200–600 viner. Hållbarhet och terroir.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4. Sveriges bästa medelstora vinlista. Avlägset fjälläge.
+
+### 76. Linnea & Peter — Örnsköldsvik 🟡
+- **Typ:** Fine dining
+- **Adress:** Fabriksgatan 12, Örnsköldsvik
+- **Kontakt:** info@linneaochpeter.se | 0660-101 90
+- **Profil:** 4 druvor, Star Wine List, #1 TripAdvisor. Franskt vinfokus.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+
+### 77. Kittelfjälls Värdshus — Kittelfjäll 🟡
+- **Typ:** Fjällvärdshus
+- **Kontakt:** kittelfjallvardshus.se
+- **Ägare:** Jasper & Lotta Bergström
+- **Profil:** 4 druvor, White Guide. Lotta = entusiastisk sommelier, naturvin + eko. Ultra-avlägset.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+
+### Gävle (utöver Verovin #29)
+
+### 78. Erlandssons — Gävle 🟡
+- **Typ:** Elegant internationell restaurang
+- **Adress:** Norra Kungsgatan 3, Gävle
+- **Profil:** 4 druvor, Star Wine List.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+
+### 79. Matildas Kvarterskrog — Gävle 🟡
+- **Typ:** Säsongsrestaurang
+- **Adress:** Timmermansgatan 23, 802 52 Gävle
+- **Kontakt:** matildas.nu | 026-62 53 49
+- **Profil:** 4 druvor, White Guide Top 250 Nordic. Fransk vinkällare.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+
+**OBS:** Vin i Umeå 2026 — vinmässa 20–21 november, Umeå Folkets Hus. Bra nätverkstillfälle. Kontakt: malin.sandberg@umeafolketshus.se
+
+**Strategi Norrland:** Tornhuset (#60, personlig koppling), HarleQuin (#61), Köksbaren (#62) i Umeå först. Sedan Restaurang CG (#71, Luleå) och Krogen Astrid (#67, Östersund). Naturaj (#69, Sundsvall) och Kork Vinbar (#74, Skellefteå) därefter.
 
 ---
 
