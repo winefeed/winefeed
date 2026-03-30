@@ -6,6 +6,7 @@
  */
 
 import { getAccessAdmin } from './supabase-server';
+import { sanitizePostgrestSearch } from './utils';
 import type {
   AccessConsumer,
   AccessLot,
@@ -100,12 +101,13 @@ export async function searchWines(params: WineSearchParams): Promise<PaginatedRe
   query = query.eq('status', 'ACTIVE');
 
   if (q) {
-    query = query.or(`name.ilike.%${q}%,grape.ilike.%${q}%,region.ilike.%${q}%,appellation.ilike.%${q}%`);
+    const sq = sanitizePostgrestSearch(q);
+    query = query.or(`name.ilike.%${sq}%,grape.ilike.%${sq}%,region.ilike.%${sq}%,appellation.ilike.%${sq}%`);
   }
   if (type) query = query.eq('wine_type', type);
   if (country) query = query.eq('country', country);
-  if (region) query = query.ilike('region', `%${region}%`);
-  if (grape) query = query.ilike('grape', `%${grape}%`);
+  if (region) query = query.ilike('region', `%${sanitizePostgrestSearch(region)}%`);
+  if (grape) query = query.ilike('grape', `%${sanitizePostgrestSearch(grape)}%`);
 
   query = query
     .order('created_at', { ascending: false })
@@ -237,7 +239,8 @@ export async function searchWinesAdmin(params: {
 
   if (status) query = query.eq('status', status);
   if (q) {
-    query = query.or(`name.ilike.%${q}%,grape.ilike.%${q}%,region.ilike.%${q}%,country.ilike.%${q}%`);
+    const sq = sanitizePostgrestSearch(q);
+    query = query.or(`name.ilike.%${sq}%,grape.ilike.%${sq}%,region.ilike.%${sq}%,country.ilike.%${sq}%`);
   }
 
   query = query

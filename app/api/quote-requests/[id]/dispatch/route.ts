@@ -58,7 +58,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     const body = await req.json().catch(() => ({}));
 
     const maxMatches = body.maxMatches || 10;
-    const minScore = body.minScore || 20;
+    const minScore = body.minScore || 10;
     const expiresInHours = body.expiresInHours || 48;
 
     const { adminClient } = await createRouteClients();

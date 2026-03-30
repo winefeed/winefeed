@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireIORContext, isGuardError, guardErrorResponse } from '@/lib/ior-route-guard';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { sanitizePostgrestSearch } from '@/lib/utils';
 
 // Transform snake_case to camelCase for UI
 function transformFeedback(f: Record<string, unknown>) {
@@ -69,7 +70,8 @@ export async function GET(request: NextRequest) {
       query = query.eq('producer_id', producerId);
     }
     if (search) {
-      query = query.or(`title.ilike.%${search}%,details.ilike.%${search}%`);
+      const s = sanitizePostgrestSearch(search);
+      query = query.or(`title.ilike.%${s}%,details.ilike.%${s}%`);
     }
 
     const { data, error, count } = await query;

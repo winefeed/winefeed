@@ -15,6 +15,14 @@ export function formatPrice(price: number): string {
 }
 
 /**
+ * Escape special PostgREST characters in search strings to prevent filter injection.
+ * Characters . , ( ) are significant in PostgREST filter syntax.
+ */
+export function sanitizePostgrestSearch(input: string): string {
+  return input.replace(/[.,()"\\%_]/g, '');
+}
+
+/**
  * Safely extract error message from unknown error type
  */
 export function getErrorMessage(err: unknown, fallback = 'Ett fel uppstod'): string {

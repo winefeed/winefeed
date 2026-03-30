@@ -1,8 +1,13 @@
 // Create test data for Import Case using Supabase API
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = 'https://pqmmgclfpyydrbjaoump.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxbW1nY2xmcHl5ZHJiamFvdW1wIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODMzMDA2MywiZXhwIjoyMDgzOTA2MDYzfQ.1i10rvaXBUAs9DWSPH2ZZlMwpyd_R_Et7cQmupUkRCI';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars');
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: { autoRefreshToken: false, persistSession: false }

@@ -48,11 +48,11 @@ export class QuoteRequestRouter {
     quoteRequest: QuoteRequestInput,
     options: {
       maxMatches?: number;  // Default: 10
-      minScore?: number;    // Default: 20 (0-100)
+      minScore?: number;    // Default: 10 (0-100)
     } = {}
   ): Promise<RoutingResult> {
     const maxMatches = options.maxMatches || 10;
-    const minScore = options.minScore || 20;
+    const minScore = options.minScore || 10;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
@@ -81,6 +81,17 @@ export class QuoteRequestRouter {
 
       if (match.matchScore >= minScore) {
         matches.push(match);
+      }
+    }
+
+    // Fallback: if no matches above minScore, include all suppliers with a catalog
+    if (matches.length === 0) {
+      for (const supplier of suppliers) {
+        const fallback = await this.scoreSupplierMatch(supabase, quoteRequest, supplier);
+        if (fallback.catalogSize > 0) {
+          fallback.matchReasons.push('fallback_match');
+          matches.push(fallback);
+        }
       }
     }
 

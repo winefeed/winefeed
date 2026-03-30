@@ -27,11 +27,11 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co",
       "font-src 'self'",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.upstash.io",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.upstash.io https://www.google-analytics.com https://*.google-analytics.com https://o4510816780091392.ingest.de.sentry.io",
       "frame-ancestors 'none'",
     ].join('; '),
   },

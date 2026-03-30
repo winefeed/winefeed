@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
+import { sanitizePostgrestSearch } from '@/lib/utils';
 
 export async function GET(
   request: NextRequest,
@@ -56,7 +57,8 @@ export async function GET(
 
     // Add search filter
     if (search) {
-      query = query.or(`name.ilike.%${search}%,producer.ilike.%${search}%,article_number.ilike.%${search}%`);
+      const s = sanitizePostgrestSearch(search);
+      query = query.or(`name.ilike.%${s}%,producer.ilike.%${s}%,article_number.ilike.%${s}%`);
     }
 
     // Filter by status if provided
