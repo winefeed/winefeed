@@ -235,14 +235,18 @@ export default function SupplierRequestDetailPage({
 
     // Validate all included lines have price and quantity
     for (const line of included) {
+      if (!line.supplierWineId) {
+        setSubmitError(`Vinet "${line.wineName}" saknar koppling till din katalog. Kontakta Winefeed för hjälp.`);
+        return;
+      }
       const price = parseFloat(line.offeredPriceExVatSek);
       const qty = parseInt(line.quantity);
       if (!price || price <= 0) {
-        setSubmitError(`Ange ett pris for ${line.wineName}`);
+        setSubmitError(`Ange ett pris för ${line.wineName}`);
         return;
       }
       if (!qty || qty <= 0) {
-        setSubmitError(`Ange antal for ${line.wineName}`);
+        setSubmitError(`Ange antal för ${line.wineName}`);
         return;
       }
     }
