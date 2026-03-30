@@ -22,6 +22,7 @@ export interface WineOffer {
     color: 'red' | 'white' | 'rose' | 'sparkling' | 'fortified' | 'orange' | 'spirit';
     organic?: boolean;
     biodynamic?: boolean;
+    location?: 'domestic' | 'eu' | null;
   };
   supplier: {
     id: string;
@@ -150,6 +151,15 @@ export function WineOfferCard({
           {wine.biodynamic && (
             <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
               Biodynamisk
+            </span>
+          )}
+          {wine.location === 'eu' ? (
+            <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+              Direktimport
+            </span>
+          ) : (
+            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+              I lager
             </span>
           )}
         </div>

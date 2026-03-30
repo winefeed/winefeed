@@ -35,6 +35,7 @@ interface Wine {
   ekologisk?: boolean;
   biodynamiskt?: boolean;
   veganskt?: boolean;
+  location?: 'domestic' | 'eu' | null;
 }
 
 interface Supplier {
@@ -210,6 +211,7 @@ export default function ResultsPage() {
     inStock: false,
     organic: false,
     withinBudget: false,
+    location: null as 'domestic' | 'eu' | null,  // 'domestic' = I lager, 'eu' = Direktimport
   });
 
   const fetchOfferCounts = useCallback(async () => {
@@ -365,6 +367,12 @@ export default function ResultsPage() {
     if (quickFilters.withinBudget && budgetMax) {
       result = result.filter(s => s.wine.pris_sek <= budgetMax);
     }
+    if (quickFilters.location) {
+      result = result.filter(s => {
+        const loc = s.wine.location || 'domestic';
+        return loc === quickFilters.location;
+      });
+    }
 
     // Price filters
     if (filters.priceMin) {
@@ -420,6 +428,7 @@ export default function ResultsPage() {
     if (quickFilters.inStock) count++;
     if (quickFilters.organic) count++;
     if (quickFilters.withinBudget) count++;
+    if (quickFilters.location) count++;
     return count;
   }, [filters, quickFilters]);
 
@@ -451,6 +460,18 @@ export default function ResultsPage() {
     return suggestions.filter(s => s.wine.pris_sek <= budgetMax).length;
   }, [suggestions, budgetMax]);
 
+  // Count wines by location
+  const domesticCount = useMemo(() => {
+    return suggestions.filter(s => !s.wine.location || s.wine.location === 'domestic').length;
+  }, [suggestions]);
+
+  const euCount = useMemo(() => {
+    return suggestions.filter(s => s.wine.location === 'eu').length;
+  }, [suggestions]);
+
+  // Show location filters only when there's a mix
+  const hasLocationMix = domesticCount > 0 && euCount > 0;
+
   const clearFilters = () => {
     setFilters({
       priceMin: '',
@@ -464,6 +485,7 @@ export default function ResultsPage() {
       inStock: false,
       organic: false,
       withinBudget: false,
+      location: null,
     });
   };
 
@@ -974,10 +996,41 @@ export default function ResultsPage() {
               </button>
             )}
 
+            {/* Location filters — only when mix of domestic + eu */}
+            {hasLocationMix && (
+              <>
+                {(inStockCount > 0 || organicCount > 0 || withinBudgetCount > 0) && (
+                  <div className="w-px h-6 bg-border mx-1" />
+                )}
+                <button
+                  onClick={() => setQuickFilters(f => ({ ...f, location: f.location === 'domestic' ? null : 'domestic' }))}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
+                    quickFilters.location === 'domestic'
+                      ? 'bg-green-100 text-green-700 ring-2 ring-offset-1 ring-green-500'
+                      : 'bg-green-50 text-green-600 hover:bg-green-100'
+                  }`}
+                >
+                  I lager
+                  <span className="text-xs opacity-70">({domesticCount})</span>
+                </button>
+                <button
+                  onClick={() => setQuickFilters(f => ({ ...f, location: f.location === 'eu' ? null : 'eu' }))}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
+                    quickFilters.location === 'eu'
+                      ? 'bg-blue-100 text-blue-700 ring-2 ring-offset-1 ring-blue-500'
+                      : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                  }`}
+                >
+                  Direktimport
+                  <span className="text-xs opacity-70">({euCount})</span>
+                </button>
+              </>
+            )}
+
             {/* Clear quick filters */}
-            {(quickFilters.color || quickFilters.inStock || quickFilters.organic || quickFilters.withinBudget) && (
+            {(quickFilters.color || quickFilters.inStock || quickFilters.organic || quickFilters.withinBudget || quickFilters.location) && (
               <button
-                onClick={() => setQuickFilters({ color: null, inStock: false, organic: false, withinBudget: false })}
+                onClick={() => setQuickFilters({ color: null, inStock: false, organic: false, withinBudget: false, location: null })}
                 className="px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
               >
                 <X className="h-3.5 w-3.5" />
@@ -1166,6 +1219,11 @@ export default function ResultsPage() {
                         {suggestion.wine.ekologisk && (
                           <span className="text-[10px] text-green-600 font-medium">🌱</span>
                         )}
+                        {suggestion.wine.location === 'eu' ? (
+                          <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-medium rounded-full">Direktimport</span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-medium rounded-full">I lager</span>
+                        )}
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); toggleWineSelection(suggestion.wine.id, suggestion); }}
@@ -1203,6 +1261,11 @@ export default function ResultsPage() {
                           <span className="px-2 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-full">
                             🌱 Eko
                           </span>
+                        )}
+                        {suggestion.wine.location === 'eu' ? (
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">Direktimport</span>
+                        ) : (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">I lager</span>
                         )}
                         {isSelected ? (
                           <span className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-full flex items-center gap-1">
@@ -1525,6 +1588,7 @@ export default function ResultsPage() {
                             // Certifications
                             if (wine.ekologisk) tags.push('eko');
                             if (wine.biodynamiskt) tags.push('biodynamisk');
+                            if (wine.location === 'eu') tags.push('direktimport');
 
                             // Fallback: use producer if still no tags
                             if (tags.length === 0 && wine.producent) {

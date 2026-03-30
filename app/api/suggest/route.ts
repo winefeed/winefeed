@@ -171,6 +171,7 @@ export async function POST(request: NextRequest) {
           moq: wine.moq,
           kartong: wine.case_size,
           ledtid_dagar: wine.lead_time_days,
+          location: wine.location || null,
         },
         supplier: supplier ? {
           id: supplier.id,

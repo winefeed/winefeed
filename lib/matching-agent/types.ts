@@ -95,6 +95,7 @@ export interface SupplierWineRow {
   body: string | null;
   tannin: string | null;
   acidity: string | null;
+  location?: 'domestic' | 'eu' | null;
 }
 
 /** Structured filters from the UI (chips, dropdowns) */
