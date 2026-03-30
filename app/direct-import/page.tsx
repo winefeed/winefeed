@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Wine, FileText, Building2, DollarSign, Plus, CheckCircle, MessageSquarePlus } from 'lucide-react';
+import { Wine, FileText, Building2, DollarSign, Plus, CheckCircle, MessageSquarePlus, RefreshCw } from 'lucide-react';
 import { HorizontalCarousel, CarouselItem } from '@/components/ior/HorizontalCarousel';
 import { ProducerCard } from '@/components/ior/ProducerCard';
 import { ActionRequiredCard } from '@/components/ior/ActionRequiredCard';
@@ -58,6 +58,30 @@ export default function IORDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+
+  async function handleSync() {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const response = await fetch('/api/direct-import/sync', { method: 'POST' });
+      const json = await response.json();
+      if (response.ok && json.success) {
+        setSyncResult(
+          `Klart! ${json.winesSynced} viner synkade, ${json.suppliersCreated} nya producenter, ${json.suppliersUpdated} uppdaterade` +
+          (json.winesDeactivated > 0 ? `, ${json.winesDeactivated} avaktiverade` : '') +
+          (json.errors?.length > 0 ? `. ${json.errors.length} fel.` : '.')
+        );
+      } else {
+        setSyncResult(`Fel: ${json.error || 'Okänt fel'}`);
+      }
+    } catch (err) {
+      setSyncResult('Kunde inte ansluta till servern');
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   useEffect(() => {
     async function fetchDashboard() {
@@ -220,9 +244,26 @@ export default function IORDashboardPage() {
 
       {/* Row 3: Katalog & priser */}
       <section className="py-4">
-        <div className="px-4 lg:px-6 mb-3">
+        <div className="px-4 lg:px-6 mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Katalog & priser</h2>
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-wine hover:bg-wine/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Synkar...' : 'Publicera till restauranger'}
+          </button>
         </div>
+        {syncResult && (
+          <div className={`mx-4 lg:mx-6 mb-3 p-3 rounded-lg text-sm ${
+            syncResult.startsWith('Fel') || syncResult.startsWith('Kunde inte')
+              ? 'bg-red-50 border border-red-200 text-red-700'
+              : 'bg-green-50 border border-green-200 text-green-700'
+          }`}>
+            {syncResult}
+          </div>
+        )}
         <SummaryCardGrid>
           <SummaryCard
             title="Produkter i katalog"

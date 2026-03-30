@@ -52,6 +52,7 @@ interface Offer {
   assignmentStatus: string;
   isExpired: boolean;
   minTotalQuantity: number | null;
+  estimatedDeliveryDays: number | null;
   isSponsored: boolean;
   sponsoredCategories: string[];
   notes?: string;
@@ -432,6 +433,7 @@ export default function OffersPage() {
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Leverans: {new Date(offer.deliveryDate).toLocaleDateString('sv-SE')} · {offer.leadTimeDays} dagar
+                        {offer.estimatedDeliveryDays && ` · ca ${offer.estimatedDeliveryDays} arbetsdagar`}
                         {offer.isFranco && ' · Franco'}
                       </p>
                     </div>

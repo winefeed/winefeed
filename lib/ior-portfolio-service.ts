@@ -1311,6 +1311,254 @@ class IORPortfolioService {
   }
 
   // ==========================================================================
+  // MARKETPLACE SYNC
+  // ==========================================================================
+
+  /**
+   * Sync IOR products to supplier_wines so they appear in restaurant search.
+   *
+   * A. Upsert suppliers from ior_producers (type=EU_PRODUCER)
+   * B. Upsert supplier_wines from ior_products that have active SE prices
+   * C. Deactivate supplier_wines whose source product is no longer active/priced
+   */
+  async syncToSupplierWines(ctx: IORContext): Promise<{
+    suppliersCreated: number;
+    suppliersUpdated: number;
+    winesSynced: number;
+    winesDeactivated: number;
+    errors: string[];
+  }> {
+    const results = {
+      suppliersCreated: 0,
+      suppliersUpdated: 0,
+      winesSynced: 0,
+      winesDeactivated: 0,
+      errors: [] as string[],
+    };
+
+    // Wine type mapping: IOR uppercase -> supplier_wines wine_color lowercase
+    const wineTypeMap: Record<string, string> = {
+      RED: 'red',
+      WHITE: 'white',
+      ROSE: 'rose',
+      ORANGE: 'orange',
+      SPARKLING: 'sparkling',
+      DESSERT: 'fortified',
+      FORTIFIED: 'fortified',
+      OTHER: 'red',
+    };
+
+    try {
+      // A. Get all active IOR producers for this importer
+      const { data: producers, error: producersError } = await this.supabase
+        .from('ior_producers')
+        .select('*')
+        .eq('importer_id', ctx.importerId)
+        .eq('is_active', true);
+
+      if (producersError) {
+        throw new Error(`Failed to fetch producers: ${producersError.message}`);
+      }
+
+      if (!producers || producers.length === 0) {
+        return results;
+      }
+
+      // B. For each producer, upsert a suppliers record
+      const producerToSupplierMap = new Map<string, string>();
+
+      for (const producer of producers) {
+        try {
+          // Check if supplier already exists for this ior_producer
+          const { data: existingSupplier } = await this.supabase
+            .from('suppliers')
+            .select('id')
+            .eq('ior_producer_id', producer.id)
+            .maybeSingle();
+
+          if (existingSupplier) {
+            // Update existing supplier
+            await this.supabase
+              .from('suppliers')
+              .update({
+                namn: producer.name,
+                kontakt_email: producer.contact_email || `${producer.name.toLowerCase().replace(/\s+/g, '')}@producer.eu`,
+                is_active: true,
+              })
+              .eq('id', existingSupplier.id);
+
+            producerToSupplierMap.set(producer.id, existingSupplier.id);
+            results.suppliersUpdated++;
+          } else {
+            // Create new supplier
+            const { data: newSupplier, error: supplierError } = await this.supabase
+              .from('suppliers')
+              .insert({
+                namn: producer.name,
+                kontakt_email: producer.contact_email || `${producer.name.toLowerCase().replace(/\s+/g, '')}@producer.eu`,
+                type: 'EU_PRODUCER',
+                default_importer_id: ctx.importerId,
+                ior_producer_id: producer.id,
+                is_active: true,
+              })
+              .select('id')
+              .single();
+
+            if (supplierError || !newSupplier) {
+              results.errors.push(`Failed to create supplier for producer ${producer.name}: ${supplierError?.message}`);
+              continue;
+            }
+
+            producerToSupplierMap.set(producer.id, newSupplier.id);
+            results.suppliersCreated++;
+          }
+        } catch (err: any) {
+          results.errors.push(`Error syncing producer ${producer.name}: ${err.message}`);
+        }
+      }
+
+      // C. Get all active ior_products that have a price in an ACTIVE price list for SE market
+      const { data: pricedProducts, error: productsError } = await this.supabase
+        .from('ior_price_list_items')
+        .select(`
+          product_id,
+          price_per_bottle_ore,
+          product:ior_products!inner(*),
+          price_list:ior_price_lists!inner(id, market, status)
+        `)
+        .eq('price_list.market', 'SE')
+        .eq('price_list.status', 'ACTIVE')
+        .eq('product.is_active', true)
+        .eq('product.importer_id', ctx.importerId);
+
+      if (productsError) {
+        results.errors.push(`Failed to fetch priced products: ${productsError.message}`);
+        return results;
+      }
+
+      // D. For each product, upsert into supplier_wines
+      const syncedProductIds = new Set<string>();
+
+      for (const item of pricedProducts || []) {
+        const product = item.product as any;
+        if (!product) continue;
+
+        const supplierId = producerToSupplierMap.get(product.producer_id);
+        if (!supplierId) {
+          results.errors.push(`No supplier mapping for producer ${product.producer_id}, skipping product ${product.name}`);
+          continue;
+        }
+
+        try {
+          const wineColor = wineTypeMap[product.wine_type || 'RED'] || 'red';
+          const sku = product.sku || `IOR-${product.id.slice(0, 8)}`;
+          const vintage = product.vintage || 0;
+          const priceExVatSek = Math.round(item.price_per_bottle_ore); // price in öre
+
+          // Check if supplier_wine already exists for this ior_product
+          const { data: existingWine } = await this.supabase
+            .from('supplier_wines')
+            .select('id')
+            .eq('ior_product_id', product.id)
+            .maybeSingle();
+
+          if (existingWine) {
+            // Update
+            await this.supabase
+              .from('supplier_wines')
+              .update({
+                name: product.name,
+                producer: (product as any).producer_name || product.name,
+                country: (producers.find(p => p.id === product.producer_id) as any)?.country || 'France',
+                region: (producers.find(p => p.id === product.producer_id) as any)?.region || null,
+                vintage,
+                grape: product.grape_varieties?.join(', ') || null,
+                price_ex_vat_sek: priceExVatSek,
+                color: wineColor,
+                alcohol_pct: product.alcohol_pct || null,
+                bottle_size_ml: product.bottle_size_ml || 750,
+                case_size: product.case_size || 6,
+                appellation: product.appellation || null,
+                sku,
+                location: 'eu',
+                stock_qty: 0,
+                is_active: true,
+                supplier_id: supplierId,
+              })
+              .eq('id', existingWine.id);
+          } else {
+            // Insert
+            const producerData = producers.find(p => p.id === product.producer_id);
+            await this.supabase
+              .from('supplier_wines')
+              .insert({
+                supplier_id: supplierId,
+                name: product.name,
+                producer: producerData?.name || product.name,
+                country: producerData?.country || 'France',
+                region: producerData?.region || null,
+                vintage,
+                grape: product.grape_varieties?.join(', ') || null,
+                price_ex_vat_sek: priceExVatSek,
+                color: wineColor,
+                alcohol_pct: product.alcohol_pct || null,
+                bottle_size_ml: product.bottle_size_ml || 750,
+                case_size: product.case_size || 6,
+                appellation: product.appellation || null,
+                sku,
+                location: 'eu',
+                stock_qty: 0,
+                is_active: true,
+                ior_product_id: product.id,
+              });
+          }
+
+          syncedProductIds.add(product.id);
+          results.winesSynced++;
+        } catch (err: any) {
+          results.errors.push(`Error syncing product ${product.name}: ${err.message}`);
+        }
+      }
+
+      // E. Deactivate supplier_wines that have ior_product_id but are no longer active/priced
+      const { data: linkedWines } = await this.supabase
+        .from('supplier_wines')
+        .select('id, ior_product_id')
+        .not('ior_product_id', 'is', null)
+        .eq('is_active', true);
+
+      if (linkedWines) {
+        const toDeactivate = linkedWines.filter(w => !syncedProductIds.has(w.ior_product_id));
+        if (toDeactivate.length > 0) {
+          const { error: deactivateError } = await this.supabase
+            .from('supplier_wines')
+            .update({ is_active: false })
+            .in('id', toDeactivate.map(w => w.id));
+
+          if (!deactivateError) {
+            results.winesDeactivated = toDeactivate.length;
+          } else {
+            results.errors.push(`Failed to deactivate stale wines: ${deactivateError.message}`);
+          }
+        }
+      }
+
+      // Audit log
+      await this.logAudit(ctx.tenantId, ctx.importerId, 'IOR_SYNC_TO_MARKETPLACE', 'sync', ctx.importerId, ctx.userId, {
+        suppliers_created: results.suppliersCreated,
+        suppliers_updated: results.suppliersUpdated,
+        wines_synced: results.winesSynced,
+        wines_deactivated: results.winesDeactivated,
+      });
+
+    } catch (err: any) {
+      results.errors.push(`Sync failed: ${err.message}`);
+    }
+
+    return results;
+  }
+
+  // ==========================================================================
   // PRIVATE HELPERS
   // ==========================================================================
 

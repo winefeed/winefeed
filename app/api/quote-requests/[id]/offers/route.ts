@@ -220,6 +220,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       expires_at: expiresAt.toISOString(),
       is_franco: isFranco,
       min_total_quantity: body.minTotalQuantity || null,
+      estimated_delivery_days: body.estimatedDeliveryDays || null,
     };
 
     if (body.shipping_cost_sek !== undefined && !isFranco) {
@@ -422,6 +423,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         shipping_cost_sek,
         shipping_notes,
         min_total_quantity,
+        estimated_delivery_days,
         suppliers (
           namn,
           kontakt_email
@@ -600,6 +602,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         isExpired,
         // Supplier MOQ
         minTotalQuantity: offer.min_total_quantity,
+        // Estimated delivery
+        estimatedDeliveryDays: offer.estimated_delivery_days || null,
         // Sponsored info
         isSponsored: sponsoredCategories.length > 0,
         sponsoredCategories,

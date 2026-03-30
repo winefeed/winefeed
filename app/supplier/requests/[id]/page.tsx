@@ -140,6 +140,7 @@ export default function SupplierRequestDetailPage({
   const [shippingCost, setShippingCost] = useState('');
   const [shippingNotes, setShippingNotes] = useState('');
   const [minTotalQuantity, setMinTotalQuantity] = useState('');
+  const [estimatedDeliveryDays, setEstimatedDeliveryDays] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -268,6 +269,7 @@ export default function SupplierRequestDetailPage({
           shipping_cost_sek: shippingType === 'specified' && shippingCost ? parseInt(shippingCost) : null,
           shipping_notes: shippingNotes || null,
           minTotalQuantity: minTotalQuantity ? parseInt(minTotalQuantity) : null,
+          estimatedDeliveryDays: estimatedDeliveryDays ? parseInt(estimatedDeliveryDays) : null,
           lines: included.map(line => ({
             supplierWineId: line.supplierWineId,
             offeredPriceExVatSek: parseFloat(line.offeredPriceExVatSek),
@@ -766,6 +768,24 @@ export default function SupplierRequestDetailPage({
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Restaurangen kan inte acceptera under detta antal (t.ex. for franco-villkor)
+                </p>
+              </div>
+
+              {/* Estimated delivery days */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Uppskattad leveranstid i dagar (valfritt)
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={estimatedDeliveryDays}
+                  onChange={(e) => setEstimatedDeliveryDays(e.target.value)}
+                  placeholder="T.ex. 5"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Antal arbetsdagar fran orderbekraftelse till leverans
                 </p>
               </div>
 
