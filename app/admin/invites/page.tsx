@@ -147,7 +147,7 @@ export default function AdminInvitesPage() {
 
       const data = await response.json();
 
-      setSuccess(`Invite sent to ${email}!`);
+      setSuccess(`Inbjudan skickad till ${email}!`);
       setEmail('');
       setSelectedEntityId('');
 
@@ -187,9 +187,9 @@ export default function AdminInvitesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wine mx-auto mb-4"></div>
           <p className="text-xl text-gray-600">Laddar...</p>
         </div>
       </div>
@@ -198,15 +198,15 @@ export default function AdminInvitesPage() {
 
   if (error && invites.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center">
         <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
           <div className="text-center">
             <span className="text-6xl mb-4 block">🚫</span>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
+            <h2 className="text-2xl font-bold text-red-600 mb-2">Åtkomst nekad</h2>
             <p className="text-gray-600 mb-4">{error}</p>
             <button
               onClick={() => router.push('/dashboard')}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-2 bg-wine text-white rounded-lg hover:bg-wine/90 transition-colors"
             >
               ← Tillbaka till Dashboard
             </button>
@@ -217,15 +217,15 @@ export default function AdminInvitesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg">
+      <header className="bg-gradient-to-r from-wine to-wine/80 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-4xl">📧</span>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">User Invites</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Inbjudningar</h1>
                 <p className="text-sm text-white/80">Bjud in restauranger och leverantörer</p>
               </div>
             </div>
@@ -234,11 +234,11 @@ export default function AdminInvitesPage() {
                 onClick={fetchData}
                 className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
               >
-                🔄 Refresh
+                🔄 Uppdatera
               </button>
               <button
                 onClick={() => router.push('/admin/pilot')}
-                className="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-white/90 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-white text-wine rounded-lg hover:bg-white/90 transition-colors text-sm font-medium"
               >
                 ← Admin Console
               </button>
@@ -278,7 +278,7 @@ export default function AdminInvitesPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                   placeholder="user@example.com"
                 />
               </div>
@@ -294,7 +294,7 @@ export default function AdminInvitesPage() {
                     setRole(e.target.value as 'RESTAURANT' | 'SUPPLIER');
                     setSelectedEntityId('');
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                 >
                   <option value="RESTAURANT">🍽️ Restaurang</option>
                   <option value="SUPPLIER">🚚 Leverantör</option>
@@ -310,7 +310,7 @@ export default function AdminInvitesPage() {
                   value={selectedEntityId}
                   onChange={(e) => setSelectedEntityId(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                 >
                   <option value="">Välj...</option>
                   {role === 'RESTAURANT'
@@ -328,7 +328,7 @@ export default function AdminInvitesPage() {
             <button
               type="submit"
               disabled={submitting || !email || !selectedEntityId}
-              className="w-full md:w-auto px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+              className="w-full md:w-auto px-6 py-2 bg-wine text-white rounded-lg hover:bg-wine/90 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {submitting ? 'Skickar...' : '📧 Skicka inbjudan'}
             </button>
