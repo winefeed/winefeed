@@ -430,7 +430,7 @@ export default function SupplierRequestDetailPage({
           <div className="mt-6 pt-6 border-t border-gray-200">
             <button
               onClick={() => setShowOfferForm(true)}
-              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-wine text-white rounded-lg hover:bg-wine/90 font-medium flex items-center justify-center gap-2"
             >
               <Send className="h-4 w-4" /> Skicka offert
             </button>
@@ -639,7 +639,7 @@ export default function SupplierRequestDetailPage({
                                 type="checkbox"
                                 checked={line.included}
                                 onChange={(e) => updateLine(index, 'included', e.target.checked)}
-                                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                className="rounded border-gray-300 text-green-600 focus:ring-wine"
                               />
                             </td>
                             <td className="px-3 py-3">
@@ -657,7 +657,7 @@ export default function SupplierRequestDetailPage({
                                 onChange={(e) => updateLine(index, 'offeredPriceExVatSek', e.target.value)}
                                 disabled={!line.included}
                                 placeholder="0"
-                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
+                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-wine focus:border-wine disabled:bg-gray-100"
                               />
                             </td>
                             <td className="px-3 py-3">
@@ -668,7 +668,7 @@ export default function SupplierRequestDetailPage({
                                 onChange={(e) => updateLine(index, 'quantity', e.target.value)}
                                 disabled={!line.included}
                                 placeholder="0"
-                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
+                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-wine focus:border-wine disabled:bg-gray-100"
                               />
                             </td>
                             <td className="px-3 py-3 text-right font-medium text-gray-900">
@@ -690,7 +690,7 @@ export default function SupplierRequestDetailPage({
                     type="date"
                     value={offerDeliveryDate}
                     onChange={(e) => setOfferDeliveryDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                   />
                 </div>
                 <div>
@@ -698,7 +698,7 @@ export default function SupplierRequestDetailPage({
                   <select
                     value={offerLeadTime}
                     onChange={(e) => setOfferLeadTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                   >
                     <option value="7">7 dagar</option>
                     <option value="14">14 dagar</option>
@@ -740,7 +740,7 @@ export default function SupplierRequestDetailPage({
                       value={shippingCost}
                       onChange={(e) => setShippingCost(e.target.value)}
                       placeholder="Fraktkostnad (SEK)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                     />
                   </div>
                 )}
@@ -749,7 +749,7 @@ export default function SupplierRequestDetailPage({
                   value={shippingNotes}
                   onChange={(e) => setShippingNotes(e.target.value)}
                   placeholder="Fraktnotering (valfritt)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                 />
               </div>
 
@@ -764,7 +764,7 @@ export default function SupplierRequestDetailPage({
                   value={minTotalQuantity}
                   onChange={(e) => setMinTotalQuantity(e.target.value)}
                   placeholder="T.ex. 12"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Restaurangen kan inte acceptera under detta antal (t.ex. for franco-villkor)
@@ -782,10 +782,10 @@ export default function SupplierRequestDetailPage({
                   value={estimatedDeliveryDays}
                   onChange={(e) => setEstimatedDeliveryDays(e.target.value)}
                   placeholder="T.ex. 5"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Antal arbetsdagar fran orderbekraftelse till leverans
+                  Antal arbetsdagar från orderbekräftelse till leverans
                 </p>
               </div>
 
@@ -797,7 +797,7 @@ export default function SupplierRequestDetailPage({
                   onChange={(e) => setOfferNote(e.target.value)}
                   placeholder="Extra information till restaurangen"
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                 />
               </div>
 
@@ -833,7 +833,7 @@ export default function SupplierRequestDetailPage({
               <button
                 onClick={submitOffer}
                 disabled={submitting || getIncludedLines().length === 0}
-                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3 bg-wine text-white rounded-lg hover:bg-wine/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Skickar...</>
