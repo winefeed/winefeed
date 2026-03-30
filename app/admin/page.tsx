@@ -521,6 +521,7 @@ export default function AdminDashboardPage() {
             subtitle="EU-producenter"
             icon={Grape}
             color="purple"
+            href="/direct-import/producers"
           />
         </div>
 
