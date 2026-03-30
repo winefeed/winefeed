@@ -1,5 +1,12 @@
 import { beforeAll, afterAll } from 'vitest';
 import dotenv from 'dotenv';
+import { webcrypto } from 'node:crypto';
+
+// Polyfill crypto for Node 18 (globalThis.crypto is available natively in Node 19+)
+if (typeof globalThis.crypto === 'undefined') {
+  // @ts-expect-error -- webcrypto is compatible with the Web Crypto API
+  globalThis.crypto = webcrypto;
+}
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });

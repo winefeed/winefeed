@@ -442,47 +442,68 @@ describe('OfferService', () => {
       ).rejects.toThrow('Offer is already locked');
     });
 
-    it('throws error when request already has accepted offer', async () => {
+    it('allows multi-accept: does not reject when request already has accepted offer from another supplier', async () => {
+      // Multi-accept policy: Multiple offers (from different suppliers) can be
+      // accepted per request. The code intentionally does NOT check for existing
+      // accepted_offer_id on the requests table.
       const mockOffer = {
         id: 'offer-1',
+        tenant_id: 'tenant-1',
+        restaurant_id: 'rest-1',
         status: 'DRAFT',
         locked_at: null,
         request_id: 'req-1',
+        supplier_id: 'sup-2',
       };
 
-      const mockRequest = {
-        id: 'req-1',
-        accepted_offer_id: 'other-offer',
-        status: 'ACCEPTED',
-      };
+      const mockLines = [
+        { id: 'line-1', name: 'Wine A', quantity: 6 },
+      ];
 
-      const offerChain = createChainableMock();
-      offerChain.single.mockResolvedValueOnce({ data: mockOffer, error: null });
+      // Use thenable chains with results set (same pattern as other accept tests)
+      const offerChain = createChainableMock({ data: mockOffer, error: null });
+      const linesChain = createChainableMock({ data: mockLines, error: null });
+      const eventsChain = createChainableMock({ data: [], error: null });
+      const matchChain = createChainableMock({ data: [], error: null });
 
-      const linesChain = createChainableMock();
-      linesChain.order.mockReturnValue({ error: null, data: [] });
+      // Mock update for acceptance
+      const updateChain = createChainableMock({
+        data: { ...mockOffer, status: 'ACCEPTED', locked_at: new Date().toISOString() },
+        error: null,
+      });
 
-      const eventsChain = createChainableMock();
-      eventsChain.order.mockReturnValue({ error: null, data: [] });
+      // Mock event insert
+      const eventInsertChain = createChainableMock({ data: null, error: null });
 
-      const matchChain = createChainableMock();
-      matchChain.order.mockReturnValue({ error: null, data: [] });
+      // Mock assignment update
+      const assignmentChain = createChainableMock({ data: null, error: null });
 
-      const requestChain = createChainableMock();
-      requestChain.single.mockResolvedValueOnce({ data: mockRequest, error: null });
+      // Mock request update (backwards compat)
+      const requestChain = createChainableMock({ data: null, error: null });
 
+      let offersQueryCount = 0;
+      let eventsQueryCount = 0;
       mockFrom.mockImplementation((table: string) => {
-        if (table === 'offers') return offerChain;
+        if (table === 'offers') {
+          offersQueryCount++;
+          return offersQueryCount === 1 ? offerChain : updateChain;
+        }
         if (table === 'offer_lines') return linesChain;
-        if (table === 'offer_events') return eventsChain;
+        if (table === 'offer_events') {
+          eventsQueryCount++;
+          return eventsQueryCount === 1 ? eventsChain : eventInsertChain;
+        }
         if (table === 'match_results') return matchChain;
+        if (table === 'quote_request_assignments') return assignmentChain;
         if (table === 'requests') return requestChain;
         return createChainableMock();
       });
 
-      await expect(
-        offerService.acceptOffer('tenant-1', 'offer-1')
-      ).rejects.toThrow('Request already has an accepted offer');
+      // Should NOT throw — multi-accept is supported
+      const result = await offerService.acceptOffer('tenant-1', 'offer-1', 'user-1');
+
+      expect(result.offer.status).toBe('ACCEPTED');
+      expect(result.snapshot).toBeDefined();
     });
   });
 
