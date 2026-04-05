@@ -93,7 +93,7 @@ type UrgencyLevel = 'critical' | 'urgent' | 'normal' | 'expired';
 
 function getDeadlineInfo(expiresAt: string | null, isExpired: boolean): { label: string; urgency: UrgencyLevel; hoursLeft: number } {
   if (isExpired || !expiresAt) {
-    return { label: 'Utgangen', urgency: 'expired', hoursLeft: -1 };
+    return { label: 'Utgången', urgency: 'expired', hoursLeft: -1 };
   }
   const now = new Date();
   const expires = new Date(expiresAt);
@@ -101,10 +101,10 @@ function getDeadlineInfo(expiresAt: string | null, isExpired: boolean): { label:
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffMs < 0) return { label: 'Utgangen', urgency: 'expired', hoursLeft: -1 };
+  if (diffMs < 0) return { label: 'Utgången', urgency: 'expired', hoursLeft: -1 };
   if (diffHours < 4) return { label: `${diffHours}h kvar`, urgency: 'critical', hoursLeft: diffHours };
-  if (diffHours < 24) return { label: 'Utgar idag', urgency: 'critical', hoursLeft: diffHours };
-  if (diffDays === 1) return { label: 'Utgar imorgon', urgency: 'urgent', hoursLeft: diffHours };
+  if (diffHours < 24) return { label: 'Utgår idag', urgency: 'critical', hoursLeft: diffHours };
+  if (diffDays === 1) return { label: 'Utgår imorgon', urgency: 'urgent', hoursLeft: diffHours };
   if (diffDays <= 3) return { label: `${diffDays} dagar kvar`, urgency: 'urgent', hoursLeft: diffHours };
   return { label: `${diffDays} dagar kvar`, urgency: 'normal', hoursLeft: diffHours };
 }
@@ -156,7 +156,7 @@ export default function SupplierRequestDetailPage({
 
       const requestsRes = await fetch(`/api/suppliers/${supplierData.supplierId}/quote-requests?filter=all`);
       if (!requestsRes.ok) {
-        setError('Kunde inte hamta forfragningar');
+        setError('Kunde inte hämta förfrågningar');
         return;
       }
 
@@ -164,7 +164,7 @@ export default function SupplierRequestDetailPage({
       const foundRequest = requestsData.requests?.find((r: QuoteRequest) => r.id === requestId);
 
       if (!foundRequest) {
-        setError('Forfragningen hittades inte');
+        setError('Förfrågan hittades inte');
         return;
       }
 
@@ -229,7 +229,7 @@ export default function SupplierRequestDetailPage({
 
     const included = getIncludedLines();
     if (included.length === 0) {
-      setSubmitError('Valj minst ett vin att offerera');
+      setSubmitError('Välj minst ett vin att offerera');
       return;
     }
 
@@ -255,6 +255,13 @@ export default function SupplierRequestDetailPage({
       setSubmitError('Ange leveransdatum');
       return;
     }
+
+    // Confirmation
+    const totalBottles = included.reduce((sum, l) => sum + parseInt(l.quantity), 0);
+    const totalPrice = included.reduce((sum, l) => sum + parseFloat(l.offeredPriceExVatSek) * parseInt(l.quantity), 0);
+    const isFranco = shippingType === 'franco';
+    const shippingLabel = isFranco ? 'Franco' : (shippingCost ? `${shippingCost} kr frakt` : 'Frakt ej angiven');
+    if (!confirm(`Skicka offert?\n\n${included.length} viner, ${totalBottles} flaskor\nTotalt: ${totalPrice.toLocaleString('sv-SE')} kr ex moms\n${shippingLabel}\nLeveransdatum: ${offerDeliveryDate}\n\nTill: ${request.restaurantName}`)) return;
 
     setSubmitting(true);
     setSubmitError(null);
@@ -289,7 +296,7 @@ export default function SupplierRequestDetailPage({
         setSubmitError(errorData.error || 'Kunde inte skicka offert');
       }
     } catch (err) {
-      setSubmitError('Ett fel uppstod - kontrollera natverket');
+      setSubmitError('Ett fel uppstod - kontrollera nätverket');
     } finally {
       setSubmitting(false);
     }
@@ -314,9 +321,9 @@ export default function SupplierRequestDetailPage({
         </button>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-lg font-medium text-red-800">{error || 'Kunde inte ladda forfragning'}</h2>
+          <h2 className="text-lg font-medium text-red-800">{error || 'Kunde inte ladda förfrågan'}</h2>
           <button onClick={() => router.push('/supplier/requests')} className="mt-4 text-red-600 hover:underline">
-            Tillbaka till forfragningar
+            Tillbaka till förfrågningar
           </button>
         </div>
       </div>
@@ -332,7 +339,7 @@ export default function SupplierRequestDetailPage({
     <div className="p-6 max-w-4xl mx-auto">
       {/* Back button */}
       <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
-        <ArrowLeft className="h-4 w-4" /> Tillbaka till forfragningar
+        <ArrowLeft className="h-4 w-4" /> Tillbaka till förfrågningar
       </button>
 
       {/* Urgency Banner */}
@@ -446,7 +453,7 @@ export default function SupplierRequestDetailPage({
         {/* Request Details */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Package className="h-5 w-5 text-gray-400" /> Forfragan
+            <Package className="h-5 w-5 text-gray-400" /> Förfrågan
           </h2>
           <div className="space-y-4">
             <div>
@@ -559,7 +566,7 @@ export default function SupplierRequestDetailPage({
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                 <span className="text-gray-600">
-                  Forfragan skickad{' '}
+                  Förfrågan skickad{' '}
                   {new Date(request.assignment.sentAt).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>

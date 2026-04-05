@@ -262,11 +262,13 @@ export default function SupplierRequestsPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          supplier_id: supplierId,
-          price_sek: price,
+          supplierId,
+          freetext: quickRespondRequest.fritext || 'Snabbsvar',
+          offeredPriceExVatSek: price,
           quantity: quickRespondRequest.antalFlaskor || 24,
-          lead_time_days: 14,
-          notes: quickRespondNote || `Offert: ${quickRespondRequest.fritext}`,
+          deliveryDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          leadTimeDays: 14,
+          notes: quickRespondNote || null,
         })
       });
 
@@ -302,6 +304,7 @@ export default function SupplierRequestsPage() {
 
     let successful = 0;
     let failed = 0;
+    const failedNames: string[] = [];
 
     // Process sequentially for better UX feedback
     for (const requestId of selectedArray) {
@@ -314,11 +317,13 @@ export default function SupplierRequestsPage() {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            supplier_id: supplierId,
-            price_sek: bulkPrice ? parseInt(bulkPrice) : (request.budgetPerFlaska || 100),
+            supplierId,
+            freetext: request.fritext || 'Bulkoffert',
+            offeredPriceExVatSek: bulkPrice ? parseInt(bulkPrice) : (request.budgetPerFlaska || 100),
             quantity: request.antalFlaskor || 24,
-            lead_time_days: parseInt(bulkLeadTime),
-            notes: `Offert: ${request.fritext}`,
+            deliveryDate: new Date(Date.now() + parseInt(bulkLeadTime) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            leadTimeDays: parseInt(bulkLeadTime),
+            notes: null,
             is_franco: bulkShippingType === 'franco',
             shipping_cost_sek: bulkShippingType === 'specified' && bulkShippingCost
               ? parseInt(bulkShippingCost)
@@ -336,6 +341,8 @@ export default function SupplierRequestsPage() {
       } catch (error) {
         setBulkResults(prev => new Map(prev).set(requestId, 'error'));
         failed++;
+        const failedRequest = requests.find(r => r.id === requestId);
+        if (failedRequest) failedNames.push(failedRequest.restaurantName);
       }
     }
 
@@ -350,7 +357,7 @@ export default function SupplierRequestsPage() {
     fetchRequests();
 
     if (failed > 0) {
-      showToast(`${successful} offerter skickade, ${failed} misslyckades`, 'error');
+      showToast(`${successful} skickade, ${failed} misslyckades: ${failedNames.join(', ')}`, 'error');
     } else {
       showToast(`${successful} offerter skickade!`, 'success');
     }
@@ -865,6 +872,14 @@ export default function SupplierRequestsPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (quickRespondPrice && !quickRespondSubmitting) {
+                  const price = parseInt(quickRespondPrice);
+                  const budget = quickRespondRequest.budgetPerFlaska;
+                  const qty = quickRespondRequest.antalFlaskor || 24;
+                  const total = price * qty;
+                  if (price < 10 || price > 10000) {
+                    if (!confirm(`Priset ${price} kr/fl verkar ovanligt. Vill du skicka ändå?`)) return;
+                  }
+                  if (!confirm(`Skicka offert?\n\n${qty} flaskor × ${price} kr/fl = ${total.toLocaleString('sv-SE')} kr\nLeveranstid: 14 dagar\n\nTill: ${quickRespondRequest.restaurantName}`)) return;
                   submitQuickRespond();
                 }
               }}
@@ -920,6 +935,12 @@ export default function SupplierRequestsPage() {
                   placeholder="T.ex. Kan leverera inom 7 dagar"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 />
+              </div>
+
+              {/* Default delivery terms info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">
+                <span className="font-medium">Standardvillkor:</span> Leveranstid 14 dagar · Frakt ej angiven.
+                <span className="text-blue-500 ml-1">Vill du ange frakt och leveranstid? Använd detaljsidan istället.</span>
               </div>
 
               <div className="pt-2 flex gap-3">

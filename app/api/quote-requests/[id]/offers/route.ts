@@ -50,7 +50,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     const { supplierId, deliveryDate, leadTimeDays } = body;
 
     // Backwards compat: convert single-wine body to lines[]
-    let lines: Array<{ supplierWineId: string; offeredPriceExVatSek: number; quantity: number }>;
+    let lines: Array<{ supplierWineId?: string; offeredPriceExVatSek: number; quantity: number; freetextName?: string }>;
+    let isFreetextOffer = false;
 
     if (body.lines && Array.isArray(body.lines)) {
       lines = body.lines;
@@ -61,9 +62,17 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
         offeredPriceExVatSek: body.offeredPriceExVatSek,
         quantity: body.quantity,
       }];
+    } else if (body.freetext) {
+      // Quick reply (Snabbsvar): no specific wine, just price + quantity
+      isFreetextOffer = true;
+      lines = [{
+        offeredPriceExVatSek: body.offeredPriceExVatSek,
+        quantity: body.quantity,
+        freetextName: body.freetext,
+      }];
     } else {
       return NextResponse.json(
-        { error: 'Missing required fields: either lines[] or supplierWineId' },
+        { error: 'Missing required fields: either lines[], supplierWineId, or freetext' },
         { status: 400 }
       );
     }
@@ -130,51 +139,65 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       return NextResponse.json({ error: 'Supplier is not active' }, { status: 403 });
     }
 
-    // 3. Validate all wines belong to this supplier
-    const wineIds = lines.map(l => l.supplierWineId);
-    const { data: supplierWines, error: winesError } = await adminClient
-      .from('supplier_wines')
-      .select('id, supplier_id, name, producer, price_ex_vat_sek, vat_rate, moq, vintage, country, region')
-      .in('id', wineIds);
+    // 3. Validate all wines belong to this supplier (skip for freetext offers)
+    let wineMap = new Map<string, any>();
 
-    if (winesError || !supplierWines) {
-      return NextResponse.json({ error: 'Failed to fetch wines' }, { status: 500 });
-    }
+    if (!isFreetextOffer) {
+      const wineIds = lines.map(l => l.supplierWineId!);
+      const { data: supplierWines, error: winesError } = await adminClient
+        .from('supplier_wines')
+        .select('id, supplier_id, name, producer, price_ex_vat_sek, vat_rate, moq, vintage, country, region')
+        .in('id', wineIds);
 
-    const wineMap = new Map(supplierWines.map(w => [w.id, w]));
+      if (winesError || !supplierWines) {
+        return NextResponse.json({ error: 'Failed to fetch wines' }, { status: 500 });
+      }
 
-    // Validate each line
-    for (const line of lines) {
-      const wine = wineMap.get(line.supplierWineId);
-      if (!wine) {
-        return NextResponse.json(
-          { error: `Wine not found in catalog: ${line.supplierWineId}` },
-          { status: 404 }
-        );
+      wineMap = new Map(supplierWines.map(w => [w.id, w]));
+
+      // Validate each line
+      for (const line of lines) {
+        const wine = wineMap.get(line.supplierWineId!);
+        if (!wine) {
+          return NextResponse.json(
+            { error: `Wine not found in catalog: ${line.supplierWineId}` },
+            { status: 404 }
+          );
+        }
+        if (wine.supplier_id !== supplierId) {
+          return NextResponse.json(
+            { error: `Wine ${wine.name} does not belong to this supplier` },
+            { status: 403 }
+          );
+        }
+        if (line.offeredPriceExVatSek <= 0) {
+          return NextResponse.json(
+            { error: `Price must be > 0 for ${wine.name}` },
+            { status: 400 }
+          );
+        }
+        if (line.quantity <= 0) {
+          return NextResponse.json(
+            { error: `Quantity must be > 0 for ${wine.name}` },
+            { status: 400 }
+          );
+        }
+        if (wine.moq && line.quantity < wine.moq) {
+          return NextResponse.json(
+            { error: `Quantity for ${wine.name} must be at least ${wine.moq} (MOQ)` },
+            { status: 400 }
+          );
+        }
       }
-      if (wine.supplier_id !== supplierId) {
-        return NextResponse.json(
-          { error: `Wine ${wine.name} does not belong to this supplier` },
-          { status: 403 }
-        );
-      }
-      if (line.offeredPriceExVatSek <= 0) {
-        return NextResponse.json(
-          { error: `Price must be > 0 for ${wine.name}` },
-          { status: 400 }
-        );
-      }
-      if (line.quantity <= 0) {
-        return NextResponse.json(
-          { error: `Quantity must be > 0 for ${wine.name}` },
-          { status: 400 }
-        );
-      }
-      if (wine.moq && line.quantity < wine.moq) {
-        return NextResponse.json(
-          { error: `Quantity for ${wine.name} must be at least ${wine.moq} (MOQ)` },
-          { status: 400 }
-        );
+    } else {
+      // Validate freetext lines
+      for (const line of lines) {
+        if (line.offeredPriceExVatSek <= 0) {
+          return NextResponse.json({ error: 'Price must be > 0' }, { status: 400 });
+        }
+        if (line.quantity <= 0) {
+          return NextResponse.json({ error: 'Quantity must be > 0' }, { status: 400 });
+        }
       }
     }
 
@@ -246,7 +269,23 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     // 7. Create offer_lines
     const offerLines = lines.map((line, index) => {
-      const wine = wineMap.get(line.supplierWineId)!;
+      if (isFreetextOffer) {
+        return {
+          tenant_id: tenantId,
+          offer_id: offer.id,
+          line_no: index + 1,
+          name: line.freetextName || 'Snabbsvar',
+          vintage: null,
+          producer: null,
+          country: null,
+          region: null,
+          quantity: line.quantity,
+          offered_unit_price_ore: Math.round(line.offeredPriceExVatSek * 100),
+          price_ex_vat_sek: line.offeredPriceExVatSek,
+          supplier_wine_id: null,
+        };
+      }
+      const wine = wineMap.get(line.supplierWineId!)!;
       return {
         tenant_id: tenantId,
         offer_id: offer.id,
@@ -290,8 +329,19 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     // 9. Build response
     const responseLines = lines.map((line, index) => {
-      const wine = wineMap.get(line.supplierWineId)!;
       const totalExVat = line.offeredPriceExVatSek * line.quantity;
+      if (isFreetextOffer) {
+        return {
+          lineNo: index + 1,
+          supplierWineId: null,
+          wineName: line.freetextName || 'Snabbsvar',
+          producer: null,
+          offeredPriceExVatSek: line.offeredPriceExVatSek,
+          quantity: line.quantity,
+          totalExVatSek: parseFloat(totalExVat.toFixed(2)),
+        };
+      }
+      const wine = wineMap.get(line.supplierWineId!)!;
       return {
         lineNo: index + 1,
         supplierWineId: line.supplierWineId,
