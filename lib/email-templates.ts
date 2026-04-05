@@ -2110,13 +2110,14 @@ export function renderAdminDailySummaryEmail(params: AdminDailySummaryEmailParam
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <div style="margin-bottom: 12px;">
-      <span style="display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: #93092b; margin-right: -6px;"></span>
-      <span style="display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: #f1b4b0;"></span>
+  <div style="background: white; padding: 25px 30px; text-align: center; border-radius: 8px 8px 0 0; border-bottom: 3px solid #93092b;">
+    <div style="margin-bottom: 8px;">
+      <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #f2e2b6; margin-right: -4px;"></span>
+      <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #f1b4b0; margin-right: -4px;"></span>
+      <span style="display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #93092b;"></span>
     </div>
-    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Daglig sammanfattning</p>
+    <h1 style="color: #161412; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
+    <p style="color: #828181; margin: 6px 0 0 0; font-size: 14px;">Daglig sammanfattning</p>
   </div>
 
   <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
