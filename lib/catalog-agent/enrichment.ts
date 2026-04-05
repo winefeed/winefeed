@@ -200,6 +200,9 @@ const REGION_TO_COUNTRY: Record<string, string> = {
   'constantia': 'South Africa',
   'elgin': 'South Africa',
   'walker bay': 'South Africa',
+  'hemel-en-aarde': 'South Africa',
+  'elim': 'South Africa',
+  'calitzdorp': 'South Africa',
   'western cape': 'South Africa',
 
   // Argentina
@@ -331,6 +334,10 @@ const REGION_TO_GRAPES: Record<string, string> = {
   // South Africa
   'stellenbosch': 'Cabernet Sauvignon, Chenin Blanc',
   'swartland': 'Chenin Blanc, Syrah',
+  'elgin': 'Chardonnay, Pinot Noir, Sauvignon Blanc',
+  'elim': 'Sauvignon Blanc, Shiraz',
+  'hemel-en-aarde': 'Pinot Noir, Chardonnay, Syrah',
+  'calitzdorp': 'Touriga Nacional, Muscat',
 };
 
 // ============================================================================

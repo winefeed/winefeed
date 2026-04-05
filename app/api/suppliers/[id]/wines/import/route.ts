@@ -28,6 +28,7 @@ import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
 import { checkActionGate, createGatedResponse } from '@/lib/feature-gates';
 import { batchTranslateToSwedish } from '@/lib/ai/translate';
+import { inferWineStyle } from '@/lib/matching-agent/style-inference';
 
 // Wine types that match the wine_color enum in database
 const VALID_WINE_TYPES = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange', 'alcohol_free', 'spirit'];
@@ -403,6 +404,31 @@ export async function POST(
           importedCount++;
         }
       }
+    }
+
+    // Post-import: infer body/tannin/acidity for newly imported wines missing style data
+    let enrichedCount = 0;
+    try {
+      const { data: unstyledWines } = await adminClient
+        .from('supplier_wines')
+        .select('id, grape, color, region, description')
+        .eq('supplier_id', supplierId)
+        .eq('is_active', true)
+        .is('body', null);
+
+      if (unstyledWines && unstyledWines.length > 0) {
+        for (const w of unstyledWines) {
+          const style = inferWineStyle(w.grape || '', w.color || '', w.region || undefined, w.description || undefined);
+          const { error } = await adminClient
+            .from('supplier_wines')
+            .update({ body: style.body, tannin: style.tannin, acidity: style.acidity })
+            .eq('id', w.id);
+          if (!error) enrichedCount++;
+        }
+        console.log(`[Wine Import] Style enrichment: ${enrichedCount}/${unstyledWines.length} wines enriched`);
+      }
+    } catch (enrichError: any) {
+      console.warn('[Wine Import] Style enrichment failed (non-blocking):', enrichError?.message);
     }
 
     console.log(`[Wine Import] Done for ${supplierId}: ${importedCount} imported, ${updatedCount} updated, ${errorCount} errors out of ${wines.length} total`);

@@ -26,7 +26,7 @@ export const DEFAULT_OPTIONS: CatalogAgentOptions = {
   enableSmartMapping: true,
   enableEnrichment: true,
   enableAnomalyDetection: true,
-  enableDescriptions: false, // Off by default — user opt-in
+  enableDescriptions: true, // Auto-generate Swedish descriptions for wines without one
 };
 
 // ============================================================================

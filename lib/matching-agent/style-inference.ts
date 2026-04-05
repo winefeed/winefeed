@@ -177,6 +177,15 @@ const GRAPE_STYLE_MAP: Record<string, WineStyle> = {
   'viura':               { body: 'light',  tannin: 'low',    acidity: 'medium' },
   'parellada':           { body: 'light',  tannin: 'low',    acidity: 'high' },
   'xarel-lo':            { body: 'medium', tannin: 'low',    acidity: 'high' },
+  'muscat':              { body: 'medium', tannin: 'low',    acidity: 'low' },
+  'muscat blanc':        { body: 'medium', tannin: 'low',    acidity: 'low' },
+  'muscat blanc à petits grains': { body: 'medium', tannin: 'low', acidity: 'low' },
+  'moscato':             { body: 'light',  tannin: 'low',    acidity: 'medium' },
+  'moscatel':            { body: 'medium', tannin: 'low',    acidity: 'low' },
+  'muskateller':         { body: 'medium', tannin: 'low',    acidity: 'low' },
+  'verdelho':            { body: 'medium', tannin: 'low',    acidity: 'medium' },
+  'meunier':             { body: 'light',  tannin: 'low',    acidity: 'medium' },
+  'pinot meunier':       { body: 'light',  tannin: 'low',    acidity: 'medium' },
 };
 
 // ============================================================================
