@@ -1007,6 +1007,45 @@ export async function processAccessReminders(): Promise<ProcessAccessRemindersRe
 
     const adminUrl = getAppUrl('/access/admin/requests');
 
+    // Page view stats (last 24h)
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    let pageViews: { path: string; count: number }[] = [];
+    let topReferrers: { referrer: string; count: number }[] = [];
+    try {
+      const { data: pvData } = await supabase
+        .from('access_events')
+        .select('metadata')
+        .eq('event_type', 'page_view')
+        .gte('created_at', oneDayAgo);
+
+      if (pvData && pvData.length > 0) {
+        // Count by path
+        const pathCounts: Record<string, number> = {};
+        const refCounts: Record<string, number> = {};
+        for (const ev of pvData) {
+          const path = (ev.metadata as any)?.path || 'unknown';
+          pathCounts[path] = (pathCounts[path] || 0) + 1;
+          const ref = (ev.metadata as any)?.referrer;
+          if (ref) {
+            try {
+              const host = new URL(ref).hostname;
+              if (host && !host.includes('vinkoll') && !host.includes('winefeed')) {
+                refCounts[host] = (refCounts[host] || 0) + 1;
+              }
+            } catch {}
+          }
+        }
+        pageViews = Object.entries(pathCounts)
+          .map(([path, count]) => ({ path, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 10);
+        topReferrers = Object.entries(refCounts)
+          .map(([referrer, count]) => ({ referrer, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5);
+      }
+    } catch {}
+
     const { subject, html, text } = renderAdminDailySummaryEmail({
       newCount: newCount || 0,
       waitingCount: waitingCount || 0,
@@ -1014,6 +1053,8 @@ export async function processAccessReminders(): Promise<ProcessAccessRemindersRe
       remindedCount: reminded,
       expiredCount: expired,
       adminUrl,
+      pageViews,
+      topReferrers,
     });
 
     await sendEmail({

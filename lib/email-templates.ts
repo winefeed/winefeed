@@ -2077,6 +2077,8 @@ export interface AdminDailySummaryEmailParams {
   remindedCount: number;
   expiredCount: number;
   adminUrl: string;
+  pageViews?: { path: string; count: number }[];
+  topReferrers?: { referrer: string; count: number }[];
 }
 
 export function renderAdminDailySummaryEmail(params: AdminDailySummaryEmailParams): { subject: string; html: string; text: string } {
@@ -2087,6 +2089,8 @@ export function renderAdminDailySummaryEmail(params: AdminDailySummaryEmailParam
     remindedCount,
     expiredCount,
     adminUrl,
+    pageViews = [],
+    topReferrers = [],
   } = params;
 
   const today = new Date().toLocaleDateString('sv-SE', {
@@ -2145,6 +2149,30 @@ export function renderAdminDailySummaryEmail(params: AdminDailySummaryEmailParam
     </div>
     ` : ''}
 
+    ${pageViews.length > 0 ? `
+    <div style="margin: 25px 0; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+      <h3 style="font-size: 15px; color: #374151; margin: 0 0 12px 0;">Besök senaste 24h</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${pageViews.map(pv => `<tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 6px 8px; font-size: 13px; color: #4b5563;">${pv.path}</td>
+          <td style="padding: 6px 8px; text-align: right; font-weight: 600; color: #722F37;">${pv.count}</td>
+        </tr>`).join('')}
+      </table>
+    </div>
+    ` : ''}
+
+    ${topReferrers.length > 0 ? `
+    <div style="margin: 15px 0;">
+      <h3 style="font-size: 15px; color: #374151; margin: 0 0 12px 0;">Trafikkällor</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${topReferrers.map(ref => `<tr style="border-bottom: 1px solid #f3f4f6;">
+          <td style="padding: 6px 8px; font-size: 13px; color: #4b5563;">${ref.referrer}</td>
+          <td style="padding: 6px 8px; text-align: right; font-weight: 600; color: #722F37;">${ref.count}</td>
+        </tr>`).join('')}
+      </table>
+    </div>
+    ` : ''}
+
     <div style="text-align: center; margin: 30px 0;">
       <a href="${adminUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Öppna admin
@@ -2169,6 +2197,8 @@ Påminda importörer idag: ${remindedCount}
 Utgångna idag: ${expiredCount}
 
 ${(newCount > 0 || respondedCount > 0) ? `KRÄVER ÅTGÄRD: ${newCount > 0 ? `${newCount} nya förfrågningar att vidarebefordra` : ''}${newCount > 0 && respondedCount > 0 ? ' + ' : ''}${respondedCount > 0 ? `${respondedCount} besvarade att meddela konsument` : ''}` : ''}
+${pageViews.length > 0 ? `\nBesök senaste 24h:\n${pageViews.map(pv => `  ${pv.path}: ${pv.count}`).join('\n')}` : ''}
+${topReferrers.length > 0 ? `\nTrafikkällor:\n${topReferrers.map(ref => `  ${ref.referrer}: ${ref.count}`).join('\n')}` : ''}
 
 Öppna admin: ${adminUrl}
 
