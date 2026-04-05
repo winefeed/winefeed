@@ -2111,6 +2111,10 @@ export function renderAdminDailySummaryEmail(params: AdminDailySummaryEmailParam
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <div style="margin-bottom: 12px;">
+      <span style="display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: #93092b; margin-right: -6px;"></span>
+      <span style="display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: #f1b4b0;"></span>
+    </div>
     <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
     <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Daglig sammanfattning</p>
   </div>
