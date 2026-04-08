@@ -285,20 +285,23 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
           supplier_wine_id: null,
         };
       }
-      const wine = wineMap.get(line.supplierWineId!)!;
+      const wine = wineMap.get(line.supplierWineId!);
+      if (!wine) {
+        console.error(`[Offer] Wine not found in wineMap for supplierWineId=${line.supplierWineId}, available keys: ${[...wineMap.keys()].join(', ')}`);
+      }
       return {
         tenant_id: tenantId,
         offer_id: offer.id,
         line_no: index + 1,
-        name: wine.name,
-        vintage: wine.vintage || null,
-        producer: wine.producer || null,
-        country: wine.country || null,
-        region: wine.region || null,
+        name: wine?.name || `Vin ${line.supplierWineId?.slice(0, 8)}`,
+        vintage: wine?.vintage || null,
+        producer: wine?.producer || null,
+        country: wine?.country || null,
+        region: wine?.region || null,
         quantity: line.quantity,
         offered_unit_price_ore: Math.round(line.offeredPriceExVatSek * 100),
         price_ex_vat_sek: line.offeredPriceExVatSek,
-        supplier_wine_id: line.supplierWineId,
+        supplier_wine_id: line.supplierWineId || null,
       };
     });
 
@@ -341,12 +344,12 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
           totalExVatSek: parseFloat(totalExVat.toFixed(2)),
         };
       }
-      const wine = wineMap.get(line.supplierWineId!)!;
+      const wine = wineMap.get(line.supplierWineId!);
       return {
         lineNo: index + 1,
         supplierWineId: line.supplierWineId,
-        wineName: wine.name,
-        producer: wine.producer,
+        wineName: wine?.name || 'Okänt vin',
+        producer: wine?.producer || null,
         offeredPriceExVatSek: line.offeredPriceExVatSek,
         quantity: line.quantity,
         totalExVatSek: parseFloat(totalExVat.toFixed(2)),
@@ -383,7 +386,11 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     );
 
   } catch (error: any) {
-    console.error('Offer creation error:', error);
+    console.error('Offer creation error:', error?.message, error?.stack);
+    console.error('Offer creation context:', JSON.stringify({
+      requestId: params.id,
+      bodyKeys: Object.keys(await req.clone().json().catch(() => ({}))),
+    }));
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
