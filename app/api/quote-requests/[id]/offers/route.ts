@@ -232,7 +232,6 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     // 6. Create the offer (header)
     const offerInsert: Record<string, any> = {
       tenant_id: tenantId,
-      restaurant_id: quoteRequest.restaurant_id,
       request_id: requestId,
       supplier_id: supplierId,
       supplier_wine_id: null, // Multi-line: no single wine
