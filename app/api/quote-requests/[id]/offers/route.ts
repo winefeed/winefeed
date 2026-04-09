@@ -451,10 +451,11 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
     const isAdmin = actorService.hasRole(actor, 'ADMIN');
     const isOwner = actor.restaurant_id && actor.restaurant_id === quoteRequest.restaurant_id;
+    const isSupplier = !!actor.supplier_id;
 
-    if (!isAdmin && !isOwner) {
+    if (!isAdmin && !isOwner && !isSupplier) {
       return NextResponse.json(
-        { error: 'Forbidden: Only the restaurant owner or admin can view offers' },
+        { error: 'Forbidden: Only the restaurant owner, supplier or admin can view offers' },
         { status: 403 }
       );
     }
@@ -511,8 +512,13 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       );
     }
 
+    // Suppliers can only see their own offers
+    const filteredOffers = isSupplier && !isAdmin
+      ? (offers || []).filter(o => o.supplier_id === actor.supplier_id)
+      : offers;
+
     // Get assignments for match scores
-    const supplierIds = [...new Set((offers || []).map(o => o.supplier_id).filter(Boolean))];
+    const supplierIds = [...new Set((filteredOffers || []).map(o => o.supplier_id).filter(Boolean))];
     const { data: assignments } = await adminClient
       .from('quote_request_assignments')
       .select('*')
@@ -535,7 +541,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
 
     // For legacy offers with supplier_wine_id but no offer_lines, fetch wine data
-    const legacyWineIds = (offers || [])
+    const legacyWineIds = (filteredOffers || [])
       .filter(o => o.supplier_wine_id && (!o.offer_lines || (o.offer_lines as any[]).length === 0))
       .map(o => o.supplier_wine_id)
       .filter(Boolean);
@@ -552,7 +558,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
 
     // Transform offers
-    const transformedOffers = (offers || []).map(offer => {
+    const transformedOffers = (filteredOffers || []).map(offer => {
       const assignment = assignmentMap.get(offer.supplier_id);
       const offerLines = (offer.offer_lines as any[]) || [];
 
