@@ -177,24 +177,22 @@ class OfferService {
       throw new Error(`Failed to fetch offer: ${offerError.message}`);
     }
 
-    // Get lines
+    // Get lines (filter by offer_id only — tenant_id may differ between supplier and restaurant)
     const { data: lines, error: linesError } = await supabase
       .from('offer_lines')
       .select('*')
       .eq('offer_id', offerId)
-      .eq('tenant_id', tenantId)
       .order('line_no', { ascending: true });
 
     if (linesError) {
       throw new Error(`Failed to fetch offer lines: ${linesError.message}`);
     }
 
-    // Get events
+    // Get events (filter by offer_id only — tenant_id may differ)
     const { data: events, error: eventsError } = await supabase
       .from('offer_events')
       .select('*')
       .eq('offer_id', offerId)
-      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false });
 
     if (eventsError) {
@@ -375,7 +373,6 @@ class OfferService {
           .from('offer_lines')
           .update(updateData)
           .eq('id', lineUpdate.id)
-          .eq('tenant_id', tenantId)
           .select()
           .single();
 
