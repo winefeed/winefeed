@@ -163,12 +163,11 @@ class OfferService {
     tenantId: string,
     offerId: string
   ): Promise<{ offer: any; lines: any[]; events: any[] } | null> {
-    // Get offer
+    // Get offer (offers table has no tenant_id column)
     const { data: offer, error: offerError } = await supabase
       .from('offers')
       .select('*')
       .eq('id', offerId)
-      .eq('tenant_id', tenantId)
       .single();
 
     if (offerError) {
@@ -264,12 +263,11 @@ class OfferService {
     updates: UpdateOfferInput,
     actorUserId?: string
   ): Promise<any> {
-    // Check if offer is locked
+    // Check if offer is locked (offers table has no tenant_id)
     const { data: offer, error: fetchError } = await supabase
       .from('offers')
       .select('status, locked_at')
       .eq('id', offerId)
-      .eq('tenant_id', tenantId)
       .single();
 
     if (fetchError) {
@@ -282,12 +280,11 @@ class OfferService {
       );
     }
 
-    // Update offer
+    // Update offer (offers table has no tenant_id)
     const { data: updated, error: updateError } = await supabase
       .from('offers')
       .update(updates)
       .eq('id', offerId)
-      .eq('tenant_id', tenantId)
       .select()
       .single();
 
@@ -315,12 +312,11 @@ class OfferService {
     offerId: string,
     lineUpdates: UpdateOfferLineInput[]
   ): Promise<any[]> {
-    // Check if offer is locked
+    // Check if offer is locked (offers table has no tenant_id)
     const { data: offer, error: fetchError } = await supabase
       .from('offers')
       .select('status, locked_at')
       .eq('id', offerId)
-      .eq('tenant_id', tenantId)
       .single();
 
     if (fetchError) {
@@ -535,7 +531,6 @@ class OfferService {
         snapshot: snapshot
       })
       .eq('id', offerId)
-      .eq('tenant_id', tenantId)
       .select()
       .single();
 
