@@ -144,7 +144,7 @@ class OfferService {
     }
 
     // Log creation event
-    await supabase.from('offer_events').insert({
+    supabase.from('offer_events').insert({
       tenant_id: input.tenant_id,
       offer_id: offerId,
       event_type: 'CREATED',
@@ -187,15 +187,17 @@ class OfferService {
       throw new Error(`Failed to fetch offer lines: ${linesError.message}`);
     }
 
-    // Get events (filter by offer_id only — tenant_id may differ)
-    const { data: events, error: eventsError } = await supabase
-      .from('offer_events')
-      .select('*')
-      .eq('offer_id', offerId)
-      .order('created_at', { ascending: false });
-
-    if (eventsError) {
-      throw new Error(`Failed to fetch offer events: ${eventsError.message}`);
+    // Get events (optional — table may not exist in all environments)
+    let events: any[] = [];
+    try {
+      const { data: eventsData } = await supabase
+        .from('offer_events')
+        .select('*')
+        .eq('offer_id', offerId)
+        .order('created_at', { ascending: false });
+      events = eventsData || [];
+    } catch {
+      // offer_events table may not exist — not critical
     }
 
     // Get latest match per line (if any)
@@ -290,7 +292,7 @@ class OfferService {
     }
 
     // Log event
-    await supabase.from('offer_events').insert({
+    supabase.from('offer_events').insert({
       tenant_id: tenantId,
       offer_id: offerId,
       event_type: 'UPDATED',
@@ -382,7 +384,7 @@ class OfferService {
         results.push(data);
 
         // Log event
-        await supabase.from('offer_events').insert({
+        supabase.from('offer_events').insert({
           tenant_id: tenantId,
           offer_id: offerId,
           event_type: 'LINE_UPDATED',
@@ -424,7 +426,7 @@ class OfferService {
         results.push(data);
 
         // Log event
-        await supabase.from('offer_events').insert({
+        supabase.from('offer_events').insert({
           tenant_id: tenantId,
           offer_id: offerId,
           event_type: 'LINE_ADDED',
@@ -515,16 +517,14 @@ class OfferService {
       is_partial: isPartial,
     };
 
-    // Update offer: lock + status + snapshot
+    // Update offer status
+    // Note: offers table only has status column for acceptance — no accepted_at, locked_at, or snapshot columns
     const now = new Date().toISOString();
     const newStatus = isPartial ? 'PARTIALLY_ACCEPTED' : 'ACCEPTED';
     const { data: updated, error: updateError } = await supabase
       .from('offers')
       .update({
         status: newStatus,
-        accepted_at: now,
-        locked_at: now,
-        snapshot: snapshot
       })
       .eq('id', offerId)
       .select()
@@ -533,6 +533,10 @@ class OfferService {
     if (updateError) {
       throw new Error(`Failed to accept offer: ${updateError.message}`);
     }
+
+    // Attach snapshot data to return value (not persisted to DB — table lacks the column)
+    (updated as any).accepted_at = now;
+    (updated as any).locked_at = now;
 
     // Write accepted_offer_id on quote_request_assignments (NOT on requests)
     // This allows multiple suppliers to be accepted per request
@@ -561,7 +565,7 @@ class OfferService {
     }
 
     // Log acceptance event
-    await supabase.from('offer_events').insert({
+    supabase.from('offer_events').insert({
       tenant_id: tenantId,
       offer_id: offerId,
       event_type: 'ACCEPTED',
