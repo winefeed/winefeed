@@ -16,6 +16,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { offerService } from '@/lib/offer-service';
 import { actorService } from '@/lib/actor-service';
+import { createRouteClients } from '@/lib/supabase/route-client';
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -41,9 +42,21 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     }
 
     // Access control: ADMIN sees all, RESTAURANT must own request, SELLER must own offer
+    // Note: offers table has no restaurant_id — resolve via request_id
+    let offerRestaurantId: string | null = null;
+    if (data.offer.request_id) {
+      const { adminClient } = await createRouteClients();
+      const { data: req } = await adminClient
+        .from('requests')
+        .select('restaurant_id')
+        .eq('id', data.offer.request_id)
+        .single();
+      offerRestaurantId = req?.restaurant_id || null;
+    }
+
     if (!actorService.hasRole(actor, 'ADMIN')) {
       if (actorService.hasRole(actor, 'RESTAURANT')) {
-        if (data.offer.restaurant_id !== actor.restaurant_id) {
+        if (offerRestaurantId !== actor.restaurant_id) {
           return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
       } else if (actorService.hasRole(actor, 'SELLER')) {
