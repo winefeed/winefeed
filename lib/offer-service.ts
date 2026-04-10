@@ -91,11 +91,10 @@ class OfferService {
     }
 
     // Start transaction: Create offer + lines + event
+    // Note: offers table has no tenant_id or restaurant_id columns
     const { data: offer, error: offerError } = await supabase
       .from('offers')
       .insert({
-        tenant_id: input.tenant_id,
-        restaurant_id: input.restaurant_id,
         request_id: input.request_id || null,
         supplier_id: input.supplier_id || null,
         title: input.title || null,

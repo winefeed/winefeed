@@ -152,12 +152,11 @@ class OrderService {
     const { offer_id, tenant_id, actor_user_id } = input;
 
     // 1. Fetch offer with related data (including shipping)
+    // Note: offers table has no tenant_id or restaurant_id — get restaurant via request join
     const { data: offer, error: offerError } = await supabase
       .from('offers')
       .select(`
         id,
-        tenant_id,
-        restaurant_id,
         request_id,
         supplier_id,
         status,
@@ -165,18 +164,20 @@ class OrderService {
         is_franco,
         shipping_cost_sek,
         shipping_notes,
-        created_at
+        created_at,
+        requests!inner (
+          restaurant_id
+        )
       `)
       .eq('id', offer_id)
-      .eq('tenant_id', tenant_id)
       .single();
 
     if (offerError || !offer) {
       throw new Error(`Offer not found: ${offerError?.message || 'Unknown error'}`);
     }
 
-    if (offer.status !== 'ACCEPTED') {
-      throw new Error(`Cannot create order from offer with status: ${offer.status}. Must be ACCEPTED.`);
+    if (offer.status !== 'ACCEPTED' && offer.status !== 'PARTIALLY_ACCEPTED') {
+      throw new Error(`Cannot create order from offer with status: ${offer.status}. Must be ACCEPTED or PARTIALLY_ACCEPTED.`);
     }
 
     if (!offer.supplier_id) {
@@ -297,7 +298,7 @@ class OrderService {
       .from('orders')
       .insert({
         tenant_id,
-        restaurant_id: offer.restaurant_id,
+        restaurant_id: (offer.requests as any)?.restaurant_id,
         offer_id: offer.id,
         request_id: offer.request_id,
         seller_supplier_id: offer.supplier_id,

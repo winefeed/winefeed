@@ -172,7 +172,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     if (orderId) {
       try {
         const { offer } = result;
-        const restaurantEmail = await getRestaurantEmail(offer.restaurant_id, tenantId);
+        const restaurantEmail = await getRestaurantEmail(offerRestaurantId, tenantId);
 
         if (restaurantEmail) {
           // Fetch order details for email
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
             const { data: restaurantData } = await adminClient
               .from('restaurants')
               .select('name, city')
-              .eq('id', offer.restaurant_id)
+              .eq('id', offerRestaurantId)
               .single();
 
             const { data: supplierData } = await adminClient
@@ -257,7 +257,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
           const { data: restaurantData } = await adminClient
             .from('restaurants')
             .select('name')
-            .eq('id', offer.restaurant_id)
+            .eq('id', offerRestaurantId)
             .single();
 
           // Generate and send email
