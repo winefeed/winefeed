@@ -103,14 +103,15 @@ function AdminWinesPageContent() {
       filtered = filtered.filter(w => w.color === selectedColor);
     }
 
-    // Search by name or producer
+    // Search by name or producer (accent-insensitive)
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const query = strip(searchQuery);
       filtered = filtered.filter(w =>
-        w.name.toLowerCase().includes(query) ||
-        w.producer.toLowerCase().includes(query) ||
-        w.country?.toLowerCase().includes(query) ||
-        w.region?.toLowerCase().includes(query)
+        strip(w.name).includes(query) ||
+        strip(w.producer).includes(query) ||
+        strip(w.country || '').includes(query) ||
+        strip(w.region || '').includes(query)
       );
     }
 
