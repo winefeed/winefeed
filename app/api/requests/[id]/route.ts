@@ -103,7 +103,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     // Note: offers table may not have tenant_id - security is via request ownership
     const { data: offers, error: offersError } = await adminClient
       .from('offers')
-      .select('id, status, supplier_id, title, currency, created_at, updated_at, accepted_at, locked_at')
+      .select('id, status, supplier_id, created_at, updated_at, delivery_date, lead_time_days, notes, expires_at')
       .eq('request_id', requestId)
       .order('created_at', { ascending: false });
 
