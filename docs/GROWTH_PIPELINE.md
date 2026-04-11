@@ -889,6 +889,47 @@ Organiserade per stad med druvklasbetyg. Redan i pipeline: Grus Grus, Esplanaden
 
 ---
 
+## Strängnäs & Mariefred — Lokala leads (2026-04-11)
+
+### Restaurang Riva 🟡 — Strängnäs
+- **Typ:** Fine dining, internationellt, starkt vinfokus
+- **Adress:** Storgatan 38, 645 30 Strängnäs
+- **Kontakt:** info@restaurangriva.se, 0152-33 49 85
+- **Instagram:** @restaurang_riva
+- **Vinprofil:** "Vinlistan omfattar världens alla hörn" — nedladdningsbar vinlista (Riva_Dryck-Vinlista_2025.pdf)
+- **Varför:** Tydligt vinfokus, ambitiös vinlista, lokal fine dining. Hög potential.
+- **Nästa steg:** Markus besöker vid nästa Strängnäs-provning
+
+### Restaurang Naskovit 🟡 — Strängnäs
+- **Typ:** Tapas/smårätter, kvarterskrog
+- **Ägare:** Helena & Tobias
+- **Adress:** Hospitalsgatan 17, Strängnäs
+- **Kontakt:** kontakt@naskovit.se, 0733-23 13 00
+- **Instagram:** @restaurangnaskovit
+- **Vinprofil:** "Trevliga viner och spännande cocktails" i baren
+- **Varför:** Småskalig, personlig, troligen öppen för nya leverantörer
+- **Nästa steg:** Markus besöker vid nästa Strängnäs-provning
+
+### Han i Hörnet 🟡 — Mariefred
+- **Typ:** Bistro, kvarterskrog, #1 på Tripadvisor i länet
+- **Adress:** Centrala Mariefred
+- **Kontakt:** Via Instagram/Facebook (ingen email på webb)
+- **Instagram:** @hih.mariefred
+- **Facebook:** facebook.com/hihmariefred
+- **Vinprofil:** "Gott glas vin i baren" — kvalitetsfokus
+- **Varför:** Bäst-ratade restaurangen i Sörmland. Chef-driven, troligen intresserad av unika viner.
+- **Nästa steg:** Markus besöker vid Xavier Vignon-provning i Mariefred (fredag)
+
+### Rakstugan Kök & Bar 🟡 — Mariefred
+- **Typ:** Smårätter, White Guide-listad
+- **Adress:** Munkhagsgatan 10A, 647 30 Mariefred
+- **Kontakt:** kontakt@rakstugan.se, 073-623 44 00
+- **Vinprofil:** Småskalig, kvalitetsfokus, 4.5/5 Tripadvisor
+- **Varför:** White Guide, tapas-format = roterar vinlistan ofta = behöver nya leverantörer
+- **Nästa steg:** Markus besöker vid Mariefred-provning
+
+---
+
 ## Pipeline-anteckningar
 - **Approach:** Personlig outreach, DM eller email
 - **Pitch:** Matcha viner mot meny/profil, skicka vinförslags-länk (/vinforslag)
