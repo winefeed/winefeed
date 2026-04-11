@@ -891,16 +891,17 @@ Organiserade per stad med druvklasbetyg. Redan i pipeline: Grus Grus, Esplanaden
 
 ## Strängnäs & Mariefred — Lokala leads (2026-04-11)
 
-### Restaurang Riva 🟡 — Strängnäs
+### Restaurang Riva 🔵 — Strängnäs
 - **Typ:** Fine dining, internationellt, starkt vinfokus
 - **Adress:** Storgatan 38, 645 30 Strängnäs
 - **Kontakt:** info@restaurangriva.se, 0152-33 49 85
 - **Instagram:** @restaurang_riva
 - **Vinprofil:** "Vinlistan omfattar världens alla hörn" — nedladdningsbar vinlista (Riva_Dryck-Vinlista_2025.pdf)
 - **Varför:** Tydligt vinfokus, ambitiös vinlista, lokal fine dining. Hög potential.
-- **Nästa steg:** Markus besöker vid nästa Strängnäs-provning
+- **Status:** Outreach-mail skickat 2026-04-11 med vinförslag (Champagne, Mosel GG, Sydafrika). Ny taktik: konkreta viner + priser.
+- **Nästa steg:** Invänta svar. Besök vid nästa Strängnäs-provning.
 
-### Restaurang Naskovit 🟡 — Strängnäs
+### Restaurang Naskovit 🔵 — Strängnäs
 - **Typ:** Tapas/smårätter, kvarterskrog
 - **Ägare:** Helena & Tobias
 - **Adress:** Hospitalsgatan 17, Strängnäs
@@ -908,25 +909,28 @@ Organiserade per stad med druvklasbetyg. Redan i pipeline: Grus Grus, Esplanaden
 - **Instagram:** @restaurangnaskovit
 - **Vinprofil:** "Trevliga viner och spännande cocktails" i baren
 - **Varför:** Småskalig, personlig, troligen öppen för nya leverantörer
-- **Nästa steg:** Markus besöker vid nästa Strängnäs-provning
+- **Status:** Outreach-mail skickat 2026-04-11 med vinförslag (tapas-matchade: Loire bubbel, Rhône, Cinsault, Languedoc).
+- **Nästa steg:** Invänta svar. Besök vid nästa Strängnäs-provning.
 
-### Han i Hörnet 🟡 — Mariefred
+### Han i Hörnet 🔵 — Mariefred
 - **Typ:** Bistro, kvarterskrog, #1 på Tripadvisor i länet
 - **Adress:** Centrala Mariefred
 - **Kontakt:** Via Instagram/Facebook (ingen email på webb)
 - **Instagram:** @hih.mariefred
 - **Facebook:** facebook.com/hihmariefred
 - **Vinprofil:** "Gott glas vin i baren" — kvalitetsfokus
-- **Varför:** Bäst-ratade restaurangen i Sörmland. Chef-driven, troligen intresserad av unika viner.
-- **Nästa steg:** Markus besöker vid Xavier Vignon-provning i Mariefred (fredag)
+- **Varför:** Bäst-ratade restaurangen i Sörmland. Chef-driven, troligen intresserad av unika viner. Ägare: Elin & Mattias Holmberg.
+- **Status:** Outreach-mail skickat 2026-04-11 med vinförslag (Mosel, Loire, Alsace, NZ, Sydafrika).
+- **Nästa steg:** Invänta svar. Markus i Mariefred fredag — besök om möjligt.
 
-### Rakstugan Kök & Bar 🟡 — Mariefred
+### Rakstugan Kök & Bar 🔵 — Mariefred
 - **Typ:** Smårätter, White Guide-listad
 - **Adress:** Munkhagsgatan 10A, 647 30 Mariefred
 - **Kontakt:** kontakt@rakstugan.se, 073-623 44 00
 - **Vinprofil:** Småskalig, kvalitetsfokus, 4.5/5 Tripadvisor
 - **Varför:** White Guide, tapas-format = roterar vinlistan ofta = behöver nya leverantörer
-- **Nästa steg:** Markus besöker vid Mariefred-provning
+- **Status:** Outreach-mail skickat 2026-04-11 med vinförslag (Loire, Cinsault, Alsace orange, Beaujolais, NZ Riesling, Sydafrika SB).
+- **Nästa steg:** Invänta svar. Markus i Mariefred fredag — besök om möjligt.
 
 ---
 
