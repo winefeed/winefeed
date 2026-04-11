@@ -49,7 +49,7 @@ export async function GET(
       .from('offers')
       .select(`
         id,
-        offered_price,
+        offered_price_ex_vat_sek,
         quantity,
         status,
         created_at,
@@ -61,6 +61,8 @@ export async function GET(
         supplier_wine_id,
         min_total_quantity,
         request_id,
+        delivery_date,
+        lead_time_days,
         offer_lines (
           id,
           supplier_wine_id,
@@ -130,15 +132,15 @@ export async function GET(
       });
 
       // Legacy fallback: no offer_lines → build virtual line from offer-level data
-      if (lines.length === 0 && offer.offered_price) {
+      if (lines.length === 0 && offer.offered_price_ex_vat_sek) {
         lines.push({
           id: null,
-          wineName: 'Vin', // Legacy offers don't have wine name in lines
+          wineName: 'Vin',
           producer: '',
           vintage: null,
-          priceSek: offer.offered_price,
+          priceSek: offer.offered_price_ex_vat_sek,
           quantity: offer.quantity || 0,
-          totalSek: offer.offered_price * (offer.quantity || 0),
+          totalSek: offer.offered_price_ex_vat_sek * (offer.quantity || 0),
           accepted: null,
         });
       }
