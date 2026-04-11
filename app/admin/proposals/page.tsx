@@ -404,13 +404,13 @@ function CreateProposalModal({
 
   const filteredWines = wineSearch.trim()
     ? wines.filter(w => {
-        const q = wineSearch.toLowerCase();
+        const _strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); const q = _strip(wineSearch);
         return (
-          w.name?.toLowerCase().includes(q) ||
-          w.grape_variety?.toLowerCase().includes(q) ||
-          w.region?.toLowerCase().includes(q) ||
-          w.country?.toLowerCase().includes(q) ||
-          w.supplierName?.toLowerCase().includes(q)
+          _strip(w.name || '').includes(q) ||
+          _strip(w.grape_variety || '').includes(q) ||
+          _strip(w.region || '').includes(q) ||
+          _strip(w.country || '').includes(q) ||
+          _strip(w.supplierName || '').includes(q)
         );
       })
     : wines;

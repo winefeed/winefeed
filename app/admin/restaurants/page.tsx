@@ -64,10 +64,11 @@ export default function AdminRestaurantsPage() {
     let filtered = restaurants;
 
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const query = strip(searchQuery);
       filtered = filtered.filter(r =>
-        r.name.toLowerCase().includes(query) ||
-        r.city?.toLowerCase().includes(query) ||
+        strip(r.name).includes(query) ||
+        strip(r.city || '').includes(query) ||
         r.orgNumber?.includes(query)
       );
     }

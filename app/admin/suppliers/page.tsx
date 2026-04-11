@@ -76,11 +76,12 @@ export default function AdminSuppliersPage() {
     let filtered = suppliers;
 
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const query = strip(searchQuery);
       filtered = filtered.filter(s =>
-        s.name.toLowerCase().includes(query) ||
-        s.email?.toLowerCase().includes(query) ||
-        s.city?.toLowerCase().includes(query) ||
+        strip(s.name).includes(query) ||
+        strip(s.email || '').includes(query) ||
+        strip(s.city || '').includes(query) ||
         s.orgNumber?.includes(query)
       );
     }

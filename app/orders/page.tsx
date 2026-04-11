@@ -123,12 +123,13 @@ export default function OrdersPage() {
 
     // Search filter
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const query = strip(searchQuery);
       filtered = filtered.filter(o =>
-        o.id.toLowerCase().includes(query) ||
-        o.supplier_name.toLowerCase().includes(query) ||
-        o.importer_name.toLowerCase().includes(query) ||
-        o.restaurant_name?.toLowerCase().includes(query)
+        strip(o.id).includes(query) ||
+        strip(o.supplier_name).includes(query) ||
+        strip(o.importer_name).includes(query) ||
+        strip(o.restaurant_name || '').includes(query)
       );
     }
 

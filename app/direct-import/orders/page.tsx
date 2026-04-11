@@ -171,11 +171,12 @@ export default function IOROrdersPage() {
 
   const filteredOrders = orders.filter((order) => {
     if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
+    const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const query = strip(searchQuery);
     return (
-      order.restaurant_name.toLowerCase().includes(query) ||
-      order.supplier_name.toLowerCase().includes(query) ||
-      order.id.toLowerCase().includes(query) ||
+      strip(order.restaurant_name).includes(query) ||
+      strip(order.supplier_name).includes(query) ||
+      strip(order.id).includes(query) ||
       formatOrderId(order).toLowerCase().includes(query)
     );
   });

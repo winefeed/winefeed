@@ -90,12 +90,13 @@ export default function AdminOffersPage() {
     let filtered = offers;
 
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const query = strip(searchQuery);
       filtered = filtered.filter(o =>
-        o.id.toLowerCase().includes(query) ||
-        o.supplierName.toLowerCase().includes(query) ||
-        o.restaurantName.toLowerCase().includes(query) ||
-        o.requestFritext?.toLowerCase().includes(query)
+        strip(o.id).includes(query) ||
+        strip(o.supplierName).includes(query) ||
+        strip(o.restaurantName).includes(query) ||
+        strip(o.requestFritext || '').includes(query)
       );
     }
 

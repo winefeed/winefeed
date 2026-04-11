@@ -762,9 +762,7 @@ export default function SupplierWinesPage() {
       }
       // Search filter
       return (
-        wine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        wine.producer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (wine.region?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+        (() => { const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); const q = strip(searchTerm); return strip(wine.name).includes(q) || strip(wine.producer).includes(q) || strip(wine.region || '').includes(q); })()
       );
     })
     .sort((a, b) => {

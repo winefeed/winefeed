@@ -142,10 +142,11 @@ export default function RestaurantOrdersPage() {
   // Filter orders
   const filteredOrders = orders.filter(order => {
     if (searchTerm) {
-      const search = searchTerm.toLowerCase();
+      const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const search = strip(searchTerm);
       return (
-        order.supplier?.namn?.toLowerCase().includes(search) ||
-        order.lines?.some(line => line.name.toLowerCase().includes(search))
+        strip(order.supplier?.namn || '').includes(search) ||
+        order.lines?.some(line => strip(line.name).includes(search))
       );
     }
     return true;

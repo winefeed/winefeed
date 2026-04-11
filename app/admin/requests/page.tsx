@@ -87,11 +87,12 @@ export default function AdminRequestsPage() {
     let filtered = requests;
 
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const query = strip(searchQuery);
       filtered = filtered.filter(r =>
-        r.id.toLowerCase().includes(query) ||
-        r.restaurantName.toLowerCase().includes(query) ||
-        r.fritext?.toLowerCase().includes(query)
+        strip(r.id).includes(query) ||
+        strip(r.restaurantName).includes(query) ||
+        strip(r.fritext || '').includes(query)
       );
     }
 
