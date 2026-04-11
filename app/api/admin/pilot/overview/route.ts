@@ -87,20 +87,17 @@ async function fetchPilotMetrics(tenantId: string, supabase: ReturnType<typeof g
   const { count: offersCreated } = await supabase
     .from('offers')
     .select('id', { count: 'exact', head: true })
-    .eq('tenant_id', tenantId)
     .gte('created_at', thirtyDaysAgo);
 
   const { count: offersSent } = await supabase
     .from('offers')
     .select('id', { count: 'exact', head: true })
-    .eq('tenant_id', tenantId)
     .eq('status', 'SENT')
     .gte('created_at', thirtyDaysAgo);
 
   const { count: offersAccepted } = await supabase
     .from('offers')
     .select('id', { count: 'exact', head: true })
-    .eq('tenant_id', tenantId)
     .eq('status', 'ACCEPTED')
     .gte('created_at', thirtyDaysAgo);
 
@@ -138,7 +135,6 @@ async function fetchPilotMetrics(tenantId: string, supabase: ReturnType<typeof g
   const { data: offersWithRequest } = await supabase
     .from('offers')
     .select('id, created_at, request_id')
-    .eq('tenant_id', tenantId)
     .not('request_id', 'is', null)
     .gte('created_at', thirtyDaysAgo);
 
@@ -168,16 +164,16 @@ async function fetchPilotMetrics(tenantId: string, supabase: ReturnType<typeof g
   }
 
   // 2. offer_created_to_accepted: Time from offer created to accepted
+  // offers table has no accepted_at column; use updated_at for ACCEPTED offers as proxy
   const { data: acceptedOffers } = await supabase
     .from('offers')
-    .select('created_at, accepted_at')
-    .eq('tenant_id', tenantId)
-    .not('accepted_at', 'is', null)
+    .select('created_at, updated_at')
+    .eq('status', 'ACCEPTED')
     .gte('created_at', thirtyDaysAgo);
 
   const offerToAcceptHours = (acceptedOffers || [])
     .map((offer: any) => {
-      const acceptTime = new Date(offer.accepted_at).getTime();
+      const acceptTime = new Date(offer.updated_at).getTime();
       const createTime = new Date(offer.created_at).getTime();
       const hours = (acceptTime - createTime) / (1000 * 60 * 60);
       return hours >= 0 ? hours : null;
@@ -198,12 +194,11 @@ async function fetchPilotMetrics(tenantId: string, supabase: ReturnType<typeof g
   if (offerIds.length > 0) {
     const { data: offers } = await supabase
       .from('offers')
-      .select('id, accepted_at')
-      .eq('tenant_id', tenantId)
+      .select('id, updated_at')
       .in('id', offerIds)
-      .not('accepted_at', 'is', null);
+      .eq('status', 'ACCEPTED');
 
-    const offerMap = new Map((offers || []).map((o: any) => [o.id, o.accepted_at]));
+    const offerMap = new Map((offers || []).map((o: any) => [o.id, o.updated_at]));
 
     acceptToOrderHours = (ordersWithOffer || [])
       .map((order: any) => {
@@ -498,22 +493,19 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching requests:', requestsError);
     }
 
-    // Fetch recent offers (max 20)
+    // Fetch recent offers (max 20) — join restaurants through requests
     const { data: offers, error: offersError } = await supabase
       .from('offers')
       .select(`
         id,
-        title,
         status,
-        restaurant_id,
         request_id,
         supplier_id,
-        accepted_at,
         created_at,
-        restaurants (name, contact_email),
+        updated_at,
+        requests (restaurant_id, restaurants (name, contact_email)),
         suppliers (namn, kontakt_email)
       `)
-      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -552,12 +544,10 @@ export async function GET(request: NextRequest) {
 
     const transformedOffers = (offers || []).map((offer: any) => ({
       id: offer.id,
-      title: offer.title || 'Untitled',
       status: offer.status,
-      restaurant_name: offer.restaurants?.name || 'Unknown',
+      restaurant_name: offer.requests?.restaurants?.name || 'Unknown',
       supplier_name: offer.suppliers?.namn || 'Unknown',
       request_id: offer.request_id,
-      accepted_at: offer.accepted_at,
       created_at: offer.created_at
     }));
 

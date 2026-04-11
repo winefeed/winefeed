@@ -80,12 +80,11 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Load offer_line (tenant scoped)
+    // Load offer_line
     const { data: line, error: lineError } = await adminClient
       .from('offer_lines')
       .select('*')
       .eq('id', lineId)
-      .eq('tenant_id', tenantId)
       .single();
 
     if (lineError || !line) {
@@ -101,7 +100,6 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         .from('offers')
         .select('supplier_id')
         .eq('id', line.offer_id)
-        .eq('tenant_id', tenantId)
         .single();
 
       if (!offer || offer.supplier_id !== actor.supplier_id) {

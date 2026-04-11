@@ -123,9 +123,8 @@ export async function getSupplierNotifications(
     .from('offers')
     .select(`
       id,
-      title,
       updated_at,
-      restaurants!inner(name)
+      requests!inner(restaurants!inner(name))
     `)
     .eq('supplier_id', supplierId)
     .eq('status', 'ACCEPTED')
@@ -138,7 +137,7 @@ export async function getSupplierNotifications(
       id: `offer-accepted-${offer.id}`,
       type: 'offer_accepted',
       title: '🎉 Offert accepterad!',
-      message: `${(offer.restaurants as any)?.name || 'Restaurang'} accepterade "${offer.title || 'offert'}"`,
+      message: `${(offer.requests as any)?.restaurants?.name || 'Restaurang'} accepterade offert`,
       link: `/supplier/offers?id=${offer.id}`,
       created_at: offer.updated_at,
       read: false,
@@ -153,9 +152,8 @@ export async function getSupplierNotifications(
     .from('offers')
     .select(`
       id,
-      title,
       updated_at,
-      restaurants!inner(name)
+      requests!inner(restaurants!inner(name))
     `)
     .eq('supplier_id', supplierId)
     .eq('status', 'REJECTED')
@@ -168,7 +166,7 @@ export async function getSupplierNotifications(
       id: `offer-rejected-${offer.id}`,
       type: 'offer_rejected',
       title: 'Offert nekad',
-      message: `${(offer.restaurants as any)?.name || 'Restaurang'} tackade nej till "${offer.title || 'offert'}"`,
+      message: `${(offer.requests as any)?.restaurants?.name || 'Restaurang'} tackade nej till offert`,
       link: `/supplier/offers?id=${offer.id}`,
       created_at: offer.updated_at,
       read: false,
@@ -255,11 +253,10 @@ export async function getSupplierActivity(
     .from('offers')
     .select(`
       id,
-      title,
       status,
       created_at,
       updated_at,
-      restaurants!inner(name)
+      requests!inner(restaurants!inner(name))
     `)
     .eq('supplier_id', supplierId)
     .gte('created_at', thirtyDaysAgo.toISOString())
@@ -280,7 +277,7 @@ export async function getSupplierActivity(
       type: 'offer',
       action: offer.status === 'ACCEPTED' ? 'accepterad' : offer.status === 'REJECTED' ? 'nekad' : 'skickad',
       title: `Offert ${statusText[offer.status] || offer.status}`,
-      subtitle: `${(offer.restaurants as any)?.name || 'Restaurang'} - ${offer.title || 'Offert'}`,
+      subtitle: `${(offer.requests as any)?.restaurants?.name || 'Restaurang'} - Offert`,
       timestamp: offer.updated_at || offer.created_at,
       link: `/supplier/offers?id=${offer.id}`,
       status: offer.status,

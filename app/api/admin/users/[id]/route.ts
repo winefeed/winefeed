@@ -180,8 +180,7 @@ async function fetchQuickStats(userId: string, tenantId: string, linkedEntities:
     const { data: latestOffer } = await supabase
       .from('offers')
       .select('id, created_at, status')
-      .eq('tenant_id', tenantId)
-      .eq('created_by_user_id', userId)
+      .eq('supplier_id', linkedEntities.supplier_id!)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -238,14 +237,22 @@ async function fetchRecentActivity(userId: string, tenantId: string) {
     .order('created_at', { ascending: false })
     .limit(10);
 
-  // Fetch recent offers (if user is supplier)
-  const { data: offers } = await supabase
-    .from('offers')
-    .select('id, created_at, status, title')
-    .eq('tenant_id', tenantId)
-    .eq('created_by_user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(10);
+  // Fetch recent offers (if user is supplier) — no tenant_id/created_by_user_id on offers
+  // Look up supplier_id for this user first, then filter by supplier_id
+  const { data: supplierUser } = await supabase
+    .from('supplier_users')
+    .select('supplier_id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const { data: offers } = supplierUser?.supplier_id
+    ? await supabase
+        .from('offers')
+        .select('id, created_at, status')
+        .eq('supplier_id', supplierUser.supplier_id)
+        .order('created_at', { ascending: false })
+        .limit(10)
+    : { data: [] };
 
   // Fetch recent orders (any role)
   const { data: orders } = await supabase

@@ -62,18 +62,18 @@ export async function GET(request: NextRequest) {
         .is('deleted_at', null)
         .gte('deadline', now.toISOString()),
 
-      // Pending offers (awaiting decision)
+      // Pending offers (awaiting decision) — join through requests to filter by restaurant
       adminClient
         .from('offers')
-        .select('id', { count: 'exact', head: true })
-        .eq('restaurant_id', restaurantId)
+        .select('id, requests!inner(restaurant_id)', { count: 'exact', head: true })
+        .eq('requests.restaurant_id', restaurantId)
         .in('status', ['SENT', 'pending']),
 
-      // Accepted offers (last 30 days)
+      // Accepted offers (last 30 days) — join through requests to filter by restaurant
       adminClient
         .from('offers')
-        .select('id', { count: 'exact', head: true })
-        .eq('restaurant_id', restaurantId)
+        .select('id, requests!inner(restaurant_id)', { count: 'exact', head: true })
+        .eq('requests.restaurant_id', restaurantId)
         .in('status', ['ACCEPTED', 'accepted'])
         .gte('updated_at', thirtyDaysAgo.toISOString()),
 
@@ -92,18 +92,18 @@ export async function GET(request: NextRequest) {
         .in('status', ['DELIVERED', 'delivered'])
         .gte('updated_at', thirtyDaysAgo.toISOString()),
 
-      // Recent offers for activity feed
+      // Recent offers for activity feed — join through requests to filter by restaurant
       adminClient
         .from('offers')
         .select(`
           id,
-          title,
           status,
           created_at,
           updated_at,
-          suppliers!inner(namn)
+          suppliers!inner(namn),
+          requests!inner(restaurant_id)
         `)
-        .eq('restaurant_id', restaurantId)
+        .eq('requests.restaurant_id', restaurantId)
         .order('updated_at', { ascending: false })
         .limit(5),
 
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
     const recentActivity = (recentOffersResult.data || []).map((offer: any) => ({
       id: offer.id,
       type: 'offer' as const,
-      title: offer.title || 'Offert',
+      title: 'Offert',
       supplier: (offer.suppliers as any)?.namn || 'Leverantör',
       status: offer.status,
       timestamp: offer.updated_at || offer.created_at,
