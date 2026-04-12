@@ -11,10 +11,11 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Sidebar } from './Sidebar';
 import { RESTAURANT_NAVIGATION } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
+import type { NavSection } from '@/lib/navigation';
 import type { ActorContext } from '@/lib/actor-service';
 
 interface DashboardShellProps {
@@ -27,6 +28,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const [actor, setActor] = useState<ActorContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
+  const [pendingOffers, setPendingOffers] = useState(0);
 
   // Load collapsed state from localStorage
   useEffect(() => {
@@ -67,6 +69,25 @@ export function DashboardShell({ children }: DashboardShellProps) {
     fetchActor();
   }, []);
 
+  // Fetch pending offers count for badge
+  useEffect(() => {
+    async function fetchPendingOffers() {
+      try {
+        const response = await fetch('/api/restaurant/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setPendingOffers(data.pendingOffers || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch pending offers:', error);
+      }
+    }
+
+    if (!loading && actor) {
+      fetchPendingOffers();
+    }
+  }, [loading, actor]);
+
   // Show loading state while fetching actor
   if (loading) {
     return (
@@ -81,8 +102,18 @@ export function DashboardShell({ children }: DashboardShellProps) {
     );
   }
 
-  // Use restaurant navigation for dashboard
-  const navigationSections = RESTAURANT_NAVIGATION;
+  // Use restaurant navigation for dashboard, with badge counts injected
+  const navigationSections: NavSection[] = useMemo(() => {
+    return RESTAURANT_NAVIGATION.map((section) => ({
+      ...section,
+      items: section.items.map((item) => {
+        if (item.href === '/dashboard/offers' && pendingOffers > 0) {
+          return { ...item, badgeCount: pendingOffers };
+        }
+        return item;
+      }),
+    }));
+  }, [pendingOffers]);
 
   return (
     <div className="flex min-h-screen bg-background">

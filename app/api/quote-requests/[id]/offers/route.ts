@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
 import { sponsoredSlotsService } from '@/lib/sponsored-slots-service';
+import { notifyNewOffer } from '@/lib/notification-service';
 
 /**
  * POST /api/quote-requests/[id]/offers
@@ -328,7 +329,37 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
         .eq('id', assignment.id);
     }
 
-    // 9. Build response
+    // 9. Notify restaurant (fail-safe, non-blocking)
+    try {
+      // Fetch restaurant name and supplier name for the notification
+      const [restaurantResult, supplierNameResult, requestDetailResult] = await Promise.all([
+        adminClient.from('restaurants').select('name').eq('id', quoteRequest.restaurant_id).single(),
+        adminClient.from('suppliers').select('namn').eq('id', supplierId).single(),
+        adminClient.from('requests').select('fritext').eq('id', requestId).single(),
+      ]);
+
+      const restaurantName = restaurantResult.data?.name || 'Restaurang';
+      const supplierDisplayName = supplierNameResult.data?.namn || 'Leverantör';
+      const requestTitle = requestDetailResult.data?.fritext?.slice(0, 80) || 'Din förfrågan';
+
+      notifyNewOffer({
+        restaurantId: quoteRequest.restaurant_id,
+        restaurantName,
+        tenantId: tenantId!,
+        offerId: offer.id,
+        offerTitle: `Offert från ${supplierDisplayName}`,
+        supplierName: supplierDisplayName,
+        requestId,
+        requestTitle,
+        linesCount: lines.length,
+      }).catch((err) => {
+        console.error('Failed to send new offer notification:', err);
+      });
+    } catch (notifyErr) {
+      console.error('Failed to prepare new offer notification:', notifyErr);
+    }
+
+    // 10. Build response
     const responseLines = lines.map((line, index) => {
       const totalExVat = line.offeredPriceExVatSek * line.quantity;
       if (isFreetextOffer) {

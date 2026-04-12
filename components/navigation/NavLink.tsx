@@ -18,9 +18,10 @@ interface NavLinkProps {
   icon: LucideIcon;
   collapsed?: boolean;
   onClick?: () => void;
+  badgeCount?: number;
 }
 
-export function NavLink({ href, label, icon: Icon, collapsed = false, onClick }: NavLinkProps) {
+export function NavLink({ href, label, icon: Icon, collapsed = false, onClick, badgeCount }: NavLinkProps) {
   const pathname = usePathname();
 
   // Determine if this link is active
@@ -49,10 +50,23 @@ export function NavLink({ href, label, icon: Icon, collapsed = false, onClick }:
 
       {!collapsed && (
         <span className={cn(
-          'text-sm font-medium',
+          'text-sm font-medium flex-1',
           isActive ? 'text-primary-foreground' : 'text-foreground'
         )}>
           {label}
+        </span>
+      )}
+
+      {/* Badge count */}
+      {badgeCount != null && badgeCount > 0 && (
+        <span className={cn(
+          'inline-flex items-center justify-center text-xs font-semibold rounded-full min-w-[20px] h-5 px-1.5',
+          isActive
+            ? 'bg-white/20 text-primary-foreground'
+            : 'bg-primary/10 text-primary',
+          collapsed && 'absolute -top-1 -right-1 min-w-[18px] h-[18px] text-[10px] bg-primary text-primary-foreground'
+        )}>
+          {badgeCount > 99 ? '99+' : badgeCount}
         </span>
       )}
 

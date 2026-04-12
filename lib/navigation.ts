@@ -41,6 +41,7 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   roles?: string[]; // If not specified, available to all authenticated users
+  badgeCount?: number; // Optional badge count (e.g. pending offers)
 }
 
 export interface NavSection {

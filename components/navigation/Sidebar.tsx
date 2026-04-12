@@ -160,6 +160,7 @@ export function Sidebar({ sections, userEmail, userRoles, isAdmin = false, brand
                     icon={item.icon}
                     collapsed={collapsed}
                     onClick={handleNavClick}
+                    badgeCount={item.badgeCount}
                   />
                 ))}
               </div>
