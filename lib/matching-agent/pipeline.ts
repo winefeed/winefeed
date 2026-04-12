@@ -395,7 +395,7 @@ export async function runMatchingAgentPipeline(
 
   if (options.enablePreScoring) {
     const tScore = Date.now();
-    scoredWines = preScoreWines(wines, preferences, input.structuredFilters, options.preScoreTopN);
+    scoredWines = preScoreWines(wines, preferences, input.structuredFilters, options.preScoreTopN, input.fritext);
     timing.preScore = Date.now() - tScore;
     console.log(`[MatchingAgent] Pre-scored ${wines.length} → top ${scoredWines.length} in ${timing.preScore}ms`);
     console.log('[MatchingAgent] Top 3 scores:', scoredWines.slice(0, 3).map(sw => ({
@@ -408,7 +408,7 @@ export async function runMatchingAgentPipeline(
     scoredWines = wines.slice(0, options.preScoreTopN).map(wine => ({
       wine,
       score: 50,
-      breakdown: { price: 10, color: 10, region: 8, grape: 10, food: 7, styleMatch: 8, availability: 5, certification: 0, goldenPair: 0, cuisineMatch: 0 },
+      breakdown: { price: 10, color: 10, region: 8, grape: 10, food: 7, styleMatch: 8, availability: 5, certification: 0, goldenPair: 0, cuisineMatch: 0, nameMatch: 0 },
     }));
   }
 

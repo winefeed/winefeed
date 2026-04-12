@@ -1,13 +1,14 @@
 /**
  * Matching Agent — Deterministic Pre-Scorer
  *
- * Scores each wine 0-100 without AI, based on:
+ * Scores each wine 0-125 without AI, based on:
  * - Price proximity to budget (0-20)
  * - Color match (0-20)
  * - Region/country match (0-15)
  * - Grape match (0-20) — high weight because AI parser infers grapes from food+color context
  * - Food pairing compatibility (0-15)
  * - Availability/stock (0-10)
+ * - Name match (0-25) — boosts wines whose name/appellation/producer matches the search query
  *
  * Runs in <5ms for 100 wines. Sorts and returns top N for AI re-ranking.
  */
@@ -29,15 +30,21 @@ export function preScoreWines(
   preferences: MergedPreferences,
   structuredFilters: StructuredFilters,
   topN: number,
+  searchQuery?: string,
 ): ScoredWine[] {
   // Resolve cuisine profile once for all wines (not per-wine)
   const cuisineProfile = preferences.cuisineTypes.length > 0
     ? getMergedCuisineProfile(preferences.cuisineTypes)
     : null;
 
+  // Normalize search query once for name matching
+  const normalizedQuery = searchQuery
+    ? searchQuery.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+    : '';
+
   const scored: ScoredWine[] = wines.map(wine => {
-    const breakdown = scoreWine(wine, preferences, structuredFilters, cuisineProfile);
-    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch;
+    const breakdown = scoreWine(wine, preferences, structuredFilters, cuisineProfile, normalizedQuery);
+    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch + breakdown.nameMatch;
 
     // Get golden pair reason if applicable
     let goldenPairReason: string | undefined;
@@ -67,6 +74,7 @@ function scoreWine(
   prefs: MergedPreferences,
   filters: StructuredFilters,
   cuisineProfile: CuisineWineProfile | null,
+  normalizedQuery: string,
 ): ScoreBreakdown {
   return {
     price: scorePrice(wine, filters),
@@ -79,7 +87,44 @@ function scoreWine(
     certification: scoreCertification(wine, prefs),
     goldenPair: scoreGoldenPair(wine, prefs),
     cuisineMatch: scoreCuisineMatch(wine, cuisineProfile),
+    nameMatch: scoreNameMatch(wine, normalizedQuery),
   };
+}
+
+// ============================================================================
+// Name match scoring (0-25 bonus)
+// Boosts wines whose name, appellation, producer, or region matches the
+// search query. Accent-insensitive and case-insensitive.
+// ============================================================================
+
+function normalizeForMatch(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function scoreNameMatch(wine: SupplierWineRow, normalizedQuery: string): number {
+  if (!normalizedQuery || normalizedQuery.length < 2) return 0;
+
+  // Wine name contains query → strongest signal
+  if (wine.name && normalizeForMatch(wine.name).includes(normalizedQuery)) {
+    return 25;
+  }
+
+  // Appellation contains query (e.g. "Chablis" appellation)
+  if (wine.appellation && normalizeForMatch(wine.appellation).includes(normalizedQuery)) {
+    return 20;
+  }
+
+  // Producer contains query
+  if (wine.producer && normalizeForMatch(wine.producer).includes(normalizedQuery)) {
+    return 15;
+  }
+
+  // Region contains query (supplements existing region scoring)
+  if (wine.region && normalizeForMatch(wine.region).includes(normalizedQuery)) {
+    return 10;
+  }
+
+  return 0;
 }
 
 // ============================================================================

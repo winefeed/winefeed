@@ -56,6 +56,7 @@ export interface ScoreBreakdown {
   certification: number;  // 0-5 bonus
   goldenPair: number;     // 0-10 bonus — classic food+wine pairing match
   cuisineMatch: number;   // 0-8 bonus — restaurant cuisine affinity
+  nameMatch: number;      // 0-25 bonus — search query matches wine name/appellation/producer/region
 }
 
 /** A wine with its deterministic pre-score */
