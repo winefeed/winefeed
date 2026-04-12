@@ -164,7 +164,7 @@ export default function RestaurantOverview() {
   const currentStep = !hasRequests ? 1 : !hasOffers ? 2 : !hasOrders ? 3 : 0;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -257,7 +257,7 @@ export default function RestaurantOverview() {
                     key={offer.id}
                     className="px-4 py-3 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-gray-900 truncate">
@@ -271,7 +271,7 @@ export default function RestaurantOverview() {
                           Mottagen {formatDistanceToNow(new Date(offer.created_at), { addSuffix: false, locale: sv })} sedan
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0 mt-2 sm:mt-0">
                         <a
                           href={`/dashboard/offers/${offer.id}`}
                           className="px-3 py-1.5 bg-wine text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
@@ -287,7 +287,7 @@ export default function RestaurantOverview() {
                                 .catch(err => console.error('Failed to reject:', err));
                             }
                           }}
-                          className="px-3 py-1.5 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                          className="hidden sm:inline-flex px-3 py-1.5 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
                         >
                           Avfärda
                         </button>
@@ -477,17 +477,17 @@ function StatCard({ title, value, subtitle, icon: Icon, color, href, highlight, 
   return (
     <a
       href={href}
-      className={`block bg-white rounded-lg border p-5 transition-all hover:shadow-md ${
+      className={`block bg-white rounded-lg border p-3 sm:p-5 transition-all hover:shadow-md ${
         highlight ? 'border-amber-300 ring-2 ring-amber-100' : 'border-gray-200 hover:border-gray-300'
       }`}
     >
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
-          <Icon className="h-5 w-5" />
+      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+        <div className={`p-1.5 sm:p-2 rounded-lg ${colorClasses[color]}`}>
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
         </div>
-        <span className="text-sm font-medium text-gray-600">{title}</span>
+        <span className="text-xs sm:text-sm font-medium text-gray-600">{title}</span>
       </div>
-      <p className={`${isText ? 'text-2xl' : 'text-3xl'} font-bold text-gray-900`}>{value}</p>
+      <p className={`${isText ? 'text-lg sm:text-2xl' : 'text-2xl sm:text-3xl'} font-bold text-gray-900`}>{value}</p>
       <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
     </a>
   );

@@ -132,7 +132,7 @@ export default function RestaurantOffersPage() {
       <div className="p-6">
         <div className="animate-pulse">
           <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
-          <div className="grid grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="h-24 bg-muted rounded-lg"></div>
             ))}
@@ -166,18 +166,18 @@ export default function RestaurantOffersPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Inkommande offerter</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Inkommande offerter</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Granska och acceptera offerter från leverantörer
           </p>
         </div>
         <button
           onClick={fetchRequestsWithOffers}
-          className="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground hover:bg-accent rounded-lg transition-colors text-sm font-medium"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-card border border-border text-foreground hover:bg-accent rounded-lg transition-colors text-sm font-medium w-full sm:w-auto"
         >
           <RefreshCw className="h-4 w-4" />
           Uppdatera
@@ -238,7 +238,7 @@ export default function RestaurantOffersPage() {
       )}
 
       {/* Filters */}
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
         {[
           { key: 'all', label: 'Alla' },
           { key: 'new', label: 'Nya' },
@@ -248,7 +248,7 @@ export default function RestaurantOffersPage() {
           <button
             key={key}
             onClick={() => setFilter(key as any)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
               filter === key
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-card border border-border text-foreground hover:bg-accent'
@@ -289,7 +289,7 @@ export default function RestaurantOffersPage() {
             return (
               <div
                 key={req.id}
-                className={`bg-card border-2 rounded-xl p-6 hover:shadow-md transition-all cursor-pointer group ${
+                className={`bg-card border-2 rounded-xl p-4 sm:p-6 hover:shadow-md transition-all cursor-pointer group ${
                   status === 'has_new' ? 'border-blue-300 bg-blue-50/30' : 'border-border hover:border-primary/30'
                 }`}
                 onClick={() => router.push(`/dashboard/offers/${req.id}`)}
@@ -297,8 +297,8 @@ export default function RestaurantOffersPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     {/* Status badge */}
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${statusConfig.color}`}>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium border ${statusConfig.color}`}>
                         <StatusIcon className="h-3.5 w-3.5" />
                         {statusConfig.label}
                       </span>
@@ -310,12 +310,12 @@ export default function RestaurantOffersPage() {
                     </div>
 
                     {/* Request description */}
-                    <p className="text-foreground font-medium line-clamp-2 mb-3">
+                    <p className="text-foreground font-medium line-clamp-2 mb-3 text-sm sm:text-base">
                       {req.freetext || 'Ingen beskrivning'}
                     </p>
 
                     {/* Request details */}
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-muted-foreground">
                       {req.budget_sek && (
                         <span className="flex items-center gap-1">
                           <span className="font-medium text-foreground">{req.budget_sek}</span> kr/flaska
@@ -346,9 +346,9 @@ export default function RestaurantOffersPage() {
                   </div>
 
                   {/* Action arrow */}
-                  <div className="ml-4 flex items-center gap-2">
+                  <div className="ml-2 sm:ml-4 flex items-center gap-2">
                     {status !== 'waiting' && (
-                      <span className="text-sm font-medium text-primary group-hover:underline">
+                      <span className="hidden sm:inline text-sm font-medium text-primary group-hover:underline">
                         {status === 'accepted' ? 'Visa offert' : 'Granska offerter'}
                       </span>
                     )}

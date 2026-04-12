@@ -178,10 +178,10 @@ export default function RestaurantOrdersPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Mina ordrar</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Mina ordrar</h1>
         <p className="text-gray-500 mt-1">
           Följ dina beställningar och leveranser
         </p>
@@ -202,7 +202,7 @@ export default function RestaurantOrdersPage() {
         </div>
 
         {/* Status Filter */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           <FilterButton
             label="Alla"
             count={statusCounts.all}
@@ -266,13 +266,13 @@ export default function RestaurantOrdersPage() {
               className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors"
             >
               {/* Order Header */}
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <div className="px-4 py-3 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
+                  <div className="p-2 bg-gray-100 rounded-lg flex-shrink-0">
                     <Building2 className="h-5 w-5 text-gray-600" />
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 truncate">
                       {order.supplier?.namn || 'Leverantör'}
                     </p>
                     <p className="text-xs text-gray-500">
@@ -356,8 +356,8 @@ export default function RestaurantOrdersPage() {
               </div>
 
               {/* Order Footer */}
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-                <div className="flex items-center gap-2">
+              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {/* Reorder button - available for confirmed, shipped, or delivered orders */}
                   {['CONFIRMED', 'confirmed', 'SHIPPED', 'shipped', 'DELIVERED', 'delivered'].includes(order.status) && order.lines?.length > 0 && (
                     <button
@@ -451,7 +451,7 @@ function FilterButton({ label, count, active, onClick, highlight }: FilterButton
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
         active
           ? 'bg-wine text-white'
           : highlight
@@ -501,7 +501,7 @@ function OrderDetailModal({ order, onClose, formatCurrency, getStatusBadge }: Or
           </div>
 
           {/* Delivery Info */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500 mb-1">Leveransdatum</p>
               <p className="font-medium text-gray-900">
