@@ -77,6 +77,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const { searchParams } = new URL(req.url);
 
     const statusFilter = searchParams.get('status') || 'active';
+    const includeDismissed = searchParams.get('include_dismissed') === 'true';
+    const onlyDismissed = searchParams.get('only_dismissed') === 'true';
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -109,6 +111,16 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       .select('*')
       .eq('supplier_id', supplierId)
       .order('sent_at', { ascending: false });
+
+    // Filter by dismissed status
+    if (onlyDismissed) {
+      // Only show dismissed assignments
+      assignmentsQuery = assignmentsQuery.not('dismissed_at', 'is', null);
+    } else if (!includeDismissed) {
+      // Default: hide dismissed assignments
+      assignmentsQuery = assignmentsQuery.is('dismissed_at', null);
+    }
+    // If includeDismissed is true, no filter applied — show all
 
     // Filter by status
     if (statusFilter === 'active') {
@@ -274,6 +286,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
           respondedAt: assignment.responded_at,
           expiresAt: assignment.expires_at,
           isExpired,
+          dismissedAt: assignment.dismissed_at || null,
         },
         myOfferCount: myOfferMap.get(req.id) || 0,
         totalOfferCount: totalOfferMap.get(req.id) || 0,

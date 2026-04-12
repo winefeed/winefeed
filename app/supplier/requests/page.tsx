@@ -15,7 +15,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
-import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck, Send, AlertTriangle, CheckCircle, Check, XCircle } from 'lucide-react';
+import { Inbox, Clock, Building2, Wine, ChevronRight, AlertCircle, CheckSquare, Square, Zap, X, Truck, Send, AlertTriangle, CheckCircle, Check, XCircle, Archive, Undo2 } from 'lucide-react';
 import { ButtonSpinner } from '@/components/ui/spinner';
 import { RequestsListSkeleton, Skeleton } from '@/components/ui/skeleton';
 
@@ -148,6 +148,7 @@ interface QuoteRequest {
     respondedAt?: string;
     expiresAt: string;
     isExpired: boolean;
+    dismissedAt?: string | null;
   };
   myOfferCount: number;
   totalOfferCount: number;
@@ -159,7 +160,7 @@ export default function SupplierRequestsPage() {
   const router = useRouter();
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'responded'>('pending');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'responded' | 'dismissed'>('pending');
   const [urgencyFilter, setUrgencyFilter] = useState<'all' | 'critical' | 'urgent'>('all');
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'urgency' | 'date'>('urgency');
@@ -185,6 +186,10 @@ export default function SupplierRequestsPage() {
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [bulkResults, setBulkResults] = useState<Map<string, 'pending' | 'success' | 'error'>>(new Map());
 
+  // Dismissed requests state
+  const [dismissedRequests, setDismissedRequests] = useState<QuoteRequest[]>([]);
+  const [dismissingIds, setDismissingIds] = useState<Set<string>>(new Set());
+
   const fetchRequests = useCallback(async () => {
     try {
       // Get supplier context
@@ -196,13 +201,22 @@ export default function SupplierRequestsPage() {
       const supplierData = await supplierRes.json();
       setSupplierId(supplierData.supplierId);
 
-      // Fetch requests
+      // Fetch active requests (non-dismissed)
       const requestsRes = await fetch(
         `/api/suppliers/${supplierData.supplierId}/quote-requests?filter=${filter}`
       );
       if (requestsRes.ok) {
         const data = await requestsRes.json();
         setRequests(data.requests || []);
+      }
+
+      // Fetch dismissed requests
+      const dismissedRes = await fetch(
+        `/api/suppliers/${supplierData.supplierId}/quote-requests?only_dismissed=true`
+      );
+      if (dismissedRes.ok) {
+        const dismissedData = await dismissedRes.json();
+        setDismissedRequests(dismissedData.requests || []);
       }
     } catch (error) {
       console.error('Failed to fetch requests:', error);
@@ -241,6 +255,72 @@ export default function SupplierRequestsPage() {
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  // Dismiss a request (optimistic update)
+  const dismissRequest = async (requestId: string) => {
+    setDismissingIds(prev => new Set(prev).add(requestId));
+    try {
+      const res = await fetch(`/api/supplier/requests/${requestId}/dismiss`, {
+        method: 'PATCH',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        // Optimistic: move from active to dismissed
+        const dismissed = requests.find(r => r.id === requestId);
+        if (dismissed) {
+          setRequests(prev => prev.filter(r => r.id !== requestId));
+          setDismissedRequests(prev => [
+            { ...dismissed, assignment: { ...dismissed.assignment, dismissedAt: new Date().toISOString() } },
+            ...prev,
+          ]);
+        }
+        showToast('Förfrågan ignorerad');
+      } else {
+        showToast('Kunde inte ignorera förfrågan', 'error');
+      }
+    } catch {
+      showToast('Ett fel uppstod', 'error');
+    } finally {
+      setDismissingIds(prev => {
+        const next = new Set(prev);
+        next.delete(requestId);
+        return next;
+      });
+    }
+  };
+
+  // Undismiss a request (optimistic update)
+  const undismissRequest = async (requestId: string) => {
+    setDismissingIds(prev => new Set(prev).add(requestId));
+    try {
+      const res = await fetch(`/api/supplier/requests/${requestId}/undismiss`, {
+        method: 'PATCH',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        // Optimistic: move from dismissed back to active
+        const restored = dismissedRequests.find(r => r.id === requestId);
+        if (restored) {
+          setDismissedRequests(prev => prev.filter(r => r.id !== requestId));
+          setRequests(prev => [
+            { ...restored, assignment: { ...restored.assignment, dismissedAt: null } },
+            ...prev,
+          ]);
+        }
+        showToast('Förfrågan återställd');
+      } else {
+        showToast('Kunde inte återställa förfrågan', 'error');
+      }
+    } catch {
+      showToast('Ett fel uppstod', 'error');
+    } finally {
+      setDismissingIds(prev => {
+        const next = new Set(prev);
+        next.delete(requestId);
+        return next;
+      });
+    }
   };
 
   // Quick respond handler
@@ -437,6 +517,7 @@ export default function SupplierRequestsPage() {
 
   const pendingCount = requests.filter((r) => r.myOfferCount === 0).length;
   const respondedCount = requests.filter((r) => r.myOfferCount > 0).length;
+  const dismissedCount = dismissedRequests.length;
 
   if (loading) {
     return (
@@ -597,6 +678,21 @@ export default function SupplierRequestsPage() {
           >
             Alla
           </button>
+          <button
+            onClick={() => { setFilter('dismissed'); setUrgencyFilter('all'); }}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'dismissed'
+                ? 'bg-primary text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Ignorerade
+            {dismissedCount > 0 && (
+              <span className="ml-2 px-1.5 py-0.5 rounded-full bg-white/20 text-xs">
+                {dismissedCount}
+              </span>
+            )}
+          </button>
 
           {/* Active urgency filter indicator */}
           {urgencyFilter !== 'all' && (
@@ -628,8 +724,77 @@ export default function SupplierRequestsPage() {
         </div>
       </div>
 
+      {/* Dismissed Requests List */}
+      {filter === 'dismissed' ? (
+        dismissedRequests.length > 0 ? (
+          <div className="space-y-3">
+            {dismissedRequests.map((request) => (
+              <div
+                key={request.id}
+                className="bg-white rounded-lg border border-gray-200 p-4 opacity-75"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-1">
+                    {/* Restaurant */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <Building2 className="h-4 w-4 text-gray-400" />
+                      <span className="font-medium text-gray-700">
+                        {request.restaurantName}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
+                        Ignorerad
+                      </span>
+                    </div>
+
+                    {/* Request info */}
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Wine className="h-4 w-4 text-gray-400" />
+                        <span className="line-clamp-1">{request.fritext}</span>
+                      </div>
+                      {request.antalFlaskor && (
+                        <>
+                          <span>•</span>
+                          <span>{request.antalFlaskor} flaskor</span>
+                        </>
+                      )}
+                      {request.budgetPerFlaska && (
+                        <>
+                          <span>•</span>
+                          <span>{request.budgetPerFlaska} kr/fl</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Undo button */}
+                  <button
+                    onClick={() => undismissRequest(request.id)}
+                    disabled={dismissingIds.has(request.id)}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    <Undo2 className="h-3.5 w-3.5" />
+                    Ångra
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <Archive className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Inga ignorerade förfrågningar
+            </h3>
+            <p className="text-gray-500">
+              Förfrågningar du ignorerar hamnar här. Du kan alltid ångra.
+            </p>
+          </div>
+        )
+      ) : null}
+
       {/* Request List */}
-      {sortedRequests.length > 0 ? (
+      {filter !== 'dismissed' && sortedRequests.length > 0 ? (
         <div className="space-y-3">
           {sortedRequests.map((request) => {
             const deadlineInfo = getDeadlineInfo(request.assignment.expiresAt, request.assignment.isExpired);
@@ -767,6 +932,19 @@ export default function SupplierRequestsPage() {
                         </span>
                       ) : (
                         <>
+                          {/* Dismiss Button */}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              dismissRequest(request.id);
+                            }}
+                            disabled={dismissingIds.has(request.id)}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="Ignorera förfrågan"
+                          >
+                            <Archive className="h-4 w-4" />
+                          </button>
                           {/* Quick Respond Button */}
                           <button
                             onClick={(e) => {
@@ -791,7 +969,7 @@ export default function SupplierRequestsPage() {
           );
           })}
         </div>
-      ) : (
+      ) : filter !== 'dismissed' ? (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
           <Inbox className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -807,7 +985,7 @@ export default function SupplierRequestsPage() {
               : 'Förfrågningar från restauranger kommer att visas här.'}
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* Success indicator when all urgent are handled */}
       {requests.length > 0 && pendingCount === 0 && filter === 'pending' && (
