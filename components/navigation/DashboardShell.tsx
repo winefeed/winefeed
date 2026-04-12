@@ -88,6 +88,20 @@ export function DashboardShell({ children }: DashboardShellProps) {
     }
   }, [loading, actor]);
 
+  // Use restaurant navigation for dashboard, with badge counts injected
+  // Must be before any early returns to satisfy Rules of Hooks
+  const navigationSections: NavSection[] = useMemo(() => {
+    return RESTAURANT_NAVIGATION.map((section) => ({
+      ...section,
+      items: section.items.map((item) => {
+        if (item.href === '/dashboard/offers' && pendingOffers > 0) {
+          return { ...item, badgeCount: pendingOffers };
+        }
+        return item;
+      }),
+    }));
+  }, [pendingOffers]);
+
   // Show loading state while fetching actor
   if (loading) {
     return (
@@ -101,19 +115,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
       </div>
     );
   }
-
-  // Use restaurant navigation for dashboard, with badge counts injected
-  const navigationSections: NavSection[] = useMemo(() => {
-    return RESTAURANT_NAVIGATION.map((section) => ({
-      ...section,
-      items: section.items.map((item) => {
-        if (item.href === '/dashboard/offers' && pendingOffers > 0) {
-          return { ...item, badgeCount: pendingOffers };
-        }
-        return item;
-      }),
-    }));
-  }, [pendingOffers]);
 
   return (
     <div className="flex min-h-screen bg-background">
