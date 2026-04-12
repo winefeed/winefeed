@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
 
     const stats = {
       success: emailResult.success,
+      error: emailResult.error || null,
       recipient: DIGEST_RECIPIENT,
       newOrders: digestData.newOrders.length,
       newOffers: digestData.newOffers.length,
