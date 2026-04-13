@@ -244,7 +244,7 @@ export function OpenRequestResponse({ requestId, supplierId, restaurantName, ope
           {openCriteria.biodynamic && <span className="px-3 py-1 rounded-full bg-white/20">Biodynamiskt</span>}
         </div>
         {openCriteria.free_text && (
-          <p className="mt-3 text-sm text-white/90 italic">"{openCriteria.free_text}"</p>
+          <p className="mt-3 text-sm text-white/90 italic">&ldquo;{openCriteria.free_text}&rdquo;</p>
         )}
       </div>
 
