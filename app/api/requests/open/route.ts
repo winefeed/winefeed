@@ -32,73 +32,48 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
 import { sendEmail } from '@/lib/email-service';
 import { openRequestReviewNotificationEmail } from '@/lib/email-templates';
 import { describeOpenCriteria, openCriteriaBadges } from '@/lib/matching-agent/open-request-fanout';
 
-interface OpenCriteria {
-  color?: string;
-  appellation?: string;
-  region?: string;
-  country?: string;
-  grape?: string;
-  max_price_ex_vat_sek?: number;
-  min_bottles?: number;
-  vintage_from?: number;
-  organic?: boolean;
-  biodynamic?: boolean;
-  free_text?: string;
-}
+const trimmedString = (max: number) =>
+  z
+    .string()
+    .transform(s => s.trim())
+    .pipe(z.string().min(1).max(max));
 
-const ALLOWED_COLORS = ['red', 'white', 'rose', 'sparkling', 'orange', 'fortified'];
+const coercedInt = (field: string) =>
+  z
+    .union([z.number(), z.string()])
+    .transform(v => Number(v))
+    .pipe(z.number().int().nonnegative({ message: `${field} must be a non-negative integer` }));
 
-function validateCriteria(c: unknown): { ok: true; criteria: OpenCriteria } | { ok: false; error: string } {
-  if (!c || typeof c !== 'object') {
-    return { ok: false, error: 'criteria must be an object' };
-  }
-  const raw = c as Record<string, unknown>;
-  const out: OpenCriteria = {};
+const CriteriaSchema = z
+  .object({
+    color: z.enum(['red', 'white', 'rose', 'sparkling', 'orange', 'fortified']).optional(),
+    appellation: trimmedString(200).optional(),
+    region: trimmedString(200).optional(),
+    country: trimmedString(200).optional(),
+    grape: trimmedString(200).optional(),
+    max_price_ex_vat_sek: coercedInt('max_price_ex_vat_sek').optional(),
+    min_bottles: coercedInt('min_bottles').optional(),
+    vintage_from: coercedInt('vintage_from').optional(),
+    organic: z.boolean().optional(),
+    biodynamic: z.boolean().optional(),
+    free_text: trimmedString(500).optional(),
+  })
+  .strict()
+  .refine(
+    c => !!(c.color || c.appellation || c.region || c.country || c.grape),
+    { message: 'At least one of color, appellation, region, country, or grape is required' }
+  );
 
-  if (raw.color !== undefined && raw.color !== null && raw.color !== '') {
-    if (typeof raw.color !== 'string' || !ALLOWED_COLORS.includes(raw.color)) {
-      return { ok: false, error: `color must be one of: ${ALLOWED_COLORS.join(', ')}` };
-    }
-    out.color = raw.color;
-  }
+type OpenCriteria = z.infer<typeof CriteriaSchema>;
 
-  for (const key of ['appellation', 'region', 'country', 'grape', 'free_text'] as const) {
-    if (raw[key] !== undefined && raw[key] !== null && raw[key] !== '') {
-      if (typeof raw[key] !== 'string') return { ok: false, error: `${key} must be a string` };
-      const trimmed = (raw[key] as string).trim();
-      if (trimmed.length > 200) return { ok: false, error: `${key} too long` };
-      if (trimmed) out[key] = trimmed;
-    }
-  }
-
-  for (const key of ['max_price_ex_vat_sek', 'min_bottles', 'vintage_from'] as const) {
-    if (raw[key] !== undefined && raw[key] !== null && raw[key] !== '') {
-      const n = Number(raw[key]);
-      if (!Number.isFinite(n) || n < 0) return { ok: false, error: `${key} must be a non-negative number` };
-      out[key] = Math.floor(n);
-    }
-  }
-
-  for (const key of ['organic', 'biodynamic'] as const) {
-    if (raw[key] !== undefined && raw[key] !== null) {
-      out[key] = Boolean(raw[key]);
-    }
-  }
-
-  // Must have at least one matchable criterion so fan-out isn't a blind broadcast
-  const hasMatchable = !!(out.color || out.appellation || out.region || out.country || out.grape);
-  if (!hasMatchable) {
-    return { ok: false, error: 'At least one of color, appellation, region, country, or grape is required' };
-  }
-
-  return { ok: true, criteria: out };
-}
+const BodySchema = z.object({ criteria: CriteriaSchema });
 
 
 export async function POST(request: NextRequest) {
@@ -121,16 +96,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No restaurant associated with this user' }, { status: 400 });
     }
 
-    const body = await request.json().catch(() => null);
-    if (!body || typeof body !== 'object') {
+    const rawBody = await request.json().catch(() => null);
+    if (!rawBody || typeof rawBody !== 'object') {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    const validation = validateCriteria(body.criteria);
-    if (!validation.ok) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+    const parsed = BodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: first?.message || 'Invalid criteria', issues: parsed.error.issues },
+        { status: 400 }
+      );
     }
-    const criteria = validation.criteria;
+    const criteria = parsed.data.criteria;
 
     const { adminClient } = await createRouteClients();
 

@@ -90,8 +90,12 @@ function getAdmin() {
 }
 
 function escapeOr(s: string): string {
-  // supabase-js .or() uses comma as separator; strip chars that would break the filter
-  return s.replace(/[,()]/g, '').trim();
+  // Defense-in-depth for values interpolated into PostgREST filter strings:
+  // - strip comma + parens (those are .or() / filter separators)
+  // - strip % and * (prevent broadening ILIKE patterns beyond intent)
+  // - strip colon (PostgREST filter-op separator)
+  // - hard-cap at 100 chars so a pathological long value can't blow up the URL
+  return s.replace(/[,()%*:]/g, '').trim().slice(0, 100);
 }
 
 /**
