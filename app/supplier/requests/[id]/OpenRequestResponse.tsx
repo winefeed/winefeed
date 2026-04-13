@@ -88,6 +88,14 @@ function describeCriteria(c: OpenCriteria): string {
   return parts.join(' · ') || 'Öppen förfrågan';
 }
 
+// When supplier toggles "show full catalogue", we still respect the
+// hard color filter — going from 5 wines to 200 wines mixed colors
+// is overwhelming and most proposals stay color-correct anyway.
+function matchesCriteriaRelaxed(wine: SupplierWine, c: OpenCriteria): boolean {
+  if (c.color && wine.color !== c.color) return false;
+  return true;
+}
+
 interface LineState {
   supplierWineId: string;
   included: boolean;
@@ -120,12 +128,25 @@ export function OpenRequestResponse({ requestId, supplierId, restaurantName, ope
         const list: SupplierWine[] = data.wines || data.data || [];
         if (cancelled) return;
         setWines(list);
+
+        // Restore draft from localStorage if present so the supplier
+        // doesn't lose work when they close the tab mid-edit.
+        const draftKey = `open-offer-draft-${requestId}`;
+        let draft: Record<string, LineState> | null = null;
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem(draftKey);
+            if (raw) draft = JSON.parse(raw);
+          } catch {}
+        }
+
         const initial = new Map<string, LineState>();
         for (const w of list) {
-          initial.set(w.id, {
+          const fromDraft = draft?.[w.id];
+          initial.set(w.id, fromDraft || {
             supplierWineId: w.id,
             included: false,
-            price: w.price_ex_vat_sek ? String(Math.round(w.price_ex_vat_sek / 100)) : '',
+            price: '',
             quantity: String(openCriteria.min_bottles || 12),
           });
         }
@@ -138,10 +159,24 @@ export function OpenRequestResponse({ requestId, supplierId, restaurantName, ope
     }
     load();
     return () => { cancelled = true; };
-  }, [supplierId, openCriteria.min_bottles]);
+  }, [supplierId, openCriteria.min_bottles, requestId]);
+
+  // Persist draft on every line change
+  useEffect(() => {
+    if (loading) return;
+    if (lines.size === 0) return;
+    const draftKey = `open-offer-draft-${requestId}`;
+    try {
+      const obj = Object.fromEntries(lines.entries());
+      localStorage.setItem(draftKey, JSON.stringify(obj));
+    } catch {}
+  }, [lines, requestId, loading]);
 
   const matching = useMemo(() => wines.filter(w => matchesCriteria(w, openCriteria)), [wines, openCriteria]);
-  const shown = showAll ? wines : matching;
+  // Relaxed list when supplier wants to see more — keeps color filter
+  // so they don't drown in irrelevant wines.
+  const relaxed = useMemo(() => wines.filter(w => matchesCriteriaRelaxed(w, openCriteria)), [wines, openCriteria]);
+  const shown = showAll ? relaxed : matching;
 
   function updateLine(id: string, patch: Partial<LineState>) {
     setLines(prev => {
@@ -152,10 +187,34 @@ export function OpenRequestResponse({ requestId, supplierId, restaurantName, ope
     });
   }
 
+  // Effective price = supplier's typed price if set, otherwise catalog price
+  // (öre → kr). Lets supplier check a wine and ship the offer at catalog
+  // price without re-typing.
+  const wineMap = useMemo(() => new Map(wines.map(w => [w.id, w])), [wines]);
+  function effectivePrice(line: LineState): number {
+    if (line.price) return parseFloat(line.price) || 0;
+    const w = wineMap.get(line.supplierWineId);
+    return w?.price_ex_vat_sek ? Math.round(w.price_ex_vat_sek / 100) : 0;
+  }
+
   const includedLines = useMemo(
-    () => [...lines.values()].filter(l => l.included && l.price && l.quantity),
-    [lines]
+    () => [...lines.values()].filter(l => {
+      if (!l.included || !l.quantity) return false;
+      return effectivePrice(l) > 0;
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lines, wineMap]
   );
+
+  const totals = useMemo(() => {
+    const bottles = includedLines.reduce((s, l) => s + (parseInt(l.quantity) || 0), 0);
+    const value = includedLines.reduce(
+      (s, l) => s + effectivePrice(l) * (parseInt(l.quantity) || 0),
+      0
+    );
+    return { bottles, value };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [includedLines]);
 
   async function handleSubmit() {
     if (includedLines.length === 0) {
@@ -186,13 +245,15 @@ export function OpenRequestResponse({ requestId, supplierId, restaurantName, ope
           shipping_notes: null,
           lines: includedLines.map(l => ({
             supplierWineId: l.supplierWineId,
-            offeredPriceExVatSek: parseFloat(l.price),
+            offeredPriceExVatSek: effectivePrice(l),
             quantity: parseInt(l.quantity),
           })),
         }),
       });
 
       if (res.ok) {
+        // Clear draft now that the offer is in
+        try { localStorage.removeItem(`open-offer-draft-${requestId}`); } catch {}
         router.push('/supplier/offers?success=true');
       } else {
         const data = await res.json();
@@ -218,7 +279,7 @@ export function OpenRequestResponse({ requestId, supplierId, restaurantName, ope
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 pb-32 max-w-4xl mx-auto">
       <div className="bg-gradient-to-br from-[#93092b] to-[#b41a42] rounded-2xl p-6 text-white mb-6 shadow-lg">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -323,10 +384,11 @@ export function OpenRequestResponse({ requestId, supplierId, restaurantName, ope
                             type="number"
                             value={line.price}
                             onChange={e => updateLine(wine.id, { price: e.target.value })}
-                            placeholder="Pris"
+                            placeholder={wine.price_ex_vat_sek ? String(Math.round(wine.price_ex_vat_sek / 100)) : 'Pris'}
+                            title="Lämna tomt = ditt katalogpris. Sänkt pris ger bättre konkurrens."
                             className="w-20 px-2 py-1 border border-slate-200 rounded text-sm"
                           />
-                          <div className="text-xs text-slate-400 text-center">kr/fl</div>
+                          <div className="text-xs text-slate-400 text-center">kr/fl ex moms</div>
                         </div>
                         <div>
                           <input
@@ -392,6 +454,41 @@ export function OpenRequestResponse({ requestId, supplierId, restaurantName, ope
           ? 'Välj minst ett vin'
           : `Skicka offert (${includedLines.length} ${includedLines.length === 1 ? 'vin' : 'viner'})`}
       </button>
+
+      {/* Sticky totals bar — gives the supplier the one number they
+          actually care about (total ex moms) without scrolling back up
+          to do mental math. Hidden when nothing is selected. */}
+      {includedLines.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40">
+          <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-baseline gap-4 text-sm">
+              <div>
+                <span className="text-slate-500">Valda viner: </span>
+                <span className="font-semibold text-slate-900">{includedLines.length}</span>
+              </div>
+              <div>
+                <span className="text-slate-500">Flaskor: </span>
+                <span className="font-semibold text-slate-900">{totals.bottles}</span>
+              </div>
+              <div>
+                <span className="text-slate-500">Totalt: </span>
+                <span className="font-semibold text-[#93092b] text-base">
+                  {totals.value.toLocaleString('sv-SE')} kr
+                </span>
+                <span className="text-xs text-slate-400 ml-1">ex moms</span>
+              </div>
+            </div>
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="px-5 py-2 rounded-lg text-white font-medium text-sm disabled:opacity-50"
+              style={{ background: '#93092b' }}
+            >
+              {submitting ? 'Skickar...' : 'Skicka offert'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

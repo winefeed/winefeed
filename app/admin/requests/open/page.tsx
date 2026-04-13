@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { openCriteriaBadges, type OpenCriteria } from '@/lib/matching-agent/open-request-fanout';
 
 interface OpenRequest {
   id: string;
@@ -14,6 +15,13 @@ interface OpenRequest {
   restaurant: { id: string; name: string; city: string | null } | null;
 }
 
+interface PreviewSupplier {
+  supplier_id: string;
+  name: string;
+  email: string | null;
+  match_count: number;
+}
+
 const STATUS_TABS: Array<{ key: string; label: string }> = [
   { key: 'PENDING_REVIEW', label: 'Väntar granskning' },
   { key: 'OPEN', label: 'Godkända' },
@@ -22,11 +30,13 @@ const STATUS_TABS: Array<{ key: string; label: string }> = [
 
 export default function AdminOpenRequestsPage() {
   const [requests, setRequests] = useState<OpenRequest[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [status, setStatus] = useState('PENDING_REVIEW');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState<{ id: string; suppliers: PreviewSupplier[]; total: number } | null>(null);
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
@@ -43,13 +53,52 @@ export default function AdminOpenRequestsPage() {
     }
   }, [status]);
 
+  const fetchCounts = useCallback(async () => {
+    const results = await Promise.all(
+      STATUS_TABS.map(async tab => {
+        try {
+          const r = await fetch(`/api/admin/requests/open?status=${tab.key}`);
+          if (!r.ok) return [tab.key, 0] as const;
+          const d = await r.json();
+          return [tab.key, (d.requests || []).length] as const;
+        } catch {
+          return [tab.key, 0] as const;
+        }
+      })
+    );
+    setCounts(Object.fromEntries(results));
+  }, []);
+
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
 
-  async function handleApprove(id: string) {
-    if (!confirm('Godkänn och skicka ut till matchande leverantörer?')) return;
+  useEffect(() => {
+    fetchCounts();
+  }, [fetchCounts, requests]);
+
+  async function openPreview(id: string) {
+    setPreviewing({ id, suppliers: [], total: 0 });
+    try {
+      const res = await fetch(`/api/admin/requests/${id}/preview`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Kunde inte ladda preview');
+        setPreviewing(null);
+        return;
+      }
+      setPreviewing({ id, suppliers: data.suppliers || [], total: data.total_matching_wines || 0 });
+    } catch (err: any) {
+      setError(err.message);
+      setPreviewing(null);
+    }
+  }
+
+  async function confirmApprove() {
+    if (!previewing) return;
+    const id = previewing.id;
     setActioningId(id);
+    setPreviewing(null);
     try {
       const res = await fetch(`/api/admin/requests/${id}/approve`, { method: 'POST' });
       const data = await res.json();
@@ -58,7 +107,7 @@ export default function AdminOpenRequestsPage() {
         return;
       }
       setFlash(
-        `Godkänd — skickad till ${data.fanout.assignments_created} leverantör(er) (${data.fanout.total_matching_wines} matchande viner)`
+        `Godkänd — skickad till ${data.fanout.assignments_created} leverantör(er) (${data.fanout.total_matching_wines} matchande viner, ${data.emails_sent || 0} mail)`
       );
       await fetchRequests();
     } finally {
@@ -91,19 +140,28 @@ export default function AdminOpenRequestsPage() {
       </p>
 
       <div className="flex gap-2 mb-6 border-b border-slate-200">
-        {STATUS_TABS.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setStatus(tab.key)}
-            className={`px-4 py-2 text-sm font-medium -mb-px border-b-2 transition-colors ${
-              status === tab.key
-                ? 'border-[#93092b] text-[#93092b]'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {STATUS_TABS.map(tab => {
+          const count = counts[tab.key];
+          const active = status === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setStatus(tab.key)}
+              className={`px-4 py-2 text-sm font-medium -mb-px border-b-2 transition-colors flex items-center gap-2 ${
+                active
+                  ? 'border-[#93092b] text-[#93092b]'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {tab.label}
+              {count !== undefined && count > 0 && (
+                <span className={`px-1.5 py-0.5 rounded-full text-xs font-semibold ${active ? 'bg-[#93092b] text-white' : 'bg-slate-200 text-slate-700'}`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {flash && (
@@ -147,24 +205,76 @@ export default function AdminOpenRequestsPage() {
                       Avvisa
                     </button>
                     <button
-                      onClick={() => handleApprove(req.id)}
+                      onClick={() => openPreview(req.id)}
                       disabled={actioningId === req.id}
                       className="px-4 py-1.5 text-sm rounded-lg text-white font-medium disabled:opacity-50"
                       style={{ background: '#93092b' }}
                     >
-                      {actioningId === req.id ? 'Arbetar...' : 'Godkänn & skicka'}
+                      {actioningId === req.id ? 'Arbetar...' : 'Granska & skicka'}
                     </button>
                   </div>
                 )}
               </div>
-              <div className="text-slate-800 mb-3">{req.fritext}</div>
               {req.open_criteria && (
-                <pre className="text-xs bg-slate-50 rounded p-3 overflow-x-auto text-slate-600">
-                  {JSON.stringify(req.open_criteria, null, 2)}
-                </pre>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {openCriteriaBadges(req.open_criteria as OpenCriteria).map((b, i) => (
+                    <span key={i} className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#93092b]/10 text-[#93092b] border border-[#93092b]/20">
+                      {b}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {req.open_criteria && typeof (req.open_criteria as OpenCriteria).free_text === 'string' && (
+                <p className="text-sm text-slate-700 italic mt-2">&ldquo;{(req.open_criteria as OpenCriteria).free_text}&rdquo;</p>
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {previewing && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setPreviewing(null)}>
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-2">Granska innan utskick</h2>
+              {previewing.suppliers.length === 0 ? (
+                <p className="text-sm text-slate-500 py-8 text-center">Laddar matchande leverantörer...</p>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-600 mb-4">
+                    <strong>{previewing.suppliers.length}</strong> leverantör(er) får denna förfrågan via mail · totalt <strong>{previewing.total}</strong> matchande viner i deras kataloger
+                  </p>
+                  <div className="space-y-2 mb-6 max-h-80 overflow-y-auto">
+                    {previewing.suppliers.map(s => (
+                      <div key={s.supplier_id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 text-sm">
+                        <div>
+                          <div className="font-medium text-slate-900">{s.name}</div>
+                          {s.email && <div className="text-xs text-slate-500">{s.email}</div>}
+                        </div>
+                        <span className="text-xs text-slate-500">{s.match_count} viner</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setPreviewing(null)}
+                  className="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                >
+                  Avbryt
+                </button>
+                <button
+                  onClick={confirmApprove}
+                  disabled={previewing.suppliers.length === 0}
+                  className="px-4 py-2 text-sm rounded-lg text-white font-medium disabled:opacity-50"
+                  style={{ background: '#93092b' }}
+                >
+                  Skicka till {previewing.suppliers.length} leverantör(er)
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

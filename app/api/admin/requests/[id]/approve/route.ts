@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
-import { assignOpenRequest, type OpenCriteria } from '@/lib/matching-agent/open-request-fanout';
+import { assignOpenRequest, describeOpenCriteria, type OpenCriteria } from '@/lib/matching-agent/open-request-fanout';
 import { sendEmail, getSupplierEmail } from '@/lib/email-service';
 import { newQuoteRequestEmail } from '@/lib/email-templates';
 
@@ -21,26 +21,6 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-function describeOpenCriteria(c: OpenCriteria): string {
-  const parts: string[] = [];
-  const colorLabel: Record<string, string> = {
-    red: 'rött', white: 'vitt', rose: 'rosé',
-    sparkling: 'mousserande', orange: 'orange', fortified: 'starkvin',
-  };
-  if (c.color) parts.push(colorLabel[c.color] || c.color);
-  if (c.appellation) parts.push(c.appellation);
-  else if (c.region) parts.push(c.region);
-  if (c.country && !c.appellation && !c.region) parts.push(c.country);
-  if (c.grape) parts.push(c.grape);
-  const base = parts.join(', ') || 'Kategoriförfrågan';
-  const extras: string[] = [];
-  if (c.max_price_ex_vat_sek) extras.push(`max ${c.max_price_ex_vat_sek} kr/fl`);
-  if (c.min_bottles) extras.push(`min ${c.min_bottles} fl`);
-  if (c.vintage_from) extras.push(`årgång ${c.vintage_from}+`);
-  if (c.organic) extras.push('ekologiskt');
-  if (c.biodynamic) extras.push('biodynamiskt');
-  return extras.length ? `${base} (${extras.join(', ')})` : base;
-}
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;

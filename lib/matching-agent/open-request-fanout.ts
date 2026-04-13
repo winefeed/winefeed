@@ -25,6 +25,53 @@ export interface OpenCriteria {
   free_text?: string;
 }
 
+const COLOR_LABEL_SV: Record<string, string> = {
+  red: 'rött', white: 'vitt', rose: 'rosé',
+  sparkling: 'mousserande', orange: 'orange', fortified: 'starkvin',
+};
+
+/**
+ * Render an OpenCriteria as a short Swedish summary line — the same
+ * phrasing every surface (admin queue, fan-out fritext, supplier email)
+ * uses, so the user sees identical wording from creation through delivery.
+ */
+export function describeOpenCriteria(c: OpenCriteria): string {
+  const parts: string[] = [];
+  if (c.color) parts.push(COLOR_LABEL_SV[c.color] || c.color);
+  if (c.appellation) parts.push(c.appellation);
+  else if (c.region) parts.push(c.region);
+  if (c.country && !c.appellation && !c.region) parts.push(c.country);
+  if (c.grape) parts.push(c.grape);
+  const base = parts.join(', ') || 'Kategoriförfrågan';
+  const extras: string[] = [];
+  if (c.max_price_ex_vat_sek) extras.push(`max ${c.max_price_ex_vat_sek} kr/fl`);
+  if (c.min_bottles) extras.push(`min ${c.min_bottles} fl`);
+  if (c.vintage_from) extras.push(`årgång ${c.vintage_from}+`);
+  if (c.organic) extras.push('ekologiskt');
+  if (c.biodynamic) extras.push('biodynamiskt');
+  return extras.length ? `${base} (${extras.join(', ')})` : base;
+}
+
+/**
+ * Render an OpenCriteria as a list of badge labels — for UI surfaces
+ * (admin review, supplier detail header) that want chips instead of
+ * a single sentence.
+ */
+export function openCriteriaBadges(c: OpenCriteria): string[] {
+  const badges: string[] = [];
+  if (c.color) badges.push(COLOR_LABEL_SV[c.color] || c.color);
+  if (c.appellation) badges.push(c.appellation);
+  if (c.region && !c.appellation) badges.push(c.region);
+  if (c.country && !c.appellation && !c.region) badges.push(c.country);
+  if (c.grape) badges.push(c.grape);
+  if (c.max_price_ex_vat_sek) badges.push(`max ${c.max_price_ex_vat_sek} kr/fl`);
+  if (c.min_bottles) badges.push(`min ${c.min_bottles} fl`);
+  if (c.vintage_from) badges.push(`årgång ${c.vintage_from}+`);
+  if (c.organic) badges.push('ekologiskt');
+  if (c.biodynamic) badges.push('biodynamiskt');
+  return badges;
+}
+
 export interface FanoutResult {
   suppliers_matched: number;
   assignments_created: number;
