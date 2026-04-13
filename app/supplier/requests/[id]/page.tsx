@@ -27,6 +27,7 @@ import {
   FileText,
   Shield,
 } from 'lucide-react';
+import { OpenRequestResponse } from './OpenRequestResponse';
 
 interface RequestItem {
   id: string;
@@ -46,6 +47,8 @@ interface RequestItem {
 
 interface QuoteRequest {
   id: string;
+  requestType?: 'targeted' | 'open';
+  openCriteria?: Record<string, unknown> | null;
   restaurantId: string;
   restaurantName: string;
   restaurantOrgNumber?: string | null;
@@ -327,6 +330,20 @@ export default function SupplierRequestDetailPage({
           </button>
         </div>
       </div>
+    );
+  }
+
+  // Branch: open (broadcast) requests have no SKU items — supplier picks
+  // from their own catalogue. Render the dedicated component instead.
+  if (request.requestType === 'open' && supplierId) {
+    return (
+      <OpenRequestResponse
+        requestId={request.id}
+        supplierId={supplierId}
+        restaurantName={request.restaurantName}
+        openCriteria={(request.openCriteria || {}) as any}
+        alreadyResponded={request.myOfferCount > 0}
+      />
     );
   }
 

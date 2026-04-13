@@ -180,7 +180,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     const { data: requests, error: requestsError } = await adminClient
       .from('requests')
-      .select('*')
+      .select('*, request_type, open_criteria')
       .in('id', quoteRequestIds);
 
     if (requestsError) {
@@ -260,6 +260,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
       return {
         id: req.id,
+        requestType: req.request_type || 'targeted',
+        openCriteria: req.open_criteria || null,
         restaurantId: req.restaurant_id,
         restaurantName: rest?.name || 'Okänd restaurang',
         // Rich restaurant profile (non-sensitive fields only)

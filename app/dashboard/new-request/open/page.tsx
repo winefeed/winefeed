@@ -14,6 +14,53 @@ const COLOR_OPTIONS = [
   { value: 'fortified', label: 'Starkvin' },
 ];
 
+interface Suggestion {
+  label: string;
+  color?: string;
+  appellation?: string;
+  country?: string;
+  grape?: string;
+  maxPrice?: string;
+  minBottles?: string;
+  organic?: boolean;
+  biodynamic?: boolean;
+  freeText?: string;
+}
+
+const SUGGESTIONS: Suggestion[] = [
+  {
+    label: 'Ekologisk Pinot Noir, 90 fl, max 130 kr',
+    color: 'red',
+    grape: 'Pinot Noir',
+    minBottles: '90',
+    maxPrice: '130',
+    organic: true,
+  },
+  {
+    label: 'Biodynamisk Riesling, keykeg 20L',
+    color: 'white',
+    grape: 'Riesling',
+    biodynamic: true,
+    freeText: 'Gärna på keykeg 20L',
+  },
+  {
+    label: 'Crémant de Bourgogne, 60 fl, max 140 kr',
+    color: 'sparkling',
+    appellation: 'Crémant de Bourgogne',
+    country: 'France',
+    minBottles: '60',
+    maxPrice: '140',
+  },
+  {
+    label: 'Chablis, 12 fl, max 200 kr',
+    color: 'white',
+    appellation: 'Chablis',
+    country: 'France',
+    minBottles: '12',
+    maxPrice: '200',
+  },
+];
+
 export default function NewOpenRequestPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -107,6 +154,34 @@ export default function NewOpenRequestPage() {
         >
           <div className="h-2" style={{ background: 'linear-gradient(to right, #93092b, #f1b4b0, #93092b)' }} />
           <div className="p-6 sm:p-8 space-y-6">
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Förslag att börja från</label>
+              <div className="flex flex-wrap gap-2">
+                {SUGGESTIONS.map((s, i) => (
+                  <button
+                    type="button"
+                    key={i}
+                    onClick={() => {
+                      setColor(s.color || '');
+                      setAppellation(s.appellation || '');
+                      setCountry(s.country || '');
+                      setGrape(s.grape || '');
+                      setMaxPrice(s.maxPrice || '');
+                      setMinBottles(s.minBottles || '');
+                      setVintageFrom('');
+                      setOrganic(!!s.organic);
+                      setBiodynamic(!!s.biodynamic);
+                      setFreeText(s.freeText || '');
+                    }}
+                    className="px-3 py-1.5 text-xs rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:bg-[#93092b]/5 hover:border-[#93092b]/30 hover:text-[#93092b] transition-colors"
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500 mt-2">Klicka på ett förslag för att fylla i formen — justera sedan som du vill.</p>
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Färg</label>

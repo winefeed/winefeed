@@ -12,12 +12,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { actorService } from '@/lib/actor-service';
 import { assignOpenRequest, type OpenCriteria } from '@/lib/matching-agent/open-request-fanout';
+import { sendEmail, getSupplierEmail } from '@/lib/email-service';
+import { newQuoteRequestEmail } from '@/lib/email-templates';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
+
+function describeOpenCriteria(c: OpenCriteria): string {
+  const parts: string[] = [];
+  const colorLabel: Record<string, string> = {
+    red: 'rött', white: 'vitt', rose: 'rosé',
+    sparkling: 'mousserande', orange: 'orange', fortified: 'starkvin',
+  };
+  if (c.color) parts.push(colorLabel[c.color] || c.color);
+  if (c.appellation) parts.push(c.appellation);
+  else if (c.region) parts.push(c.region);
+  if (c.country && !c.appellation && !c.region) parts.push(c.country);
+  if (c.grape) parts.push(c.grape);
+  const base = parts.join(', ') || 'Kategoriförfrågan';
+  const extras: string[] = [];
+  if (c.max_price_ex_vat_sek) extras.push(`max ${c.max_price_ex_vat_sek} kr/fl`);
+  if (c.min_bottles) extras.push(`min ${c.min_bottles} fl`);
+  if (c.vintage_from) extras.push(`årgång ${c.vintage_from}+`);
+  if (c.organic) extras.push('ekologiskt');
+  if (c.biodynamic) extras.push('biodynamiskt');
+  return extras.length ? `${base} (${extras.join(', ')})` : base;
+}
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -83,10 +106,70 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       );
     }
 
+    // Email-notify each assigned supplier. Best-effort — email failures
+    // must not undo the approved state.
+    let emailsSent = 0;
+    try {
+      const { data: assignments } = await supabase
+        .from('quote_request_assignments')
+        .select('supplier_id, expires_at')
+        .eq('quote_request_id', params.id);
+
+      const supplierIds = [...new Set((assignments || []).map(a => a.supplier_id))];
+
+      const { data: suppliers } = await supabase
+        .from('suppliers')
+        .select('id, namn, kontakt_email')
+        .in('id', supplierIds);
+
+      const { data: restaurant } = await supabase
+        .from('restaurants')
+        .select('name')
+        .eq('id', req.restaurant_id)
+        .single();
+
+      const restaurantName = restaurant?.name || 'En restaurang';
+      const firstExpiry = (assignments || [])[0]?.expires_at;
+      const criteria = req.open_criteria as OpenCriteria;
+
+      for (const supplier of suppliers || []) {
+        try {
+          const email = supplier.kontakt_email || await getSupplierEmail(supplier.id, tenantId);
+          if (!email) continue;
+
+          const content = newQuoteRequestEmail({
+            supplierName: supplier.namn || 'Leverantör',
+            restaurantName,
+            requestId: params.id,
+            fritext: `Öppen förfrågan: ${describeOpenCriteria(criteria)}`,
+            antalFlaskor: criteria.min_bottles,
+            budgetPerFlaska: criteria.max_price_ex_vat_sek,
+            expiresAt: firstExpiry,
+            wineCount: undefined,
+            hasProvorder: false,
+            provorderFeeTotal: 0,
+          });
+
+          const result = await sendEmail({
+            to: email,
+            subject: content.subject,
+            html: content.html,
+            text: content.text,
+          });
+          if (result.success) emailsSent++;
+        } catch (emailErr) {
+          console.error('email send error for supplier', supplier.id, emailErr);
+        }
+      }
+    } catch (emailLoopErr) {
+      console.error('Email notification loop error:', emailLoopErr);
+    }
+
     return NextResponse.json({
       id: params.id,
       status: 'OPEN',
       fanout,
+      emails_sent: emailsSent,
     });
   } catch (err: any) {
     console.error('POST /api/admin/requests/[id]/approve error:', err);
