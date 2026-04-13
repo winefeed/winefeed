@@ -29,6 +29,7 @@ import { actorService } from '@/lib/actor-service';
 import { checkActionGate, createGatedResponse } from '@/lib/feature-gates';
 import { batchTranslateToSwedish } from '@/lib/ai/translate';
 import { inferWineStyle } from '@/lib/matching-agent/style-inference';
+import { inferAppellations } from '@/lib/catalog-agent/appellation-inference';
 
 // Wine types that match the wine_color enum in database
 const VALID_WINE_TYPES = ['red', 'white', 'rose', 'sparkling', 'fortified', 'orange', 'alcohol_free', 'spirit'];
@@ -429,6 +430,37 @@ export async function POST(
       }
     } catch (enrichError: any) {
       console.warn('[Wine Import] Style enrichment failed (non-blocking):', enrichError?.message);
+    }
+
+    // Post-import: infer appellation via Haiku for newly imported wines
+    // missing it. Capped at 50 per import so a huge CSV can't blow the
+    // serverless runtime budget; the rest gets picked up on the next
+    // import or (TODO) by a catch-all cron. Non-blocking — a failed
+    // enrichment never breaks the import itself.
+    let appellationCount = 0;
+    try {
+      const { data: unlabeledWines } = await adminClient
+        .from('supplier_wines')
+        .select('id, name, producer, country, region, grape, vintage')
+        .eq('supplier_id', supplierId)
+        .eq('is_active', true)
+        .is('appellation', null)
+        .limit(50);
+
+      if (unlabeledWines && unlabeledWines.length > 0) {
+        const appellationMap = await inferAppellations(unlabeledWines);
+        for (const [wineId, appellation] of appellationMap.entries()) {
+          if (!appellation) continue; // skip nulls — non-wines or unknowns
+          const { error } = await adminClient
+            .from('supplier_wines')
+            .update({ appellation })
+            .eq('id', wineId);
+          if (!error) appellationCount++;
+        }
+        console.log(`[Wine Import] Appellation enrichment: ${appellationCount}/${unlabeledWines.length} wines enriched`);
+      }
+    } catch (appellationError: any) {
+      console.warn('[Wine Import] Appellation enrichment failed (non-blocking):', appellationError?.message);
     }
 
     console.log(`[Wine Import] Done for ${supplierId}: ${importedCount} imported, ${updatedCount} updated, ${errorCount} errors out of ${wines.length} total`);
