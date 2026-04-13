@@ -38,6 +38,7 @@ import { actorService } from '@/lib/actor-service';
 import { sendEmail } from '@/lib/email-service';
 import { openRequestReviewNotificationEmail } from '@/lib/email-templates';
 import { describeOpenCriteria, openCriteriaBadges } from '@/lib/matching-agent/open-request-fanout';
+import { blockIfUnverified } from '@/lib/license-guard';
 
 const trimmedString = (max: number) =>
   z
@@ -112,6 +113,16 @@ export async function POST(request: NextRequest) {
     const criteria = parsed.data.criteria;
 
     const { adminClient } = await createRouteClients();
+
+    // License gate: unverified restaurants can browse but cannot send
+    // requests. Admins bypass the gate because they may create requests
+    // on behalf of pilot restaurants during setup.
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      const blocked = await blockIfUnverified(adminClient, restaurantId);
+      if (blocked) {
+        return NextResponse.json(blocked, { status: 403 });
+      }
+    }
 
     // Throttle: max 2 open requests per restaurant per 7 days
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();

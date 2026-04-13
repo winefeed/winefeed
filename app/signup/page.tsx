@@ -9,7 +9,7 @@
 
 import { getErrorMessage } from '@/lib/utils';
 import { useState } from 'react';
-import { Building2, MapPin, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Building2, MapPin, Mail, Lock, AlertCircle, Loader2, FileCheck } from 'lucide-react';
 import { WinefeedLogo } from '@/components/ui/WinefeedLogo';
 
 export default function SignupPage() {
@@ -22,6 +22,9 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [orgNumber, setOrgNumber] = useState('');
+  const [licenseMunicipality, setLicenseMunicipality] = useState('');
+  const [licenseCaseNumber, setLicenseCaseNumber] = useState('');
+  const [licenseAttested, setLicenseAttested] = useState(false);
 
   // Format org number as user types (XXXXXX-XXXX)
   const formatOrgNumber = (value: string) => {
@@ -60,6 +63,11 @@ export default function SignupPage() {
       return;
     }
 
+    if (!licenseAttested) {
+      setError('Du måste intyga att restaurangen har giltigt serveringstillstånd');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -73,6 +81,9 @@ export default function SignupPage() {
           org_number: orgNumber || null,
           name: restaurantName,
           city,
+          license_municipality: licenseMunicipality || null,
+          license_case_number: licenseCaseNumber || null,
+          license_attested: licenseAttested,
         }),
       });
 
@@ -231,6 +242,71 @@ export default function SignupPage() {
               <p className="mt-1 text-xs text-gray-500">
                 Krävs för att lägga beställningar. Kan läggas till senare.
               </p>
+            </div>
+
+            {/* Divider — serveringstillstånd */}
+            <div className="relative pt-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Serveringstillstånd</span>
+              </div>
+            </div>
+
+            {/* License municipality + case number */}
+            <div>
+              <label htmlFor="license_municipality" className="block text-sm font-medium text-gray-700">
+                Kommun där tillståndet är utfärdat
+                <span className="ml-2 text-xs font-normal text-gray-400">(valfritt — kan läggas till senare)</span>
+              </label>
+              <input
+                id="license_municipality"
+                type="text"
+                value={licenseMunicipality}
+                onChange={(e) => setLicenseMunicipality(e.target.value)}
+                className="mt-1 appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                placeholder="t.ex. Stockholm"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="license_case_number" className="block text-sm font-medium text-gray-700">
+                Diarienummer
+                <span className="ml-2 text-xs font-normal text-gray-400">(valfritt)</span>
+              </label>
+              <input
+                id="license_case_number"
+                type="text"
+                value={licenseCaseNumber}
+                onChange={(e) => setLicenseCaseNumber(e.target.value)}
+                className="mt-1 appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                placeholder="t.ex. SÄR 2024/1234"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Finns på kommunens beslut. Krävs innan du kan skicka förfrågningar.
+              </p>
+            </div>
+
+            {/* Attestation checkbox — required */}
+            <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 p-3">
+              <input
+                id="license_attested"
+                type="checkbox"
+                checked={licenseAttested}
+                onChange={(e) => setLicenseAttested(e.target.checked)}
+                required
+                className="mt-0.5 h-4 w-4 rounded border-amber-300 text-primary focus:ring-primary"
+              />
+              <label htmlFor="license_attested" className="text-sm text-amber-900 leading-snug cursor-pointer">
+                <span className="flex items-center gap-1.5 font-medium mb-1">
+                  <FileCheck className="h-4 w-4" />
+                  Jag intygar att restaurangen har giltigt serveringstillstånd
+                </span>
+                <span className="text-xs text-amber-800">
+                  enligt alkohollagen (2010:1622) 8 kap. Felaktigt intygande är straffbart.
+                </span>
+              </label>
             </div>
 
             {/* Submit */}

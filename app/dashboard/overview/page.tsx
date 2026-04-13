@@ -65,12 +65,18 @@ interface MissingField {
   group: 'delivery' | 'billing';
 }
 
+interface LicenseState {
+  verified: boolean;
+  pending: boolean;
+}
+
 export default function RestaurantOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [pendingOffers, setPendingOffers] = useState<PendingOffer[]>([]);
   const [restaurantName, setRestaurantName] = useState('');
   const [missingFields, setMissingFields] = useState<MissingField[]>([]);
   const [profileBannerDismissed, setProfileBannerDismissed] = useState(false);
+  const [licenseState, setLicenseState] = useState<LicenseState>({ verified: true, pending: false });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -101,6 +107,12 @@ export default function RestaurantOverview() {
             missing.push({ key: 'billing', label: 'Fakturaadress eller fakturamail', group: 'billing' });
           }
           setMissingFields(missing);
+
+          // License verification state — drives the compliance banner.
+          setLicenseState({
+            verified: !!data.license_verified_at,
+            pending: !!(data.license_municipality && data.license_case_number) && !data.license_verified_at,
+          });
         }
 
         // Fetch stats
@@ -217,6 +229,36 @@ export default function RestaurantOverview() {
           </a>
         </div>
       </div>
+
+      {/* License verification banner — top priority since it blocks
+          transactional actions entirely. Not dismissable. */}
+      {!licenseState.verified && (
+        <div className="mb-6 rounded-2xl border-2 border-[#722F37]/30 bg-gradient-to-br from-[#722F37]/5 to-[#8B3A42]/5 p-5 sm:p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-[#722F37] flex items-center justify-center">
+              <Building2 className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-[#722F37] text-base mb-1">
+                {licenseState.pending ? 'Verifiering pågår' : 'Verifiera din restaurang'}
+              </h3>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                {licenseState.pending
+                  ? 'Vi granskar ditt serveringstillstånd. Oftast klart inom en timme på vardagar. Du kan se förslag så länge men inte skicka förfrågan än.'
+                  : 'För att följa alkohollagen måste vi verifiera din restaurangs serveringstillstånd innan du kan skicka förfrågningar. Det tar bara en minut och granskas av oss samma dag.'}
+              </p>
+              <Link
+                href="/dashboard/verifiering"
+                className="inline-flex items-center gap-1 mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white"
+                style={{ background: 'linear-gradient(to right, #722F37, #8B3A42)' }}
+              >
+                {licenseState.pending ? 'Se status' : 'Verifiera nu'}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Profile completeness banner — shown when delivery/billing fields are
           missing so accepted-offer emails reach suppliers with everything they

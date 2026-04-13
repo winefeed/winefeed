@@ -79,7 +79,12 @@ export default function NewRequestPage() {
           quantity: result.parsed?.quantity || null,
         }));
 
-        router.push(`/dashboard/results/${result.request_id}`);
+        if (result.preview_mode) {
+        sessionStorage.setItem('preview-mode', '1');
+      } else {
+        sessionStorage.removeItem('preview-mode');
+      }
+      router.push(`/dashboard/results/${result.request_id}`);
         return;
       }
 
@@ -124,6 +129,11 @@ export default function NewRequestPage() {
         deliveryCity: data.deliveryCity,
       }));
 
+      if (result.preview_mode) {
+        sessionStorage.setItem('preview-mode', '1');
+      } else {
+        sessionStorage.removeItem('preview-mode');
+      }
       router.push(`/dashboard/results/${result.request_id}`);
     } catch (err: any) {
       console.error('Error fetching suggestions:', err);

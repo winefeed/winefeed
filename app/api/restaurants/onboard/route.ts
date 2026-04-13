@@ -28,6 +28,9 @@ interface OnboardRequest {
   city: string;
   address_line1?: string;
   postal_code?: string;
+  license_municipality?: string | null;
+  license_case_number?: string | null;
+  license_attested?: boolean;
 }
 
 export async function POST(request: NextRequest) {
@@ -111,6 +114,7 @@ export async function POST(request: NextRequest) {
 
     // Update restaurant with additional fields
     // (trigger creates basic record, we add org_number, city, address)
+    // License fields stay unverified until an admin reviews manually.
     const { error: updateError } = await supabase
       .from('restaurants')
       .update({
@@ -118,6 +122,8 @@ export async function POST(request: NextRequest) {
         city: city,
         address_line1: body.address_line1 || null,
         postal_code: body.postal_code || null,
+        license_municipality: body.license_municipality || null,
+        license_case_number: body.license_case_number || null,
         onboarding_completed_at: new Date().toISOString(),
       })
       .eq('id', userId);
@@ -149,6 +155,30 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error('Error sending welcome email:', emailError);
       // Don't fail - email is not critical for signup
+    }
+
+    // Admin notification — new restaurant awaiting license verification.
+    // Best-effort: a failed notification never blocks signup. Uses plain
+    // text since this is internal and doesn't need the Winefeed chrome.
+    try {
+      const adminEmail = process.env.ADMIN_REVIEW_EMAIL || 'hej@winefeed.se';
+      const licenseLine = body.license_municipality && body.license_case_number
+        ? `Kommun: ${body.license_municipality}\nDiarienummer: ${body.license_case_number}`
+        : 'Inga license-uppgifter — endast intygande.';
+      await sendEmail({
+        to: adminEmail,
+        from: WINEFEED_FROM,
+        subject: `🆕 Ny restaurang registrerad: ${name}`,
+        html: `<p><strong>${name}</strong>${city ? ` · ${city}` : ''} har registrerat sig.</p>
+               <p>Email: <a href="mailto:${email}">${email}</a><br>
+               Org.nr: ${org_number || '(saknas)'}</p>
+               <pre style="background:#f4f4f4;padding:12px;border-radius:6px;font-family:monospace;font-size:13px;">${licenseLine}</pre>
+               <p>Restaurangen väntar på licens-verifiering innan de kan skicka förfrågningar.</p>
+               <p><a href="https://winefeed.se/admin/restaurants" style="display:inline-block;background:#722F37;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Öppna admin</a></p>`,
+        text: `Ny restaurang registrerad: ${name}${city ? ` · ${city}` : ''}\nEmail: ${email}\nOrg.nr: ${org_number || '(saknas)'}\n\n${licenseLine}\n\nRestaurangen väntar på licens-verifiering.`,
+      });
+    } catch (notifyErr) {
+      console.error('Admin signup notification failed:', notifyErr);
     }
 
     // Sign in the user to create a session

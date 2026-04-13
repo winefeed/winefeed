@@ -3,6 +3,7 @@ import { actorService } from '@/lib/actor-service';
 import { runMatchingAgentPipeline } from '@/lib/matching-agent/pipeline';
 import { buildSommelierContext } from '@/lib/sommelier-context';
 import { createRouteClients } from '@/lib/supabase/route-client';
+import { getRestaurantLicenseStatus } from '@/lib/license-guard';
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,33 +83,46 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { data: savedRequest, error: requestError } = await adminClient
-      .from('requests')
-      .insert({
-        restaurant_id: restaurantId,
-        fritext: [fritext || description || 'Vinförfrågan', leverans_ort ? `Leverans: ${leverans_ort}` : null].filter(Boolean).join('. '),
-        budget_per_flaska: effectiveBudgetMax,
-        antal_flaskor: antal_flaskor || null,
-        leverans_senast: leverans_senast || null,
-        // Note: leverans_ort stored in fritext for now (column doesn't exist in requests table)
-        specialkrav: effectiveCertifications || null,
-        status: 'OPEN',
-        created_at: new Date().toISOString()
-      })
-      .select('id')
-      .single();
+    // Teaser-mode: unverified restaurants can BROWSE matches without
+    // creating a real request in the DB. This lets them see what the
+    // platform can offer as an incentive to complete license verification.
+    // Admins always create real requests (they're operating on behalf).
+    const licenseStatus = actorService.hasRole(actor, 'ADMIN')
+      ? { verified: true, attested: true, municipality: null, case_number: null }
+      : await getRestaurantLicenseStatus(adminClient, restaurantId!);
+    const previewMode = !licenseStatus.verified;
 
-    if (requestError || !savedRequest) {
-      console.error('Failed to save request:', requestError);
-      console.error('Restaurant ID used:', restaurantId);
-      const errorDetails = requestError?.message || 'Unknown error';
-      return NextResponse.json(
-        { error: `Kunde inte spara förfrågan: ${errorDetails}` },
-        { status: 500 }
-      );
+    if (previewMode) {
+      request_id = 'preview';
+    } else {
+      const { data: savedRequest, error: requestError } = await adminClient
+        .from('requests')
+        .insert({
+          restaurant_id: restaurantId,
+          fritext: [fritext || description || 'Vinförfrågan', leverans_ort ? `Leverans: ${leverans_ort}` : null].filter(Boolean).join('. '),
+          budget_per_flaska: effectiveBudgetMax,
+          antal_flaskor: antal_flaskor || null,
+          leverans_senast: leverans_senast || null,
+          // Note: leverans_ort stored in fritext for now (column doesn't exist in requests table)
+          specialkrav: effectiveCertifications || null,
+          status: 'OPEN',
+          created_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
+
+      if (requestError || !savedRequest) {
+        console.error('Failed to save request:', requestError);
+        console.error('Restaurant ID used:', restaurantId);
+        const errorDetails = requestError?.message || 'Unknown error';
+        return NextResponse.json(
+          { error: `Kunde inte spara förfrågan: ${errorDetails}` },
+          { status: 500 }
+        );
+      }
+
+      request_id = savedRequest.id;
     }
-
-    request_id = savedRequest.id;
 
     // Build sommelier context (restaurant profile + order history for personalization)
     const sommelierCtx = await buildSommelierContext(restaurantId!, tenantId);
@@ -209,6 +223,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       request_id,
+      preview_mode: previewMode,
       suggestions,
       filters_applied: {
         color: color || 'all',

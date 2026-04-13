@@ -119,6 +119,10 @@ export default function ResultsPage() {
   // Track wines where user has actively chosen to adjust to MOQ
   const [userAdjustedToMoq, setUserAdjustedToMoq] = useState<Set<string>>(new Set());
 
+  // Preview mode: restaurant is unverified, can see matches but can't
+  // send requests. Read from sessionStorage set by /dashboard/new-request.
+  const [previewMode, setPreviewMode] = useState(false);
+
   // Score breakdown expanded state
   const [expandedBreakdowns, setExpandedBreakdowns] = useState<Set<string>>(new Set());
 
@@ -245,6 +249,13 @@ export default function ResultsPage() {
   }, [requestId]);
 
   useEffect(() => {
+    // Preview mode is set by /dashboard/new-request when suggest returned
+    // preview_mode=true (unverified restaurant). Controls the action CTA
+    // so we never try to send dispatches from a fake "preview" requestId.
+    if (typeof window !== 'undefined') {
+      setPreviewMode(sessionStorage.getItem('preview-mode') === '1');
+    }
+
     const stored = sessionStorage.getItem('latest-suggestions');
     if (stored) {
       try {
@@ -601,6 +612,12 @@ export default function ResultsPage() {
   };
 
   const handleRequestConfirmation = () => {
+    if (previewMode) {
+      // Teaser mode: restaurant browsed matches but isn't license-verified.
+      // Route them to the verification page instead of trying to dispatch.
+      router.push('/dashboard/verifiering');
+      return;
+    }
     if (draftList.items.length === 0) {
       toast.warning('Tom lista', 'Lägg till minst ett vin i din lista innan du skickar förfrågan');
       return;
@@ -873,6 +890,37 @@ export default function ResultsPage() {
           {relaxedMessage && (
             <div className="mt-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
               {relaxedMessage}
+            </div>
+          )}
+
+          {/* Preview mode banner — unverified restaurant sees matches but
+              cannot dispatch. Prominent CTA to verification flow. */}
+          {previewMode && (
+            <div className="mt-4 rounded-xl border-2 border-[#722F37]/30 bg-gradient-to-br from-[#722F37]/5 to-[#8B3A42]/5 p-5">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#722F37] flex items-center justify-center">
+                  <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-[#722F37] text-base mb-1">
+                    Förhandsvisning — verifiera för att skicka förfrågan
+                  </h3>
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    Du ser matchande viner från våra leverantörer, men behöver verifiera din restaurangs
+                    serveringstillstånd innan du kan skicka förfrågan. Vi gör det för att följa alkohollagen.
+                    <strong> Verifieringen tar oftast mindre än en timme på vardagar.</strong>
+                  </p>
+                  <button
+                    onClick={() => router.push('/dashboard/verifiering')}
+                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
+                    style={{ background: 'linear-gradient(to right, #722F37, #8B3A42)' }}
+                  >
+                    Verifiera din restaurang →
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
