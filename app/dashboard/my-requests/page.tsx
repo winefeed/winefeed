@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, RefreshCw, Plus, ChevronRight, Clock, CheckCircle2, AlertCircle, Inbox, Info, X, Filter } from 'lucide-react';
+import { FileText, RefreshCw, Plus, ChevronRight, Clock, CheckCircle2, AlertCircle, Inbox, Info, X, Filter, Copy, Megaphone } from 'lucide-react';
 import { RequestStatusBadge, ExpectationText } from '@/components/dashboard/RequestTimeline';
 import { useActor } from '@/lib/hooks/useActor';
 import { getErrorMessage } from '@/lib/utils';
@@ -36,6 +36,7 @@ interface Request {
   specialkrav: string[] | null;
   color?: string | null;
   status: string;
+  request_type?: 'targeted' | 'open';
   accepted_offer_id: string | null;
   offers_count: number;
   new_offers_count: number;
@@ -387,6 +388,19 @@ export default function MyRequestsPage() {
 
                       {/* Right side: Offers count and action */}
                       <div className="flex flex-col items-end gap-2 ml-4">
+                        {/* Duplicate button — only for open broadcast requests */}
+                        {req.request_type === 'open' && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/dashboard/new-request/open?from=${req.id}`);
+                            }}
+                            title="Duplicera som ny förfrågan"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
+                        )}
                         {/* Offers count */}
                         {req.offers_count > 0 && (
                           <span className="text-xl font-bold text-primary">

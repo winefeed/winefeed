@@ -10,7 +10,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Clock, Eye, MessageSquare, Building2, Mail, Megaphone } from 'lucide-react';
+import { ArrowLeft, Clock, Eye, MessageSquare, Building2, Mail, Megaphone, Copy } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { openCriteriaBadges, type OpenCriteria } from '@/lib/matching-agent/open-request-fanout';
@@ -140,14 +140,26 @@ export default function RequestStatusPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      {/* Back button */}
-      <button
-        onClick={() => router.push('/dashboard/my-requests')}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Tillbaka till mina förfrågningar
-      </button>
+      {/* Back button + duplicate action */}
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={() => router.push('/dashboard/my-requests')}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Tillbaka till mina förfrågningar
+        </button>
+        {request.request_type === 'open' && (
+          <button
+            onClick={() => router.push(`/dashboard/new-request/open?from=${request.id}`)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-[#722F37]/20 text-[#722F37] hover:bg-[#722F37]/5 transition-colors"
+            title="Skapa en ny förfrågan med samma kriterier"
+          >
+            <Copy className="h-4 w-4" />
+            Duplicera
+          </button>
+        )}
+      </div>
 
       {/* PENDING_REVIEW state — open broadcast request waiting for admin */}
       {request.status === 'PENDING_REVIEW' && (

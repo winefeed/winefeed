@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     let query = adminClient
       .from('requests')
-      .select('id, restaurant_id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, accepted_offer_id, created_at');
+      .select('id, restaurant_id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, request_type, accepted_offer_id, created_at');
 
     // Apply role-based filter if needed
     if (requestIds !== null) {
@@ -191,6 +191,7 @@ export async function GET(request: NextRequest) {
         delivery_date_requested: req.leverans_senast || null,
         specialkrav: req.specialkrav || null,
         status: req.status || 'OPEN',
+        request_type: req.request_type || 'targeted',
         accepted_offer_id: req.accepted_offer_id || null,
         created_at: req.created_at,
         offers_count: offersCountMap[req.id] || 0,

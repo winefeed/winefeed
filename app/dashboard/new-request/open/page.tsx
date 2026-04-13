@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Megaphone, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Megaphone, ArrowLeft, ChevronDown, ChevronUp, Copy, X } from 'lucide-react';
 
 const COLOR_OPTIONS = [
   { value: '', label: 'Alla färger' },
@@ -61,8 +61,11 @@ const SUGGESTIONS: Suggestion[] = [
   },
 ];
 
-export default function NewOpenRequestPage() {
+function NewOpenRequestForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromId = searchParams.get('from');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,6 +80,69 @@ export default function NewOpenRequestPage() {
   const [biodynamic, setBiodynamic] = useState(false);
   const [freeText, setFreeText] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Pre-fill from an earlier open request when ?from=<id> is set. Fetches
+  // the source request and copies its open_criteria into form state. If
+  // the source doesn't exist or isn't an open request, we silently fall
+  // through to an empty form + an error banner.
+  const [duplicatedFrom, setDuplicatedFrom] = useState<{ id: string; createdAt: string } | null>(null);
+  useEffect(() => {
+    if (!fromId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/requests/${fromId}/status`);
+        if (!res.ok) {
+          setError('Kunde inte hämta den tidigare förfrågan du vill duplicera');
+          return;
+        }
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.request_type !== 'open' || !data.open_criteria) {
+          setError('Bara öppna förfrågningar kan dupliceras');
+          return;
+        }
+        const c = data.open_criteria;
+        if (c.color) setColor(c.color);
+        if (c.appellation) setAppellation(c.appellation);
+        if (c.country) setCountry(c.country);
+        if (c.grape) setGrape(c.grape);
+        if (c.max_price_ex_vat_sek) setMaxPrice(String(c.max_price_ex_vat_sek));
+        if (c.min_bottles) setMinBottles(String(c.min_bottles));
+        if (c.vintage_from) setVintageFrom(String(c.vintage_from));
+        if (c.organic) setOrganic(true);
+        if (c.biodynamic) setBiodynamic(true);
+        if (c.free_text) setFreeText(c.free_text);
+        // Auto-expand advanced if any advanced field is pre-filled,
+        // otherwise the user can't see what they're about to submit.
+        if (c.vintage_from || c.organic || c.biodynamic || c.free_text) {
+          setShowAdvanced(true);
+        }
+        setDuplicatedFrom({ id: data.id, createdAt: data.created_at });
+      } catch (err: any) {
+        if (!cancelled) setError(err.message || 'Nätverksfel');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [fromId]);
+
+  function clearForm() {
+    setColor('');
+    setAppellation('');
+    setCountry('');
+    setGrape('');
+    setMaxPrice('');
+    setMinBottles('');
+    setVintageFrom('');
+    setOrganic(false);
+    setBiodynamic(false);
+    setFreeText('');
+    setShowAdvanced(false);
+    setDuplicatedFrom(null);
+    setError(null);
+    // Drop the ?from param so a refresh doesn't re-hydrate
+    router.replace('/dashboard/new-request/open');
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -146,6 +212,32 @@ export default function NewOpenRequestPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 pb-16">
+        {duplicatedFrom && (
+          <div className="mb-4 relative rounded-xl border border-[#93092b]/20 bg-[#93092b]/5 p-4 flex items-start gap-3">
+            <Copy className="h-4 w-4 text-[#93092b] flex-shrink-0 mt-0.5" />
+            <div className="flex-1 text-sm text-slate-700">
+              <strong>Baserad på din tidigare förfrågan</strong> från{' '}
+              {new Date(duplicatedFrom.createdAt).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long' })}
+              . Redigera fritt och skicka som en ny.
+              <button
+                type="button"
+                onClick={clearForm}
+                className="ml-3 text-xs font-medium text-[#93092b] hover:underline"
+              >
+                Rensa fält
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDuplicatedFrom(null)}
+              aria-label="Dölj"
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl shadow-2xl overflow-hidden"
@@ -346,5 +438,13 @@ export default function NewOpenRequestPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function NewOpenRequestPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-slate-500">Laddar...</div>}>
+      <NewOpenRequestForm />
+    </Suspense>
   );
 }
