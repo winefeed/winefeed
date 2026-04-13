@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FreeTextEntry } from '@/components/rfq/FreeTextEntry';
-import { ChevronDown, ChevronUp, Globe2, TrendingUp, Menu } from 'lucide-react';
+import { ChevronDown, ChevronUp, Globe2, Megaphone, Menu } from 'lucide-react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export default function NewRequestPage() {
@@ -230,22 +231,29 @@ export default function NewRequestPage() {
             </div>
           </div>
 
-          {/* Smart Matching Card */}
-          <div className="group relative overflow-hidden rounded-2xl border p-5 sm:p-6 hover:shadow-lg transition-all duration-300 touch-manipulation" style={{ background: 'linear-gradient(to bottom right, #fffbf5, #fffef9)', borderColor: '#f2e2b6' }}>
+          {/* Broadcast / Open Request Card */}
+          <Link
+            href="/dashboard/new-request/open"
+            className="group relative overflow-hidden rounded-2xl border p-5 sm:p-6 hover:shadow-lg transition-all duration-300 touch-manipulation block"
+            style={{ background: 'linear-gradient(to bottom right, #fffbf5, #fffef9)', borderColor: '#f2e2b6' }}
+          >
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
-                <TrendingUp className="h-6 w-6 text-white" />
+                <Megaphone className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-gray-900 mb-1 text-base sm:text-lg">
-                  Smart prisöversikt
+                  Sök hos flera importörer
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  Jämför priser från flera leverantörer automatiskt.
+                  Beskriv en kategori — t.ex. Chablis under 200 kr — och låt leverantörer tävla om affären.
                 </p>
+                <span className="inline-block mt-2 text-xs font-medium" style={{ color: '#93092b' }}>
+                  Öppen förfrågan →
+                </span>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* How It Works - Condensed on mobile, collapsible on desktop */}

@@ -256,18 +256,38 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
           const { data: restaurantData } = await adminClient
             .from('restaurants')
-            .select('name')
+            .select(`
+              name, org_number,
+              address_line1, postal_code, city,
+              delivery_instructions, gln_number,
+              billing_contact_person, billing_email,
+              billing_address, billing_postal_code, billing_city, billing_reference
+            `)
             .eq('id', offerRestaurantId)
             .single();
 
-          // Generate and send email
+          // Generate and send email — supplier gets delivery + invoice
+          // details in the body so they can prepare fulfilment without
+          // a follow-up round-trip.
           const emailContent = offerAcceptedEmail({
             supplierName: supplierData?.namn || 'Er leverans',
             restaurantName: restaurantData?.name || 'Restaurang',
             offerId: offerId,
             requestId: offer.request_id || null,
             offerTitle: offer.title || 'Offert',
-            acceptedAt: offer.accepted_at
+            acceptedAt: offer.accepted_at,
+            deliveryAddress: restaurantData?.address_line1 || null,
+            deliveryPostalCode: restaurantData?.postal_code || null,
+            deliveryCity: restaurantData?.city || null,
+            deliveryInstructions: restaurantData?.delivery_instructions || null,
+            glnNumber: restaurantData?.gln_number || null,
+            orgNumber: restaurantData?.org_number || null,
+            billingContactPerson: restaurantData?.billing_contact_person || null,
+            billingEmail: restaurantData?.billing_email || null,
+            billingAddress: restaurantData?.billing_address || null,
+            billingPostalCode: restaurantData?.billing_postal_code || null,
+            billingCity: restaurantData?.billing_city || null,
+            billingReference: restaurantData?.billing_reference || null,
           });
 
           const emailResult = await sendEmail({

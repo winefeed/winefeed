@@ -16,6 +16,15 @@ import type { DigestData } from './daily-digest-service';
 // Reference: scripts/send-test-email.mjs
 // ============================================================================
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function winefeedEmailHeader(): string {
   return `
   <div style="max-width: 600px; margin: 0 auto;">
@@ -64,6 +73,20 @@ export interface OfferAcceptedEmailParams {
   requestId: string | null;
   offerTitle: string;
   acceptedAt: string;
+  // Delivery details (optional — supplier uses these to prepare fulfilment)
+  deliveryAddress?: string | null;
+  deliveryPostalCode?: string | null;
+  deliveryCity?: string | null;
+  deliveryInstructions?: string | null;
+  glnNumber?: string | null;
+  // Invoice details (optional — supplier uses these for billing)
+  orgNumber?: string | null;
+  billingContactPerson?: string | null;
+  billingEmail?: string | null;
+  billingAddress?: string | null;
+  billingPostalCode?: string | null;
+  billingCity?: string | null;
+  billingReference?: string | null;
 }
 
 export interface InviteEmailParams {
@@ -308,8 +331,71 @@ export function offerAcceptedEmail(params: OfferAcceptedEmailParams): { subject:
     offerId,
     requestId,
     offerTitle,
-    acceptedAt
+    acceptedAt,
+    deliveryAddress,
+    deliveryPostalCode,
+    deliveryCity,
+    deliveryInstructions,
+    glnNumber,
+    orgNumber,
+    billingContactPerson,
+    billingEmail,
+    billingAddress,
+    billingPostalCode,
+    billingCity,
+    billingReference,
   } = params;
+
+  // Build delivery block only if we have useful data
+  const deliveryLines: string[] = [];
+  if (deliveryAddress) deliveryLines.push(deliveryAddress);
+  const postalLine = [deliveryPostalCode, deliveryCity].filter(Boolean).join(' ');
+  if (postalLine) deliveryLines.push(postalLine);
+  const hasDelivery = deliveryLines.length > 0 || !!glnNumber || !!deliveryInstructions;
+
+  // Build invoice block only if we have useful data
+  const invoiceLines: string[] = [];
+  if (billingContactPerson) invoiceLines.push(billingContactPerson);
+  if (billingAddress) invoiceLines.push(billingAddress);
+  const billingPostalLine = [billingPostalCode, billingCity].filter(Boolean).join(' ');
+  if (billingPostalLine) invoiceLines.push(billingPostalLine);
+  const hasInvoice = invoiceLines.length > 0 || !!billingEmail || !!orgNumber || !!billingReference;
+
+  const deliveryHtml = hasDelivery ? `
+    <div style="background: #f8f6f0; border-left: 4px solid #E8DFC4; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <h3 style="margin: 0 0 10px 0; color: #722F37; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Leveransadress</h3>
+      <p style="margin: 0; color: #4b5563; line-height: 1.6; font-size: 14px;">
+        <strong>${restaurantName}</strong><br>
+        ${deliveryLines.map(l => escapeHtml(l)).join('<br>')}
+        ${glnNumber ? `<br><span style="color: #6b7280; font-size: 13px;">GLN: ${escapeHtml(glnNumber)}</span>` : ''}
+      </p>
+      ${deliveryInstructions ? `<p style="margin: 10px 0 0 0; color: #4b5563; font-size: 13px; font-style: italic;">${escapeHtml(deliveryInstructions)}</p>` : ''}
+    </div>
+  ` : '';
+
+  const invoiceHtml = hasInvoice ? `
+    <div style="background: #faf8f4; border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <h3 style="margin: 0 0 10px 0; color: #722F37; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Fakturauppgifter</h3>
+      <p style="margin: 0; color: #4b5563; line-height: 1.6; font-size: 14px;">
+        <strong>${restaurantName}</strong>${orgNumber ? ` · ${escapeHtml(orgNumber)}` : ''}<br>
+        ${invoiceLines.map(l => escapeHtml(l)).join('<br>')}
+        ${billingEmail ? `<br><a href="mailto:${escapeHtml(billingEmail)}" style="color: #722F37;">${escapeHtml(billingEmail)}</a>` : ''}
+      </p>
+      ${billingReference ? `<p style="margin: 10px 0 0 0; color: #4b5563; font-size: 13px;"><strong>Fakturareferens:</strong> ${escapeHtml(billingReference)}</p>` : ''}
+    </div>
+  ` : '';
+
+  const deliveryText = hasDelivery ? `
+Leveransadress:
+${restaurantName}
+${deliveryLines.join('\n')}${glnNumber ? `\nGLN: ${glnNumber}` : ''}${deliveryInstructions ? `\nInstruktioner: ${deliveryInstructions}` : ''}
+` : '';
+
+  const invoiceText = hasInvoice ? `
+Fakturauppgifter:
+${restaurantName}${orgNumber ? ` · ${orgNumber}` : ''}
+${invoiceLines.join('\n')}${billingEmail ? `\n${billingEmail}` : ''}${billingReference ? `\nFakturareferens: ${billingReference}` : ''}
+` : '';
 
   const offerUrl = getAppUrl(`/offers/${offerId}`);
   const requestUrl = requestId ? getAppUrl(`/dashboard/requests/${requestId}`) : null;
@@ -347,7 +433,10 @@ export function offerAcceptedEmail(params: OfferAcceptedEmailParams): { subject:
       <p style="margin: 0; color: #4b5563;"><strong>Accepterad:</strong> ${acceptedDate}</p>
     </div>
 
-    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Offerten är nu låst och du kan inte längre redigera den. Kontakta restaurangen för att koordinera leverans.</p>
+    ${deliveryHtml}
+    ${invoiceHtml}
+
+    <p style="color: #4b5563; line-height: 1.7; font-size: 15px;">Offerten är nu låst och du kan inte längre redigera den. Använd uppgifterna ovan för att förbereda leverans och fakturering. Kontakta restaurangen om något behöver stämmas av.</p>
 
     <div style="text-align: center; margin: 30px 0;">
       <a href="${offerUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(114,47,55,0.25);">
@@ -377,8 +466,8 @@ ${restaurantName} har accepterat din offert!
 Offert: ${offerTitle || offerId.substring(0, 8)}
 Restaurang: ${restaurantName}
 Accepterad: ${acceptedDate}
-
-Offerten är nu låst och du kan inte längre redigera den. Kontakta restaurangen för att koordinera leverans.
+${deliveryText}${invoiceText}
+Offerten är nu låst och du kan inte längre redigera den. Använd uppgifterna ovan för att förbereda leverans och fakturering. Kontakta restaurangen om något behöver stämmas av.
 
 Visa accepterad offert: ${offerUrl}
 
