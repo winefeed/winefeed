@@ -46,6 +46,30 @@ function winefeedEmailHeader(): string {
     <div style="background: white; padding: 30px;">`;
 }
 
+// ============================================================================
+// Shared Vinkoll Access email header & footer
+// Palette: VINOGRAM1 — Bordeaux #93092b, rose #f1b4b0, Riesling #f2e2b6
+// Uppercase VINKOLL text logo. Each template passes its own subtitle so the
+// chrome is consistent but the context is per-mail.
+// ============================================================================
+
+function vinkollEmailHeader(subtitle: string): string {
+  return `
+  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
+    <p style="color: #f1b4b0; margin: 10px 0 0 0;">${subtitle}</p>
+  </div>
+  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">`;
+}
+
+function vinkollEmailFooter(): string {
+  return `
+  </div>
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p>Vinkoll — Hitta ditt nästa favoritvin</p>
+  </div>`;
+}
+
 function winefeedEmailFooter(): string {
   return `
     </div>
@@ -915,12 +939,7 @@ export function accessMagicLinkEmail(params: AccessMagicLinkEmailParams): { subj
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Vinkoll Access</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Hitta ditt drömvin via Vinkoll</p>
-  </div>
-
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+  ${vinkollEmailHeader('Hitta ditt drömvin via Vinkoll')}
     <p>${greeting},</p>
 
     <p>Klicka på knappen nedan för att logga in på Vinkoll Access. Länken är giltig i 30 minuter.</p>
@@ -935,11 +954,7 @@ export function accessMagicLinkEmail(params: AccessMagicLinkEmailParams): { subj
       Om du inte begärde denna länk, ignorera detta mail.<br>
       Länken fungerar bara en gång.
     </p>
-  </div>
-
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Vinkoll Access - Hitta ditt nästa favoritvin</p>
-  </div>
+  ${vinkollEmailFooter()}
 </body>
 </html>
   `;
@@ -986,11 +1001,7 @@ export function accessRequestConfirmationEmail(params: AccessRequestConfirmation
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Vinkoll Access</h1>
-  </div>
-
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+  ${vinkollEmailHeader('Din vinförfrågan är mottagen')}
     <p>${greeting},</p>
 
     <p>Din förfrågan har registrerats! Importören kommer att kontakta dig.</p>
@@ -1004,11 +1015,7 @@ export function accessRequestConfirmationEmail(params: AccessRequestConfirmation
     <p style="font-size: 14px; color: #6b7280;">
       Förfrågan är giltig i 14 dagar. Du kan se status under Mina sidor.
     </p>
-  </div>
-
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Vinkoll Access - Hitta ditt nästa favoritvin</p>
-  </div>
+  ${vinkollEmailFooter()}
 </body>
 </html>
   `;
@@ -1071,12 +1078,7 @@ export function renderImporterConfirmEmail(params: ImporterConfirmEmailParams): 
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Bekräfta mottagen beställning</p>
-  </div>
-
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+  ${vinkollEmailHeader('Bekräfta mottagen beställning')}
     <p>${greeting},</p>
 
     <p>En kund har gått vidare med sin beställning via Vinkoll. Vi ber er bekräfta att ni har mottagit beställningen.</p>
@@ -1100,11 +1102,7 @@ export function renderImporterConfirmEmail(params: ImporterConfirmEmailParams): 
     <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på hej@vinkoll.se.
     </p>
-  </div>
-
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
-  </div>
+  ${vinkollEmailFooter()}
 </body>
 </html>
   `;
@@ -1159,12 +1157,7 @@ export function renderConsumerOrderConfirmedEmail(params: ConsumerOrderConfirmed
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9fafb;">
-  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 20px; font-weight: 500;">Beställningen är bekräftad!</p>
-  </div>
-
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+  ${vinkollEmailHeader('Beställningen är bekräftad!')}
     <p>${greeting},</p>
 
     <p>Importören har bekräftat att de mottagit din beställning av <strong>${wineName}${vintageStr}</strong> med referenskod <strong>${referenceCode}</strong>.</p>
@@ -1200,11 +1193,7 @@ export function renderConsumerOrderConfirmedEmail(params: ConsumerOrderConfirmed
         Utforska fler viner
       </a>
     </div>
-  </div>
-
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
-  </div>
+  ${vinkollEmailFooter()}
 </body>
 </html>
   `;
@@ -1287,12 +1276,7 @@ export function renderImporterForwardEmail(params: ImporterForwardEmailParams): 
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Ny vinförfrågan</p>
-  </div>
-
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+  ${vinkollEmailHeader('Ny vinförfrågan')}
     <p>${greeting},</p>
 
     <p>En kund har visat intresse för ett vin i ert sortiment via Vinkoll. Vi skulle uppskatta om ni kan svara på förfrågan.</p>
@@ -1318,11 +1302,7 @@ export function renderImporterForwardEmail(params: ImporterForwardEmailParams): 
     <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på hej@vinkoll.se.
     </p>
-  </div>
-
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
-  </div>
+  ${vinkollEmailFooter()}
 </body>
 </html>
   `;
@@ -1511,12 +1491,7 @@ Vinkoll - Hitta ditt nästa favoritvin
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Uppdatering om din förfrågan</p>
-  </div>
-
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+  ${vinkollEmailHeader('Uppdatering om din förfrågan')}
     <p>${greeting},</p>
 
     <p>Tyvärr kan importören inte leverera <strong>${wineName}${vintageStr}</strong> just nu.</p>
@@ -1534,11 +1509,7 @@ Vinkoll - Hitta ditt nästa favoritvin
         Utforska fler viner
       </a>
     </div>
-  </div>
-
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
-  </div>
+  ${vinkollEmailFooter()}
 </body>
 </html>
   `;
@@ -2159,12 +2130,7 @@ export function renderImporterReminderEmail(params: ImporterReminderEmailParams)
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
-    <p style="color: #f1b4b0; margin: 10px 0 0 0;">Påminnelse om vinförfrågan</p>
-  </div>
-
-  <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+  ${vinkollEmailHeader('Påminnelse om vinförfrågan')}
     <p>${greeting},</p>
 
     <p>Vi skickade en förfrågan till er för <strong>${daysSinceForward} dagar sedan</strong> och har ännu inte fått svar. En kund väntar på besked om:</p>
@@ -2188,11 +2154,7 @@ export function renderImporterReminderEmail(params: ImporterReminderEmailParams)
     <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
       Länken är giltig i 7 dagar. Om ni har frågor, kontakta oss på hej@vinkoll.se.
     </p>
-  </div>
-
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>Vinkoll - Hitta ditt nästa favoritvin</p>
-  </div>
+  ${vinkollEmailFooter()}
 </body>
 </html>
   `;
