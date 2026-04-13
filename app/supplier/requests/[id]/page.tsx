@@ -154,7 +154,7 @@ export default function SupplierRequestDetailPage({
       const supplierData = await supplierRes.json();
       setSupplierId(supplierData.supplierId);
 
-      const requestsRes = await fetch(`/api/suppliers/${supplierData.supplierId}/quote-requests?filter=all`);
+      const requestsRes = await fetch(`/api/suppliers/${supplierData.supplierId}/quote-requests?status=all&include_dismissed=true`);
       if (!requestsRes.ok) {
         setError('Kunde inte hämta förfrågningar');
         return;
@@ -319,10 +319,10 @@ export default function SupplierRequestDetailPage({
         <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
           <ArrowLeft className="h-4 w-4" /> Tillbaka
         </button>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-lg font-medium text-red-800">{error || 'Kunde inte ladda förfrågan'}</h2>
-          <button onClick={() => router.push('/supplier/requests')} className="mt-4 text-red-600 hover:underline">
+        <div className="bg-white border border-black rounded-lg p-6 text-center">
+          <AlertCircle className="h-12 w-12 text-black mx-auto mb-4" />
+          <h2 className="text-lg font-medium text-black">{error || 'Kunde inte ladda förfrågan'}</h2>
+          <button onClick={() => router.push('/supplier/requests')} className="mt-4 text-black underline">
             Tillbaka till förfrågningar
           </button>
         </div>

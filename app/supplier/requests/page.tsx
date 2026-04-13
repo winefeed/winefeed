@@ -203,7 +203,7 @@ export default function SupplierRequestsPage() {
 
       // Fetch active requests (non-dismissed)
       const requestsRes = await fetch(
-        `/api/suppliers/${supplierData.supplierId}/quote-requests?filter=${filter}`
+        `/api/suppliers/${supplierData.supplierId}/quote-requests?status=${filter}`
       );
       if (requestsRes.ok) {
         const data = await requestsRes.json();

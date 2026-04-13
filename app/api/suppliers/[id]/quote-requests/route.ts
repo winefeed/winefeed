@@ -76,7 +76,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
     const { searchParams } = new URL(req.url);
 
-    const statusFilter = searchParams.get('status') || 'active';
+    const statusFilter = searchParams.get('status') || searchParams.get('filter') || 'active';
     const includeDismissed = searchParams.get('include_dismissed') === 'true';
     const onlyDismissed = searchParams.get('only_dismissed') === 'true';
     const limit = parseInt(searchParams.get('limit') || '50');

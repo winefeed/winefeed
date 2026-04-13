@@ -161,11 +161,16 @@ async function queryWithFilters(
       query = query.ilike('grape', `%${grape}%`);
     }
 
-    // Region: from parsed preferences (ilike for partial match)
+    // Region: from parsed preferences (ilike for partial match).
+    // Also match wine name and appellation so appellation searches
+    // (e.g. "Chablis") catch wines whose region column stores the parent
+    // region ("Bourgogne"). Appellation column is only sparsely populated
+    // today — see winefeed-matching-v2.md todo for full backfill.
     if (prefs.regions.length > 0) {
-      // Use the first (most specific) region as filter
-      const primaryRegion = prefs.regions[0];
-      query = query.ilike('region', `%${primaryRegion}%`);
+      const primaryRegion = prefs.regions[0].replace(/[,()]/g, '');
+      query = query.or(
+        `region.ilike.%${primaryRegion}%,name.ilike.%${primaryRegion}%,appellation.ilike.%${primaryRegion}%`
+      );
     }
 
     // Organic filter
