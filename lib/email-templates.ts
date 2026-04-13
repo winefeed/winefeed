@@ -241,25 +241,7 @@ export function welcomeEmail(params: WelcomeEmailParams): { subject: string; htm
   <title>${subject}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto;">
-    <!-- Header with gradient (matches page headers) -->
-    <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A42 100%); padding: 28px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-      <div style="display: inline-block;">
-        <span style="display: inline-block; width: 10px; height: 10px; background: #E8DFC4; transform: rotate(45deg); margin-right: -3px; opacity: 0.85;"></span>
-        <span style="display: inline-block; width: 12px; height: 12px; background: #E8B4B8; transform: rotate(45deg); margin-right: -3px; opacity: 0.8;"></span>
-        <span style="display: inline-block; width: 10px; height: 10px; background: rgba(255,255,255,0.9); transform: rotate(45deg); margin-right: 10px;"></span>
-        <span style="font-size: 26px; color: #ffffff; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; vertical-align: middle;">
-          <span style="font-weight: 700;">wine</span><span style="font-weight: 300;">feed</span>
-        </span>
-      </div>
-      <p style="color: rgba(255,255,255,0.5); margin: 5px 0 0 0; font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;">SOURCE &amp; SERVE</p>
-    </div>
-
-    <!-- Accent line -->
-    <div style="height: 3px; background: linear-gradient(90deg, #E8DFC4 0%, #E8B4B8 50%, #722F37 100%);"></div>
-
-    <!-- Main Content -->
-    <div style="background: white; padding: 30px;">
+  ${winefeedEmailHeader()}
       <h2 style="color: #111827; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">
         Välkommen, ${restaurantName}!
       </h2>
@@ -290,13 +272,7 @@ export function welcomeEmail(params: WelcomeEmailParams): { subject: string; htm
       <p style="color: #6b7280; font-size: 14px; margin: 25px 0 0 0; text-align: center;">
         Frågor? Kontakta oss på <a href="mailto:hej@winefeed.se" style="color: #722F37; font-weight: 500;">hej@winefeed.se</a>
       </p>
-    </div>
-
-    <!-- Footer with crème background -->
-    <div style="background: #E8DFC4; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
-      <p style="margin: 0; color: #722F37; font-size: 12px; font-weight: 500;">Winefeed – Din B2B-marknadsplats för vin</p>
-    </div>
-  </div>
+  ${winefeedEmailFooter()}
 </body>
 </html>
   `;
@@ -760,7 +736,7 @@ export function accessMagicLinkEmail(params: AccessMagicLinkEmailParams): { subj
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 24px;">Vinkoll Access</h1>
     <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Hitta ditt drömvin via Vinkoll</p>
   </div>
@@ -771,7 +747,7 @@ export function accessMagicLinkEmail(params: AccessMagicLinkEmailParams): { subj
     <p>Klicka på knappen nedan för att logga in på Vinkoll Access. Länken är giltig i 30 minuter.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${loginUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="${loginUrl}" style="display: inline-block; background: #93092b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Logga in
       </a>
     </div>
@@ -831,7 +807,7 @@ export function accessRequestConfirmationEmail(params: AccessRequestConfirmation
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 24px;">Vinkoll Access</h1>
   </div>
 
@@ -916,7 +892,7 @@ export function renderImporterConfirmEmail(params: ImporterConfirmEmailParams): 
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
     <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Bekräfta mottagen beställning</p>
   </div>
@@ -937,7 +913,7 @@ export function renderImporterConfirmEmail(params: ImporterConfirmEmailParams): 
     <p>Klicka på knappen nedan för att bekräfta att ni mottagit beställningen.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${confirmUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="${confirmUrl}" style="display: inline-block; background: #93092b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Bekräfta beställning
       </a>
     </div>
@@ -1004,7 +980,7 @@ export function renderConsumerOrderConfirmedEmail(params: ConsumerOrderConfirmed
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9fafb;">
-  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
     <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 20px; font-weight: 500;">Beställningen är bekräftad!</p>
   </div>
@@ -1041,7 +1017,7 @@ export function renderConsumerOrderConfirmedEmail(params: ConsumerOrderConfirmed
     <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">Tack för att du använde Vinkoll! Vi hoppas du hittar fler viner hos oss.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://vinkoll.se" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="https://vinkoll.se" style="display: inline-block; background: #93092b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Utforska fler viner
       </a>
     </div>
@@ -1132,7 +1108,7 @@ export function renderImporterForwardEmail(params: ImporterForwardEmailParams): 
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
     <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Ny vinförfrågan</p>
   </div>
@@ -1155,7 +1131,7 @@ export function renderImporterForwardEmail(params: ImporterForwardEmailParams): 
     <p>Klicka på knappen nedan för att svara. Det tar bara en minut.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${respondUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="${respondUrl}" style="display: inline-block; background: #93092b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Svara på förfrågan
       </a>
     </div>
@@ -1238,7 +1214,7 @@ export function renderConsumerResponseEmail(params: ConsumerResponseEmailParams)
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9fafb;">
-  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
     <div style="display: inline-block; background: white; border-radius: 16px; padding: 12px 28px; margin-bottom: 14px;">
       <img src="${browseUrl.split('/').slice(0, 3).join('/')}/vinkoll-logo.png" alt="Vinkoll" style="height: 50px; display: block;" />
     </div>
@@ -1286,7 +1262,7 @@ export function renderConsumerResponseEmail(params: ConsumerResponseEmailParams)
     <p style="color: #6b7280; font-size: 13px;">Har du frågor? Svara på detta mail så hjälper vi dig.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://www.systembolaget.se/bestalla-och-handla/privatimport/forfragan/" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="https://www.systembolaget.se/bestalla-och-handla/privatimport/forfragan/" style="display: inline-block; background: #93092b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Registrera privatimport
       </a>
     </div>
@@ -1356,7 +1332,7 @@ Vinkoll - Hitta ditt nästa favoritvin
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
     <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Uppdatering om din förfrågan</p>
   </div>
@@ -1375,7 +1351,7 @@ Vinkoll - Hitta ditt nästa favoritvin
     <p>Men ge inte upp — vi har fler viner som kan passa dig!</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${browseUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="${browseUrl}" style="display: inline-block; background: #93092b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Utforska fler viner
       </a>
     </div>
@@ -2004,9 +1980,9 @@ export function renderImporterReminderEmail(params: ImporterReminderEmailParams)
   <title>${subject}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A44 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+  <div style="background: linear-gradient(135deg, #93092b 0%, #b41a42 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">VINKOLL</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Påminnelse om vinförfrågan</p>
+    <p style="color: #f1b4b0; margin: 10px 0 0 0;">Påminnelse om vinförfrågan</p>
   </div>
 
   <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
@@ -2025,7 +2001,7 @@ export function renderImporterReminderEmail(params: ImporterReminderEmailParams)
     <p style="color: #b45309; font-weight: 500;">Förfrågan stängs automatiskt om 2 dagar om inget svar inkommer.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${respondUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="${respondUrl}" style="display: inline-block; background: #93092b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Svara på förfrågan
       </a>
     </div>
@@ -2179,7 +2155,7 @@ export function renderAdminDailySummaryEmail(params: AdminDailySummaryEmailParam
     ` : ''}
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${adminUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="${adminUrl}" style="display: inline-block; background: #93092b; color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Öppna admin
       </a>
     </div>
