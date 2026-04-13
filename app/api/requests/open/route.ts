@@ -34,6 +34,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
+import { sendEmail } from '@/lib/email-service';
+import { openRequestReviewNotificationEmail } from '@/lib/email-templates';
+import { describeOpenCriteria, openCriteriaBadges } from '@/lib/matching-agent/open-request-fanout';
 
 interface OpenCriteria {
   color?: string;
@@ -97,28 +100,6 @@ function validateCriteria(c: unknown): { ok: true; criteria: OpenCriteria } | { 
   return { ok: true, criteria: out };
 }
 
-function describeCriteria(c: OpenCriteria): string {
-  const parts: string[] = [];
-  if (c.color) {
-    const colorLabel: Record<string, string> = {
-      red: 'rött', white: 'vitt', rose: 'rosé', sparkling: 'mousserande',
-      orange: 'orange', fortified: 'starkvin',
-    };
-    parts.push(colorLabel[c.color] || c.color);
-  }
-  if (c.appellation) parts.push(c.appellation);
-  else if (c.region) parts.push(c.region);
-  if (c.country && !c.appellation && !c.region) parts.push(c.country);
-  if (c.grape) parts.push(c.grape);
-  const base = parts.length > 0 ? `Öppen förfrågan: ${parts.join(', ')}` : 'Öppen förfrågan';
-  const extras: string[] = [];
-  if (c.max_price_ex_vat_sek) extras.push(`max ${c.max_price_ex_vat_sek} kr/flaska`);
-  if (c.min_bottles) extras.push(`min ${c.min_bottles} fl`);
-  if (c.vintage_from) extras.push(`årgång ${c.vintage_from}+`);
-  if (c.organic) extras.push('ekologiskt');
-  if (c.biodynamic) extras.push('biodynamiskt');
-  return extras.length > 0 ? `${base} (${extras.join(', ')})` : base;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -173,7 +154,9 @@ export async function POST(request: NextRequest) {
       .from('requests')
       .insert({
         restaurant_id: restaurantId,
-        fritext: describeCriteria(criteria) + (criteria.free_text ? ` — ${criteria.free_text}` : ''),
+        fritext:
+          `Öppen förfrågan: ${describeOpenCriteria(criteria)}` +
+          (criteria.free_text ? ` — ${criteria.free_text}` : ''),
         budget_per_flaska: criteria.max_price_ex_vat_sek ?? null,
         antal_flaskor: criteria.min_bottles ?? null,
         status: 'PENDING_REVIEW',
@@ -190,6 +173,36 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to create request', details: insertError?.message },
         { status: 500 }
       );
+    }
+
+    // Notify admin review queue via email. Best-effort — a failed email
+    // must not block the user's submit. Single recipient via
+    // ADMIN_REVIEW_EMAIL env var, falls back to hej@winefeed.se.
+    try {
+      const adminEmail = process.env.ADMIN_REVIEW_EMAIL || 'hej@winefeed.se';
+      const { data: rest } = await adminClient
+        .from('restaurants')
+        .select('name, city')
+        .eq('id', restaurantId)
+        .single();
+
+      const content = openRequestReviewNotificationEmail({
+        requestId: inserted.id,
+        restaurantName: rest?.name || 'Restaurang',
+        restaurantCity: rest?.city,
+        summary: describeOpenCriteria(criteria),
+        badges: openCriteriaBadges(criteria),
+        freeText: criteria.free_text,
+      });
+
+      await sendEmail({
+        to: adminEmail,
+        subject: content.subject,
+        html: content.html,
+        text: content.text,
+      });
+    } catch (notifyErr) {
+      console.error('Admin review notification failed:', notifyErr);
     }
 
     return NextResponse.json({ id: inserted.id, status: inserted.status }, { status: 201 });

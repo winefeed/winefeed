@@ -800,6 +800,96 @@ Winefeed - Din B2B-marknadsplats för vin
 }
 
 /**
+ * Template: Open Broadcast Request Review Notification (sent to admin)
+ *
+ * Fired from POST /api/requests/open when a restaurant submits a new
+ * open broadcast request that needs admin approval before fan-out.
+ */
+export interface OpenRequestReviewNotificationParams {
+  requestId: string;
+  restaurantName: string;
+  restaurantCity?: string | null;
+  summary: string;
+  badges: string[];
+  freeText?: string | null;
+}
+
+export function openRequestReviewNotificationEmail(
+  params: OpenRequestReviewNotificationParams
+): { subject: string; html: string; text: string } {
+  const { requestId, restaurantName, restaurantCity, summary, badges, freeText } = params;
+  const reviewUrl = getAppUrl('/admin/requests/open');
+
+  const subject = `🔔 Ny öppen förfrågan från ${restaurantName} — väntar granskning`;
+
+  const badgesHtml = badges.length
+    ? `<div style="margin: 12px 0;">
+        ${badges
+          .map(
+            b =>
+              `<span style="display: inline-block; margin: 2px; padding: 4px 10px; border-radius: 999px; background: #f1b4b0; color: #722F37; font-size: 12px; font-weight: 500;">${escapeHtml(b)}</span>`
+          )
+          .join(' ')}
+      </div>`
+    : '';
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
+    <h2 style="color: #722F37; margin: 0 0 16px 0; font-size: 20px; font-weight: 600;">Ny öppen förfrågan</h2>
+
+    <p style="color: #4b5563; line-height: 1.6; font-size: 15px; margin: 0 0 8px 0;">
+      <strong>${escapeHtml(restaurantName)}</strong>${restaurantCity ? ` · ${escapeHtml(restaurantCity)}` : ''} har skickat en broadcast-förfrågan som väntar på granskning.
+    </p>
+
+    <div style="background: #f8f6f0; border-left: 4px solid #E8DFC4; border-radius: 0 8px 8px 0; padding: 15px 20px; margin: 20px 0;">
+      <p style="margin: 0; color: #4b5563; line-height: 1.6;"><strong>${escapeHtml(summary)}</strong></p>
+      ${badgesHtml}
+      ${freeText ? `<p style="margin: 10px 0 0 0; color: #4b5563; font-size: 14px; font-style: italic;">&ldquo;${escapeHtml(freeText)}&rdquo;</p>` : ''}
+    </div>
+
+    <p style="color: #6b7280; line-height: 1.6; font-size: 14px;">
+      Klicka nedan för att granska och godkänna eller avvisa. Förfrågan skickas inte ut till leverantörer förrän du godkänner.
+    </p>
+
+    <div style="text-align: center; margin: 28px 0;">
+      <a href="${reviewUrl}" style="display: inline-block; background: #722F37; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(114,47,55,0.25);">
+        Granska i admin-kön
+      </a>
+    </div>
+
+    <p style="font-size: 12px; color: #9ca3af; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+      Referens: ${requestId.slice(0, 8)}
+    </p>
+  ${winefeedEmailFooter()}
+</body>
+</html>`;
+
+  const text = `Ny öppen förfrågan — väntar granskning
+
+${restaurantName}${restaurantCity ? ` · ${restaurantCity}` : ''} har skickat en broadcast-förfrågan.
+
+${summary}
+${badges.length ? badges.join(' · ') : ''}
+${freeText ? `\n"${freeText}"` : ''}
+
+Granska i admin-kön: ${reviewUrl}
+
+Referens: ${requestId.slice(0, 8)}
+
+---
+Winefeed - Din B2B-marknadsplats för vin`;
+
+  return { subject, html, text };
+}
+
+/**
  * Template: Order Confirmation (sent to both restaurant and supplier)
  */
 /**
