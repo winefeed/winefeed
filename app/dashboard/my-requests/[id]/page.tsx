@@ -10,9 +10,10 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Clock, CheckCircle2, Eye, MessageSquare, Building2, Mail } from 'lucide-react';
+import { ArrowLeft, Clock, Eye, MessageSquare, Building2, Mail, Megaphone } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import { openCriteriaBadges, type OpenCriteria } from '@/lib/matching-agent/open-request-fanout';
 
 interface SupplierAssignment {
   supplier_id: string;
@@ -30,6 +31,8 @@ interface RequestDetails {
   specialkrav: string[] | null;
   color: string | null;
   status: string;
+  request_type: 'targeted' | 'open';
+  open_criteria: OpenCriteria | null;
   created_at: string;
   offers_count: number;
   assignments: SupplierAssignment[];
@@ -146,33 +149,86 @@ export default function RequestStatusPage() {
         Tillbaka till mina förfrågningar
       </button>
 
+      {/* PENDING_REVIEW state — open broadcast request waiting for admin */}
+      {request.status === 'PENDING_REVIEW' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-6 flex items-start gap-3">
+          <Clock className="h-5 w-5 text-amber-700 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-amber-900">Väntar på granskning</p>
+            <p className="text-sm text-amber-800 mt-1">
+              Vi granskar din öppna förfrågan innan den skickas ut till leverantörer. Du får mail när den är godkänd — oftast inom någon timme på vardagar.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* REJECTED state */}
+      {request.status === 'REJECTED' && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-5 mb-6">
+          <p className="font-semibold text-red-900">Förfrågan avvisad</p>
+          <p className="text-sm text-red-800 mt-1">
+            Vi har inte skickat ut din förfrågan. Hör av dig till{' '}
+            <a href="mailto:hej@winefeed.se" className="underline font-medium">hej@winefeed.se</a>
+            {' '}om du har frågor.
+          </p>
+        </div>
+      )}
+
       {/* Request summary */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+        {request.request_type === 'open' && (
+          <div className="flex items-center gap-2 mb-3">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#722F37]/10 text-[#722F37] border border-[#722F37]/20">
+              <Megaphone className="h-3 w-3" />
+              Öppen förfrågan
+            </span>
+          </div>
+        )}
         <h1 className="text-xl font-bold text-gray-900 mb-2">
           {request.freetext || 'Vinförfrågan'}
         </h1>
-        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-          {request.budget_sek && (
-            <span>Budget: max {request.budget_sek} kr/flaska</span>
-          )}
-          {request.quantity_bottles && (
-            <span>{request.quantity_bottles} flaskor</span>
-          )}
-          {request.delivery_date_requested && (
-            <span>Leverans: {new Date(request.delivery_date_requested).toLocaleDateString('sv-SE')}</span>
-          )}
-        </div>
+
+        {request.request_type === 'open' && request.open_criteria ? (
+          <>
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {openCriteriaBadges(request.open_criteria).map((b, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                  {b}
+                </span>
+              ))}
+            </div>
+            {request.open_criteria.free_text && (
+              <p className="text-sm text-slate-600 italic mt-3">&ldquo;{request.open_criteria.free_text}&rdquo;</p>
+            )}
+          </>
+        ) : (
+          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+            {request.budget_sek && (
+              <span>Budget: max {request.budget_sek} kr/flaska</span>
+            )}
+            {request.quantity_bottles && (
+              <span>{request.quantity_bottles} flaskor</span>
+            )}
+            {request.delivery_date_requested && (
+              <span>Leverans: {new Date(request.delivery_date_requested).toLocaleDateString('sv-SE')}</span>
+            )}
+          </div>
+        )}
+
         <p className="text-xs text-gray-400 mt-3">
           Skapad {formatDistanceToNow(new Date(request.created_at), { addSuffix: true, locale: sv })}
         </p>
       </div>
 
-      {/* Status section */}
+      {/* Status section — hide entirely while PENDING_REVIEW since no
+          assignments exist yet and the banner above already explains
+          what's happening. */}
+      {request.status !== 'PENDING_REVIEW' && request.status !== 'REJECTED' && (
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h2 className="font-semibold text-gray-900 flex items-center gap-2">
             <Building2 className="h-5 w-5 text-gray-600" />
-            Leverantörer som fått förfrågan
+            {request.request_type === 'open' ? 'Leverantörer som tävlar om affären' : 'Leverantörer som fått förfrågan'}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             {request.assignments.length} leverantörer • {request.offers_count} har svarat med offert
@@ -217,6 +273,7 @@ export default function RequestStatusPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* CTA if offers exist */}
       {request.offers_count > 0 && (

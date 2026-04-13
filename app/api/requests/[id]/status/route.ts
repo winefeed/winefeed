@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     // Fetch request
     const { data: req, error: fetchError } = await adminClient
       .from('requests')
-      .select('id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, created_at')
+      .select('id, fritext, budget_per_flaska, antal_flaskor, leverans_senast, specialkrav, status, created_at, request_type, open_criteria')
       .eq('id', requestId)
       .single();
 
@@ -115,6 +115,8 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       specialkrav: req.specialkrav,
       color: null,
       status: req.status,
+      request_type: req.request_type || 'targeted',
+      open_criteria: req.open_criteria || null,
       created_at: req.created_at,
       offers_count: offersCount || 0,
       assignments: supplierAssignments,
