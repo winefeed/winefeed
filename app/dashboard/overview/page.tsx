@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   FileText,
   Mail,
@@ -24,6 +25,7 @@ import {
   Zap,
   ShoppingCart,
   Building2,
+  X,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -57,11 +59,25 @@ interface PendingOffer {
   expires_at?: string;
 }
 
+interface MissingField {
+  key: string;
+  label: string;
+  group: 'delivery' | 'billing';
+}
+
 export default function RestaurantOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [pendingOffers, setPendingOffers] = useState<PendingOffer[]>([]);
   const [restaurantName, setRestaurantName] = useState('');
+  const [missingFields, setMissingFields] = useState<MissingField[]>([]);
+  const [profileBannerDismissed, setProfileBannerDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setProfileBannerDismissed(
+      typeof window !== 'undefined' && localStorage.getItem('profile-banner-dismissed') === '1'
+    );
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -71,6 +87,20 @@ export default function RestaurantOverview() {
         if (restaurantRes.ok) {
           const data = await restaurantRes.json();
           setRestaurantName(data.name || '');
+
+          // Detect which delivery + billing fields are missing so suppliers
+          // can prepare fulfilment without a round-trip when an offer is
+          // accepted. We only flag the fields the accept email actually
+          // renders — optional ones like GLN or delivery_instructions are
+          // nice-to-have, not worth nagging.
+          const missing: MissingField[] = [];
+          if (!data.address) missing.push({ key: 'address', label: 'Leveransadress', group: 'delivery' });
+          if (!data.postal_code) missing.push({ key: 'postal_code', label: 'Postnummer', group: 'delivery' });
+          if (!data.org_number) missing.push({ key: 'org_number', label: 'Organisationsnummer', group: 'billing' });
+          if (!data.billing_email && !data.billing_address) {
+            missing.push({ key: 'billing', label: 'Fakturaadress eller fakturamail', group: 'billing' });
+          }
+          setMissingFields(missing);
         }
 
         // Fetch stats
@@ -187,6 +217,45 @@ export default function RestaurantOverview() {
           </a>
         </div>
       </div>
+
+      {/* Profile completeness banner — shown when delivery/billing fields are
+          missing so accepted-offer emails reach suppliers with everything they
+          need to prepare fulfilment. Dismissable, remembered via localStorage. */}
+      {!profileBannerDismissed && missingFields.length > 0 && (
+        <div className="mb-6 relative rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-50/50 p-5 sm:p-6">
+          <button
+            onClick={() => {
+              localStorage.setItem('profile-banner-dismissed', '1');
+              setProfileBannerDismissed(true);
+            }}
+            aria-label="Dölj"
+            className="absolute top-3 right-3 p-1 rounded-lg text-amber-700 hover:bg-amber-100"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <div className="flex items-start gap-4 pr-6">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+              <Building2 className="h-5 w-5 text-amber-700" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-amber-900 text-base mb-1">
+                Fyll i leverans- och fakturauppgifter
+              </h3>
+              <p className="text-sm text-amber-800 leading-relaxed">
+                När du accepterar en offert skickar vi dina uppgifter till leverantören så de kan förbereda leverans och fakturering. Just nu saknar vi:{' '}
+                <strong>{missingFields.map(f => f.label).join(', ')}</strong>.
+              </p>
+              <Link
+                href="/dashboard/settings"
+                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-900 hover:text-amber-950 underline decoration-amber-400 underline-offset-2"
+              >
+                Uppdatera profilen
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
