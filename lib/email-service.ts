@@ -72,6 +72,35 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
     return { success: true };
   }
 
+  // Non-production guard: stop real emails from leaking to real recipients
+  // when the code runs outside prod (local dev, preview deploys). Allows
+  // opt-in via EMAIL_DEV_WHITELIST (comma-separated allowed addresses) so
+  // you can still test deliberately. Belt-and-braces after the incident
+  // where a dev-server test sent a localhost link to a supplier in prod.
+  const isProdRuntime =
+    process.env.NODE_ENV === 'production' &&
+    process.env.VERCEL_ENV !== 'preview' &&
+    process.env.VERCEL_ENV !== 'development';
+
+  if (!isProdRuntime) {
+    const whitelist = (process.env.EMAIL_DEV_WHITELIST || '')
+      .split(',')
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean);
+    const recipient = to.trim().toLowerCase();
+    const allowed = whitelist.includes(recipient);
+
+    if (!allowed) {
+      console.log('🛑 [DEV EMAIL GUARD] Blocked outbound email (not in EMAIL_DEV_WHITELIST):');
+      console.log(`   To: ${to}`);
+      console.log(`   Subject: ${subject}`);
+      console.log(`   Env: NODE_ENV=${process.env.NODE_ENV} VERCEL_ENV=${process.env.VERCEL_ENV || '(unset)'}`);
+      console.log(`   To enable: add "${recipient}" to EMAIL_DEV_WHITELIST in .env.local`);
+      return { success: true };
+    }
+    console.log(`✉️  [DEV EMAIL GUARD] ${recipient} is whitelisted — sending for real`);
+  }
+
   // Validate Resend API key
   const resend = getResendClient();
   if (!resend) {
