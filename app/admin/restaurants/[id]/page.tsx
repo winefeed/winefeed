@@ -12,7 +12,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Store, ArrowLeft, Users, Inbox, ShoppingCart, Mail, Phone, MapPin, Building2 } from 'lucide-react';
+import { Store, ArrowLeft, Users, Inbox, ShoppingCart, Mail, Phone, MapPin, Building2, ShieldCheck, ShieldX, Clock, FileCheck } from 'lucide-react';
 import { useActor } from '@/lib/hooks/useActor';
 
 interface User {
@@ -48,6 +48,11 @@ interface Restaurant {
   email: string | null;
   phone: string | null;
   createdAt: string;
+  licenseMunicipality: string | null;
+  licenseCaseNumber: string | null;
+  licenseValidUntil: string | null;
+  licenseVerifiedAt: string | null;
+  servingLicenseFileUrl: string | null;
 }
 
 interface RestaurantData {
@@ -241,6 +246,115 @@ export default function AdminRestaurantDetailPage() {
           </div>
         </div>
 
+        {/* License Verification */}
+        <div className="bg-card rounded-lg border border-border p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <FileCheck className="h-5 w-5 text-muted-foreground" />
+            Serveringstillstånd
+          </h2>
+
+          {restaurant.licenseVerifiedAt ? (
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 border border-green-200 mb-4">
+              <ShieldCheck className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-green-900">Verifierad</p>
+                <p className="text-xs text-green-700">{formatDate(restaurant.licenseVerifiedAt)}</p>
+              </div>
+            </div>
+          ) : restaurant.licenseMunicipality && restaurant.licenseCaseNumber ? (
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 border border-amber-200 mb-4">
+              <Clock className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-amber-900">Väntar granskning</p>
+                <p className="text-xs text-amber-700">Uppgifter inlämnade, ej verifierad</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 border border-red-200 mb-4">
+              <ShieldX className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-red-900">Ej verifierad</p>
+                <p className="text-xs text-red-700">Inga uppgifter inlämnade</p>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Kommun:</span>
+              <span className="text-foreground">{restaurant.licenseMunicipality || '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Diarienr:</span>
+              <span className="text-foreground font-mono">{restaurant.licenseCaseNumber || '—'}</span>
+            </div>
+            {restaurant.licenseValidUntil && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Giltigt t.o.m:</span>
+                <span className="text-foreground">{new Date(restaurant.licenseValidUntil).toLocaleDateString('sv-SE')}</span>
+              </div>
+            )}
+            {restaurant.servingLicenseFileUrl && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Dokument:</span>
+                <a href={restaurant.servingLicenseFileUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                  Visa PDF
+                </a>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-border">
+            {!restaurant.licenseVerifiedAt && restaurant.licenseMunicipality && restaurant.licenseCaseNumber ? (
+              <button
+                onClick={async () => {
+                  if (!confirm('Verifiera serveringstillståndet för denna restaurang?')) return;
+                  try {
+                    const res = await fetch(`/api/admin/restaurants/${restaurantId}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'verify_license' }),
+                    });
+                    if (res.ok) {
+                      fetchRestaurant();
+                    }
+                  } catch {}
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Verifiera serveringstillstånd
+              </button>
+            ) : restaurant.licenseVerifiedAt ? (
+              <button
+                onClick={async () => {
+                  if (!confirm('Ångra verifieringen?')) return;
+                  try {
+                    const res = await fetch(`/api/admin/restaurants/${restaurantId}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'unverify_license' }),
+                    });
+                    if (res.ok) {
+                      fetchRestaurant();
+                    }
+                  } catch {}
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-accent transition-colors text-sm"
+              >
+                Ångra verifiering
+              </button>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center">
+                Restaurangen har inte lämnat in uppgifter ännu
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Users + More */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Users */}
         <div className="bg-card rounded-lg border border-border p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">

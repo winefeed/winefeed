@@ -102,13 +102,19 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
         id: restaurant.id,
         name: restaurant.name,
         orgNumber: restaurant.org_number || null,
-        address: restaurant.address || null,
+        address: restaurant.address_line1 || null,
         city: restaurant.city || null,
         postalCode: restaurant.postal_code || null,
         country: restaurant.country || null,
-        email: restaurant.email || null,
-        phone: restaurant.phone || null,
+        email: restaurant.contact_email || null,
+        phone: restaurant.contact_phone || null,
         createdAt: restaurant.created_at,
+        // License fields
+        licenseMunicipality: restaurant.license_municipality || null,
+        licenseCaseNumber: restaurant.license_case_number || null,
+        licenseValidUntil: restaurant.license_valid_until || null,
+        licenseVerifiedAt: restaurant.license_verified_at || null,
+        servingLicenseFileUrl: restaurant.serving_license_file_url || null,
       },
       users: usersWithDetails,
       recentRequests: requests?.map(r => ({
@@ -131,5 +137,61 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       { error: 'Internal server error' },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * PATCH /api/admin/restaurants/[id]
+ *
+ * Admin actions on a restaurant. Currently supports:
+ * - { action: 'verify_license' } — sets license_verified_at = NOW()
+ * - { action: 'unverify_license' } — clears license_verified_at (for corrections)
+ */
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  try {
+    const { id: restaurantId } = params;
+    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
+    const body = await request.json();
+
+    if (body.action === 'verify_license') {
+      const { error } = await supabase
+        .from('restaurants')
+        .update({ license_verified_at: new Date().toISOString() })
+        .eq('id', restaurantId);
+
+      if (error) {
+        return NextResponse.json({ error: 'Failed to verify', details: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, license_verified_at: new Date().toISOString() });
+    }
+
+    if (body.action === 'unverify_license') {
+      const { error } = await supabase
+        .from('restaurants')
+        .update({ license_verified_at: null })
+        .eq('id', restaurantId);
+
+      if (error) {
+        return NextResponse.json({ error: 'Failed to unverify', details: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, license_verified_at: null });
+    }
+
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
+  } catch (error: any) {
+    console.error('PATCH restaurant error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

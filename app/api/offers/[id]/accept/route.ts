@@ -30,6 +30,7 @@ import { sendEmail, getSupplierEmail, getRestaurantEmail, logEmailEvent, logOrde
 import { offerAcceptedEmail, orderConfirmationEmail } from '@/lib/email-templates';
 import { createRouteClients } from '@/lib/supabase/route-client';
 import { actorService } from '@/lib/actor-service';
+import { blockIfUnverified } from '@/lib/license-guard';
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -87,6 +88,15 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     if (!actorService.hasRole(actor, 'ADMIN')) {
       if (offerRestaurantId !== actor.restaurant_id) {
         return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      }
+    }
+
+    // License gate: unverified restaurants cannot accept offers.
+    // Admins bypass (they may accept on behalf during pilot setup).
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      const blocked = await blockIfUnverified(adminClient, offerRestaurantId);
+      if (blocked) {
+        return NextResponse.json(blocked, { status: 403 });
       }
     }
 

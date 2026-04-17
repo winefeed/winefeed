@@ -28,36 +28,51 @@ interface Suggestion {
 }
 
 const SUGGESTIONS: Suggestion[] = [
+  // Stil/funktionsorienterade (sommelier-perspektiv)
   {
-    label: 'Ekologisk Pinot Noir, 90 fl, max 130 kr',
+    label: 'Fruktigt rött för glasvin, max 90 kr',
     color: 'red',
-    grape: 'Pinot Noir',
-    minBottles: '90',
-    maxPrice: '130',
+    maxPrice: '90',
+    freeText: 'Fruktigt och lättdrucket, gärna låg tanninstruktur — för glasförsäljning',
+  },
+  {
+    label: 'Naturvin, Frankrike, lågt ingrepp, 120–160 kr',
+    color: 'red',
+    country: 'Frankrike',
+    maxPrice: '160',
+    freeText: 'Naturvin med lågt ingrepp, gärna ofiltrerat med karaktär',
     organic: true,
   },
   {
-    label: 'Biodynamisk Riesling, keykeg 20L',
-    color: 'white',
-    grape: 'Riesling',
-    biodynamic: true,
-    freeText: 'Gärna på keykeg 20L',
+    label: 'Elegant Pinot Noir för finare meny, max 250 kr',
+    color: 'red',
+    grape: 'Pinot Noir',
+    maxPrice: '250',
+    freeText: 'Elegant och balanserad, gärna med finesse snarare än kraft',
   },
+  // Kategori/regionsorienterade (konkreta beställningar)
   {
-    label: 'Crémant de Bourgogne, 60 fl, max 140 kr',
-    color: 'sparkling',
-    appellation: 'Crémant de Bourgogne',
-    country: 'France',
-    minBottles: '60',
-    maxPrice: '140',
-  },
-  {
-    label: 'Chablis, 12 fl, max 200 kr',
+    label: 'Klassisk Chablis eller Bourgogne blanc, 12 fl',
     color: 'white',
     appellation: 'Chablis',
-    country: 'France',
+    country: 'Frankrike',
     minBottles: '12',
     maxPrice: '200',
+  },
+  {
+    label: 'Mousserande till brunch, 60 fl, max 140 kr',
+    color: 'sparkling',
+    minBottles: '60',
+    maxPrice: '140',
+    freeText: 'Crémant, Prosecco eller likvärdig — fräscht och festligt',
+  },
+  {
+    label: 'Italienskt rött för pasta, 24 fl, max 110 kr',
+    color: 'red',
+    country: 'Italien',
+    minBottles: '24',
+    maxPrice: '110',
+    freeText: 'Chianti, Barbera, Montepulciano eller liknande — vardagsrött med syra och jordighet',
   },
 ];
 
