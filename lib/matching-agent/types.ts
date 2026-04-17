@@ -57,6 +57,7 @@ export interface ScoreBreakdown {
   goldenPair: number;     // 0-10 bonus — classic food+wine pairing match
   cuisineMatch: number;   // 0-8 bonus — restaurant cuisine affinity
   nameMatch: number;      // 0-25 bonus — search query matches wine name/appellation/producer/region
+  feedbackPenalty: number; // 0 to -20 — negative signal from restaurant feedback
 }
 
 /** A wine with its deterministic pre-score */
@@ -116,6 +117,7 @@ export interface MatchingAgentInput {
   fritext: string;
   structuredFilters: StructuredFilters;
   restaurantContext?: string;
+  restaurantId?: string;  // enables per-restaurant feedback penalties in pre-scorer
 }
 
 /** Pipeline options (with sensible defaults) */

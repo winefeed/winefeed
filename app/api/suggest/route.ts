@@ -148,6 +148,7 @@ export async function POST(request: NextRequest) {
         leverans_ort,
       },
       restaurantContext: sommelierCtx.promptContext || undefined,
+      restaurantId: restaurantId || undefined,
     });
 
     if (result.wines.length === 0) {

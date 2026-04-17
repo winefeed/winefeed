@@ -25,12 +25,16 @@ import { getMergedCuisineProfile, CuisineWineProfile } from './cuisine-profiles'
 /**
  * Score and sort wines. Returns top N by score.
  */
+/** Feedback map: wine_id → list of feedback types given by this restaurant */
+export type WineFeedbackMap = Map<string, string[]>;
+
 export function preScoreWines(
   wines: SupplierWineRow[],
   preferences: MergedPreferences,
   structuredFilters: StructuredFilters,
   topN: number,
   searchQuery?: string,
+  feedbackMap?: WineFeedbackMap,
 ): ScoredWine[] {
   // Resolve cuisine profile once for all wines (not per-wine)
   const cuisineProfile = preferences.cuisineTypes.length > 0
@@ -43,8 +47,8 @@ export function preScoreWines(
     : '';
 
   const scored: ScoredWine[] = wines.map(wine => {
-    const breakdown = scoreWine(wine, preferences, structuredFilters, cuisineProfile, normalizedQuery);
-    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch + breakdown.nameMatch;
+    const breakdown = scoreWine(wine, preferences, structuredFilters, cuisineProfile, normalizedQuery, feedbackMap);
+    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch + breakdown.nameMatch + breakdown.feedbackPenalty;
 
     // Get golden pair reason if applicable
     let goldenPairReason: string | undefined;
@@ -75,6 +79,7 @@ function scoreWine(
   filters: StructuredFilters,
   cuisineProfile: CuisineWineProfile | null,
   normalizedQuery: string,
+  feedbackMap?: WineFeedbackMap,
 ): ScoreBreakdown {
   return {
     price: scorePrice(wine, filters),
@@ -88,7 +93,34 @@ function scoreWine(
     goldenPair: scoreGoldenPair(wine, prefs),
     cuisineMatch: scoreCuisineMatch(wine, cuisineProfile),
     nameMatch: scoreNameMatch(wine, normalizedQuery),
+    feedbackPenalty: scoreFeedbackPenalty(wine, feedbackMap),
   };
+}
+
+// ============================================================================
+// Feedback penalty (0 to -20)
+// Penalizes wines this restaurant has previously given negative feedback on.
+// Only exact wine_id matches for now — region/style inference comes in P2.
+// ============================================================================
+
+function scoreFeedbackPenalty(wine: SupplierWineRow, feedbackMap?: WineFeedbackMap): number {
+  if (!feedbackMap) return 0;
+  const feedback = feedbackMap.get(wine.id);
+  if (!feedback || feedback.length === 0) return 0;
+
+  // Take the strongest signal. Multiple feedbacks on the same wine
+  // don't stack — one "wrong_style" is enough to suppress.
+  let penalty = 0;
+  for (const type of feedback) {
+    switch (type) {
+      case 'wrong_style':    penalty = Math.min(penalty, -20); break;
+      case 'too_expensive':  penalty = Math.min(penalty, -15); break;
+      case 'already_tried':  penalty = Math.min(penalty, -10); break;
+      case 'wrong_region':   penalty = Math.min(penalty, -8); break;
+      case 'other':          penalty = Math.min(penalty, -5); break;
+    }
+  }
+  return penalty;
 }
 
 // ============================================================================
