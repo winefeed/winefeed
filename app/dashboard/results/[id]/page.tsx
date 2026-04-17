@@ -11,6 +11,7 @@ import { FloatingDraftList } from '@/components/FloatingDraftList';
 import { Spinner } from '@/components/ui/spinner';
 import { HelpTooltip, InfoBox, GLOSSARY } from '@/components/ui/help-tooltip';
 import { RefinePanel, DeliveryTime } from '@/components/rfq/RefinePanel';
+import { WineFeedbackPopover } from '@/components/rfq/WineFeedbackPopover';
 
 interface Wine {
   id: string;
@@ -1273,16 +1274,23 @@ export default function ResultsPage() {
                           <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-medium rounded-full">I lager</span>
                         )}
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleWineSelection(suggestion.wine.id, suggestion); }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                          isSelected
-                            ? 'bg-green-600 text-white'
-                            : 'bg-primary text-white'
-                        }`}
-                      >
-                        {isSelected ? '✓ Vald' : 'Välj'}
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <WineFeedbackPopover
+                          wineId={suggestion.wine.id}
+                          supplierId={suggestion.supplier?.id || ''}
+                          requestId={requestId !== 'preview' ? requestId : undefined}
+                        />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleWineSelection(suggestion.wine.id, suggestion); }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            isSelected
+                              ? 'bg-green-600 text-white'
+                              : 'bg-primary text-white'
+                          }`}
+                        >
+                          {isSelected ? '✓ Vald' : 'Välj'}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -1325,6 +1333,13 @@ export default function ResultsPage() {
                             Klicka för att välja
                           </span>
                         )}
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <WineFeedbackPopover
+                            wineId={suggestion.wine.id}
+                            supplierId={suggestion.supplier?.id || ''}
+                            requestId={requestId !== 'preview' ? requestId : undefined}
+                          />
+                        </span>
                       </div>
                       <p className="text-muted-foreground flex items-center gap-2 flex-wrap">
                         <span className="font-medium">{suggestion.wine.producent}</span>
