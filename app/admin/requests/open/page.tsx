@@ -20,6 +20,7 @@ interface PreviewSupplier {
   name: string;
   email: string | null;
   match_count: number;
+  match_source?: 'catalog' | 'specialization' | 'both';
 }
 
 const STATUS_TABS: Array<{ key: string; label: string }> = [
@@ -251,7 +252,13 @@ export default function AdminOpenRequestsPage() {
                           <div className="font-medium text-slate-900">{s.name}</div>
                           {s.email && <div className="text-xs text-slate-500">{s.email}</div>}
                         </div>
-                        <span className="text-xs text-slate-500">{s.match_count} viner</span>
+                        <span className="text-xs text-slate-500">
+                          {s.match_source === 'specialization'
+                            ? 'Specialisering'
+                            : s.match_source === 'both'
+                            ? `${s.match_count} viner + spec.`
+                            : `${s.match_count} viner`}
+                        </span>
                       </div>
                     ))}
                   </div>

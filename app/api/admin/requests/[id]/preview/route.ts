@@ -64,6 +64,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       name: sMap.get(m.supplier_id)?.namn || 'Okänd leverantör',
       email: sMap.get(m.supplier_id)?.kontakt_email || null,
       match_count: m.match_count,
+      match_source: m.match_source,
     }));
 
     return NextResponse.json({

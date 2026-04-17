@@ -99,11 +99,21 @@ function escapeOr(s: string): string {
 }
 
 /**
- * Find suppliers whose catalogue has wines matching the criteria.
- * Returns a ranked list of supplier IDs with their match count.
+ * Find suppliers whose catalogue OR specializations match the criteria.
+ *
+ * Two match paths (unioned, deduplicated):
+ * 1. Catalog match: supplier has wines matching color/country/grape/region/etc
+ * 2. Specialization match: supplier declared a country/region/appellation
+ *    specialization that matches the criteria (e.g. IOR covering "France")
+ *
+ * Catalog matches rank higher than specialization-only matches because they
+ * can respond immediately from stock. Specialization-only suppliers (typically
+ * IORs) may need to source from producers before responding.
  */
-export async function findMatchingSuppliers(criteria: OpenCriteria): Promise<Array<{ supplier_id: string; match_count: number }>> {
+export async function findMatchingSuppliers(criteria: OpenCriteria): Promise<Array<{ supplier_id: string; match_count: number; match_source: 'catalog' | 'specialization' | 'both' }>> {
   const sb = getAdmin();
+
+  // --- Path 1: catalog match (existing logic) ---
   let query = sb
     .from('supplier_wines')
     .select('supplier_id, id')
@@ -114,7 +124,6 @@ export async function findMatchingSuppliers(criteria: OpenCriteria): Promise<Arr
   }
 
   if (criteria.max_price_ex_vat_sek) {
-    // price_ex_vat_sek is stored in öre — allow 30% headroom like smart-query
     const maxOre = Math.round(criteria.max_price_ex_vat_sek * 100 * 1.3);
     query = query.lte('price_ex_vat_sek', maxOre);
   }
@@ -127,8 +136,6 @@ export async function findMatchingSuppliers(criteria: OpenCriteria): Promise<Arr
     query = query.ilike('grape', `%${escapeOr(criteria.grape)}%`);
   }
 
-  // Appellation/region: match on region OR name OR appellation column
-  // (same logic as smart-query full-mode)
   const regionTerm = criteria.appellation || criteria.region;
   if (regionTerm) {
     const t = escapeOr(regionTerm);
@@ -142,20 +149,81 @@ export async function findMatchingSuppliers(criteria: OpenCriteria): Promise<Arr
   if (criteria.organic) query = query.eq('organic', true);
   if (criteria.biodynamic) query = query.eq('biodynamic', true);
 
-  const { data, error } = await query.limit(2000);
-  if (error) {
-    console.error('[open-fanout] Query error:', error);
-    return [];
+  const { data: catalogData, error: catalogError } = await query.limit(2000);
+  if (catalogError) {
+    console.error('[open-fanout] Catalog query error:', catalogError);
   }
 
-  const counts = new Map<string, number>();
-  for (const row of data || []) {
-    counts.set(row.supplier_id, (counts.get(row.supplier_id) || 0) + 1);
+  const catalogCounts = new Map<string, number>();
+  for (const row of catalogData || []) {
+    catalogCounts.set(row.supplier_id, (catalogCounts.get(row.supplier_id) || 0) + 1);
   }
 
-  return [...counts.entries()]
-    .map(([supplier_id, match_count]) => ({ supplier_id, match_count }))
-    .sort((a, b) => b.match_count - a.match_count)
+  // --- Path 2: specialization match ---
+  // Build OR conditions for supplier_specializations based on criteria.
+  // A supplier specializing in "France" should match criteria.country="France"
+  // OR criteria with a French appellation/region.
+  const specConditions: string[] = [];
+
+  if (criteria.country) {
+    const c = escapeOr(criteria.country);
+    specConditions.push(`and(type.eq.country,value.ilike.${c})`);
+  }
+
+  if (criteria.region) {
+    const r = escapeOr(criteria.region);
+    specConditions.push(`and(type.eq.region,value.ilike.${r})`);
+  }
+
+  if (criteria.appellation) {
+    const a = escapeOr(criteria.appellation);
+    specConditions.push(`and(type.eq.appellation,value.ilike.${a})`);
+    // Also match region-level specializations — an IOR covering "Bourgogne"
+    // should receive "Chablis" broadcasts since Chablis is within Bourgogne.
+    specConditions.push(`and(type.eq.region,value.ilike.${a})`);
+  }
+
+  // If criteria has no geographic dimension, specializations can't match
+  const specSupplierIds = new Set<string>();
+
+  if (specConditions.length > 0) {
+    const { data: specData, error: specError } = await sb
+      .from('supplier_specializations')
+      .select('supplier_id')
+      .or(specConditions.join(','));
+
+    if (specError) {
+      console.error('[open-fanout] Specialization query error:', specError);
+    } else {
+      for (const row of specData || []) {
+        specSupplierIds.add(row.supplier_id);
+      }
+    }
+  }
+
+  // --- Union: merge catalog + specialization matches ---
+  const allSupplierIds = new Set([...catalogCounts.keys(), ...specSupplierIds]);
+
+  const results: Array<{ supplier_id: string; match_count: number; match_source: 'catalog' | 'specialization' | 'both' }> = [];
+
+  for (const sid of allSupplierIds) {
+    const inCatalog = catalogCounts.has(sid);
+    const inSpec = specSupplierIds.has(sid);
+    results.push({
+      supplier_id: sid,
+      match_count: catalogCounts.get(sid) || 0,
+      match_source: inCatalog && inSpec ? 'both' : inCatalog ? 'catalog' : 'specialization',
+    });
+  }
+
+  // Sort: catalog matches first (they have stock), then specialization-only.
+  // Within each group, sort by match_count descending.
+  return results
+    .sort((a, b) => {
+      if (a.match_source !== 'specialization' && b.match_source === 'specialization') return -1;
+      if (a.match_source === 'specialization' && b.match_source !== 'specialization') return 1;
+      return b.match_count - a.match_count;
+    })
     .slice(0, MAX_SUPPLIERS_PER_BROADCAST);
 }
 
@@ -181,8 +249,12 @@ export async function assignOpenRequest(
     quote_request_id: requestId,
     supplier_id: m.supplier_id,
     status: 'SENT' as const,
-    match_score: Math.min(100, m.match_count * 10),
-    match_reasons: [`${m.match_count} matchande viner i katalogen`],
+    match_score: Math.min(100, m.match_source === 'specialization' ? 50 : m.match_count * 10),
+    match_reasons: [
+      m.match_source === 'catalog' ? `${m.match_count} matchande viner i katalogen` :
+      m.match_source === 'specialization' ? 'Specialiserad i regionen (IOR/sourcing)' :
+      `${m.match_count} matchande viner + specialisering i regionen`,
+    ],
     sent_at: now.toISOString(),
     expires_at: expiresAt.toISOString(),
   }));

@@ -96,6 +96,13 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       .order('created_at', { ascending: false })
       .limit(10);
 
+    // Get specializations
+    const { data: specializations } = await supabase
+      .from('supplier_specializations')
+      .select('id, type, value')
+      .eq('supplier_id', supplierId)
+      .order('type', { ascending: true });
+
     // Wine stats (computed from the full wines query above — no extra DB call)
     const wineStats = {
       total: wines?.length || 0,
@@ -153,6 +160,11 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
         status: o.status,
         createdAt: o.created_at,
       })) || [],
+      specializations: (specializations || []).map(s => ({
+        id: s.id,
+        type: s.type,
+        value: s.value,
+      })),
       timestamp: new Date().toISOString(),
     });
 
@@ -162,5 +174,73 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
       { error: 'Internal server error' },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * PATCH /api/admin/suppliers/[id]
+ *
+ * Update supplier specializations.
+ * Body: { specializations: [{ type: 'country'|'region'|'appellation', value: string }] }
+ *
+ * Replaces all existing specializations with the new set (delete + insert).
+ */
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  try {
+    const { id: supplierId } = params;
+    const userId = request.headers.get('x-user-id');
+    const tenantId = request.headers.get('x-tenant-id');
+
+    if (!userId || !tenantId) {
+      return NextResponse.json({ error: 'Missing authentication context' }, { status: 401 });
+    }
+
+    const actor = await actorService.resolveActor({ user_id: userId, tenant_id: tenantId });
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
+    const body = await request.json();
+
+    if (body.specializations !== undefined) {
+      const specs: Array<{ type: string; value: string }> = body.specializations || [];
+
+      // Validate
+      const validTypes = ['country', 'region', 'appellation'];
+      for (const s of specs) {
+        if (!validTypes.includes(s.type) || !s.value?.trim()) {
+          return NextResponse.json({ error: `Invalid specialization: type must be ${validTypes.join('/')}, value required` }, { status: 400 });
+        }
+      }
+
+      // Replace: delete existing, insert new
+      await supabase
+        .from('supplier_specializations')
+        .delete()
+        .eq('supplier_id', supplierId);
+
+      if (specs.length > 0) {
+        const { error: insertError } = await supabase
+          .from('supplier_specializations')
+          .insert(specs.map(s => ({
+            supplier_id: supplierId,
+            type: s.type,
+            value: s.value.trim(),
+          })));
+
+        if (insertError) {
+          console.error('Insert specializations error:', insertError);
+          return NextResponse.json({ error: 'Failed to save specializations', details: insertError.message }, { status: 500 });
+        }
+      }
+
+      return NextResponse.json({ success: true, count: specs.length });
+    }
+
+    return NextResponse.json({ error: 'No recognized fields in body' }, { status: 400 });
+  } catch (error: any) {
+    console.error('PATCH supplier error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
