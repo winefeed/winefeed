@@ -168,7 +168,7 @@ export async function buildDailyDigest(): Promise<DigestData> {
       actions.push({
         type: 'followup',
         message: `Förfrågan från ${restaurantName} obesvarad i >48h`,
-        link: `/admin/requests/${req.id}`,
+        link: `/admin/requests/open`,
       });
     }
   }
@@ -181,7 +181,7 @@ export async function buildDailyDigest(): Promise<DigestData> {
       actions.push({
         type: 'reminder',
         message: `Offert från ${supplierName} till ${restaurantName} väntar >3 dagar`,
-        link: `/admin/offers/${offer.id}`,
+        link: `/admin/offers`,
       });
     }
   }
