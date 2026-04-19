@@ -1972,6 +1972,11 @@ export default function ResultsPage() {
                             Betalvillkor: {suggestion.supplier.payment_terms}
                           </p>
                         )}
+                        {suggestion.supplier.min_order_bottles != null && suggestion.supplier.min_order_bottles > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            Minsta order: {suggestion.supplier.min_order_bottles} flaskor totalt (fri mix)
+                          </p>
+                        )}
                       </div>
                     </div>
                     {/* Spara till lista med antal-väljare */}
