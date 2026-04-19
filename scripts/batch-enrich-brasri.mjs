@@ -49,6 +49,10 @@ const REVIEW_FILE = (() => {
   const idx = process.argv.indexOf('--review-file');
   return idx > -1 ? process.argv[idx + 1] : null;
 })();
+const JSON_FILE = (() => {
+  const idx = process.argv.indexOf('--json-file');
+  return idx > -1 ? process.argv[idx + 1] : null;
+})();
 
 // ============================================================================
 // Setup
@@ -74,10 +78,117 @@ const anthropic = new Anthropic({ apiKey: anthropicKey });
 // Haiku enrichment call
 // ============================================================================
 
-const SYSTEM_PROMPT = `Du är en vinexpert och sommelier. Du svarar ENBART med ett JSON-objekt. Inget annat.
-Du bygger strukturerad data för en B2B-vinplattform där restauranger söker viner.`;
+const SYSTEM_PROMPT = `Du är en fakta-driven vinkatalog-assistent för Winefeed, en B2B-plattform som
+kopplar europeiska vinleverantörer till svenska restauranger. Din uppgift är
+att berika vinkatalogen med korrekt druvsammansättning, alkoholhalt och
+koncis, faktabaserad svensk beskrivning.
 
-const buildPrompt = (wine) => `Ge dig själv en välgrundad gissning för följande vin:
+Din målgrupp är svenska sommelierer, restaurangchefer och inköpare. De behöver
+snabbt kunna bedöma vinet — inte läsa säljbroschyrer. Håll tonen nykter och
+informativ, inte entusiastisk.
+
+## OUTPUT-FORMAT
+
+Returnera ett JSON-objekt per vin med fälten:
+- grape_composition (string, t.ex. "Merlot 75%, Cabernet Franc 25%")
+- alcohol_percent (number eller null)
+- description (string, 3–5 meningar, på svenska)
+- confidence (high | medium | low)
+
+## KÄLLKRITIK OCH OSÄKERHET
+
+- Om du inte är säker på druvsammansättningen, sätt confidence till "medium"
+  eller "low" och skriv en sammansättning som är typisk för appellationen
+  (inte specifik för producenten).
+- Om du inte vet alkoholhalten, returnera null. Gissa ALDRIG.
+- Om du inte känner igen producenten, skriv en beskrivning baserad på
+  appellationen och årgången, och sätt confidence till "low".
+- Hitta ALDRIG på fakta om ägarskap, historia eller utmärkelser. Om du inte
+  är säker, utelämna det.
+
+## DRUV-REGLER PER APPELLATION
+
+**Högra stranden av Bordeaux (Saint-Émilion, Pomerol, Fronsac, Castillon,
+Lalande de Pomerol, Côtes de Bourg, Cotes de Bordeaux):**
+- Dominerande druva: Merlot (ofta 70–95%)
+- Vanliga partners: Cabernet Franc
+- Cabernet Sauvignon är OVANLIGT här — lägg INTE till det som standard
+- Côtes de Bourg kan ha Malbec (särskilt hos producenter som Roc de Cambes)
+
+**Vänstra stranden av Bordeaux (Médoc, Haut-Médoc, Saint-Julien, Pauillac,
+Margaux, Saint-Estèphe, Graves, Pessac-Léognan):**
+- Dominerande druva: Cabernet Sauvignon (ofta 50–70%)
+- Vanliga partners: Merlot (20–40%), Cabernet Franc, Petit Verdot
+- Petit Verdot är ofta 1–5% — nämn bara om du vet att det ingår
+
+**Moderna Bordeaux (årgång 2010 och senare) har typiskt alkoholhalt
+13,5–15 %.** Sätt inte 13 % om du inte har källa. Om du är osäker, använd
+14 % eller null.
+
+## ANDRAVIN-LOGIK
+
+Om vinet heter något av följande mönster, är det troligen ett andravin från
+en etablerad producent — nämn alltid kopplingen:
+
+- "Pensees de la Tour Carnet" → andravin till Château La Tour Carnet
+  (4ème Cru Classé, Haut-Médoc)
+- "Les Allées de Cantemerle" → andravin till Château Cantemerle
+  (5ème Cru Classé, Haut-Médoc)
+- "Madame de Beaucaillou" → Ducru-Beaucaillous Haut-Médoc-vin (inte Ducru
+  själv, som är 2ème Cru Classé i Saint-Julien)
+- "La Chenade" → tillhör Denis Durantou (L'Église-Clinet i Pomerol, drivs
+  idag av döttrarna Noémie och Constance)
+- "Joanin Bécot" → ägs av familjen Bécot (Château Beau-Séjour Bécot,
+  1er Grand Cru Classé B i Saint-Émilion)
+- "Cap de Faugères" → ägs av Silvio Denz (Château Faugères i Saint-Émilion)
+- "d'Aiguilhe" → ägs av Stephan von Neipperg (Canon La Gaffelière, La Mondotte)
+- "Roc de Cambes" → François Mitjavile (Tertre-Roteboeuf). OBS: detta är
+  ett kultvin i Côtes de Bourg, inte ett budget-vin.
+
+Använd listan som fakta-check. Lägg INTE till kopplingar du inte känner till.
+
+## SPRÅK-REGLER (MYCKET VIKTIGT)
+
+- Skriv på korrekt, neutral svenska
+- Undvik svengelska: skriv "druvsammansättning", inte "grape blend";
+  "andravin", inte "second wine"; "fransk ek", inte "French oak"
+- Undvik säljfraser: "prisvärt", "pålitligt dagsvin", "gott värde", "klassiker"
+- Undvik marknadsföringstermer: "ostentativ", "kvalitetsalternativ", "solid"
+- Kontrollera stavning: "grafit" (inte "graphit"), "rött kött" (inte "rötkött"),
+  "kvalitet" (inte "kwalitet"), "noter" (inte "nötter" om det är smaknoter)
+- Bordeaux ligger vid floden **Gironde**, inte Garonne. Médoc = vänster
+  strand av Gironde.
+
+## BESKRIVNINGS-MALL
+
+Varje beskrivning ska täcka, i denna ordning:
+
+1. **En mening om appellationen och vinets plats i producentens portfölj**
+   (andravin? prestigecuvée? vanligt vin?)
+2. **En mening om stil och smakprofil** (tanninstruktur, frukt, ekkaraktär)
+3. **En mening om drickbarhet** (ungt nu, potential, serveringsförslag)
+4. **Valfri fjärde mening med relevant kontext** (producentens ägarskap,
+   lagring, eller årgångens karaktär — bara om du är säker)
+
+Håll total längd 60–100 ord. Var konkret. Undvik tomma ord.
+
+## SVART LISTA — fraser som aldrig ska användas
+
+- "dagsvinsnivå"
+- "värdeöverenskommelse"
+- "klassisk fransk köket" (felaktig svenska — säg "franska köket")
+- "ostentativ"
+- "ett praktiskt restaurangvin"
+- "pålitlig vardagsvin"
+- "för restaurangkund som söker"
+- "utan prestigspris"
+- "mocka betongbaserade rätter" eller liknande meningslösa konstruktioner
+- "kraftfull men tillgänglig" (cliché)
+- "harmonisk och välbalanserad" (säger ingenting)
+
+Svara ENBART med JSON-objektet. Inget annat.`;
+
+const buildPrompt = (wine) => `Vinet som ska berikas:
 
 Namn: ${wine.name}
 Producent: ${wine.producer}
@@ -87,22 +198,7 @@ Appellation: ${wine.appellation || 'okänd'}
 Årgång: ${wine.vintage === 0 ? 'NV' : wine.vintage || 'okänd'}
 Färg: ${wine.color}
 
-Returnera ett JSON-objekt med dessa fält (använd null om du är osäker):
-
-{
-  "grape": "primärdruva eller druvblandning, t.ex. 'Cabernet Sauvignon' eller 'Grenache, Syrah, Mourvèdre'",
-  "description": "en svensk beskrivning på 80-120 ord som beskriver smak, karaktär, passar till mat. Fokusera på vad en restaurangköpare behöver veta. Undvik säljig ton.",
-  "alcohol_pct": 13.5
-}
-
-Viktigt:
-- Använd region/appellation för att avgöra grape (t.ex. Pomerol = Merlot-dominerat, Barolo = Nebbiolo, Sancerre = Sauvignon Blanc).
-- För blend: lista de 2-3 viktigaste druvorna.
-- alcohol_pct som number (ex 13.5), inte string.
-- Beskrivningen ska vara faktabaserad, inte uppblåst.
-- Om producenten är okänd och du inte kan gissa tryggt, lämna fältet som null.
-
-Svara ENBART JSON.`;
+Returnera JSON enligt schemat i system-prompten.`;
 
 async function enrichWine(wine) {
   const message = await anthropic.messages.create({
@@ -124,10 +220,16 @@ async function enrichWine(wine) {
 
   const parsed = JSON.parse(jsonText);
 
+  // Stödjer både nya (grape_composition/alcohol_percent) och gamla (grape/alcohol_pct) fältnamn
+  const grape = parsed.grape_composition || parsed.grape;
+  const alcohol = parsed.alcohol_percent ?? parsed.alcohol_pct;
+  const confidence = (parsed.confidence || '').toLowerCase();
+
   return {
-    grape: typeof parsed.grape === 'string' && parsed.grape.trim() ? parsed.grape.trim().slice(0, 200) : null,
+    grape: typeof grape === 'string' && grape.trim() ? grape.trim().slice(0, 200) : null,
     description: typeof parsed.description === 'string' && parsed.description.length >= 20 ? parsed.description.trim() : null,
-    alcohol_pct: typeof parsed.alcohol_pct === 'number' && parsed.alcohol_pct > 0 && parsed.alcohol_pct < 25 ? parsed.alcohol_pct : null,
+    alcohol_pct: typeof alcohol === 'number' && alcohol > 0 && alcohol < 25 ? alcohol : null,
+    confidence: ['high', 'medium', 'low'].includes(confidence) ? confidence : 'medium',
     _inputTokens: message.usage?.input_tokens || 0,
     _outputTokens: message.usage?.output_tokens || 0,
   };
@@ -228,12 +330,12 @@ async function main() {
         }
 
         if (DRY_RUN) {
-          console.log(`${progress} [DRY] ${wine.name.slice(0, 50)}:`);
+          console.log(`${progress} [DRY] ${wine.name.slice(0, 50)} (confidence: ${result.confidence}):`);
           if (update.grape) console.log(`     grape → ${update.grape}`);
-          if (update.alcohol_pct) console.log(`     alcohol_pct → ${update.alcohol_pct}`);
+          if (update.alcohol_pct !== undefined) console.log(`     alcohol_pct → ${update.alcohol_pct ?? 'null'}`);
           if (update.description) console.log(`     description → ${update.description.slice(0, 80)}...`);
-          if (REVIEW_FILE) {
-            reviewRows.push({ wine, update });
+          if (REVIEW_FILE || JSON_FILE) {
+            reviewRows.push({ wine, update, confidence: result.confidence });
           }
           enriched++;
           continue;
@@ -287,6 +389,24 @@ async function main() {
     writeFileSync(REVIEW_FILE, md, 'utf-8');
     console.log(`📄 Review-fil skriven: ${REVIEW_FILE} (${reviewRows.length} viner)\n`);
   }
+
+  // Write JSON file for Python validator
+  if (JSON_FILE && reviewRows.length > 0) {
+    const validatorInput = reviewRows.map(({ wine, update }) => ({
+      producer: wine.producer,
+      wine_name: wine.name,
+      appellation: wine.appellation || '',
+      region: wine.region || '',
+      vintage: wine.vintage,
+      color: wine.color,
+      grape_composition: update.grape || '',
+      alcohol_percent: update.alcohol_pct ?? null,
+      description: update.description || '',
+    }));
+    writeFileSync(JSON_FILE, JSON.stringify(validatorInput, null, 2), 'utf-8');
+    console.log(`📦 JSON för validator: ${JSON_FILE} (${reviewRows.length} viner)\n`);
+    console.log(`   Kör: python3 scripts/winefeed_validator.py ${JSON_FILE}`);
+  }
 }
 
 function buildReviewMarkdown(rows, stats) {
@@ -305,17 +425,16 @@ function buildReviewMarkdown(rows, stats) {
   md += `Markera ❌ efter fält som behöver justeras, ✅ om det är OK.\n\n`;
   md += `---\n\n`;
 
+  const confidenceBadge = { high: '🟢', medium: '🟡', low: '🔴' };
   rows.forEach((row, i) => {
-    const { wine, update } = row;
-    md += `### ${i + 1}. ${wine.name}\n\n`;
+    const { wine, update, confidence } = row;
+    md += `### ${i + 1}. ${wine.name}  ${confidenceBadge[confidence] || ''} ${confidence || ''}\n\n`;
     md += `**Producent:** ${wine.producer} · **Land:** ${wine.country} · **Region:** ${wine.region || '—'} · **Appellation:** ${wine.appellation || '—'} · **Årgång:** ${wine.vintage === 0 ? 'NV' : wine.vintage || '—'} · **Färg:** ${wine.color}\n\n`;
 
     if (update.grape) {
-      md += `**Druva (AI):** ${update.grape}  \n`;
+      md += `**Druvsammansättning (AI):** ${update.grape}  \n`;
     }
-    if (update.alcohol_pct) {
-      md += `**Alkohol % (AI):** ${update.alcohol_pct}  \n`;
-    }
+    md += `**Alkoholhalt (AI):** ${update.alcohol_pct ?? '_null (AI osäker)_'}  \n`;
     if (update.description) {
       md += `\n**Beskrivning (AI):**\n> ${update.description.replace(/\n/g, '\n> ')}\n`;
     }
