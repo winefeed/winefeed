@@ -27,6 +27,7 @@ interface WineItem {
   vintage: number | null;
   alcohol_pct: number | null;
   volume_ml: number | null;
+  bottle_size_ml: number | null;
   price_ex_vat_sek: number;
   price_sek_ib: number | null;
   currency: string | null;
@@ -520,6 +521,7 @@ function AdminWinesPageContent() {
               <tr>
                 <SortableHeader column="name" label="Vin" className="text-left" />
                 <SortableHeader column="producer" label="Producent" className="text-left" />
+                <SortableHeader column="vintage" label="Årgång" className="text-center" />
                 <SortableHeader column="supplierName" label="Leverantör" className="text-left" />
                 <SortableHeader column="color" label="Typ" className="text-left" />
                 <SortableHeader column="region" label="Region" className="text-left" />
@@ -531,7 +533,7 @@ function AdminWinesPageContent() {
             <tbody className="bg-card divide-y divide-border">
               {filteredWines.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
                     <Wine className="h-12 w-12 mx-auto mb-3 opacity-50" />
                     <p>Inga viner hittades</p>
                   </td>
@@ -549,13 +551,23 @@ function AdminWinesPageContent() {
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-8 rounded ${colorInfo.color}`}></div>
                           <div>
-                            <div className="text-sm font-medium text-foreground">{wine.name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-foreground">{wine.name}</span>
+                              {wine.bottle_size_ml && wine.bottle_size_ml !== 750 && (
+                                <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-medium rounded">
+                                  {wine.bottle_size_ml >= 1000 ? `${wine.bottle_size_ml / 1000} L` : `${wine.bottle_size_ml} ml`}
+                                </span>
+                              )}
+                            </div>
                             <div className="text-xs text-muted-foreground">{wine.country}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-foreground">
                         {wine.producer}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-foreground text-center">
+                        {wine.vintage === 0 ? 'NV' : wine.vintage || '—'}
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-sm text-foreground">{wine.supplierName}</div>

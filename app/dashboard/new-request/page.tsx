@@ -13,7 +13,19 @@ export default function NewRequestPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [defaultDeliveryCity, setDefaultDeliveryCity] = useState('');
+  const [catalogStats, setCatalogStats] = useState<{ total: number; directImport: number } | null>(null);
 
+  // Fetch catalog stats (cached 1h)
+  useEffect(() => {
+    fetch('/api/catalog/stats')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && data.total > 0) {
+          setCatalogStats({ total: data.total, directImport: data.directImport });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Fetch user's default delivery city from profile
   useEffect(() => {
@@ -187,6 +199,16 @@ export default function NewRequestPage() {
             <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto">
               Beskriv vad du söker så hittar vi matchande viner
             </p>
+
+            {/* Catalog stats — builds trust by showing catalog size */}
+            {catalogStats && (
+              <p className="mt-3 text-sm text-white/70">
+                Vi söker i <strong className="text-white">{catalogStats.total.toLocaleString('sv-SE')}</strong> viner just nu
+                {catalogStats.directImport > 0 && (
+                  <> — varav {catalogStats.directImport.toLocaleString('sv-SE')} från direktimport</>
+                )}
+              </p>
+            )}
           </div>
         </div>
 
