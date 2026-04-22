@@ -185,6 +185,12 @@ export interface WelcomeEmailParams {
   city?: string;
 }
 
+export interface SupplierWelcomeEmailParams {
+  supplierName: string;
+  email: string;
+  loginEmail: string;
+}
+
 /**
  * Template: Offer Created (sent to restaurant)
  */
@@ -335,6 +341,103 @@ Så här fungerar det:
 3. Jämför och acceptera – vi sköter resten
 
 Kom igång: ${dashboardUrl}
+
+Frågor? Kontakta oss på hej@winefeed.se
+
+---
+Winefeed - Din B2B-marknadsplats för vin
+  `.trim();
+
+  return { subject, html, text };
+}
+
+/**
+ * Template: Supplier Welcome Email (sent when admin onboards a new supplier)
+ */
+export function supplierWelcomeEmail(params: SupplierWelcomeEmailParams): { subject: string; html: string; text: string } {
+  const { supplierName, loginEmail } = params;
+
+  const loginUrl = getAppUrl('/supplier/login');
+  const profileUrl = getAppUrl('/supplier/profile');
+  const winesUrl = getAppUrl('/supplier/wines');
+
+  const subject = `🍷 Välkommen till Winefeed, ${supplierName}!`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  ${winefeedEmailHeader()}
+      <h2 style="color: #111827; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">
+        Välkommen, ${supplierName}!
+      </h2>
+
+      <p style="color: #4b5563; line-height: 1.7; margin: 0 0 15px 0; font-size: 15px;">
+        Ditt leverantörskonto är aktiverat. Logga in med <strong>${loginEmail}</strong> och lösenordet som admin delat med dig.
+      </p>
+
+      <!-- CTA Button -->
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${loginUrl}" style="display: inline-block; background: #722F37; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(114,47,55,0.25);">
+          Logga in →
+        </a>
+      </div>
+
+      <!-- Steps box -->
+      <div style="background: linear-gradient(135deg, rgba(232,180,184,0.15) 0%, rgba(232,223,196,0.15) 100%); border-left: 4px solid #E8B4B8; border-radius: 0 8px 8px 0; padding: 20px 24px; margin: 25px 0;">
+        <h3 style="color: #722F37; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">
+          5 steg till din första offert
+        </h3>
+        <ol style="color: #4b5563; margin: 0; padding-left: 18px; line-height: 2; font-size: 14px;">
+          <li style="padding-left: 8px;">Logga in på <a href="${loginUrl}" style="color: #722F37;">supplier.winefeed.se</a></li>
+          <li style="padding-left: 8px;">Fyll i <a href="${profileUrl}" style="color: #722F37;">kontaktuppgifter och ordervillkor</a> — minsta order, betalvillkor</li>
+          <li style="padding-left: 8px;">Ladda upp <a href="${winesUrl}" style="color: #722F37;">vinkatalogen</a> via Excel-mall eller manuellt</li>
+          <li style="padding-left: 8px;">Ta emot matchade förfrågningar från restauranger</li>
+          <li style="padding-left: 8px;">Skicka offerter och stäng affär</li>
+        </ol>
+      </div>
+
+      <!-- Business model transparency -->
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px 20px; margin: 25px 0;">
+        <h3 style="color: #1e40af; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">
+          Så tjänar Winefeed pengar
+        </h3>
+        <p style="color: #1d4ed8; font-size: 13px; line-height: 1.6; margin: 0;">
+          Winefeed är <strong>gratis under pilotfasen</strong>. När plattformen går live tar vi 4 % förmedlingsavgift på accepterade offerter (min 149 kr, max 1 995 kr per order) — du får besked i god tid innan dess. Framtida ordrar direkt mellan dig och restaurangen är avgiftsfria.
+        </p>
+      </div>
+
+      <p style="color: #6b7280; font-size: 14px; margin: 25px 0 0 0; text-align: center;">
+        Frågor? Kontakta oss på <a href="mailto:hej@winefeed.se" style="color: #722F37; font-weight: 500;">hej@winefeed.se</a>
+      </p>
+  ${winefeedEmailFooter()}
+</body>
+</html>
+  `;
+
+  const text = `
+Välkommen till Winefeed, ${supplierName}!
+
+Ditt leverantörskonto är aktiverat. Logga in med ${loginEmail} och lösenordet du fått i separat meddelande.
+
+Logga in: ${loginUrl}
+
+5 steg till din första offert:
+1. Logga in på supplier.winefeed.se
+2. Fyll i kontaktuppgifter och ordervillkor — minsta order, betalvillkor
+   ${profileUrl}
+3. Ladda upp vinkatalogen via Excel-mall eller manuellt
+   ${winesUrl}
+4. Ta emot matchade förfrågningar från restauranger
+5. Skicka offerter och stäng affär
+
+Så tjänar Winefeed pengar:
+Winefeed är gratis under pilotfasen. När plattformen går live tar vi 4 % förmedlingsavgift på accepterade offerter (min 149 kr, max 1 995 kr per order) — du får besked i god tid innan dess. Framtida ordrar direkt mellan dig och restaurangen är avgiftsfria.
 
 Frågor? Kontakta oss på hej@winefeed.se
 

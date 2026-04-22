@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { sendEmail, WINEFEED_FROM } from '@/lib/email-service';
+import { supplierWelcomeEmail } from '@/lib/email-templates';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -124,6 +126,30 @@ export async function POST(req: NextRequest) {
       console.error('Failed to link supplier user:', linkError);
       // This is not critical since the trigger should handle it
       // but log for debugging
+    }
+
+    // Step 4: Send welcome email (fail-safe: doesn't block onboarding)
+    try {
+      const emailContent = supplierWelcomeEmail({
+        supplierName,
+        email: contactEmail,
+        loginEmail: email,
+      });
+
+      const emailResult = await sendEmail({
+        to: contactEmail,
+        from: WINEFEED_FROM,
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+      });
+
+      if (!emailResult.success) {
+        console.warn(`⚠️  Failed to send supplier welcome email: ${emailResult.error}`);
+      }
+    } catch (emailError) {
+      console.error('Error sending supplier welcome email:', emailError);
+      // Don't fail onboarding — email is not critical
     }
 
     return NextResponse.json(
