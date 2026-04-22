@@ -210,7 +210,7 @@ export default function ResultsPage() {
     sortBy: 'score' as SortOption,
   });
 
-  // Quick filters (always visible chips)
+  // Quick filters (always visible chips) — location preference persists across sessions
   const [quickFilters, setQuickFilters] = useState({
     color: null as string | null,  // 'red', 'white', 'rose', 'sparkling', etc.
     inStock: false,
@@ -218,6 +218,27 @@ export default function ResultsPage() {
     withinBudget: false,
     location: null as 'domestic' | 'eu' | null,  // 'domestic' = I lager, 'eu' = Direktimport
   });
+
+  // Restore saved location preference from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('winefeed-location-filter');
+      if (saved === 'domestic' || saved === 'eu') {
+        setQuickFilters(f => ({ ...f, location: saved }));
+      }
+    } catch {}
+  }, []);
+
+  // Persist location preference whenever it changes
+  useEffect(() => {
+    try {
+      if (quickFilters.location) {
+        localStorage.setItem('winefeed-location-filter', quickFilters.location);
+      } else {
+        localStorage.removeItem('winefeed-location-filter');
+      }
+    } catch {}
+  }, [quickFilters.location]);
 
   const fetchOfferCounts = useCallback(async () => {
     try {
@@ -1269,9 +1290,13 @@ export default function ResultsPage() {
                           <span className="text-[10px] text-green-600 font-medium">🌱</span>
                         )}
                         {suggestion.wine.location === 'eu' ? (
-                          <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-medium rounded-full">Direktimport</span>
+                          <HelpTooltip content={GLOSSARY.direktimport} side="bottom">
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">Direktimport</span>
+                          </HelpTooltip>
                         ) : (
-                          <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-medium rounded-full">I lager</span>
+                          <HelpTooltip content={GLOSSARY.iLager} side="bottom">
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">I lager</span>
+                          </HelpTooltip>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -1319,9 +1344,13 @@ export default function ResultsPage() {
                           </span>
                         )}
                         {suggestion.wine.location === 'eu' ? (
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">Direktimport</span>
+                          <HelpTooltip content={GLOSSARY.direktimport} side="bottom">
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">Direktimport</span>
+                          </HelpTooltip>
                         ) : (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">I lager</span>
+                          <HelpTooltip content={GLOSSARY.iLager} side="bottom">
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">I lager</span>
+                          </HelpTooltip>
                         )}
                         {isSelected ? (
                           <span className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-full flex items-center gap-1">
@@ -1962,19 +1991,22 @@ export default function ResultsPage() {
                         <p className="font-medium text-foreground">
                           {suggestion.supplier.namn}
                         </p>
+                        {suggestion.supplier.min_order_bottles != null && suggestion.supplier.min_order_bottles > 0 && (
+                          <p className="text-xs font-medium text-foreground">
+                            Minsta order: {suggestion.supplier.min_order_bottles} flaskor totalt — välj fritt bland vinerna
+                          </p>
+                        )}
                         {suggestion.supplier.normalleveranstid_dagar && (
                           <p className="text-xs text-muted-foreground">
                             Leverans: {suggestion.supplier.normalleveranstid_dagar} dagar
+                            {suggestion.wine.location === 'eu' && (
+                              <span className="ml-1 text-amber-700">· vid direktimport räkna med ~7–14 dagar</span>
+                            )}
                           </p>
                         )}
                         {suggestion.supplier.payment_terms && (
                           <p className="text-xs text-muted-foreground">
                             Betalvillkor: {suggestion.supplier.payment_terms}
-                          </p>
-                        )}
-                        {suggestion.supplier.min_order_bottles != null && suggestion.supplier.min_order_bottles > 0 && (
-                          <p className="text-xs text-muted-foreground">
-                            Minsta order: {suggestion.supplier.min_order_bottles} flaskor totalt (fri mix)
                           </p>
                         )}
                       </div>

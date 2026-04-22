@@ -133,4 +133,6 @@ export const GLOSSARY = {
   exMoms: 'Ex moms betyder att priset visas utan moms (25%). Momsen läggs till vid fakturering.',
   winRate: 'Andelen av dina skickade offerter som accepteras av restauranger.',
   responseRate: 'Andelen förfrågningar du svarar på. Hög svarsfrekvens ger bättre synlighet.',
+  direktimport: 'Direktimport — vinet skickas från en EU-leverantör när du beställer. Leveranstid normalt 7–14 dagar (vs 1–2 dagar för "I lager"). Leverantören sköter tullen — ingen extra kostnad för dig.',
+  iLager: 'I lager — vinet finns på svenskt lager och skickas normalt inom 1–2 arbetsdagar.',
 };
