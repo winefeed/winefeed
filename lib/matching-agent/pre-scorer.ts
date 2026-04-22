@@ -46,9 +46,12 @@ export function preScoreWines(
     ? searchQuery.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
     : '';
 
+  // Detect urgency once for the whole batch — same signal affects all wines
+  const urgencyDetected = detectUrgency(normalizedQuery);
+
   const scored: ScoredWine[] = wines.map(wine => {
-    const breakdown = scoreWine(wine, preferences, structuredFilters, cuisineProfile, normalizedQuery, feedbackMap);
-    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch + breakdown.nameMatch + breakdown.feedbackPenalty;
+    const breakdown = scoreWine(wine, preferences, structuredFilters, cuisineProfile, normalizedQuery, feedbackMap, urgencyDetected);
+    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch + breakdown.nameMatch + breakdown.feedbackPenalty + breakdown.locationBoost;
 
     // Get golden pair reason if applicable
     let goldenPairReason: string | undefined;
@@ -79,7 +82,8 @@ function scoreWine(
   filters: StructuredFilters,
   cuisineProfile: CuisineWineProfile | null,
   normalizedQuery: string,
-  feedbackMap?: WineFeedbackMap,
+  feedbackMap: WineFeedbackMap | undefined,
+  urgencyDetected: boolean,
 ): ScoreBreakdown {
   return {
     price: scorePrice(wine, filters),
@@ -94,7 +98,49 @@ function scoreWine(
     cuisineMatch: scoreCuisineMatch(wine, cuisineProfile),
     nameMatch: scoreNameMatch(wine, normalizedQuery),
     feedbackPenalty: scoreFeedbackPenalty(wine, feedbackMap),
+    locationBoost: scoreLocationBoost(wine, urgencyDetected),
   };
+}
+
+// ============================================================================
+// Urgency detection + location boost
+// ============================================================================
+
+/**
+ * Detects urgency signals in the restaurant's free-text query.
+ * When urgency is present, domestic stock gets boosted and EU direct-import
+ * is penalized — matching the reality that direct-import takes 7-14 days.
+ *
+ * Keep the keyword set conservative to avoid false positives
+ * (e.g. "snabbt drucket vin" is a wine description, not urgency).
+ */
+function detectUrgency(normalizedQuery: string): boolean {
+  if (!normalizedQuery) return false;
+
+  // Urgency phrases — require leverans/behov context or time-bound words
+  const URGENCY_PATTERNS = [
+    /\b(akut|brådskande|brådskar|express)\b/,
+    /\b(idag|i dag|imorgon|i morgon)\b/,
+    /\b(snarast|omgående|asap)\b/,
+    /\b(till (helgen|fredag|lördag|söndag|imorgon))\b/,
+    /\bbehöver (.*?)(snabbt|imorgon|idag|nu)\b/,
+    /\b(snabb leverans|snabbt i hus)\b/,
+  ];
+
+  return URGENCY_PATTERNS.some(pattern => pattern.test(normalizedQuery));
+}
+
+function scoreLocationBoost(wine: SupplierWineRow, urgencyDetected: boolean): number {
+  if (!urgencyDetected) return 0;
+
+  // location is 'domestic' | 'eu' | 'non_eu' (see wine_location enum)
+  const loc = (wine as any).location as string | null | undefined;
+
+  if (loc === 'domestic') return 8;       // Swedish warehouse — 1-2 dagar
+  if (loc === 'eu' || loc === 'non_eu') return -8; // Direct import — 7-14 dagar
+
+  // Unknown location: small neutral boost since many legacy rows lack the field
+  return 0;
 }
 
 // ============================================================================

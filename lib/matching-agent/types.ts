@@ -58,6 +58,7 @@ export interface ScoreBreakdown {
   cuisineMatch: number;   // 0-8 bonus — restaurant cuisine affinity
   nameMatch: number;      // 0-25 bonus — search query matches wine name/appellation/producer/region
   feedbackPenalty: number; // 0 to -20 — negative signal from restaurant feedback
+  locationBoost: number;  // -8 to +8 — favors domestic stock when urgency signals detected
 }
 
 /** A wine with its deterministic pre-score */

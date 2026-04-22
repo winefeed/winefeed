@@ -438,7 +438,7 @@ export async function runMatchingAgentPipeline(
     scoredWines = wines.slice(0, options.preScoreTopN).map(wine => ({
       wine,
       score: 50,
-      breakdown: { price: 10, color: 10, region: 8, grape: 10, food: 7, styleMatch: 8, availability: 5, certification: 0, goldenPair: 0, cuisineMatch: 0, nameMatch: 0, feedbackPenalty: 0 },
+      breakdown: { price: 10, color: 10, region: 8, grape: 10, food: 7, styleMatch: 8, availability: 5, certification: 0, goldenPair: 0, cuisineMatch: 0, nameMatch: 0, feedbackPenalty: 0, locationBoost: 0 },
     }));
   }
 
