@@ -7,7 +7,8 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Building2, Mail, Phone, Globe, FileText, MapPin, CheckCircle, XCircle, Package, Loader2, Save, Pencil, X, Wine, Sparkles, Link2, Copy, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
+import { Building2, Mail, Phone, Globe, FileText, MapPin, CheckCircle, XCircle, Package, Loader2, Save, Pencil, X, Wine, Sparkles, Link2, Copy, ExternalLink, Info } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { HelpTooltip } from '@/components/ui/help-tooltip';
 
@@ -572,15 +573,40 @@ export default function SupplierProfilePage() {
           Orderinställningar
         </h3>
 
+        {/* Explainer — hur de tre minimi-reglerna fungerar */}
+        <div className="mb-5 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 text-sm text-blue-700 leading-relaxed">
+            <p className="font-medium text-blue-800 mb-2">Så fungerar minsta order</p>
+            <p className="mb-2">Du kan kombinera tre typer av minimi-regler:</p>
+            <ul className="space-y-1 list-disc list-inside ml-1 mb-3">
+              <li><strong>MOQ per vin</strong> — minsta antal per vin (sätts per vin i katalogen, t.ex. hel kartong = 6)</li>
+              <li><strong>Minsta totalorder (flaskor)</strong> — total mängd över hela sortimentet (sätts nedan)</li>
+              <li><strong>Minsta ordervärde (SEK)</strong> — alternativ till antal (sätts nedan)</li>
+            </ul>
+            <p className="mb-2">
+              <strong>MOQ per vin</strong> gäller alltid när en restaurang lägger till ett vin.
+              Mellan <strong>totalorder</strong> och <strong>ordervärde</strong> räcker det att ett krav uppfylls.
+              Lämna tomt om du inte har krav.
+            </p>
+            <Link
+              href="/supplier/wines"
+              className="inline-flex items-center gap-1 text-wine font-medium hover:underline"
+            >
+              Se mina viners MOQ i katalogen
+              <ExternalLink className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+
         <div className="space-y-4">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-gray-100 rounded-lg">
               <Package className="h-4 w-4 text-gray-600" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500 flex items-center gap-1">
+              <p className="text-xs text-gray-500">
                 Minsta totalorder (flaskor)
-                <HelpTooltip content="Restaurangen måste beställa minst detta antal flaskor — ELLER uppnå minsta ordervärde nedan. Det räcker att ett av kraven uppfylls." side="right" icon="info" />
               </p>
               {editingMoq ? (
                 <div className="flex items-center gap-2 mt-1">

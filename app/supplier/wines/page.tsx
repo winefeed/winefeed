@@ -11,6 +11,7 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { useDropzone } from 'react-dropzone';
 import {
   Wine,
@@ -181,6 +182,11 @@ export default function SupplierWinesPage() {
   const [anomalies, setAnomalies] = useState<AnomalyWarning[]>([]);
   const [descriptionMeta, setDescriptionMeta] = useState<Record<number, DescriptionMeta>>({});
   const [showOriginalDesc, setShowOriginalDesc] = useState<Set<number>>(new Set());
+  const [profileSettings, setProfileSettings] = useState<{
+    minOrderBottles: number | null;
+    minOrderValueSek: number | null;
+    paymentTerms: string | null;
+  } | null>(null);
 
   useEffect(() => {
     fetchSupplierAndWines();
@@ -200,6 +206,17 @@ export default function SupplierWinesPage() {
       if (winesRes.ok) {
         const winesData = await winesRes.json();
         setWines(winesData.wines || []);
+      }
+
+      // Fetch profile to check if MOQ / payment terms are set
+      const profileRes = await fetch('/api/supplier/profile');
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        setProfileSettings({
+          minOrderBottles: profileData.minOrderBottles ?? null,
+          minOrderValueSek: profileData.minOrderValueSek ?? null,
+          paymentTerms: profileData.paymentTerms ?? null,
+        });
       }
     } catch (error) {
       console.error('Failed to fetch wines:', error);
@@ -848,6 +865,28 @@ export default function SupplierWinesPage() {
         </div>
       </div>
 
+      {/* Order-villkor saknas — varning innan första offert */}
+      {profileSettings &&
+        profileSettings.minOrderBottles == null &&
+        profileSettings.minOrderValueSek == null &&
+        !profileSettings.paymentTerms && (
+        <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+          <TriangleAlert className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-900">Sätt dina ordervillkor innan första offerten</p>
+            <p className="text-sm text-amber-800 mt-1">
+              Restauranger ser dina villkor när de lägger förfrågningar. Just nu saknar du minsta order och betalvillkor — offerter utan villkor kan leda till missförstånd och fördröjd betalning.
+            </p>
+            <Link
+              href="/supplier/profile"
+              className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-amber-900 hover:underline"
+            >
+              Sätt ordervillkor →
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Toast Messages */}
       {importResult && (
         <div className={`mb-4 p-4 rounded-lg flex items-center gap-3 ${importResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
@@ -1323,10 +1362,53 @@ export default function SupplierWinesPage() {
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             {searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL' ? 'Inga viner hittades' : 'Din katalog är tom'}
           </h3>
-          <p className="text-gray-500 mb-4">
-            {searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL' ? 'Prova med en annan sökning eller filter' : 'Ladda upp dina viner för att komma igång'}
-          </p>
-          {!searchTerm && statusFilter === 'ALL' && colorFilter === 'ALL' && countryFilter === 'ALL' && priceFilter === 'ALL' && (
+          {searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL' ? (
+            <p className="text-gray-500 mb-4">Prova med en annan sökning eller filter</p>
+          ) : (
+            <>
+              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                Så här laddar du upp dina viner — det tar cirka 10 minuter första gången.
+              </p>
+              <div className="max-w-md mx-auto mb-6 text-left bg-gray-50 rounded-lg p-4 text-sm">
+                <ol className="space-y-2 text-gray-700">
+                  <li className="flex gap-2">
+                    <span className="font-semibold text-wine flex-shrink-0">1.</span>
+                    <span>Ladda ner mallen (Excel) nedan — förifyllda kolumner med exempelvin</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="font-semibold text-wine flex-shrink-0">2.</span>
+                    <span>Fyll i dina viner rad för rad (producent, årgång, pris, land, region)</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="font-semibold text-wine flex-shrink-0">3.</span>
+                    <span>Klicka <strong>Importera viner</strong> och dra filen dit — vi validerar åt dig</span>
+                  </li>
+                </ol>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                {supplierId && (
+                  <a
+                    href={`/api/suppliers/${supplierId}/wines/template?format=xlsx`}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    <Download className="h-4 w-4" />
+                    Ladda ner mall
+                  </a>
+                )}
+                <button
+                  onClick={() => setShowUpload(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90"
+                >
+                  <Upload className="h-4 w-4" />
+                  Importera viner
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-4">
+                Excel (.xlsx) och CSV stöds · Inga filer? Kontakta <a href="mailto:hej@winefeed.se" className="text-wine hover:underline">hej@winefeed.se</a> så hjälper vi till.
+              </p>
+            </>
+          )}
+          {(searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL') && (
             <button
               onClick={() => setShowUpload(true)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg text-sm font-medium hover:bg-primary/90"

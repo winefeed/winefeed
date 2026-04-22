@@ -25,6 +25,7 @@ import {
   Settings,
   X,
   CheckCircle,
+  Info,
 } from 'lucide-react';
 import { HelpTooltip, GLOSSARY } from '@/components/ui/help-tooltip';
 import { WineCard, type SupplierWine } from '@/components/supplier/WineCard';
@@ -78,15 +79,6 @@ export default function SupplierDashboard() {
   const [profile, setProfile] = useState<OnboardingProfile | null>(null);
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
-  // Read dismissed state from localStorage on mount
-  useEffect(() => {
-    try {
-      if (localStorage.getItem('winefeed-onboarding-dismissed') === 'true') {
-        setOnboardingDismissed(true);
-      }
-    } catch {}
-  }, []);
-
   useEffect(() => {
     async function fetchData() {
       try {
@@ -127,6 +119,10 @@ export default function SupplierDashboard() {
             minOrderValueSek: profileData.minOrderValueSek ?? null,
             paymentTerms: profileData.paymentTerms || null,
           });
+          // Use DB-backed onboarding dismissed state (persists across devices)
+          if (profileData.onboardingDismissedAt) {
+            setOnboardingDismissed(true);
+          }
         }
 
         if (statsRes.ok) {
@@ -193,11 +189,18 @@ export default function SupplierDashboard() {
   const allOnboardingComplete = Object.values(onboardingComplete).every(Boolean);
   const showOnboarding = !onboardingDismissed && !allOnboardingComplete;
 
-  const handleDismissOnboarding = () => {
+  const handleDismissOnboarding = async () => {
     setOnboardingDismissed(true);
     try {
-      localStorage.setItem('winefeed-onboarding-dismissed', 'true');
-    } catch {}
+      await fetch('/api/supplier/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ onboardingDismissed: true }),
+      });
+    } catch (err) {
+      console.error('Failed to persist onboarding dismissal:', err);
+      // State stays dismissed in this session even if PATCH fails
+    }
   };
 
   return (
@@ -288,6 +291,20 @@ export default function SupplierDashboard() {
       <div className="space-y-4 mb-8">
         {/* Expiring Offers Alert */}
         <ExpiringOffersAlert />
+
+        {/* Så tjänar Winefeed pengar — transparens om affärsmodellen */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 text-sm text-blue-700 leading-relaxed">
+            <p className="font-medium text-blue-800 mb-1">Så tjänar Winefeed pengar</p>
+            <p>
+              Winefeed är <strong>gratis under pilotfasen</strong>. När plattformen går live tar vi
+              4 % förmedlingsavgift på accepterade offerter (min 149 kr, max 1 995 kr per order) —
+              pilotleverantörer får besked i god tid innan dess. Framtida ordrar direkt mellan dig och
+              restaurangen är avgiftsfria — vi tar betalt för introduktionen, inte för relationen.
+            </p>
+          </div>
+        </div>
 
         {/* Low Stock Alert removed — stock_qty unreliable in RFQ model */}
 
@@ -603,28 +620,28 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'account',
     title: 'Skapa konto',
-    description: 'Registrera dig som leverantör',
+    description: 'Registrera dig som leverantör (1 min)',
     href: '/supplier/profile',
     icon: Building2,
   },
   {
     id: 'contact',
     title: 'Fyll i kontaktuppgifter',
-    description: 'E-post och telefonnummer',
+    description: 'E-post och telefonnummer (2 min)',
     href: '/supplier/profile',
     icon: Phone,
   },
   {
     id: 'terms',
     title: 'Ange ordervillkor',
-    description: 'Minsta order och betalningsvillkor',
+    description: 'Minsta order och betalningsvillkor (2 min)',
     href: '/supplier/profile',
     icon: Settings,
   },
   {
     id: 'catalog',
     title: 'Ladda upp vinkatalog',
-    description: 'Importera dina viner via Excel eller CSV',
+    description: 'Importera dina viner via Excel eller CSV (~10 min)',
     href: '/supplier/wines',
     icon: Wine,
   },

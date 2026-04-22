@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Get full supplier details
     const { data: supplier, error: supplierError } = await adminClient
       .from('suppliers')
-      .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles, min_order_value_sek, provorder_enabled, provorder_fee_sek, payment_terms')
+      .select('id, namn, type, org_number, license_number, kontakt_email, telefon, hemsida, is_active, min_order_bottles, min_order_value_sek, provorder_enabled, provorder_fee_sek, payment_terms, onboarding_dismissed_at')
       .eq('id', actor.supplier_id)
       .single();
 
@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
       provorderEnabled: supplier.provorder_enabled || false,
       provorderFeeSek: supplier.provorder_fee_sek || 500,
       paymentTerms: supplier.payment_terms || null,
+      onboardingDismissedAt: supplier.onboarding_dismissed_at || null,
       userEmail,
     });
 
@@ -239,6 +240,21 @@ export async function PATCH(request: NextRequest) {
       updates.payment_terms = value || null;
     }
 
+    // Onboarding dismissed-flag — accepts `true` to stamp now, or `null` to un-dismiss
+    if ('onboardingDismissed' in body) {
+      const value = body.onboardingDismissed;
+      if (value === true) {
+        updates.onboarding_dismissed_at = new Date().toISOString();
+      } else if (value === false || value === null) {
+        updates.onboarding_dismissed_at = null;
+      } else {
+        return NextResponse.json(
+          { error: 'onboardingDismissed must be true, false, or null' },
+          { status: 400 }
+        );
+      }
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
@@ -253,7 +269,7 @@ export async function PATCH(request: NextRequest) {
       .from('suppliers')
       .update(updates)
       .eq('id', actor.supplier_id)
-      .select('id, min_order_bottles, min_order_value_sek, kontakt_email, telefon, hemsida, provorder_enabled, provorder_fee_sek, payment_terms')
+      .select('id, min_order_bottles, min_order_value_sek, kontakt_email, telefon, hemsida, provorder_enabled, provorder_fee_sek, payment_terms, onboarding_dismissed_at')
       .single();
 
     if (updateError) {
@@ -274,6 +290,7 @@ export async function PATCH(request: NextRequest) {
       provorderEnabled: supplier.provorder_enabled || false,
       provorderFeeSek: supplier.provorder_fee_sek || 500,
       paymentTerms: supplier.payment_terms || null,
+      onboardingDismissedAt: supplier.onboarding_dismissed_at || null,
     });
 
   } catch (error: any) {
