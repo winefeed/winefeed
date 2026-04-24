@@ -175,11 +175,11 @@ export default function AdminGrowthPage() {
     }
   };
 
-  const handleCreateLead = async (payload: Partial<Lead>) => {
+  const handleCreateLead = async (payload: Partial<Lead> & { lead_type?: string }) => {
     const res = await fetch('/api/admin/growth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, lead_type: leadType }),
+      body: JSON.stringify({ lead_type: payload.lead_type || leadType, ...payload }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -592,6 +592,7 @@ export default function AdminGrowthPage() {
 
       {showNewLeadModal && (
         <NewLeadModal
+          defaultLeadType={leadType}
           onCancel={() => setShowNewLeadModal(false)}
           onCreate={handleCreateLead}
         />
@@ -601,12 +602,15 @@ export default function AdminGrowthPage() {
 }
 
 function NewLeadModal({
+  defaultLeadType,
   onCancel,
   onCreate,
 }: {
+  defaultLeadType: 'restaurant' | 'importer' | 'producer';
   onCancel: () => void;
-  onCreate: (payload: Partial<Lead>) => Promise<boolean>;
+  onCreate: (payload: Partial<Lead> & { lead_type?: string }) => Promise<boolean>;
 }) {
+  const [leadType, setLeadType] = useState<'restaurant' | 'importer' | 'producer'>(defaultLeadType);
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
   const [contactName, setContactName] = useState('');
@@ -618,11 +622,18 @@ function NewLeadModal({
   const [signalContext, setSignalContext] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const typeLabels = {
+    restaurant: { heading: 'Ny restaurang-lead', nameLabel: 'Restaurangens namn', placeholder: 'T.ex. Restaurang Volt', rolePh: 'Sommelier, F&B Manager...' },
+    importer:   { heading: 'Ny importör-lead',   nameLabel: 'Importörens namn',   placeholder: 'T.ex. Wine Exchange', rolePh: 'Inköp, Sortimentsansvarig...' },
+    producer:   { heading: 'Ny producent-lead',  nameLabel: 'Producentens namn',  placeholder: 'T.ex. Domaine Laroche', rolePh: 'Export Manager, Ägare...' },
+  } as const;
+  const t = typeLabels[leadType];
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     setSaving(true);
-    const payload: Partial<Lead> = { name: name.trim() };
+    const payload: Partial<Lead> & { lead_type?: string } = { name: name.trim(), lead_type: leadType };
     if (city.trim()) payload.city = city.trim();
     if (contactName.trim()) payload.contact_name = contactName.trim();
     if (contactRole.trim()) payload.contact_role = contactRole.trim();
@@ -641,17 +652,36 @@ function NewLeadModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">Ny lead</h3>
+        <h3 className="text-lg font-semibold mb-4">{t.heading}</h3>
         <form onSubmit={submit} className="space-y-3">
           <div>
             <label className="text-sm">
-              <span className="text-gray-700 block mb-1">Restaurangens namn *</span>
+              <span className="text-gray-700 block mb-1">Typ av lead</span>
+              <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-0.5">
+                {(['restaurant', 'importer', 'producer'] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setLeadType(k)}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      leadType === k ? 'bg-wine-dark text-white' : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {k === 'restaurant' ? 'Restaurang' : k === 'importer' ? 'Importör' : 'Producent'}
+                  </button>
+                ))}
+              </div>
+            </label>
+          </div>
+          <div>
+            <label className="text-sm">
+              <span className="text-gray-700 block mb-1">{t.nameLabel} *</span>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded"
-                placeholder="T.ex. Restaurang Volt"
+                placeholder={t.placeholder}
               />
             </label>
           </div>
@@ -686,7 +716,7 @@ function NewLeadModal({
             </label>
             <label className="text-sm">
               <span className="text-gray-700 block mb-1">Roll</span>
-              <input value={contactRole} onChange={(e) => setContactRole(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder="Sommelier, F&B Manager..." />
+              <input value={contactRole} onChange={(e) => setContactRole(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder={t.rolePh} />
             </label>
           </div>
           <label className="text-sm block">
