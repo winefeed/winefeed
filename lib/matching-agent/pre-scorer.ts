@@ -51,7 +51,7 @@ export function preScoreWines(
 
   const scored: ScoredWine[] = wines.map(wine => {
     const breakdown = scoreWine(wine, preferences, structuredFilters, cuisineProfile, normalizedQuery, feedbackMap, urgencyDetected);
-    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch + breakdown.nameMatch + breakdown.feedbackPenalty + breakdown.locationBoost;
+    const score = breakdown.price + breakdown.color + breakdown.region + breakdown.grape + breakdown.food + breakdown.styleMatch + breakdown.availability + breakdown.certification + breakdown.goldenPair + breakdown.cuisineMatch + breakdown.nameMatch + breakdown.appellationMatch + breakdown.feedbackPenalty + breakdown.locationBoost;
 
     // Get golden pair reason if applicable
     let goldenPairReason: string | undefined;
@@ -97,6 +97,7 @@ function scoreWine(
     goldenPair: scoreGoldenPair(wine, prefs),
     cuisineMatch: scoreCuisineMatch(wine, cuisineProfile),
     nameMatch: scoreNameMatch(wine, normalizedQuery),
+    appellationMatch: scoreAppellationMatch(wine, prefs),
     feedbackPenalty: scoreFeedbackPenalty(wine, feedbackMap),
     locationBoost: scoreLocationBoost(wine, urgencyDetected),
   };
@@ -202,6 +203,28 @@ function scoreNameMatch(wine: SupplierWineRow, normalizedQuery: string): number 
     return 10;
   }
 
+  return 0;
+}
+
+// ============================================================================
+// Appellation exact-match scoring (0-8 bonus)
+// Fires when wine.appellation matches an entry in preferences.regions
+// (accent/case-insensitive, word-level). The AI parser puts appellation
+// names into prefs.regions (e.g. "Chablis") alongside true regions, so
+// one check covers both user free-text and open-request criteria.
+// Overlap with scoreRegion is intentional — an appellation-level match is
+// a stronger signal than a region-contains match and deserves its own lift.
+// ============================================================================
+
+function scoreAppellationMatch(wine: SupplierWineRow, prefs: MergedPreferences): number {
+  if (!wine.appellation || prefs.regions.length === 0) return 0;
+  const wineApp = normalizeForMatch(wine.appellation);
+  for (const r of prefs.regions) {
+    const pref = normalizeForMatch(r);
+    if (!pref) continue;
+    if (wineApp === pref) return 8;          // exact match
+    if (wineApp.includes(pref) && pref.length >= 4) return 6; // substring, e.g. "Chablis Premier Cru" ⊃ "Chablis"
+  }
   return 0;
 }
 

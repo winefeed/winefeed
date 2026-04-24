@@ -57,6 +57,7 @@ export interface ScoreBreakdown {
   goldenPair: number;     // 0-10 bonus — classic food+wine pairing match
   cuisineMatch: number;   // 0-8 bonus — restaurant cuisine affinity
   nameMatch: number;      // 0-25 bonus — search query matches wine name/appellation/producer/region
+  appellationMatch: number; // 0-8 bonus — wine.appellation exactly matches a preferred region/appellation
   feedbackPenalty: number; // 0 to -20 — negative signal from restaurant feedback
   locationBoost: number;  // -8 to +8 — favors domestic stock when urgency signals detected
 }

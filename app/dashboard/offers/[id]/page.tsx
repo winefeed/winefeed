@@ -13,7 +13,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 import { ButtonSpinner, Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/components/ui/toast';
-import { Wine, Check, Building2, Loader2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { Wine, Check, Building2, Loader2, ChevronDown, ChevronUp, AlertTriangle, LayoutGrid, List, ArrowUpDown } from 'lucide-react';
 
 interface OfferLine {
   id: string | null;
@@ -75,9 +75,16 @@ export default function OffersPage() {
 
   const [offers, setOffers] = useState<Offer[]>([]);
   const [summary, setSummary] = useState<OfferSummary | null>(null);
+  const [requestType, setRequestType] = useState<'targeted' | 'open'>('targeted');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [includeExpired, setIncludeExpired] = useState(false);
+
+  // View mode: cards = current per-supplier cards, grid = flat comparison table
+  // Auto-switches to grid for broadcasts with many lines; user can override.
+  const [viewMode, setViewMode] = useState<'cards' | 'grid'>('cards');
+  const [viewModeLocked, setViewModeLocked] = useState(false);
+  const [gridSort, setGridSort] = useState<'price' | 'match' | 'supplier'>('price');
 
   // Accept state per offer
   const [accepting, setAccepting] = useState<string | null>(null);
@@ -106,6 +113,14 @@ export default function OffersPage() {
       const data = await response.json();
       setOffers(data.offers);
       setSummary(data.summary);
+      const rt: 'targeted' | 'open' = data.requestType === 'open' ? 'open' : 'targeted';
+      setRequestType(rt);
+
+      // Auto-select grid for broadcasts with 5+ total lines, unless user locked it
+      if (!viewModeLocked) {
+        const totalLines = (data.offers as Offer[]).reduce((sum, o) => sum + o.lines.length, 0);
+        setViewMode(rt === 'open' && totalLines >= 5 ? 'grid' : 'cards');
+      }
 
       // Initialize line selections: all lines selected by default
       const lineMap = new Map<string, Set<string>>();
@@ -355,13 +370,18 @@ export default function OffersPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className={`${viewMode === 'grid' ? 'max-w-6xl' : 'max-w-4xl'} mx-auto px-4 py-8`}>
         {/* Summary */}
         {summary && (
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
             <div>
               <h2 className="text-2xl font-bold text-foreground">
                 {summary.active} {summary.active === 1 ? 'offert' : 'offerter'}
+                {requestType === 'open' && (
+                  <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20 align-middle">
+                    Öppen förfrågan
+                  </span>
+                )}
               </h2>
               {acceptedOffers.size > 0 && (
                 <p className="text-sm text-green-600 font-medium">
@@ -369,17 +389,42 @@ export default function OffersPage() {
                 </p>
               )}
             </div>
-            {summary.expired > 0 && (
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={includeExpired}
-                  onChange={(e) => setIncludeExpired(e.target.checked)}
-                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                />
-                <span className="text-sm text-muted-foreground">Visa utgangna</span>
-              </label>
-            )}
+            <div className="flex items-center gap-4">
+              {/* View toggle — only shown when it makes a difference */}
+              {offers.length > 0 && (
+                <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
+                  <button
+                    onClick={() => { setViewMode('cards'); setViewModeLocked(true); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Gruppera per leverantör"
+                  >
+                    <List className="h-4 w-4" /> Kort
+                  </button>
+                  <button
+                    onClick={() => { setViewMode('grid'); setViewModeLocked(true); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Jämför alla viner sida vid sida"
+                  >
+                    <LayoutGrid className="h-4 w-4" /> Jämför
+                  </button>
+                </div>
+              )}
+              {summary.expired > 0 && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={includeExpired}
+                    onChange={(e) => setIncludeExpired(e.target.checked)}
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm text-muted-foreground">Visa utgangna</span>
+                </label>
+              )}
+            </div>
           </div>
         )}
 
@@ -390,8 +435,122 @@ export default function OffersPage() {
           </div>
         )}
 
+        {/* Comparison grid — broadcast-friendly flat table */}
+        {viewMode === 'grid' && offers.length > 0 && (
+          <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden mb-8">
+            {/* Sort controls */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/20 text-sm">
+              <span className="text-muted-foreground flex items-center gap-1.5">
+                <ArrowUpDown className="h-3.5 w-3.5" /> Sortera:
+              </span>
+              {([
+                { key: 'price', label: 'Pris' },
+                { key: 'match', label: 'Match' },
+                { key: 'supplier', label: 'Leverantör' },
+              ] as const).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setGridSort(key)}
+                  className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                    gridSort === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+              <span className="ml-auto text-xs text-muted-foreground">
+                {offers.reduce((s, o) => s + o.lines.length, 0)} viner från {offers.length} leverantörer
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
+                  <tr>
+                    <th className="text-left px-4 py-2 font-medium">Leverantör</th>
+                    <th className="text-left px-4 py-2 font-medium">Vin</th>
+                    <th className="text-left px-3 py-2 font-medium">Årg.</th>
+                    <th className="text-left px-3 py-2 font-medium">Region</th>
+                    <th className="text-right px-3 py-2 font-medium">Pris/fl</th>
+                    <th className="text-right px-3 py-2 font-medium">Ant.</th>
+                    <th className="text-right px-3 py-2 font-medium">Totalt</th>
+                    <th className="text-center px-3 py-2 font-medium">Match</th>
+                    <th className="text-left px-3 py-2 font-medium">Lev.</th>
+                    <th className="px-3 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {offers
+                    .flatMap(offer =>
+                      offer.lines.map(line => ({ offer, line }))
+                    )
+                    .sort((a, b) => {
+                      if (gridSort === 'price') return a.line.offeredPriceExVatSek - b.line.offeredPriceExVatSek;
+                      if (gridSort === 'match') return b.offer.matchScore - a.offer.matchScore;
+                      return a.offer.supplierName.localeCompare(b.offer.supplierName, 'sv');
+                    })
+                    .map(({ offer, line }, i) => {
+                      const isAccepted = acceptedOffers.has(offer.id);
+                      return (
+                        <tr
+                          key={`${offer.id}-${line.id || i}`}
+                          className={`hover:bg-muted/20 cursor-pointer transition-colors ${
+                            isAccepted ? 'bg-green-50/50' : offer.isExpired ? 'opacity-60' : ''
+                          }`}
+                          onClick={() => {
+                            // Jump to the card: switch view + expand + scroll
+                            setViewMode('cards');
+                            setViewModeLocked(true);
+                            setExpandedOffers(prev => new Set(prev).add(offer.id));
+                            setTimeout(() => {
+                              document.getElementById(`offer-${offer.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 50);
+                          }}
+                        >
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1.5">
+                              <Building2 className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                              <span className="font-medium text-foreground truncate max-w-[140px]">{offer.supplierName}</span>
+                              {isAccepted && <Check className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="font-medium text-foreground">{line.wineName}</p>
+                            {line.producer && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{line.producer}</p>}
+                          </td>
+                          <td className="px-3 py-3 text-muted-foreground">{line.vintage || '—'}</td>
+                          <td className="px-3 py-3 text-muted-foreground truncate max-w-[140px]">
+                            {[line.region, line.country].filter(Boolean).join(', ') || '—'}
+                          </td>
+                          <td className="px-3 py-3 text-right font-medium">{formatPrice(line.offeredPriceExVatSek)}</td>
+                          <td className="px-3 py-3 text-right text-muted-foreground">{line.quantity}</td>
+                          <td className="px-3 py-3 text-right font-semibold text-primary">{formatPrice(line.totalExVatSek)}</td>
+                          <td className="px-3 py-3 text-center">
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${getMatchScoreBg(offer.matchScore)} ${getMatchScoreColor(offer.matchScore)}`}>
+                              {offer.matchScore}%
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 text-muted-foreground text-xs">
+                            {offer.estimatedDeliveryDays ? `~${offer.estimatedDeliveryDays} d` : `${offer.leadTimeDays} d`}
+                            {offer.isFranco && <span className="ml-1 text-green-600">·franco</span>}
+                          </td>
+                          <td className="px-3 py-3 text-right">
+                            <ChevronDown className="h-4 w-4 text-muted-foreground inline" />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-4 py-2.5 bg-muted/10 border-t border-border text-xs text-muted-foreground">
+              Klicka på en rad för att öppna offerten och acceptera
+            </div>
+          </div>
+        )}
+
         {/* Supplier-grouped Offer Cards */}
-        <div className="space-y-6">
+        <div className={`space-y-6 ${viewMode === 'grid' ? 'hidden' : ''}`}>
           {offers.map((offer) => {
             const isExpanded = expandedOffers.has(offer.id);
             const isAccepted = acceptedOffers.has(offer.id);
@@ -404,7 +563,8 @@ export default function OffersPage() {
             return (
               <div
                 key={offer.id}
-                className={`bg-card border-2 rounded-2xl shadow-lg overflow-hidden transition-all ${
+                id={`offer-${offer.id}`}
+                className={`bg-card border-2 rounded-2xl shadow-lg overflow-hidden transition-all scroll-mt-4 ${
                   isAccepted ? 'border-green-300 bg-green-50/30' :
                   offer.isExpired ? 'border-muted opacity-60' : 'border-border'
                 }`}

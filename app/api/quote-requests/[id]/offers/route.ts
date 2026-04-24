@@ -468,7 +468,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     // Verify request exists AND get restaurant ownership
     const { data: quoteRequest, error: requestError } = await adminClient
       .from('requests')
-      .select('id, restaurant_id')
+      .select('id, restaurant_id, request_type')
       .eq('id', requestId)
       .single();
 
@@ -722,7 +722,11 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       expired: transformedOffers.filter(o => o.isExpired).length,
     };
 
-    return NextResponse.json({ offers: filteredOffers, summary });
+    return NextResponse.json({
+      offers: filteredOffers,
+      summary,
+      requestType: (quoteRequest as any).request_type || 'targeted',
+    });
 
   } catch (error: any) {
     console.error('Offers listing error:', error);

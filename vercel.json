@@ -32,5 +32,8 @@
   }, {
     "path": "/api/cron/enrich-styles",
     "schedule": "0 3 * * 0"
+  }, {
+    "path": "/api/cron/enrich-appellations",
+    "schedule": "0 4 * * 0"
   }]
 }

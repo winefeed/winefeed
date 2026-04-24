@@ -433,10 +433,10 @@ export async function POST(
     }
 
     // Post-import: infer appellation via Haiku for newly imported wines
-    // missing it. Capped at 50 per import so a huge CSV can't blow the
-    // serverless runtime budget; the rest gets picked up on the next
-    // import or (TODO) by a catch-all cron. Non-blocking — a failed
-    // enrichment never breaks the import itself.
+    // missing it. Capped at 200 per import so a huge CSV can't blow the
+    // serverless runtime budget; the weekly enrich-appellations cron
+    // catches any stragglers. Non-blocking — a failed enrichment never
+    // breaks the import itself.
     let appellationCount = 0;
     try {
       const { data: unlabeledWines } = await adminClient
@@ -445,7 +445,7 @@ export async function POST(
         .eq('supplier_id', supplierId)
         .eq('is_active', true)
         .is('appellation', null)
-        .limit(50);
+        .limit(200);
 
       if (unlabeledWines && unlabeledWines.length > 0) {
         const appellationMap = await inferAppellations(unlabeledWines);
