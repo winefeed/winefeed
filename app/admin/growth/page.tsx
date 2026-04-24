@@ -56,6 +56,10 @@ interface Lead {
   created_at: string;
   updated_at: string;
   last_sign_in_at: string | null;
+  signal_type?: string | null;
+  signal_date?: string | null;
+  signal_context?: string | null;
+  restaurant_id?: string | null;
 }
 
 interface Stats {
@@ -102,6 +106,27 @@ function getScoreColor(score: number | null): string {
   return 'text-red-500';
 }
 
+const STALE_STATUSES = new Set(['contacted', 'responded']);
+
+function staleDays(lead: Lead): number | null {
+  if (!STALE_STATUSES.has(lead.status)) return null;
+  if (!lead.last_contact_at) return null;
+  const ms = Date.now() - new Date(lead.last_contact_at).getTime();
+  const days = Math.floor(ms / (24 * 60 * 60 * 1000));
+  return days >= 14 ? days : null;
+}
+
+function extractWarmSources(notes: string | null | undefined): string[] {
+  if (!notes) return [];
+  const matches: string[] = [];
+  const re = /^varm:\s*([^\s,]+)/gim;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(notes)) !== null) {
+    matches.push(m[1].toLowerCase());
+  }
+  return [...new Set(matches)];
+}
+
 function formatDate(dateString: string | null): string {
   if (!dateString) return '—';
   return new Date(dateString).toLocaleDateString('sv-SE', {
@@ -129,6 +154,59 @@ export default function AdminGrowthPage() {
   const [emailStatusLoaded, setEmailStatusLoaded] = useState(false);
   const [sortKey, setSortKey] = useState<string>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [showNewLeadModal, setShowNewLeadModal] = useState(false);
+  const [resolvingLinks, setResolvingLinks] = useState(false);
+
+  const handleResolveLinks = async () => {
+    setResolvingLinks(true);
+    try {
+      const res = await fetch('/api/admin/growth/resolve-links', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || 'Kunde inte länka leads');
+      } else {
+        toast.success(`${data.matched} leads länkade (av ${data.scanned} skannade)`);
+        fetchLeads();
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Fel vid länkning');
+    } finally {
+      setResolvingLinks(false);
+    }
+  };
+
+  const handleCreateLead = async (payload: Partial<Lead>) => {
+    const res = await fetch('/api/admin/growth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, lead_type: leadType }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast.error(data.error || 'Kunde inte skapa lead');
+      return false;
+    }
+    toast.success('Lead skapad');
+    setShowNewLeadModal(false);
+    fetchLeads();
+    return true;
+  };
+
+  const handleUpdateLead = async (id: string, patch: Partial<Lead>) => {
+    const res = await fetch(`/api/admin/growth/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast.error(data.error || 'Kunde inte uppdatera');
+      return false;
+    }
+    toast.success('Sparat');
+    fetchLeads();
+    return true;
+  };
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -292,14 +370,31 @@ export default function AdminGrowthPage() {
               </button>
             </div>
           </div>
-          <button
-            onClick={fetchLeads}
-            disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Uppdatera
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowNewLeadModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-wine-dark text-white rounded-lg hover:bg-wine-dark/90 text-sm font-medium"
+            >
+              + Ny lead
+            </button>
+            <button
+              onClick={handleResolveLinks}
+              disabled={resolvingLinks}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm"
+              title="Matcha leads mot registrerade restaurangkonton på email"
+            >
+              <RefreshCw className={`h-4 w-4 ${resolvingLinks ? 'animate-spin' : ''}`} />
+              Länka leads
+            </button>
+            <button
+              onClick={fetchLeads}
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Uppdatera
+            </button>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <select
@@ -486,6 +581,7 @@ export default function AdminGrowthPage() {
                     onToggle={() => setExpandedLead(isExpanded ? null : lead.id)}
                     emailStatuses={emailStatuses}
                     emailStatusLoaded={emailStatusLoaded}
+                    onUpdate={handleUpdateLead}
                   />
                 );
               })}
@@ -493,6 +589,139 @@ export default function AdminGrowthPage() {
           </table>
         </div>
       )}
+
+      {showNewLeadModal && (
+        <NewLeadModal
+          onCancel={() => setShowNewLeadModal(false)}
+          onCreate={handleCreateLead}
+        />
+      )}
+    </div>
+  );
+}
+
+function NewLeadModal({
+  onCancel,
+  onCreate,
+}: {
+  onCancel: () => void;
+  onCreate: (payload: Partial<Lead>) => Promise<boolean>;
+}) {
+  const [name, setName] = useState('');
+  const [city, setCity] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactRole, setContactRole] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactLinkedin, setContactLinkedin] = useState('');
+  const [source, setSource] = useState('');
+  const [signalType, setSignalType] = useState('');
+  const [signalContext, setSignalContext] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setSaving(true);
+    const payload: Partial<Lead> = { name: name.trim() };
+    if (city.trim()) payload.city = city.trim();
+    if (contactName.trim()) payload.contact_name = contactName.trim();
+    if (contactRole.trim()) payload.contact_role = contactRole.trim();
+    if (contactEmail.trim()) payload.contact_email = contactEmail.trim().toLowerCase();
+    if (contactLinkedin.trim()) payload.contact_linkedin = contactLinkedin.trim();
+    if (source.trim()) payload.source = source.trim();
+    if (signalType.trim()) payload.signal_type = signalType.trim();
+    if (signalContext.trim()) {
+      payload.signal_context = signalContext.trim();
+      payload.signal_date = new Date().toISOString().slice(0, 10);
+    }
+    await onCreate(payload);
+    setSaving(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-lg font-semibold mb-4">Ny lead</h3>
+        <form onSubmit={submit} className="space-y-3">
+          <div>
+            <label className="text-sm">
+              <span className="text-gray-700 block mb-1">Restaurangens namn *</span>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded"
+                placeholder="T.ex. Restaurang Volt"
+              />
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-sm">
+              <span className="text-gray-700 block mb-1">Stad</span>
+              <input value={city} onChange={(e) => setCity(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+            </label>
+            <label className="text-sm">
+              <span className="text-gray-700 block mb-1">Källa</span>
+              <select value={source} onChange={(e) => setSource(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
+                <option value="">—</option>
+                <option value="linkedin">LinkedIn</option>
+                <option value="munskankarna">Munskänkarna</option>
+                <option value="vinkoll">Vinkoll</option>
+                <option value="referral">Referral</option>
+                <option value="google">Google</option>
+                <option value="instagram">Instagram</option>
+                <option value="event">Event</option>
+                <option value="starwinelist">Star Wine List</option>
+                <option value="besoksliv">Besöksliv</option>
+                <option value="whiteguide">White Guide</option>
+                <option value="direct">Direct</option>
+                <option value="other">Övrigt</option>
+              </select>
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-sm">
+              <span className="text-gray-700 block mb-1">Kontaktnamn</span>
+              <input value={contactName} onChange={(e) => setContactName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+            </label>
+            <label className="text-sm">
+              <span className="text-gray-700 block mb-1">Roll</span>
+              <input value={contactRole} onChange={(e) => setContactRole(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder="Sommelier, F&B Manager..." />
+            </label>
+          </div>
+          <label className="text-sm block">
+            <span className="text-gray-700 block mb-1">Email</span>
+            <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+          </label>
+          <label className="text-sm block">
+            <span className="text-gray-700 block mb-1">LinkedIn-URL</span>
+            <input value={contactLinkedin} onChange={(e) => setContactLinkedin(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder="https://linkedin.com/in/..." />
+          </label>
+          <label className="text-sm block">
+            <span className="text-gray-700 block mb-1">Signal-typ</span>
+            <select value={signalType} onChange={(e) => setSignalType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
+              <option value="">—</option>
+              <option value="job_change">Jobbskifte</option>
+              <option value="post_engagement">Engagemang (inlägg/kommentar)</option>
+              <option value="new_opening">Nyöppning</option>
+              <option value="wine_list_update">Vinlista-uppdatering</option>
+              <option value="frustration">Frustrations-signal</option>
+            </select>
+          </label>
+          {signalType && (
+            <label className="text-sm block">
+              <span className="text-gray-700 block mb-1">Signal-kontext</span>
+              <textarea value={signalContext} onChange={(e) => setSignalContext(e.target.value)} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder="T.ex. tillträdde 2026-04-15, inlägg-länk, citat..." />
+            </label>
+          )}
+          <div className="flex justify-end gap-2 pt-3">
+            <button type="button" onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded text-sm">Avbryt</button>
+            <button type="submit" disabled={saving || !name.trim()} className="px-4 py-2 bg-wine-dark text-white rounded text-sm font-medium disabled:opacity-50">
+              {saving ? 'Skapar...' : 'Skapa lead'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
@@ -511,12 +740,14 @@ function LeadRow({
   onToggle,
   emailStatuses,
   emailStatusLoaded,
+  onUpdate,
 }: {
   lead: Lead;
   isExpanded: boolean;
   onToggle: () => void;
   emailStatuses: Record<string, string>;
   emailStatusLoaded: boolean;
+  onUpdate: (id: string, patch: Partial<Lead>) => Promise<boolean>;
 }) {
   const badgeClass = STATUS_BADGE[lead.status] || 'bg-gray-100 text-gray-800';
   const statusLabel = STATUS_LABELS[lead.status] || lead.status;
@@ -538,10 +769,38 @@ function LeadRow({
           </span>
         </td>
         <td className="px-4 py-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`}>
               {statusLabel}
             </span>
+            {lead.restaurant_id && (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700"
+                title="Länkad till registrerat restaurangkonto"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Länkad
+              </span>
+            )}
+            {(() => {
+              const days = staleDays(lead);
+              return days !== null ? (
+                <span
+                  className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-100 text-orange-800"
+                  title={`Senaste kontakt för ${days} dagar sedan`}
+                >
+                  Inaktiv {days}d
+                </span>
+              ) : null;
+            })()}
+            {extractWarmSources(lead.notes).map((src) => (
+              <span
+                key={src}
+                className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-100 text-indigo-800"
+                title={`Varm kontakt via ${src}`}
+              >
+                varm: {src}
+              </span>
+            ))}
             {resendId && (
               <span className={`inline-flex items-center gap-1 text-xs ${eventInfo ? eventInfo.color : emailStatusLoaded ? 'text-yellow-600' : 'text-gray-400'}`} title={`Mail: ${eventInfo?.label || 'Ej tillgänglig'}`}>
                 {eventInfo?.icon === 'opened' ? <MailOpen className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
@@ -744,9 +1003,146 @@ function LeadRow({
                 </div>
               </div>
             </div>
+
+            {/* Signal + Länkning — visas alltid om någondera finns */}
+            {(lead.signal_type || lead.restaurant_id) && (
+              <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {lead.signal_type && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Signal
+                    </h4>
+                    <div className="space-y-1 text-sm">
+                      <p>
+                        <span className="text-gray-500">Typ:</span>{' '}
+                        <span className="font-medium text-gray-900">{lead.signal_type}</span>
+                        {lead.signal_date && (
+                          <span className="text-gray-500 ml-2">
+                            ({new Date(lead.signal_date).toLocaleDateString('sv-SE')})
+                          </span>
+                        )}
+                      </p>
+                      {lead.signal_context && (
+                        <p className="text-gray-700 italic">{lead.signal_context}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {lead.restaurant_id && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Registrerat konto
+                    </h4>
+                    <a
+                      href={`/admin/restaurants/${lead.restaurant_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800 hover:bg-green-100"
+                    >
+                      Öppna restaurang-vy →
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <QuickEdit lead={lead} onUpdate={onUpdate} />
           </td>
         </tr>
       )}
     </>
+  );
+}
+
+function QuickEdit({
+  lead,
+  onUpdate,
+}: {
+  lead: Lead;
+  onUpdate: (id: string, patch: Partial<Lead>) => Promise<boolean>;
+}) {
+  const [status, setStatus] = useState(lead.status);
+  const [nextAction, setNextAction] = useState(lead.next_action || '');
+  const [nextActionDate, setNextActionDate] = useState(lead.next_action_date || '');
+  const [noteAddition, setNoteAddition] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    const patch: Partial<Lead> = {};
+    if (status !== lead.status) patch.status = status;
+    if (nextAction !== (lead.next_action || '')) patch.next_action = nextAction || null;
+    if (nextActionDate !== (lead.next_action_date || '')) patch.next_action_date = nextActionDate || null;
+    if (noteAddition.trim()) {
+      const stamp = new Date().toISOString().slice(0, 10);
+      const prev = lead.notes ? lead.notes + '\n\n' : '';
+      patch.notes = `${prev}[${stamp}] ${noteAddition.trim()}`;
+    }
+    if (Object.keys(patch).length === 0) {
+      setSaving(false);
+      return;
+    }
+    const ok = await onUpdate(lead.id, patch);
+    if (ok) setNoteAddition('');
+    setSaving(false);
+  };
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200">
+      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        Snabbredigera
+      </h4>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <label className="text-xs">
+          <span className="text-gray-500 block mb-1">Status</span>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+          >
+            {Object.entries(STATUS_LABELS).map(([k, v]) => (
+              <option key={k} value={k}>{v}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs">
+          <span className="text-gray-500 block mb-1">Nästa steg</span>
+          <input
+            value={nextAction}
+            onChange={(e) => setNextAction(e.target.value)}
+            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            placeholder="T.ex. skicka uppföljning"
+          />
+        </label>
+        <label className="text-xs">
+          <span className="text-gray-500 block mb-1">Datum</span>
+          <input
+            type="date"
+            value={nextActionDate?.slice(0, 10) || ''}
+            onChange={(e) => setNextActionDate(e.target.value)}
+            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+          />
+        </label>
+      </div>
+      <div className="mb-3">
+        <label className="text-xs">
+          <span className="text-gray-500 block mb-1">Lägg till anteckning (tidsstämplas)</span>
+          <textarea
+            value={noteAddition}
+            onChange={(e) => setNoteAddition(e.target.value)}
+            rows={2}
+            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            placeholder='Nya anteckningar — skriv "varm:vinkoll" för varm-tagg'
+          />
+        </label>
+      </div>
+      <button
+        onClick={save}
+        disabled={saving}
+        className="px-4 py-1.5 bg-wine-dark text-white rounded text-sm font-medium hover:bg-wine-dark/90 disabled:opacity-50"
+      >
+        {saving ? 'Sparar...' : 'Spara ändringar'}
+      </button>
+    </div>
   );
 }
