@@ -34,17 +34,26 @@ interface Suggestion {
  * (Ekologiskt, Biodynamiskt) also flip their respective booleans so the
  * structured filter actually matches.
  */
-const STYLE_CHIPS: { tag: string; label: string; flag?: 'organic' | 'biodynamic' }[] = [
-  { tag: 'frisk', label: 'Frisk' },
-  { tag: 'mineralisk', label: 'Mineralisk' },
-  { tag: 'fruktig', label: 'Fruktig' },
-  { tag: 'elegant', label: 'Elegant' },
-  { tag: 'kraftfull', label: 'Kraftfull' },
-  { tag: 'klassisk', label: 'Klassisk' },
-  { tag: 'naturvin', label: 'Naturvin' },
-  { tag: 'orange', label: 'Skin-contact / orange' },
-  { tag: 'ekologiskt', label: 'Ekologiskt', flag: 'organic' },
-  { tag: 'biodynamiskt', label: 'Biodynamiskt', flag: 'biodynamic' },
+type ChipFlag = 'organic' | 'biodynamic';
+type ChipColorTrigger = 'orange';
+
+const STYLE_CHIPS: {
+  tag: string;
+  label: string;
+  flag?: ChipFlag;
+  setsColor?: ChipColorTrigger;
+  note?: string;
+}[] = [
+  { tag: 'frisk', label: 'Frisk', note: 'Söker via fritext — inferreras till hög syra av matchningen' },
+  { tag: 'mineralisk', label: 'Mineralisk', note: 'Söker via fritext — inget exakt filter' },
+  { tag: 'fruktig', label: 'Fruktig', note: 'Söker via fritext — inget exakt filter' },
+  { tag: 'elegant', label: 'Elegant', note: 'Söker via fritext — inferreras till lätt/medium kropp' },
+  { tag: 'kraftfull', label: 'Kraftfull', note: 'Söker via fritext — inferreras till full kropp' },
+  { tag: 'klassisk', label: 'Klassisk', note: 'Söker via fritext — inget exakt filter' },
+  { tag: 'naturvin', label: 'Naturvin', note: 'Söker via fritext — inget exakt filter i katalogen' },
+  { tag: 'orange', label: 'Skin-contact / orange', setsColor: 'orange', note: 'Filtrerar på färg = orange' },
+  { tag: 'ekologiskt', label: 'Ekologiskt', flag: 'organic', note: 'Filtrerar på supplier_wines.organic' },
+  { tag: 'biodynamiskt', label: 'Biodynamiskt', flag: 'biodynamic', note: 'Filtrerar på supplier_wines.biodynamic' },
 ];
 
 const SUGGESTIONS: Suggestion[] = [
@@ -117,17 +126,19 @@ function NewOpenRequestForm() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [styleTags, setStyleTags] = useState<Set<string>>(new Set());
 
-  function toggleStyleTag(tag: string, flag?: 'organic' | 'biodynamic') {
+  function toggleStyleTag(tag: string, flag?: ChipFlag, setsColor?: ChipColorTrigger) {
     setStyleTags(prev => {
       const next = new Set(prev);
       if (next.has(tag)) {
         next.delete(tag);
         if (flag === 'organic') setOrganic(false);
         if (flag === 'biodynamic') setBiodynamic(false);
+        if (setsColor === 'orange' && color === 'orange') setColor('');
       } else {
         next.add(tag);
         if (flag === 'organic') setOrganic(true);
         if (flag === 'biodynamic') setBiodynamic(true);
+        if (setsColor === 'orange') setColor('orange');
       }
       return next;
     });
@@ -308,8 +319,9 @@ function NewOpenRequestForm() {
                     <button
                       type="button"
                       key={s.tag}
-                      onClick={() => toggleStyleTag(s.tag, s.flag)}
+                      onClick={() => toggleStyleTag(s.tag, s.flag, s.setsColor)}
                       aria-pressed={active}
+                      title={s.note}
                       className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
                         active
                           ? 'bg-[#93092b] text-white border-[#93092b]'
