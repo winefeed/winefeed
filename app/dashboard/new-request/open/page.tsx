@@ -27,6 +27,26 @@ interface Suggestion {
   freeText?: string;
 }
 
+/**
+ * Style chips — additive descriptors the restaurant can toggle on/off.
+ * Click adds the tag; click again removes. Active tags are joined into a
+ * "Stil: ..."-suffix on the free_text field at submit time. Two chips
+ * (Ekologiskt, Biodynamiskt) also flip their respective booleans so the
+ * structured filter actually matches.
+ */
+const STYLE_CHIPS: { tag: string; label: string; flag?: 'organic' | 'biodynamic' }[] = [
+  { tag: 'frisk', label: 'Frisk' },
+  { tag: 'mineralisk', label: 'Mineralisk' },
+  { tag: 'fruktig', label: 'Fruktig' },
+  { tag: 'elegant', label: 'Elegant' },
+  { tag: 'kraftfull', label: 'Kraftfull' },
+  { tag: 'klassisk', label: 'Klassisk' },
+  { tag: 'naturvin', label: 'Naturvin' },
+  { tag: 'orange', label: 'Skin-contact / orange' },
+  { tag: 'ekologiskt', label: 'Ekologiskt', flag: 'organic' },
+  { tag: 'biodynamiskt', label: 'Biodynamiskt', flag: 'biodynamic' },
+];
+
 const SUGGESTIONS: Suggestion[] = [
   // Stil/funktionsorienterade (sommelier-perspektiv)
   {
@@ -95,6 +115,23 @@ function NewOpenRequestForm() {
   const [biodynamic, setBiodynamic] = useState(false);
   const [freeText, setFreeText] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [styleTags, setStyleTags] = useState<Set<string>>(new Set());
+
+  function toggleStyleTag(tag: string, flag?: 'organic' | 'biodynamic') {
+    setStyleTags(prev => {
+      const next = new Set(prev);
+      if (next.has(tag)) {
+        next.delete(tag);
+        if (flag === 'organic') setOrganic(false);
+        if (flag === 'biodynamic') setBiodynamic(false);
+      } else {
+        next.add(tag);
+        if (flag === 'organic') setOrganic(true);
+        if (flag === 'biodynamic') setBiodynamic(true);
+      }
+      return next;
+    });
+  }
 
   // Pre-fill from an earlier open request when ?from=<id> is set. Fetches
   // the source request and copies its open_criteria into form state. If
@@ -174,7 +211,9 @@ function NewOpenRequestForm() {
     if (vintageFrom) criteria.vintage_from = Number(vintageFrom);
     if (organic) criteria.organic = true;
     if (biodynamic) criteria.biodynamic = true;
-    if (freeText.trim()) criteria.free_text = freeText.trim();
+    const styleSuffix = styleTags.size > 0 ? `\n\nStil: ${[...styleTags].join(', ')}` : '';
+    const combinedFreeText = (freeText.trim() + styleSuffix).trim();
+    if (combinedFreeText) criteria.free_text = combinedFreeText;
 
     const hasMatchable = !!(criteria.color || criteria.appellation || criteria.country || criteria.grape);
     if (!hasMatchable) {
@@ -261,6 +300,31 @@ function NewOpenRequestForm() {
           <div className="p-6 sm:p-8 space-y-6">
 
             <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Stil</label>
+              <div className="flex flex-wrap gap-2">
+                {STYLE_CHIPS.map((s) => {
+                  const active = styleTags.has(s.tag);
+                  return (
+                    <button
+                      type="button"
+                      key={s.tag}
+                      onClick={() => toggleStyleTag(s.tag, s.flag)}
+                      aria-pressed={active}
+                      className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
+                        active
+                          ? 'bg-[#93092b] text-white border-[#93092b]'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-[#93092b]/5 hover:border-[#93092b]/30 hover:text-[#93092b]'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-slate-500 mt-2">Lägg till en eller flera stilord — klicka igen för att ta bort.</p>
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Snabbval</label>
               <div className="flex flex-wrap gap-2">
                 {SUGGESTIONS.map((s, i) => (
@@ -278,6 +342,7 @@ function NewOpenRequestForm() {
                       setOrganic(!!s.organic);
                       setBiodynamic(!!s.biodynamic);
                       setFreeText(s.freeText || '');
+                      setStyleTags(new Set());
                     }}
                     className="px-3 py-1.5 text-xs rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:bg-[#93092b]/5 hover:border-[#93092b]/30 hover:text-[#93092b] transition-colors"
                   >
