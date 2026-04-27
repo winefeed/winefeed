@@ -2,21 +2,31 @@
  * RESTAURANT SIGNUP PAGE
  *
  * Simplified single-step registration for restaurants.
- * Org number is optional - required at first order instead.
+ * Org number is optional — required at first order instead.
  */
 
 'use client';
 
 import { getErrorMessage } from '@/lib/utils';
 import { useState } from 'react';
-import { Building2, MapPin, Mail, Lock, AlertCircle, Loader2, FileCheck } from 'lucide-react';
-import { WinefeedLogo } from '@/components/ui/WinefeedLogo';
+import { Building2, MapPin, Mail, Lock, Loader2, FileCheck } from 'lucide-react';
+import { EditorialHeader } from '@/components/landing/EditorialHeader';
+import { EditorialFooter } from '@/components/landing/EditorialFooter';
+import {
+  EditorialFormPage,
+  EditorialFormShell,
+  EditorialField,
+  EditorialInput,
+  EditorialPrimaryButton,
+  EditorialInlineLink,
+  EditorialFormError,
+  EditorialDivider,
+} from '@/components/landing/EditorialForm';
 
 export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Form data
   const [restaurantName, setRestaurantName] = useState('');
   const [city, setCity] = useState('');
   const [email, setEmail] = useState('');
@@ -26,7 +36,6 @@ export default function SignupPage() {
   const [licenseCaseNumber, setLicenseCaseNumber] = useState('');
   const [licenseAttested, setLicenseAttested] = useState(false);
 
-  // Format org number as user types (XXXXXX-XXXX)
   const formatOrgNumber = (value: string) => {
     const digits = value.replace(/\D/g, '');
     if (digits.length <= 6) return digits;
@@ -34,11 +43,9 @@ export default function SignupPage() {
   };
 
   const handleOrgNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatOrgNumber(e.target.value);
-    setOrgNumber(formatted);
+    setOrgNumber(formatOrgNumber(e.target.value));
   };
 
-  // Create account
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -46,23 +53,18 @@ export default function SignupPage() {
       setError('Lösenordet måste vara minst 8 tecken');
       return;
     }
-
     if (!restaurantName.trim()) {
       setError('Ange restaurangens namn');
       return;
     }
-
     if (!city.trim()) {
       setError('Ange stad');
       return;
     }
-
-    // Validate org number format if provided
     if (orgNumber && orgNumber.length > 0 && orgNumber.length < 11) {
       setError('Organisationsnummer måste vara i format XXXXXX-XXXX');
       return;
     }
-
     if (!licenseAttested) {
       setError('Du måste intyga att restaurangen har giltigt serveringstillstånd');
       return;
@@ -93,7 +95,6 @@ export default function SignupPage() {
         throw new Error(data.error || 'Registreringen misslyckades');
       }
 
-      // Success - redirect to dashboard
       window.location.href = data.redirect_path || '/dashboard/new-request';
     } catch (err) {
       setError(getErrorMessage(err, 'Ett fel uppstod'));
@@ -103,240 +104,155 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      {/* Logo & Header */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <WinefeedLogo size="md" />
-        </div>
-        <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
-          Registrera restaurang
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Kom igång på under en minut
-        </p>
-      </div>
+    <EditorialFormPage>
+      <EditorialHeader />
 
-      {/* Form */}
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm border border-gray-200 sm:rounded-lg sm:px-10">
-          <form onSubmit={handleSignup} className="space-y-5">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            )}
+      <EditorialFormShell
+        eyebrow="Registrering"
+        title="Skapa restaurangkonto"
+        subtitle="Endast för restauranger, hotell och vinbarer. Kom igång på under en minut — vi godkänner manuellt."
+        footer={
+          <>
+            Har du redan ett konto?{' '}
+            <EditorialInlineLink href="/login">Logga in</EditorialInlineLink>
+          </>
+        }
+      >
+        <form onSubmit={handleSignup}>
+          <EditorialFormError message={error} />
 
-            {/* Restaurant name */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Restaurangens namn
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={restaurantName}
-                onChange={(e) => setRestaurantName(e.target.value)}
-                required
-                autoFocus
-                className="mt-1 appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                placeholder="T.ex. Restaurang Solsidan"
-              />
-            </div>
+          <EditorialField label="Restaurangens namn" htmlFor="name">
+            <EditorialInput
+              id="name"
+              type="text"
+              value={restaurantName}
+              onChange={(e) => setRestaurantName(e.target.value)}
+              required
+              autoFocus
+              placeholder="T.ex. Restaurang Solsidan"
+            />
+          </EditorialField>
 
-            {/* City */}
-            <div>
-              <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                Stad
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MapPin className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="city"
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                  className="appearance-none block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="Stockholm"
-                />
-              </div>
-            </div>
+          <EditorialField label="Stad" htmlFor="city">
+            <EditorialInput
+              id="city"
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              required
+              placeholder="Stockholm"
+              leadingIcon={<MapPin className="h-4 w-4" />}
+            />
+          </EditorialField>
 
-            {/* Divider */}
-            <div className="relative pt-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Inloggningsuppgifter</span>
-              </div>
-            </div>
+          <EditorialDivider label="Inloggningsuppgifter" />
 
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                E-postadress
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="appearance-none block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="din@email.se"
-                />
-              </div>
-            </div>
+          <EditorialField label="E-postadress" htmlFor="email">
+            <EditorialInput
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="din@email.se"
+              leadingIcon={<Mail className="h-4 w-4" />}
+            />
+          </EditorialField>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Lösenord
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={8}
-                  className="appearance-none block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="Minst 8 tecken"
-                />
-              </div>
-            </div>
+          <EditorialField label="Lösenord" htmlFor="password">
+            <EditorialInput
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              placeholder="Minst 8 tecken"
+              leadingIcon={<Lock className="h-4 w-4" />}
+            />
+          </EditorialField>
 
-            {/* Org number - optional */}
-            <div className="pt-2">
-              <label htmlFor="org_number" className="block text-sm font-medium text-gray-700">
-                Organisationsnummer
-                <span className="ml-2 text-xs font-normal text-gray-400">(valfritt)</span>
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Building2 className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="org_number"
-                  type="text"
-                  value={orgNumber}
-                  onChange={handleOrgNumberChange}
-                  maxLength={11}
-                  className="appearance-none block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="XXXXXX-XXXX"
-                />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Krävs för att lägga beställningar. Kan läggas till senare.
-              </p>
-            </div>
+          <EditorialField
+            label="Organisationsnummer"
+            htmlFor="org_number"
+            hint="Krävs för att lägga beställningar. Kan läggas till senare."
+          >
+            <EditorialInput
+              id="org_number"
+              type="text"
+              value={orgNumber}
+              onChange={handleOrgNumberChange}
+              maxLength={11}
+              placeholder="XXXXXX-XXXX (valfritt)"
+              leadingIcon={<Building2 className="h-4 w-4" />}
+            />
+          </EditorialField>
 
-            {/* Divider — serveringstillstånd */}
-            <div className="relative pt-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Serveringstillstånd</span>
-              </div>
-            </div>
+          <EditorialDivider label="Serveringstillstånd" />
 
-            {/* License municipality + case number */}
-            <div>
-              <label htmlFor="license_municipality" className="block text-sm font-medium text-gray-700">
-                Kommun där tillståndet är utfärdat
-                <span className="ml-2 text-xs font-normal text-gray-400">(valfritt — kan läggas till senare)</span>
-              </label>
-              <input
-                id="license_municipality"
-                type="text"
-                value={licenseMunicipality}
-                onChange={(e) => setLicenseMunicipality(e.target.value)}
-                className="mt-1 appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                placeholder="t.ex. Stockholm"
-              />
-            </div>
+          <EditorialField
+            label="Kommun där tillståndet är utfärdat"
+            htmlFor="license_municipality"
+            hint="Valfritt — kan läggas till senare."
+          >
+            <EditorialInput
+              id="license_municipality"
+              type="text"
+              value={licenseMunicipality}
+              onChange={(e) => setLicenseMunicipality(e.target.value)}
+              placeholder="t.ex. Stockholm"
+            />
+          </EditorialField>
 
-            <div>
-              <label htmlFor="license_case_number" className="block text-sm font-medium text-gray-700">
-                Diarienummer
-                <span className="ml-2 text-xs font-normal text-gray-400">(valfritt)</span>
-              </label>
-              <input
-                id="license_case_number"
-                type="text"
-                value={licenseCaseNumber}
-                onChange={(e) => setLicenseCaseNumber(e.target.value)}
-                className="mt-1 appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                placeholder="t.ex. SÄR 2024/1234"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Finns på kommunens beslut. Krävs innan du kan skicka förfrågningar.
-              </p>
-            </div>
+          <EditorialField
+            label="Diarienummer"
+            htmlFor="license_case_number"
+            hint="Finns på kommunens beslut. Krävs innan du kan skicka förfrågningar."
+          >
+            <EditorialInput
+              id="license_case_number"
+              type="text"
+              value={licenseCaseNumber}
+              onChange={(e) => setLicenseCaseNumber(e.target.value)}
+              placeholder="t.ex. SÄR 2024/1234"
+            />
+          </EditorialField>
 
-            {/* Attestation checkbox — required */}
-            <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 p-3">
-              <input
-                id="license_attested"
-                type="checkbox"
-                checked={licenseAttested}
-                onChange={(e) => setLicenseAttested(e.target.checked)}
-                required
-                className="mt-0.5 h-4 w-4 rounded border-amber-300 text-primary focus:ring-primary"
-              />
-              <label htmlFor="license_attested" className="text-sm text-amber-900 leading-snug cursor-pointer">
-                <span className="flex items-center gap-1.5 font-medium mb-1">
-                  <FileCheck className="h-4 w-4" />
-                  Jag intygar att restaurangen har giltigt serveringstillstånd
-                </span>
-                <span className="text-xs text-amber-800">
-                  enligt alkohollagen (2010:1622) 8 kap. Felaktigt intygande är straffbart.
-                </span>
-              </label>
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Skapar konto...
-                </>
-              ) : (
-                'Skapa konto'
-              )}
-            </button>
-          </form>
-
-          {/* Login link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Har du redan ett konto?{' '}
-              <a href="/login" className="font-medium text-primary hover:text-primary/80">
-                Logga in
-              </a>
-            </p>
+          {/* Attestation — Riesling-tonad varningsruta enligt brand-profilen */}
+          <div className="flex items-start gap-3 rounded-[10px] bg-[#f2e2b6]/60 border border-[#f2e2b6] p-3.5 mb-5">
+            <input
+              id="license_attested"
+              type="checkbox"
+              checked={licenseAttested}
+              onChange={(e) => setLicenseAttested(e.target.checked)}
+              required
+              className="mt-0.5 h-4 w-4 rounded border-[#722F37]/30 text-[#722F37] focus:ring-[#722F37]"
+            />
+            <label htmlFor="license_attested" className="text-sm text-[#161412] leading-snug cursor-pointer">
+              <span className="flex items-center gap-1.5 font-medium mb-1">
+                <FileCheck className="h-4 w-4 text-[#722F37]" />
+                Jag intygar att restaurangen har giltigt serveringstillstånd
+              </span>
+              <span className="text-xs text-[#828181]">
+                enligt alkohollagen (2010:1622) 8 kap. Felaktigt intygande är straffbart.
+              </span>
+            </label>
           </div>
-        </div>
-      </div>
-    </div>
+
+          <EditorialPrimaryButton type="submit" disabled={loading} size="lg">
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Skapar konto…
+              </>
+            ) : (
+              'Skapa konto'
+            )}
+          </EditorialPrimaryButton>
+        </form>
+      </EditorialFormShell>
+
+      <EditorialFooter />
+    </EditorialFormPage>
   );
 }
