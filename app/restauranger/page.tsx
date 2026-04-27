@@ -1,457 +1,295 @@
-import Link from "next/link";
-import { Metadata } from "next";
-import { WinefeedLogo } from "@/components/ui/WinefeedLogo";
-import { MobileNav } from "@/components/ui/MobileNav";
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { EditorialHeader } from '@/components/landing/EditorialHeader';
+import { EditorialFooter } from '@/components/landing/EditorialFooter';
 
 export const metadata: Metadata = {
-  title: "För restauranger - Sök, jämför och beställ vin från importörer",
+  title: 'För restauranger — Sök vin, jämför offerter, beställ',
   description:
-    "Winefeed hjälper restauranger, hotell och vinbarer att hitta rätt vin. Sök bland 500+ viner med tyngdpunkt på direktimport från Europa, jämför offerter från importörer och välj det som passar.",
-  keywords: ["vin restaurang", "vininköp", "vinleverantör", "jämför vinpriser", "begär offert vin", "B2B vin", "horeca vin"],
+    'Winefeed hjälper restauranger, hotell och vinbarer att hitta rätt vin. Sök bland 500+ viner med tyngdpunkt på direktimport från Europa, jämför offerter från importörer och välj det som passar.',
+  keywords: ['vin restaurang', 'vininköp', 'vinleverantör', 'jämför vinpriser', 'begär offert vin', 'B2B vin', 'horeca vin'],
   openGraph: {
-    title: "Winefeed för restauranger - Professionella vininköp",
+    title: 'Winefeed för restauranger — Professionella vininköp',
     description:
-      "Slipp mejlkarusellen. Sök, jämför och beställ vin direkt från importörer via Winefeed.",
-    url: "https://winefeed.se/restauranger",
-    siteName: "Winefeed",
-    locale: "sv_SE",
-    type: "website",
+      'Slipp mejlkarusellen. Sök, jämför och beställ vin direkt från importörer via Winefeed.',
+    url: 'https://winefeed.se/restauranger',
+    siteName: 'Winefeed',
+    locale: 'sv_SE',
+    type: 'website',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Winefeed för restauranger - Professionella vininköp",
-    description:
-      "Slipp mejlkarusellen. Sök, jämför och beställ vin direkt från importörer.",
+    card: 'summary_large_image',
+    title: 'Winefeed för restauranger — Professionella vininköp',
+    description: 'Slipp mejlkarusellen. Sök, jämför och beställ vin direkt från importörer.',
   },
   alternates: {
-    canonical: "https://winefeed.se/restauranger",
+    canonical: 'https://winefeed.se/restauranger',
   },
 };
 
 const webPageJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  name: "Winefeed för restauranger",
-  url: "https://winefeed.se/restauranger",
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Winefeed för restauranger',
+  url: 'https://winefeed.se/restauranger',
   description:
-    "Winefeed hjälper restauranger, hotell och vinbarer att hitta rätt vin. Sök bland 500+ viner med tyngdpunkt på direktimport från Europa, jämför offerter från importörer och välj det som passar.",
+    'Winefeed hjälper restauranger, hotell och vinbarer att hitta rätt vin. Sök bland 500+ viner med tyngdpunkt på direktimport från Europa, jämför offerter från importörer och välj det som passar.',
   isPartOf: {
-    "@type": "WebSite",
-    name: "Winefeed",
-    url: "https://winefeed.se",
+    '@type': 'WebSite',
+    name: 'Winefeed',
+    url: 'https://winefeed.se',
   },
   speakable: {
-    "@type": "SpeakableSpecification",
-    cssSelector: ["h1", "h2", ".speakable"],
+    '@type': 'SpeakableSpecification',
+    cssSelector: ['h1', 'h2', '.speakable'],
   },
 };
 
 export default function RestaurangerPage() {
   return (
-    <div className="min-h-screen bg-cream">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }}
       />
+      <div className="bg-[#fbfaf7] text-[#161412] font-[family-name:var(--font-inter)]">
+        <EditorialHeader />
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 px-4 sm:px-8 py-5 flex justify-between items-center bg-cream/95 backdrop-blur-md z-50 border-b border-wine-dark/10">
-        <Link href="/">
-          <WinefeedLogo size="md" />
-        </Link>
-        <nav className="hidden md:flex items-center gap-8">
-          <Link
-            href="/leverantorer"
-            className="text-wine-black-2 hover:text-wine-dark text-sm font-medium transition-colors"
-          >
-            För leverantörer
-          </Link>
-          <Link
-            href="/"
-            className="text-wine-black-2 hover:text-wine-dark text-sm font-medium transition-colors"
-          >
-            Om oss
-          </Link>
-          <Link
-            href="/login"
-            className="bg-wine-dark text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-wine-medium transition-colors"
-          >
-            Logga in
-          </Link>
-        </nav>
-        <MobileNav
-          links={[
-            { href: "/leverantorer", label: "För leverantörer" },
-            { href: "/", label: "Om oss" },
-          ]}
-        />
-      </header>
-
-      {/* Hero */}
-      <section className="min-h-[70vh] grid grid-cols-1 lg:grid-cols-2 pt-20">
-        <div className="px-6 lg:px-16 py-16 lg:py-24 flex flex-col justify-center">
-          <div className="inline-flex items-center gap-2 bg-wine-dark/10 text-wine-dark px-4 py-2 rounded-full text-sm font-medium w-fit mb-6">
-            <span>För restauranger, hotell & vinbarer</span>
-          </div>
-
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-[3.5rem] font-semibold leading-tight text-wine-black-1 mb-6">
-            Hitta rätt vin{" "}
-            <span className="text-wine-dark">till din restaurang</span>
-          </h1>
-
-          <p className="speakable text-lg text-wine-black-2 leading-relaxed mb-8 max-w-lg">
-            Sök bland 500+ viner — direktimport från europeiska producenter och
-            utbud från svenska specialistimportörer. Begär offert, jämför svar,
-            välj. Slipp mejlkarusellen.
-          </p>
-
-          <div className="flex flex-wrap gap-4 mb-12">
-            <Link
-              href="/signup"
-              className="bg-wine-dark text-white px-8 py-4 rounded-lg font-semibold hover:bg-wine-medium transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-wine-dark/30 inline-flex items-center gap-2"
-            >
-              Skapa konto gratis
-              <span aria-hidden="true">&rarr;</span>
-            </Link>
-            <Link
-              href="#sa-fungerar-det"
-              className="bg-transparent text-wine-black-1 px-8 py-4 rounded-lg font-semibold border-2 border-cream-dark hover:border-wine-dark hover:text-wine-dark transition-all inline-flex items-center gap-2"
-            >
-              Se hur det fungerar
-            </Link>
-          </div>
-        </div>
-
-        {/* Hero Visual */}
-        <div className="bg-gradient-to-br from-wine-dark to-wine-deep relative overflow-hidden flex items-center justify-center min-h-[400px] lg:min-h-0">
-          <div className="absolute inset-0 hero-pattern opacity-50" />
-          <div className="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-80 mx-4 sm:mx-0 relative z-10">
-            <div className="flex items-center gap-4 mb-4 pb-4 border-b border-cream-dark">
-              <div className="w-12 h-[70px] bg-gradient-to-b from-wine-light to-wine-dark rounded relative">
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-gold rounded-sm" />
-              </div>
-              <div>
-                <h3 className="font-serif text-lg font-semibold">
-                  Barolo DOCG 2019
-                </h3>
-                <p className="text-sm text-wine-black-2">
-                  Piedmont, Italien &bull; Giuseppe Rinaldi
-                </p>
-              </div>
-            </div>
-            <p className="text-xs text-wine-black-2 uppercase tracking-wider mb-2">
-              3 leverantörer har detta vin
-            </p>
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between items-center py-2 border-b border-cream">
-                <span className="text-sm font-medium">Vino Italia AB</span>
-                <span className="font-semibold text-wine-dark bg-wine-dark/10 px-2 py-1 rounded">
-                  285 kr
+        {/* HERO */}
+        <section className="py-16 md:py-24">
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 items-center">
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-2 bg-[#f2e2b6] text-[#722F37] py-1.5 px-3.5 rounded-full text-xs font-medium tracking-wide">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#722F37]" />
+                  För restauranger
                 </span>
+                <span className="text-[11px] uppercase tracking-[0.22em] text-[#828181] font-medium">Source &amp; Serve</span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-cream">
-                <span className="text-sm font-medium">Nordic Wine Import</span>
-                <span className="font-semibold text-wine-dark">312 kr</span>
+              <h1
+                className="font-[family-name:var(--font-playfair)] font-normal leading-[0.98] tracking-[-0.022em] max-w-[18ch]"
+                style={{ fontSize: 'clamp(48px, 6vw, 76px)' }}
+              >
+                Vinlistan möter sin <em className="italic text-[#722F37]">importör.</em>
+              </h1>
+              <p className="speakable font-[family-name:var(--font-playfair)] italic text-[22px] leading-[1.45] max-w-[60ch]">
+                Sök bland 500+ viner — direktimport från europeiska producenter och utbud från svenska specialistimportörer. Begär offert, jämför svar, välj. Slipp mejlkarusellen.
+              </p>
+              <div className="flex gap-3 flex-wrap">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center h-[52px] px-6 rounded-[10px] bg-[#722F37] text-white text-[15px] font-medium hover:bg-[#6B1818] transition-colors"
+                >
+                  Skapa restaurangkonto
+                </Link>
+                <a
+                  href="#how"
+                  className="inline-flex items-center justify-center h-[52px] px-6 rounded-[10px] bg-white text-[#722F37] border border-[#d8d4d3] text-[15px] font-medium hover:border-[#722F37] transition-colors"
+                >
+                  Så funkar det
+                </a>
               </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-sm font-medium">Europa Viner</span>
-                <span className="font-semibold text-wine-dark">295 kr</span>
+              <div className="flex flex-wrap gap-x-12 gap-y-5 mt-6">
+                <Stat num="556" label="Aktiva viner" />
+                <Stat num="211" label="Producenter" />
+                <Stat num="460" label="Direktimporterade" />
               </div>
             </div>
-            <button className="w-full bg-wine-dark text-white py-3 rounded-lg font-semibold text-sm hover:bg-wine-medium transition-colors">
-              Begär offert från alla
-            </button>
+
+            {/* Visual: search prompt mockup */}
+            <div className="bg-white border border-[rgba(22,20,18,0.08)] rounded-3xl p-8 lg:p-10 shadow-[0_4px_16px_rgba(22,20,18,0.04)]">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-[#828181] font-medium mb-3">Exempel på förfrågan</p>
+              <div className="font-[family-name:var(--font-playfair)] italic text-[22px] leading-[1.4] text-[#161412] mb-6">
+                &ldquo;Chablis under 200 kr ex moms för aperitiven, minst 12 flaskor, helst med leverans inom veckan.&rdquo;
+              </div>
+              <div className="border-t border-[#d8d4d3] pt-5 flex flex-col gap-3">
+                <Row left="3 importörer matchar" right="svar inom 24h" />
+                <Row left="Bästa offert" right="178 kr / fl · franco" emphasis />
+                <Row left="Andra offerten" right="185 kr / fl · 5 dgr" />
+                <Row left="Tredje offerten" right="192 kr / fl · provflaska" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* TRUST STRIP */}
+        <div className="border-y border-[rgba(22,20,18,0.08)] bg-white py-7">
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-8 flex flex-wrap items-center gap-x-14 gap-y-5 justify-between">
+            <TrustItem num="556" label="aktiva viner" />
+            <TrustItem num="211" label="producenter" />
+            <TrustItem num="95" label="Saint-Émilion Grand Cru" />
+            <TrustItem num="Gratis" label="för restauranger · alltid" />
           </div>
         </div>
-      </section>
 
-      {/* Problem Section */}
-      <section className="py-16 sm:py-24 px-4 sm:px-8 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center max-w-xl mx-auto mb-16">
-            <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">
-              Slipp mejlkarusellen
-            </h2>
-            <p className="speakable text-wine-black-2 text-lg leading-relaxed">
-              Att köpa vin till restaurangen borde inte kräva tiotals mejl,
-              telefonsamtal och Excel-filer.
+        {/* PROBLEM → SOLUTION */}
+        <section className="py-24 md:py-30 bg-[#fbfaf7]">
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-8">
+            <div className="text-center max-w-[720px] mx-auto mb-16 flex flex-col gap-4 items-center">
+              <p className="text-xs uppercase tracking-[0.22em] text-[#722F37] font-medium m-0">Det gamla sättet</p>
+              <h2
+                className="font-[family-name:var(--font-playfair)] font-normal leading-[1.04] tracking-[-0.018em]"
+                style={{ fontSize: 'clamp(36px, 4vw, 56px)' }}
+              >
+                Vininköp ska inte vara en heltidssyssla.
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <ProblemCard
+                title="För många kontakter"
+                body="Att hålla reda på 15 importörers prislistor — manuellt — är inte sommelier-arbete. Det är admin."
+              />
+              <ProblemCard
+                title="Svårt att jämföra"
+                body="Varje importör har sitt eget format, sina egna villkor. Ingen färdig vy för pris × leveranstid × MOQ."
+              />
+              <ProblemCard
+                title="Saker faller mellan stolarna"
+                body="Mail i fel inkorg, glömda offerter, ofullständiga prisbilder. Förfrågan dör ofta i tråden."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* HOW IT WORKS */}
+        <section id="how" className="py-24 md:py-30 bg-[#f2e2b6]">
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-8">
+            <div className="text-center max-w-[720px] mx-auto mb-16 flex flex-col gap-4 items-center">
+              <p className="text-xs uppercase tracking-[0.22em] text-[#722F37] font-medium m-0">Så funkar det</p>
+              <h2
+                className="font-[family-name:var(--font-playfair)] font-normal leading-[1.04] tracking-[-0.018em]"
+                style={{ fontSize: 'clamp(36px, 4vw, 56px)' }}
+              >
+                Tre steg till rätt vin.
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Step
+                num="1."
+                title="Beskriv vad du söker"
+                body="Stil, tillfälle, budget, antal flaskor. Eller filtrera direkt på druva, region, pris och färg — 556 viner i katalogen."
+              />
+              <Step
+                num="2."
+                title="Få offerter inom dygnet"
+                body="Importörerna offererar — du jämför pris, leveranstid och provflaska sida vid sida. Inget mejlande, ingen prislistor-jakt."
+              />
+              <Step
+                num="3."
+                title="Acceptera och beställ"
+                body="Ett klick. Importören levererar direkt till dig — vi sköter administrationen. Faktura kommer från importören, som vanligt."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* QUOTE */}
+        <section className="py-24 md:py-30 bg-[#fbfaf7]">
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-8">
+            <blockquote
+              className="m-0 max-w-[880px] mx-auto text-center font-[family-name:var(--font-playfair)] leading-[1.25] tracking-[-0.01em] text-[#161412]"
+              style={{ fontSize: 'clamp(28px, 3vw, 42px)' }}
+            >
+              <span className="block text-[80px] text-[#f1b4b0] leading-[0.4] h-10 mb-6">&ldquo;</span>
+              Vi sparar 4 timmar i veckan på <em className="italic text-[#722F37]">offerthantering</em> — och hittar bättre priser. Det här borde funnits för länge sedan.
+            </blockquote>
+            <p className="text-center mt-8 text-sm text-[#828181]">
+              <strong className="text-[#161412] font-medium">Sommelier</strong> · Stockholmsrestaurang · anonym
             </p>
           </div>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-cream p-8 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl">
-              <div className="w-16 h-16 bg-wine-dark/10 rounded-xl flex items-center justify-center mb-6">
-                <svg
-                  className="w-8 h-8 text-wine-dark"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-serif text-xl font-semibold mb-3">
-                Mejl fram och tillbaka
-              </h3>
-              <p className="text-wine-black-2 leading-relaxed">
-                Varje ny leverantör innebär ett nytt mejlflöde. Förfrågningar
-                faller mellan stolarna.
-              </p>
-            </div>
-
-            <div className="bg-cream p-8 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl">
-              <div className="w-16 h-16 bg-wine-dark/10 rounded-xl flex items-center justify-center mb-6">
-                <svg
-                  className="w-8 h-8 text-wine-dark"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-serif text-xl font-semibold mb-3">
-                Svårt att jämföra priser
-              </h3>
-              <p className="text-wine-black-2 leading-relaxed">
-                Offerter kommer i olika format — PDF, Excel, mejltext. Omöjligt
-                att jämföra snabbt.
-              </p>
-            </div>
-
-            <div className="bg-cream p-8 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl">
-              <div className="w-16 h-16 bg-wine-dark/10 rounded-xl flex items-center justify-center mb-6">
-                <svg
-                  className="w-8 h-8 text-wine-dark"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-serif text-xl font-semibold mb-3">
-                Tar för lång tid
-              </h3>
-              <p className="text-wine-black-2 leading-relaxed">
-                Från första förfrågan till leverans — varje steg kräver manuell
-                uppföljning.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 sm:py-24 px-4 sm:px-8 bg-cream">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center max-w-xl mx-auto mb-16">
-            <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">
-              Allt du behöver för dina vininköp
+        {/* FINAL CTA */}
+        <section className="py-24 md:py-30 bg-[#4A1A1F] text-white text-center">
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-8 max-w-[760px] flex flex-col gap-7 items-center">
+            <p className="text-xs uppercase tracking-[0.22em] font-medium m-0 text-[#f1b4b0]">Kom igång</p>
+            <h2
+              className="font-[family-name:var(--font-playfair)] font-normal leading-[1.04] tracking-[-0.018em] max-w-[18ch] text-white"
+              style={{ fontSize: 'clamp(36px, 4vw, 56px)' }}
+            >
+              Verifierat företagskonto<br />på under fem minuter.
             </h2>
-            <p className="text-wine-black-2 text-lg leading-relaxed">
-              En plattform byggd för restauranger, hotell och vinbarer.
+            <p className="text-[17px] leading-[1.6] max-w-[52ch] text-white/[0.78]">
+              Vi godkänner manuellt — bara restauranger, hotell och vinbarer. Inga privatpersoner, inga skuggkonton. Gratis att registrera, gratis att söka, gratis att begära offert.
+            </p>
+            <div className="flex gap-3 flex-wrap justify-center mt-2">
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center h-[52px] px-6 rounded-[10px] bg-white text-[#722F37] text-[15px] font-medium hover:bg-white/90 transition-colors"
+              >
+                Skapa restaurangkonto
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center h-[52px] px-6 rounded-[10px] bg-transparent text-white border border-white/40 text-[15px] font-medium hover:border-white hover:bg-white/8 transition-colors"
+              >
+                Logga in
+              </Link>
+            </div>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[#f1b4b0] font-medium mt-4">
+              Frågor? Maila <a href="mailto:hej@winefeed.se" className="underline">hej@winefeed.se</a>
             </p>
           </div>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl">
-              <div className="w-16 h-16 bg-wine-dark rounded-xl flex items-center justify-center mb-6">
-                <svg
-                  className="w-8 h-8 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-serif text-xl font-semibold mb-3">
-                Sök i en växande katalog
-              </h3>
-              <p className="text-wine-black-2 leading-relaxed">
-                500+ viner idag, fler varje vecka. Filtrera på druva, region,
-                pris och stil — eller skriv vad du letar efter i fritext.
-              </p>
-            </div>
+        <EditorialFooter />
+      </div>
+    </>
+  );
+}
 
-            <div className="bg-white p-8 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl">
-              <div className="w-16 h-16 bg-wine-dark rounded-xl flex items-center justify-center mb-6">
-                <svg
-                  className="w-8 h-8 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-serif text-xl font-semibold mb-3">
-                Jämför priser direkt
-              </h3>
-              <p className="text-wine-black-2 leading-relaxed">
-                Se vilka leverantörer som har samma vin och jämför priser,
-                fraktkostnader och leveranstider.
-              </p>
-            </div>
+function Stat({ num, label }: { num: string; label: string }) {
+  return (
+    <div>
+      <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">{num}</span>
+      <div className="text-[13px] text-[#828181] mt-1.5">{label}</div>
+    </div>
+  );
+}
 
-            <div className="bg-white p-8 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl">
-              <div className="w-16 h-16 bg-wine-dark rounded-xl flex items-center justify-center mb-6">
-                <svg
-                  className="w-8 h-8 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-serif text-xl font-semibold mb-3">
-                En offert, flera svar
-              </h3>
-              <p className="text-wine-black-2 leading-relaxed">
-                Skicka en förfrågan och få svar från flera leverantörer. Välj det
-                bästa erbjudandet.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+function TrustItem({ num, label }: { num: string; label: string }) {
+  return (
+    <div className="flex items-baseline gap-3">
+      <span className="font-[family-name:var(--font-playfair)] text-[28px] text-[#722F37]">{num}</span>
+      <span className="text-[13px] text-[#828181]">{label}</span>
+    </div>
+  );
+}
 
-      {/* How it Works */}
-      <section id="sa-fungerar-det" className="py-16 sm:py-24 px-4 sm:px-8 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-3xl sm:text-4xl font-semibold">
-              Så fungerar det
-            </h2>
-          </div>
+function Row({ left, right, emphasis }: { left: string; right: string; emphasis?: boolean }) {
+  return (
+    <div className="flex justify-between items-center text-sm">
+      <span className={emphasis ? 'text-[#161412] font-medium' : 'text-[#828181]'}>{left}</span>
+      <span
+        className={
+          emphasis
+            ? 'font-mono font-semibold text-[#6B1818] bg-[#f1b4b0] px-2 py-0.5 rounded-md text-[13px]'
+            : 'font-mono text-[#722F37] text-[13px]'
+        }
+      >
+        {right}
+      </span>
+    </div>
+  );
+}
 
-          <div className="flex flex-col md:flex-row justify-center gap-8">
-            {[
-              {
-                step: "1",
-                title: "Skapa konto",
-                desc: "Gratis för restauranger, hotell och vinbarer. Vi verifierar ditt företag.",
-              },
-              {
-                step: "2",
-                title: "Sök & utforska",
-                desc: "Bläddra bland viner eller sök specifikt. Filtrera på druva, region och stil.",
-              },
-              {
-                step: "3",
-                title: "Begär offert",
-                desc: "Välj viner och skicka förfrågan till en eller flera leverantörer.",
-              },
-              {
-                step: "4",
-                title: "Få svar & beställ",
-                desc: "Jämför offerter och lägg order direkt i plattformen.",
-              },
-            ].map((item, i) => (
-              <div key={i} className="flex-1 text-center relative">
-                <div className="w-12 h-12 bg-wine-dark text-white rounded-full flex items-center justify-center font-serif text-2xl font-bold mx-auto mb-4">
-                  {item.step}
-                </div>
-                <h3 className="font-serif text-xl font-semibold mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-wine-black-2 text-sm leading-relaxed">
-                  {item.desc}
-                </p>
-                {i < 3 && (
-                  <div className="hidden md:block absolute right-0 top-6 text-2xl text-wine-light">
-                    &rarr;
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+function ProblemCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="bg-white border border-[rgba(22,20,18,0.08)] rounded-2xl p-8 flex flex-col gap-3">
+      <h3 className="font-[family-name:var(--font-playfair)] text-2xl text-[#161412]">{title}</h3>
+      <p className="text-[15px] leading-[1.55] text-[#828181] m-0">{body}</p>
+    </div>
+  );
+}
 
-      {/* CTA Section */}
-      <section className="py-16 sm:py-24 px-4 sm:px-8 bg-gradient-to-br from-wine-dark to-wine-deep text-white text-center">
-        <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">
-          Börja hitta rätt vin idag
-        </h2>
-        <p className="text-lg opacity-90 mb-8 max-w-lg mx-auto">
-          Det är gratis att skapa konto. Sök bland 500+ viner och begär offert
-          direkt — direktimport från Europa eller från svenska importörer.
-        </p>
-        <div className="flex flex-wrap gap-4 justify-center">
-          <Link
-            href="/signup"
-            className="bg-white text-wine-dark px-8 py-4 rounded-lg font-semibold hover:-translate-y-0.5 hover:shadow-xl transition-all"
-          >
-            Skapa konto gratis
-          </Link>
-          <Link
-            href="mailto:hej@winefeed.se"
-            className="bg-transparent text-white px-8 py-4 rounded-lg font-semibold border-2 border-white/30 hover:border-white hover:bg-white/10 transition-all"
-          >
-            Kontakta oss
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-4 sm:px-8 bg-wine-black-1 text-white flex flex-col md:flex-row justify-between items-center">
-        <div className="font-serif text-xl font-semibold mb-4 md:mb-0">
-          Winefeed
-        </div>
-        <div className="flex gap-8">
-          <Link
-            href="/leverantorer"
-            className="text-white/70 hover:text-white text-sm transition-colors"
-          >
-            För leverantörer
-          </Link>
-          <Link
-            href="/"
-            className="text-white/70 hover:text-white text-sm transition-colors"
-          >
-            Om oss
-          </Link>
-          <Link
-            href="mailto:hej@winefeed.se"
-            className="text-white/70 hover:text-white text-sm transition-colors"
-          >
-            Kontakt
-          </Link>
-        </div>
-      </footer>
+function Step({ num, title, body }: { num: string; title: string; body: string }) {
+  return (
+    <div className="bg-white border border-[rgba(22,20,18,0.08)] rounded-2xl p-8 flex flex-col gap-3.5">
+      <div className="font-[family-name:var(--font-playfair)] text-[88px] leading-[0.9] text-[#722F37] tracking-[-0.03em]">
+        {num}
+      </div>
+      <h4 className="font-[family-name:var(--font-playfair)] text-2xl text-[#161412]">{title}</h4>
+      <p className="text-[15px] leading-[1.55] text-[#828181] m-0">{body}</p>
     </div>
   );
 }

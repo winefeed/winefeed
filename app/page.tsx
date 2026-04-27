@@ -17,6 +17,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { EditorialHeader } from '@/components/landing/EditorialHeader';
+import { EditorialFooter } from '@/components/landing/EditorialFooter';
 
 export default function LandingPage() {
   const [tab, setTab] = useState<'restaurant' | 'supplier'>('restaurant');
@@ -30,29 +32,14 @@ export default function LandingPage() {
 
   return (
     <div className="bg-[#fbfaf7] text-[#161412] font-[family-name:var(--font-inter)]">
-      {/* ========== HEADER ========== */}
-      <header className="sticky top-0 z-50 bg-[rgba(251,250,247,0.9)] backdrop-blur-md backdrop-saturate-150 border-b border-[rgba(22,20,18,0.08)]">
-        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 flex items-center justify-between h-[72px]">
-          <Link href="/" aria-label="Winefeed startsida">
-            <Image src="/winefeed-logo-light.svg" alt="Winefeed" width={132} height={28} priority className="w-[132px] h-auto" />
-          </Link>
-          <ul className="hidden lg:flex items-center gap-9 list-none m-0 p-0">
-            <li><a href="#how" className="text-sm font-medium text-[#161412] hover:text-[#722F37] transition-colors">Så funkar det</a></li>
-            <li><a href="#featured" className="text-sm font-medium text-[#161412] hover:text-[#722F37] transition-colors">Regioner</a></li>
-            <li><a href="#pricing" className="text-sm font-medium text-[#161412] hover:text-[#722F37] transition-colors">Priser</a></li>
-            <li><a href="#cta" className="text-sm font-medium text-[#161412] hover:text-[#722F37] transition-colors">Om oss</a></li>
-          </ul>
-          <div className="flex items-center gap-5">
-            <Link href="/login" className="hidden sm:inline text-sm font-medium text-[#161412] hover:text-[#722F37] transition-colors">Logga in</Link>
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center h-11 px-5 rounded-[10px] bg-[#722F37] text-white text-sm font-medium hover:bg-[#6B1818] transition-colors"
-            >
-              Skapa konto — gratis
-            </Link>
-          </div>
-        </div>
-      </header>
+      <EditorialHeader
+        nav={[
+          { label: 'Så funkar det', href: '#how' },
+          { label: 'Regioner', href: '#featured' },
+          { label: 'Priser', href: '#pricing' },
+          { label: 'Om oss', href: '#cta' },
+        ]}
+      />
 
       {/* ========== HERO ========== */}
       <section id="hero" className="py-14 md:py-20 lg:pb-24">
@@ -69,11 +56,11 @@ export default function LandingPage() {
 
               <h1 className="font-[family-name:var(--font-playfair)] font-normal leading-[0.98] tracking-[-0.022em] max-w-[16ch]"
                   style={{ fontSize: 'clamp(48px, 6vw, 76px)' }}>
-                Vinlistan möter sin <em className="italic text-[#722F37]">importör.</em>
+                Vinlistan möter <em className="italic text-[#722F37]">marknaden.</em>
               </h1>
 
               <p className="font-[family-name:var(--font-playfair)] italic text-[22px] leading-[1.45] text-[#161412] max-w-[60ch]">
-                Restauranger söker vin efter stil, tillfälle eller budget — importörer tävlar om affären med offert. Vi står emellan.
+                Sök vin efter stil, tillfälle eller budget. Få offerter både från svenska importörer och direkt från europeiska producenter — vi sköter IOR, skatt och leverans.
               </p>
 
               <div className="flex flex-col gap-4 max-w-[540px]">
@@ -85,7 +72,7 @@ export default function LandingPage() {
                   <div>
                     <div className="text-[11px] uppercase tracking-[0.22em] text-[#722F37] font-semibold mb-1">För restauranger</div>
                     <h4 className="font-[family-name:var(--font-playfair)] text-[22px] text-[#161412] mb-1">Hitta vin, jämför offerter</h4>
-                    <div className="text-sm text-[#828181]">Gratis · svar inom dygnet</div>
+                    <div className="text-sm text-[#828181]">Gratis · offerter inom dygnet · direktimport eller svensk grossist</div>
                   </div>
                   <div className="w-11 h-11 rounded-full bg-[#f2e2b6] text-[#722F37] grid place-items-center text-xl transition-all group-hover:bg-[#722F37] group-hover:text-white group-hover:translate-x-1">→</div>
                 </button>
@@ -105,16 +92,16 @@ export default function LandingPage() {
 
               <div className="flex flex-wrap gap-x-14 gap-y-6 mt-4">
                 <div>
-                  <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">556</span>
-                  <div className="text-[13px] text-[#828181] mt-1.5">Aktiva viner</div>
-                </div>
-                <div>
                   <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">211</span>
                   <div className="text-[13px] text-[#828181] mt-1.5">Producenter</div>
                 </div>
                 <div>
-                  <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">460</span>
-                  <div className="text-[13px] text-[#828181] mt-1.5">Direktimporterade</div>
+                  <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">6</span>
+                  <div className="text-[13px] text-[#828181] mt-1.5">Svenska importörer</div>
+                </div>
+                <div>
+                  <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">556</span>
+                  <div className="text-[13px] text-[#828181] mt-1.5">Aktiva viner</div>
                 </div>
               </div>
             </div>
@@ -135,22 +122,22 @@ export default function LandingPage() {
                       <span className="absolute left-1/2 -top-2 -translate-x-1/2 w-3 h-2.5 bg-[#5a3819] rounded-sm" />
                     </div>
                     <div>
-                      <h5 className="font-[family-name:var(--font-playfair)] text-lg text-[#161412] m-0">Barolo DOCG 2019</h5>
-                      <p className="text-xs text-[#828181] mt-0.5 m-0">Piedmont · Giuseppe Rinaldi</p>
+                      <h5 className="font-[family-name:var(--font-playfair)] text-lg text-[#161412] m-0">Bourgogne Pinot Noir 2022</h5>
+                      <p className="text-xs text-[#828181] mt-0.5 m-0">Côte de Beaune</p>
                     </div>
                   </div>
-                  <span className="block text-[11px] uppercase tracking-[0.22em] text-[#828181] font-medium mb-2.5">3 importörer har offererat</span>
+                  <span className="block text-[11px] uppercase tracking-[0.22em] text-[#828181] font-medium mb-2.5">3 offerter</span>
                   <div className="flex justify-between items-center py-2.5 border-b border-[#d8d4d3] text-[13px]">
-                    <span>Bästa offert · 3 dgr leverans</span>
-                    <span className="font-mono font-semibold text-[#6B1818] bg-[#f1b4b0] px-2 py-0.5 rounded-md text-[13px]">285 kr</span>
+                    <span>Direkt från producent · 7 dgr · IOR</span>
+                    <span className="font-mono font-semibold text-[#6B1818] bg-[#f1b4b0] px-2 py-0.5 rounded-md text-[13px]">245 kr</span>
                   </div>
                   <div className="flex justify-between items-center py-2.5 border-b border-[#d8d4d3] text-[13px]">
-                    <span>5 dgr leverans · franco</span>
-                    <span className="font-mono font-semibold text-[#722F37] text-[13px]">295 kr</span>
+                    <span>Svensk importör · 2 dgr · franco</span>
+                    <span className="font-mono font-semibold text-[#722F37] text-[13px]">268 kr</span>
                   </div>
                   <div className="flex justify-between items-center py-2.5 text-[13px]">
-                    <span>7 dgr leverans · provflaska</span>
-                    <span className="font-mono font-semibold text-[#722F37] text-[13px]">312 kr</span>
+                    <span>Svensk importör · 3 dgr · provflaska</span>
+                    <span className="font-mono font-semibold text-[#722F37] text-[13px]">282 kr</span>
                   </div>
                   <button className="mt-3.5 w-full inline-flex items-center justify-center h-11 rounded-[10px] bg-[#722F37] text-white text-sm font-medium hover:bg-[#6B1818] transition-colors">
                     Acceptera bästa offert
@@ -389,41 +376,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ========== FOOTER ========== */}
-      <footer className="bg-[#4A1A1F] text-white pt-20 pb-8">
-        <div className="max-w-[1280px] mx-auto px-5 sm:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] gap-12 pb-14 border-b border-white/15">
-            <div className="flex flex-col gap-4">
-              <Image src="/winefeed-logo-white.svg" alt="Winefeed" width={140} height={30} className="w-[140px] h-auto" />
-              <p className="text-sm text-white/70 leading-[1.6] max-w-[36ch] m-0">
-                Sluten B2B-marknadsplats där svenska restauranger hittar vin — och importörer hittar köpare. Source &amp; Serve.
-              </p>
-            </div>
-            <FooterCol heading="Plattform" links={[
-              { label: 'För restauranger', href: '/restauranger' },
-              { label: 'För importörer', href: '/leverantorer' },
-              { label: 'Så funkar det', href: '#how' },
-              { label: 'Priser', href: '#pricing' },
-            ]} />
-            <FooterCol heading="Företag" links={[
-              { label: 'Om oss', href: '#' },
-              { label: 'Kontakt', href: 'mailto:hej@winefeed.se' },
-              { label: 'Pressrum', href: '#' },
-              { label: 'Karriär', href: '#' },
-            ]} />
-            <FooterCol heading="Juridik" links={[
-              { label: 'Användarvillkor', href: '#' },
-              { label: 'Integritetspolicy', href: '#' },
-              { label: 'Cookies', href: '#' },
-              { label: 'Säkerhet', href: '#' },
-            ]} />
-          </div>
-          <div className="flex flex-wrap justify-between items-center pt-7 gap-4 text-[13px] text-white/50">
-            <span>© 2026 Winefeed AB · Stockholm · hej@winefeed.se</span>
-            <span className="text-white/60">Source &amp; Serve</span>
-          </div>
-        </div>
-      </footer>
+      <EditorialFooter />
 
       <style jsx global>{`
         @keyframes float {
@@ -500,17 +453,3 @@ function BreakdownItem({ label, value, desc }: { label: string; value: React.Rea
   );
 }
 
-function FooterCol({ heading, links }: { heading: string; links: { label: string; href: string }[] }) {
-  return (
-    <div>
-      <h6 className="text-[11px] uppercase tracking-[0.22em] text-white/50 font-medium m-0 mb-4">{heading}</h6>
-      <ul className="list-none p-0 m-0 flex flex-col gap-2.5">
-        {links.map((l) => (
-          <li key={l.label}>
-            <a href={l.href} className="text-sm text-white/80 hover:text-white transition-colors">{l.label}</a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
