@@ -6,7 +6,7 @@ import { MobileNav } from "@/components/ui/MobileNav";
 export const metadata: Metadata = {
   title: "För restauranger - Sök, jämför och beställ vin från importörer",
   description:
-    "Winefeed hjälper restauranger, hotell och vinbarer att hitta rätt vin. Sök bland tusentals viner, jämför priser och begär offert från flera leverantörer samtidigt.",
+    "Winefeed hjälper restauranger, hotell och vinbarer att hitta rätt vin. Sök bland 500+ viner med tyngdpunkt på direktimport från Europa, jämför offerter från importörer och välj det som passar.",
   keywords: ["vin restaurang", "vininköp", "vinleverantör", "jämför vinpriser", "begär offert vin", "B2B vin", "horeca vin"],
   openGraph: {
     title: "Winefeed för restauranger - Professionella vininköp",
@@ -34,7 +34,7 @@ const webPageJsonLd = {
   name: "Winefeed för restauranger",
   url: "https://winefeed.se/restauranger",
   description:
-    "Winefeed hjälper restauranger, hotell och vinbarer att hitta rätt vin. Sök bland tusentals viner, jämför priser och begär offert från flera leverantörer samtidigt.",
+    "Winefeed hjälper restauranger, hotell och vinbarer att hitta rätt vin. Sök bland 500+ viner med tyngdpunkt på direktimport från Europa, jämför offerter från importörer och välj det som passar.",
   isPartOf: {
     "@type": "WebSite",
     name: "Winefeed",
@@ -100,8 +100,9 @@ export default function RestaurangerPage() {
           </h1>
 
           <p className="speakable text-lg text-wine-black-2 leading-relaxed mb-8 max-w-lg">
-            Sök bland tusentals viner från svenska importörer, jämför priser och
-            begär offert — allt på ett ställe. Slipp mejlkarusellen.
+            Sök bland 500+ viner — direktimport från europeiska producenter och
+            utbud från svenska specialistimportörer. Begär offert, jämför svar,
+            välj. Slipp mejlkarusellen.
           </p>
 
           <div className="flex flex-wrap gap-4 mb-12">
@@ -286,11 +287,11 @@ export default function RestaurangerPage() {
                 </svg>
               </div>
               <h3 className="font-serif text-xl font-semibold mb-3">
-                Sök bland tusentals viner
+                Sök i en växande katalog
               </h3>
               <p className="text-wine-black-2 leading-relaxed">
-                Filtrera på druva, region, pris och stil. Hitta exakt det du
-                letar efter — eller upptäck något nytt.
+                500+ viner idag, fler varje vecka. Filtrera på druva, region,
+                pris och stil — eller skriv vad du letar efter i fritext.
               </p>
             </div>
 
@@ -406,8 +407,8 @@ export default function RestaurangerPage() {
           Börja hitta rätt vin idag
         </h2>
         <p className="text-lg opacity-90 mb-8 max-w-lg mx-auto">
-          Det är gratis att skapa konto. Sök bland tusentals viner och begär
-          offert direkt.
+          Det är gratis att skapa konto. Sök bland 500+ viner och begär offert
+          direkt — direktimport från Europa eller från svenska importörer.
         </p>
         <div className="flex flex-wrap gap-4 justify-center">
           <Link

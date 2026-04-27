@@ -64,9 +64,10 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg text-wine-black-2 leading-relaxed mb-8 max-w-lg">
-            Winefeed är en sluten marknadsplats som kopplar samman svenska
-            restauranger, hotell och vinbarer med utvalda vinleverantörer i
-            Europa. Inte för privatpersoner.
+            Marknadsplats där svenska restauranger söker vin och importörer
+            offererar in. Idag 500+ viner med tyngdpunkt på direktimport från
+            europeiska producenter. Katalogen växer varje vecka.
+            Inte för privatpersoner.
           </p>
 
           <div className="flex flex-wrap gap-4 mb-12">
@@ -96,7 +97,7 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-col">
               <span className="font-serif text-4xl font-bold text-wine-dark">
-                60+
+                500+
               </span>
               <span className="text-sm text-wine-black-2">
                 Viner i sortimentet
@@ -195,11 +196,12 @@ export default function LandingPage() {
                 </svg>
               </div>
               <h3 className="font-serif text-xl font-semibold mb-3">
-                Sök bland tusentals viner
+                Sök i en växande katalog
               </h3>
               <p className="text-wine-black-2 leading-relaxed">
-                Filtrera på druva, region, pris och stil. Hitta exakt det du
-                letar efter – eller upptäck något nytt.
+                500+ viner idag — direktimporterade Bordeaux, Bourgogne och
+                rariteter från europeiska producenter, plus utbud från svenska
+                specialistimportörer. Filtrera på druva, region, pris och stil.
               </p>
             </div>
 
