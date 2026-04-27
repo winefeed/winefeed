@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Cormorant_Garamond } from "next/font/google";
+import { DM_Sans, Cormorant_Garamond, Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
@@ -13,6 +13,19 @@ const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-cormorant",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
@@ -89,7 +102,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="sv">
-      <body className={`${dmSans.variable} ${cormorant.variable} font-sans`}>
+      <body className={`${dmSans.variable} ${cormorant.variable} ${inter.variable} ${playfair.variable} font-sans`}>
         <GoogleAnalytics />
         <Providers>{children}</Providers>
         <script
