@@ -15,10 +15,11 @@ Sentry.init({
   // Adjust this value in production (0.1 = 10% of transactions)
   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-  // Set sample rate for session replays
-  // This is expensive, keep it low in production
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+  // Session Replay disabled — captures user interactions (clicks, scroll, keystrokes)
+  // and would require cookie consent banner under LEK § 6 a. Re-enable with explicit
+  // consent flow if behavioral debugging becomes necessary.
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: 0,
 
   // Only enable in production
   enabled: process.env.NODE_ENV === 'production',
