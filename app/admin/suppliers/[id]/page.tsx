@@ -14,7 +14,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, ArrowLeft, Users, Wine, ShoppingCart, Mail, Phone, MapPin, Globe, ExternalLink, Crown, Check, ChevronDown } from 'lucide-react';
+import { Building2, ArrowLeft, Users, Wine, ShoppingCart, Mail, Phone, MapPin, Globe, ExternalLink, Crown, Check, ChevronDown, Sparkles, X } from 'lucide-react';
 import { useActor } from '@/lib/hooks/useActor';
 
 interface User {
@@ -77,13 +77,28 @@ interface WineStats {
   byColor: Record<string, number>;
 }
 
+type SpecializationType = 'country' | 'region' | 'appellation';
+
+interface Specialization {
+  id: string;
+  type: SpecializationType;
+  value: string;
+}
+
 interface SupplierData {
   supplier: Supplier;
   users: User[];
   wineStats: WineStats;
   wines: WineItem[];
   recentOrders: Order[];
+  specializations: Specialization[];
 }
+
+const SPEC_TYPE_LABEL: Record<SpecializationType, string> = {
+  country: 'Land',
+  region: 'Region',
+  appellation: 'Appellation',
+};
 
 interface SubscriptionData {
   subscription: {
@@ -124,6 +139,9 @@ export default function AdminSupplierDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [upgrading, setUpgrading] = useState(false);
   const [expandedWineId, setExpandedWineId] = useState<string | null>(null);
+  const [newSpecType, setNewSpecType] = useState<SpecializationType>('region');
+  const [newSpecValue, setNewSpecValue] = useState('');
+  const [savingSpec, setSavingSpec] = useState(false);
 
   const fetchSupplier = useCallback(async () => {
     try {
@@ -173,6 +191,55 @@ export default function AdminSupplierDetailPage() {
       fetchSupplier();
     }
   }, [actor, actorLoading, fetchSupplier]);
+
+  const saveSpecializations = async (specs: Array<{ type: SpecializationType; value: string }>) => {
+    setSavingSpec(true);
+    try {
+      const response = await fetch(`/api/admin/suppliers/${supplierId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ specializations: specs }),
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Kunde inte spara specialiseringar');
+      }
+      await fetchSupplier();
+      return true;
+    } catch (err) {
+      toast.error('Kunde inte spara', getErrorMessage(err));
+      return false;
+    } finally {
+      setSavingSpec(false);
+    }
+  };
+
+  const addSpecialization = async () => {
+    const value = newSpecValue.trim();
+    if (!value || !data) return;
+    const existing = data.specializations || [];
+    const duplicate = existing.some(s => s.type === newSpecType && s.value.toLowerCase() === value.toLowerCase());
+    if (duplicate) {
+      toast.error('Finns redan', `${SPEC_TYPE_LABEL[newSpecType]}: ${value} är redan tillagd.`);
+      return;
+    }
+    const next = [...existing.map(s => ({ type: s.type, value: s.value })), { type: newSpecType, value }];
+    const ok = await saveSpecializations(next);
+    if (ok) {
+      setNewSpecValue('');
+      toast.success('Specialisering tillagd', `${SPEC_TYPE_LABEL[newSpecType]}: ${value}`);
+    }
+  };
+
+  const removeSpecialization = async (id: string) => {
+    if (!data) return;
+    const next = (data.specializations || [])
+      .filter(s => s.id !== id)
+      .map(s => ({ type: s.type, value: s.value }));
+    const ok = await saveSpecializations(next);
+    if (ok) toast.success('Specialisering borttagen', '');
+  };
 
   const upgradeTier = async (newTier: 'free' | 'pro' | 'premium') => {
     try {
@@ -258,6 +325,7 @@ export default function AdminSupplierDetailPage() {
   }
 
   const { supplier, users, wineStats, wines, recentOrders } = data;
+  const specializations = data.specializations || [];
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -451,6 +519,85 @@ export default function AdminSupplierDetailPage() {
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Specializations */}
+      <div className="bg-card rounded-lg border border-border p-6 mb-8">
+        <h2 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-muted-foreground" />
+          Specialiseringar
+        </h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Land, region eller appellation som leverantören är specialiserad på. Används för att matcha broadcast-förfrågningar även när leverantören saknar lagervaror i Winefeed — t.ex. en direktimportör som sourcear från producent. En region-specialisering matchar även underliggande appellationer (t.ex. &quot;Bourgogne&quot; matchar &quot;Chablis&quot;-förfrågningar).
+        </p>
+
+        <div className="flex flex-wrap gap-2 mb-4 min-h-[2rem]">
+          {specializations.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">Inga specialiseringar än</p>
+          ) : (
+            specializations.map(s => (
+              <span
+                key={s.id}
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted rounded-full text-sm"
+              >
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                  {SPEC_TYPE_LABEL[s.type as SpecializationType] || s.type}
+                </span>
+                <span className="font-medium text-foreground">{s.value}</span>
+                <button
+                  type="button"
+                  onClick={() => removeSpecialization(s.id)}
+                  disabled={savingSpec}
+                  aria-label={`Ta bort ${s.value}`}
+                  className="text-muted-foreground hover:text-destructive disabled:opacity-50"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Typ</label>
+            <select
+              value={newSpecType}
+              onChange={(e) => setNewSpecType(e.target.value as SpecializationType)}
+              disabled={savingSpec}
+              className="px-3 py-2 border border-border rounded-lg bg-background text-sm text-foreground"
+            >
+              <option value="country">Land</option>
+              <option value="region">Region</option>
+              <option value="appellation">Appellation</option>
+            </select>
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-muted-foreground block mb-1">Värde</label>
+            <input
+              type="text"
+              value={newSpecValue}
+              onChange={(e) => setNewSpecValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addSpecialization();
+                }
+              }}
+              disabled={savingSpec}
+              placeholder="t.ex. Frankrike, Bourgogne, Chablis"
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm text-foreground"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={addSpecialization}
+            disabled={savingSpec || !newSpecValue.trim()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {savingSpec ? 'Sparar…' : 'Lägg till'}
+          </button>
         </div>
       </div>
 
