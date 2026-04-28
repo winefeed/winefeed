@@ -350,7 +350,7 @@ export async function GET(request: NextRequest) {
           reason,
           owner: {
             role: ownerRole,
-            name: importer?.namn || 'Okänd IOR',
+            name: importer?.namn || 'Okänd direktimportör',
             id: imp.importer_id,
           },
           ageHours: lastActivityHours,

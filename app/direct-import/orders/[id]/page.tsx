@@ -389,7 +389,7 @@ export default function IOROrderDetailPage(props: {
 
       if (!hasIORAccess && !isAdmin) {
         throw new Error(
-          'Du saknar IOR-behörighet. Kontakta admin för att få åtkomst.'
+          'Du saknar behörighet för direktimport. Kontakta admin för att få åtkomst.'
         );
       }
     } catch (err) {
@@ -682,7 +682,7 @@ export default function IOROrderDetailPage(props: {
                 <button
                   onClick={() => {
                     setError(null);
-                    if (error.includes('IOR-behörighet')) {
+                    if (error.includes('behörighet för direktimport')) {
                       fetchActor();
                     } else {
                       fetchOrderDetail();
@@ -866,13 +866,13 @@ export default function IOROrderDetailPage(props: {
             {/* IOR Info */}
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Importer-of-Record
+                Direktimport
               </h3>
               <div className="bg-wine/5 p-4 rounded-lg border border-wine/20">
                 <p className="font-semibold text-gray-900">
                   {order.importer?.legal_name ||
                     order.importer?.name ||
-                    'IOR saknas'}
+                    'Direktimportör saknas'}
                 </p>
                 {order.importer?.org_number && (
                   <p className="text-xs text-gray-500 mt-0.5">

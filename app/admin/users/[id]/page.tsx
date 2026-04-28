@@ -171,7 +171,7 @@ export default function AdminUserDetailPage() {
       case 'SELLER':
         return 'Leverantör';
       case 'IOR':
-        return 'IOR';
+        return 'Direktimportör';
       default:
         return role;
     }
@@ -445,7 +445,7 @@ export default function AdminUserDetailPage() {
                 <div className="flex items-center gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                   <Globe className="h-5 w-5 text-orange-600" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">Importör (IOR)</p>
+                    <p className="text-xs text-muted-foreground">Direktimportör</p>
                     <p className="text-sm font-medium text-foreground">
                       {user.linked_entities.importer_name || 'Importer'}
                     </p>

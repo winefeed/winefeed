@@ -24,7 +24,7 @@ interface UserMenuProps {
 const ROLE_LABELS: Record<ActorRole, string> = {
   RESTAURANT: 'Restaurang',
   SELLER: 'Leverantör',
-  IOR: 'Importör',
+  IOR: 'Direktimportör',
   ADMIN: 'Admin',
 };
 

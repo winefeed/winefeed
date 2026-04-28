@@ -44,7 +44,7 @@ const SUPPLIER_TYPE_LABELS: Record<string, string> = {
   'SWEDISH_IMPORTER': 'Svensk importor',
   'EU_PRODUCER': 'EU-producent',
   'EU_IMPORTER': 'EU-importor',
-  'IOR': 'Importor',
+  'IOR': 'Direktimportör',
 };
 
 export default function AdminSuppliersPage() {

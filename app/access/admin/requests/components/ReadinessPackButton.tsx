@@ -294,7 +294,7 @@ export function ReadinessPackButton({
               {/* Payer info */}
               <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
                 <p className="text-sm text-gray-600">
-                  <strong>Betalare:</strong> IOR (du) &mdash; avgiftsfritt i piloten
+                  <strong>Betalare:</strong> Direktimportören (du) &mdash; avgiftsfritt i piloten
                 </p>
               </div>
             </div>

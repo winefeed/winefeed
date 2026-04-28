@@ -60,7 +60,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="font-[family-name:var(--font-playfair)] italic text-[22px] leading-[1.45] text-[#161412] max-w-[60ch]">
-                Sök vin efter stil, tillfälle eller budget. Få offerter både från svenska importörer och direkt från europeiska producenter — vi sköter IOR, skatt och leverans.
+                Sök vin efter stil, tillfälle eller budget. Få offerter både från svenska importörer och direkt från europeiska producenter — vi sköter import, skatt och leverans.
               </p>
 
               <div className="flex flex-col gap-4 max-w-[540px]">
@@ -128,7 +128,7 @@ export default function LandingPage() {
                   </div>
                   <span className="block text-[11px] uppercase tracking-[0.22em] text-[#828181] font-medium mb-2.5">3 offerter</span>
                   <div className="flex justify-between items-center py-2.5 border-b border-[#d8d4d3] text-[13px]">
-                    <span>Direkt från producent · 7 dgr · IOR</span>
+                    <span>Direkt från producent · 7 dgr · vi sköter import</span>
                     <span className="font-mono font-semibold text-[#6B1818] bg-[#f1b4b0] px-2 py-0.5 rounded-md text-[13px]">245 kr</span>
                   </div>
                   <div className="flex justify-between items-center py-2.5 border-b border-[#d8d4d3] text-[13px]">

@@ -126,7 +126,7 @@ export default function PitchPage() {
               { title: 'REQUEST', subtitle: 'Restaurang beskriver sitt behov' },
               { title: 'OFFER', subtitle: 'Leverantör svarar med konkret offert' },
               { title: 'ORDER', subtitle: 'Bekräftad av båda parter' },
-              { title: 'IMPORT CASE', subtitle: 'IOR hanterar compliance' },
+              { title: 'IMPORT CASE', subtitle: 'Direktimport hanterar compliance' },
             ].map((step, i) => (
               <div key={i} className="flex items-center">
                 <div className="bg-wine text-white rounded-lg p-4 text-center min-w-[140px]">

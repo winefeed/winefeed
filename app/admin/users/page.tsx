@@ -179,7 +179,7 @@ export default function AdminUsersPage() {
       case 'SELLER':
         return 'Leverantör';
       case 'IOR':
-        return 'IOR';
+        return 'Direktimportör';
       default:
         return role;
     }

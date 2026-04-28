@@ -54,7 +54,7 @@ const SUPPLIER_TYPE_LABELS: Record<string, string> = {
   'SWEDISH_IMPORTER': 'Svensk importör',
   'EU_PRODUCER': 'EU-producent',
   'EU_IMPORTER': 'EU-importör',
-  'IOR': 'Importör',
+  'IOR': 'Direktimportör',
 };
 
 const COLOR_LABELS: Record<string, { label: string; color: string }> = {

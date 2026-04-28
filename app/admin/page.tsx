@@ -233,7 +233,7 @@ export default function AdminDashboardPage() {
     switch (role) {
       case 'SUPPLIER': return 'Leverantör';
       case 'RESTAURANT': return 'Restaurang';
-      case 'IOR': return 'IOR';
+      case 'IOR': return 'Direktimportör';
       default: return role;
     }
   };
@@ -382,7 +382,7 @@ export default function AdminDashboardPage() {
                   <option value="all">Alla ägare</option>
                   <option value="SUPPLIER">Leverantör</option>
                   <option value="RESTAURANT">Restaurang</option>
-                  <option value="IOR">IOR</option>
+                  <option value="IOR">Direktimportör</option>
                 </select>
 
                 {/* Age filter */}
@@ -449,7 +449,7 @@ export default function AdminDashboardPage() {
                       )}
                       {item.type === 'import_case' && (
                         <span className="flex items-center gap-2">
-                          <span>IOR: {item.metadata.importerName}</span>
+                          <span>Direktimportör: {item.metadata.importerName}</span>
                           {item.metadata.complianceStatus && (
                             <ComplianceStatusBadge
                               status={item.metadata.complianceStatus as ComplianceStatus}

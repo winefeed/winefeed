@@ -84,7 +84,7 @@ export default function IORImportsCockpitPage() {
       setActor(actorData);
 
       if (!actorData.roles.includes('IOR') || !actorData.importer_id) {
-        throw new Error('Du saknar IOR-behörighet. Kontakta admin för att få åtkomst.');
+        throw new Error('Du saknar behörighet för direktimport. Kontakta admin för att få åtkomst.');
       }
     } catch (err) {
       setError(getErrorMessage(err, 'Kunde inte ladda användarprofil'));
