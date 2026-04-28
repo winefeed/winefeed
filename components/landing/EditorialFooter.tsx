@@ -10,17 +10,14 @@ const PLATFORM = [
 ];
 
 const COMPANY = [
-  { label: 'Om oss', href: '#' },
+  { label: 'Om oss', href: '/om-oss' },
   { label: 'Kontakt', href: 'mailto:hej@winefeed.se' },
-  { label: 'Pressrum', href: '#' },
-  { label: 'Karriär', href: '#' },
 ];
 
 const LEGAL = [
-  { label: 'Användarvillkor', href: '#' },
-  { label: 'Integritetspolicy', href: '#' },
-  { label: 'Cookies', href: '#' },
-  { label: 'Säkerhet', href: '#' },
+  { label: 'Användarvillkor', href: '/anvandarvillkor' },
+  { label: 'Integritetspolicy', href: '/integritetspolicy' },
+  { label: 'Cookies', href: '/cookies' },
 ];
 
 export function EditorialFooter() {
