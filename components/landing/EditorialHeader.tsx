@@ -12,7 +12,7 @@ const DEFAULT_NAV: NavItem[] = [
   { label: 'Så funkar det', href: '/#how' },
   { label: 'Regioner', href: '/#featured' },
   { label: 'Priser', href: '/#pricing' },
-  { label: 'Om oss', href: '/#cta' },
+  { label: 'Om oss', href: '/om-oss' },
 ];
 
 export function EditorialHeader({ nav = DEFAULT_NAV }: { nav?: NavItem[] }) {
