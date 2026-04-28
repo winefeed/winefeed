@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteClients } from '@/lib/supabase/route-client';
 import { QuoteRequestRouter } from '@/lib/quote-request-router';
 import { actorService } from '@/lib/actor-service';
+import { blockIfUnverified } from '@/lib/license-guard';
 
 /**
  * POST /api/quote-requests/[id]/dispatch
@@ -83,6 +84,14 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
         { error: 'Access denied' },
         { status: 403 }
       );
+    }
+
+    // License gate: unverified restaurants cannot dispatch requests to suppliers.
+    if (!actorService.hasRole(actor, 'ADMIN')) {
+      const blocked = await blockIfUnverified(adminClient, quoteRequest.restaurant_id);
+      if (blocked) {
+        return NextResponse.json(blocked, { status: 403 });
+      }
     }
 
     // Step 2: Check if already dispatched
