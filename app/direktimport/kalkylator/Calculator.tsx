@@ -125,7 +125,7 @@ export function Calculator() {
             min={0}
             max={25}
             suffix="%"
-            hint="Påverkar inte beräkningen direkt — visas i sammanfattningen"
+            hint="Påverkar inte beräkningen direkt. Visas i sammanfattningen."
           />
           <Field
             label="Flaskstorlek (ml)"
@@ -227,7 +227,7 @@ export function Calculator() {
           {/* Detail table */}
           <div className="bg-white border border-[rgba(22,20,18,0.08)] rounded-2xl overflow-hidden">
             <div className="px-5 py-3 bg-[#fbfaf7] border-b border-[rgba(22,20,18,0.08)]">
-              <h3 className="text-sm font-medium text-[#161412]">Per flaska — detalj</h3>
+              <h3 className="text-sm font-medium text-[#161412]">Per flaska, detalj</h3>
             </div>
             <table className="w-full text-sm">
               <tbody className="divide-y divide-[rgba(22,20,18,0.08)]">
@@ -235,7 +235,7 @@ export function Calculator() {
                 <Row label="Producent (SEK)" value={`${fmtSek(breakdown.perBottle.cellarSek)} kr`} />
                 <Row label="Frakt" value={`${fmtSek(breakdown.perBottle.shippingSek)} kr`} />
                 <Row
-                  label="= Landed cost"
+                  label="= Pris efter frakt"
                   value={`${fmtSek(breakdown.perBottle.landedSek)} kr`}
                   bold
                 />
@@ -266,7 +266,7 @@ export function Calculator() {
           <div className="flex gap-2 text-xs text-[#828181] bg-[#f2e2b6]/30 border border-[#f2e2b6] rounded-xl p-3">
             <Info className="h-4 w-4 text-[#828181] flex-shrink-0 mt-0.5" />
             <p>
-              Beräkningen är vägledande — använd som riktpris innan du skickar förfrågan. Importörens slutgiltiga
+              Beräkningen är vägledande. Använd som riktpris innan du skickar förfrågan. Importörens slutgiltiga
               pris sätts i deras offert och kan avvika. Verifiera valutakurs (Riksbanken) och aktuell punktskatt
               (Skatteverket) vid behov. Tullavgift inom EU är vanligen 0 men kan tillkomma vid import från tredjeland.
             </p>
