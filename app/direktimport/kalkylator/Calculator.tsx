@@ -77,7 +77,7 @@ export function Calculator() {
       <div className="grid lg:grid-cols-[1fr_1.2fr] gap-6">
         {/* Inputs */}
         <div className="bg-white border border-[rgba(22,20,18,0.08)] rounded-2xl p-5 space-y-5">
-          <SectionHeading>Producent-pris</SectionHeading>
+          <SectionHeading>Producentpris</SectionHeading>
           <Field
             label="Pris ex cellar (EUR/flaska)"
             value={input.cellarPriceEur}
@@ -93,7 +93,7 @@ export function Calculator() {
             step={0.1}
             min={0}
             suffix="€"
-            hint="Total fraktkostnad delat på antal flaskor"
+            hint="Den totala fraktkostnaden fördelad per flaska."
           />
           <Field
             label="Antal flaskor"
@@ -125,7 +125,7 @@ export function Calculator() {
             min={0}
             max={25}
             suffix="%"
-            hint="Påverkar inte beräkningen direkt. Visas i sammanfattningen."
+            hint="Påverkar inte beräkningen, men visas i sammanfattningen."
           />
           <Field
             label="Flaskstorlek (ml)"
@@ -141,13 +141,13 @@ export function Calculator() {
             onClick={() => setShowAdvanced(s => !s)}
             className="text-sm text-[#722F37] font-medium hover:underline"
           >
-            {showAdvanced ? '− Dölj avancerade inställningar' : '+ Avancerat (importörspåslag, valuta, punktskatt, moms)'}
+            {showAdvanced ? '− Dölj avancerade inställningar' : '+ Avancerat: importörspåslag, valuta, punktskatt, moms'}
           </button>
 
           {showAdvanced && (
             <div className="pt-2 space-y-5 border-t border-[rgba(22,20,18,0.08)]">
               <Field
-                label="Uppskattat importörspåslag (%)"
+                label="Importörspåslag (uppskattat, %)"
                 value={input.iorMarginPercent}
                 onChange={v => update('iorMarginPercent', v)}
                 step={1}
@@ -219,7 +219,7 @@ export function Calculator() {
               <Legend color="bg-[#722F37]" label="Producent" pct={breakdown.share.cellar} />
               <Legend color="bg-[#A94A54]" label="Frakt" pct={breakdown.share.shipping} />
               <Legend color="bg-amber-500" label="Punktskatt" pct={breakdown.share.excise} />
-              <Legend color="bg-blue-500" label="Importörspåslag (uppskattat)" pct={breakdown.share.margin} />
+              <Legend color="bg-blue-500" label="Importörspåslag" pct={breakdown.share.margin} />
               <Legend color="bg-slate-400" label="Moms" pct={breakdown.share.vat} />
             </div>
           </div>
@@ -227,7 +227,7 @@ export function Calculator() {
           {/* Detail table */}
           <div className="bg-white border border-[rgba(22,20,18,0.08)] rounded-2xl overflow-hidden">
             <div className="px-5 py-3 bg-[#fbfaf7] border-b border-[rgba(22,20,18,0.08)]">
-              <h3 className="text-sm font-medium text-[#161412]">Per flaska, detalj</h3>
+              <h3 className="text-sm font-medium text-[#161412]">Detaljerad uppdelning per flaska</h3>
             </div>
             <table className="w-full text-sm">
               <tbody className="divide-y divide-[rgba(22,20,18,0.08)]">
@@ -244,7 +244,7 @@ export function Calculator() {
                   value={`${fmtSek(breakdown.perBottle.exciseSek)} kr`}
                 />
                 <Row
-                  label="Uppskattat importörspåslag"
+                  label="Importörspåslag (uppskattat)"
                   value={`${fmtSek(breakdown.perBottle.iorMarginSek)} kr`}
                 />
                 <Row
@@ -266,9 +266,7 @@ export function Calculator() {
           <div className="flex gap-2 text-xs text-[#828181] bg-[#f2e2b6]/30 border border-[#f2e2b6] rounded-xl p-3">
             <Info className="h-4 w-4 text-[#828181] flex-shrink-0 mt-0.5" />
             <p>
-              Beräkningen är vägledande. Använd som riktpris innan du skickar förfrågan. Importörens slutgiltiga
-              pris sätts i deras offert och kan avvika. Verifiera valutakurs (Riksbanken) och aktuell punktskatt
-              (Skatteverket) vid behov. Tullavgift inom EU är vanligen 0 men kan tillkomma vid import från tredjeland.
+              Beräkningen är vägledande. Slutgiltigt pris sätts av importören i offert. Vid behov, verifiera valutakurs hos Riksbanken och punktskatt hos Skatteverket. Inom EU är tullen normalt 0 kr.
             </p>
           </div>
         </div>

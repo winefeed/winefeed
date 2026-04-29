@@ -85,13 +85,13 @@ export default function GuidePage() {
           <p>Tre parter samverkar i en direktimportaffär:</p>
           <ul className="list-disc pl-6 space-y-2">
             <li>
-              <strong>Producenten</strong> — vinmakaren i ursprungslandet, som säljer ex cellar (från sitt lager) i euro.
+              <strong>Producenten</strong>: vinmakaren i ursprungslandet, som säljer ex cellar (från sitt lager) i euro.
             </li>
             <li>
-              <strong>Importören</strong> — den svenska partihandlaren med partihandelstillstånd. Ansvarar för transport, alkoholskatt, tull, dokumentation och faktura till restaurangen.
+              <strong>Importören</strong>: den svenska partihandlaren med partihandelstillstånd. Ansvarar för transport, alkoholskatt, tull, dokumentation och faktura till restaurangen.
             </li>
             <li>
-              <strong>Restaurangen</strong> — köpare med serveringstillstånd. Beställer från importören, betalar enligt offert.
+              <strong>Restaurangen</strong>: köpare med serveringstillstånd. Beställer från importören, betalar enligt offert.
             </li>
           </ul>
           <p>
@@ -129,7 +129,7 @@ export default function GuidePage() {
             <li><strong>Producentens ex cellar-pris</strong> i EUR per flaska.</li>
             <li><strong>Frakt</strong> till Sverige, ofta uttryckt per flaska eller per kolli.</li>
             <li><strong>Alkoholskatt</strong> (punktskatt). Cirka 28 kr per liter för stilla vin 8,5–15 % alkohol.</li>
-            <li><strong>Importörens påslag</strong>. Branschuppskattning 12–25 %.</li>
+            <li><strong>Importörspåslag</strong>. Branschuppskattning 12–25 %.</li>
             <li><strong>25 % moms</strong> (avdragsgill för restaurangen).</li>
           </ul>
           <p>
@@ -177,10 +177,10 @@ export default function GuidePage() {
 
         <Section heading="Hur Winefeed förenklar direktimport">
           <p>
-            Winefeed kopplar svenska restauranger med europeiska producenter via etablerade importörer. Du beskriver vad du söker — region, druva, prisspann — och plattformen matchar mot importörer som antingen har vinet på lager eller kan sourcea det direkt från producent.
+            Winefeed kopplar svenska restauranger med europeiska producenter via etablerade importörer. Du beskriver vad du söker (region, druva, prisspann) och plattformen matchar mot importörer som antingen har vinet på lager eller kan sourcea det direkt från producent.
           </p>
           <p>
-            Du får offert med bindande totalpris, slipper hantera tull och alkoholskatt själv, och kan jämföra flera importörer för samma vin. Det är gratis att registrera och gratis att begära offert. Winefeed tar 4 % i provision på accepterade ordrar — bara när affären faktiskt händer.
+            Du får offert med bindande totalpris, slipper hantera tull och alkoholskatt själv, och kan jämföra flera importörer för samma vin. Det är gratis att registrera och gratis att begära offert. Winefeed tar 4 % i provision på accepterade ordrar, bara när affären faktiskt händer.
           </p>
         </Section>
 

@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 const faqItems = [
   {
     q: 'Vad är direktimport av vin?',
-    a: 'Direktimport innebär att en restaurang köper vin direkt från en producent i ett annat land istället för via en svensk grossist. Vinet importeras till Sverige av en partihandlare (importör med svenskt partihandelstillstånd), som sköter alkoholskatt, dokumentation och leverans. Restaurangen betalar producentpriset, importörens påslag och avgifter — ofta totalt sett billigare än motsvarande vin via grossistmarknaden.',
+    a: 'Direktimport innebär att en restaurang köper vin direkt från en producent i ett annat land istället för via en svensk grossist. Vinet importeras till Sverige av en partihandlare (importör med svenskt partihandelstillstånd), som sköter alkoholskatt, dokumentation och leverans. Restaurangen betalar producentpris, importörspåslag och avgifter, ofta totalt sett billigare än motsvarande vin via grossistmarknaden.',
   },
   {
     q: 'Vad ingår i totalkostnaden för direktimport?',
@@ -54,11 +54,11 @@ const faqItems = [
   },
   {
     q: 'Vad är ett rimligt importörspåslag?',
-    a: 'Branschuppskattning ligger ofta mellan 12 och 25 %, beräknat på landed cost plus punktskatt. Importörens slutgiltiga pris sätts dock i deras offert och kan variera baserat på volym, exklusivitet och relation. Kalkylatorn använder 15 % som default — bara en uppskattning.',
+    a: 'Branschuppskattning ligger ofta mellan 12 och 25 %, beräknat på pris efter frakt plus punktskatt. Importörens slutgiltiga pris sätts dock i deras offert och kan variera baserat på volym, exklusivitet och relation. Kalkylatorn använder 15 % som default. Det är bara en uppskattning.',
   },
   {
     q: 'Behöver restaurangen ett eget tillstånd för direktimport?',
-    a: 'Restaurangen behöver fortfarande ett serveringstillstånd enligt alkohollagen för att servera vinet. Själva importen sköts av en partner med partihandelstillstånd — restaurangen behöver inte importera själv. På Winefeed agerar svenska importörer som mellanled, så processen blir densamma som vanlig fakturering från grossist.',
+    a: 'Restaurangen behöver fortfarande ett serveringstillstånd enligt alkohollagen för att servera vinet. Själva importen sköts av en partner med partihandelstillstånd. Restaurangen behöver inte importera själv. På Winefeed agerar svenska importörer som mellanled, så processen blir densamma som vanlig fakturering från grossist.',
   },
   {
     q: 'Vilken valutakurs ska jag räkna med?',
@@ -167,7 +167,7 @@ export default function DirektimportKalkylatorPage() {
             Vad kostar vinet <em className="italic text-[#722F37]">landat i Sverige?</em>
           </h1>
           <p className="text-[17px] leading-[1.6] text-[#828181]">
-            Har du hittat en producent du vill köpa vin direkt från? Räkna ut totalkostnaden innan du skickar förfrågan. Beräkningen inkluderar producentpris, frakt, alkoholskatt, importörspåslag och moms.
+            Hittat en producent du vill importera direkt från? Räkna ut totalkostnaden innan du skickar förfrågan. Vi räknar med allt: producentpris, frakt, alkoholskatt, importörspåslag och moms.
           </p>
         </div>
 
@@ -179,30 +179,28 @@ export default function DirektimportKalkylatorPage() {
             Så fungerar direktimport av vin till Sverige
           </h2>
           <p className="text-[17px] leading-[1.65] text-[#161412] mb-6">
-            När en restaurang köper vin direkt från en europeisk producent passerar priset flera lager innan
-            det landar på vinlistan. Att förstå vad som ingår i slutpriset hjälper dig att jämföra mot vanlig
-            grossistprissättning och fatta rätt beslut för ditt sortiment.
+            När en restaurang köper vin direkt från en europeisk producent byggs slutpriset upp i flera steg innan flaskan står på bordet. Att veta vad varje steg lägger till hjälper dig att jämföra mot grossistens pris och ta rätt beslut för ditt sortiment.
           </p>
           <div className="space-y-6">
             <CostBlock
               title="Producentpris (ex cellar)"
-              body="Producentens nettopris per flaska, oftast i EUR. Detta är priset producenten fakturerar sin svenska importör innan transport."
+              body="Producentens nettopris per flaska, oftast i EUR. Det är priset producenten fakturerar sin svenska importör innan transport."
             />
             <CostBlock
-              title="Frakt och transport"
-              body="Frakten till Sverige delas ut per flaska. Vid hela kollin (12 flaskor) blir kostnaden låg per flaska; vid blandade beställningar ofta något högre. Inkluderar både EU-transport och svensk distribution till restaurangen."
+              title="Frakt till Sverige"
+              body="Fraktkostnaden fördelas per flaska. Vid hela kollin (12 flaskor) blir den låg per flaska. Vid blandade beställningar blir den ofta något högre. Posten täcker både EU-transport och svensk distribution till restaurangen."
             />
             <CostBlock
               title="Svensk alkoholskatt (punktskatt)"
               body="Sverige tar ut alkoholskatt per liter på allt vin som importeras. Stilla vin (8,5–15 %) ligger på cirka 28 kr per liter, starkvin (15–22 %) på cirka 53 kr per liter. Skatten betalas vid införsel och bakas in i importörens fakturapris."
             />
             <CostBlock
-              title="Importörens påslag"
-              body="Den svenska importören tar en marginal på landed cost plus punktskatt. Branschuppskattningen ligger på 12–25 %, men varierar beroende på volym, exklusivitet och importörens kostnadsstruktur. Importören sätter sitt slutpris i den offert du får."
+              title="Importörspåslag"
+              body="Den svenska importören tar ett påslag på pris efter frakt plus punktskatt. Branschuppskattningen ligger på 12–25 %, men varierar beroende på volym, exklusivitet och importörens kostnadsstruktur. Importören sätter sitt slutpris i den offert du får."
             />
             <CostBlock
               title="Moms (25 %)"
-              body="Sverige tillämpar 25 % moms på vin och spritprodukter. Momsen är avdragsgill för restaurangen i normalfallet, så slutkostnaden blir priset exklusive moms."
+              body="Momsen på vin och sprit är 25 %. Den är normalt avdragsgill för restaurangen, vilket innebär att den faktiska kostnaden är priset exklusive moms."
             />
           </div>
         </section>
@@ -234,9 +232,10 @@ export default function DirektimportKalkylatorPage() {
 
         {/* CTA */}
         <section className="mt-20 max-w-[820px]">
+          <p className="text-[15px] text-[#828181] mb-4 italic">Räknat färdigt? Nästa steg är att skicka förfrågan.</p>
           <div className="bg-[#4A1A1F] text-white rounded-2xl p-8 md:p-10">
             <h2 className="font-[family-name:var(--font-playfair)] text-[28px] md:text-[36px] leading-[1.1] mb-3">
-              Redo att skicka förfrågan?
+              Från kalkyl till offert
             </h2>
             <p className="text-[16px] leading-[1.6] text-white/80 mb-6 max-w-[60ch]">
               Winefeed kopplar svenska restauranger med europeiska producenter via etablerade importörer. Du får

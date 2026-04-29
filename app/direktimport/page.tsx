@@ -31,7 +31,7 @@ const resources = [
     href: '/direktimport/kalkylator',
     title: 'Direktimport-kalkylator',
     description:
-      'Räkna ut totalkostnaden i SEK för ett vin från europeisk producent. Inklusive alkoholskatt, importörspåslag och moms.',
+      'Räkna ut totalkostnaden i SEK för ett vin från europeisk producent, inklusive alkoholskatt, importörspåslag och moms.',
     badge: 'Verktyg',
   },
   {

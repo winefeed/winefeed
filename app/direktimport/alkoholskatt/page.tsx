@@ -76,7 +76,7 @@ export default function AlkoholskattPage() {
 
         <Section heading="Hur fungerar alkoholskatt på vin?">
           <p>
-            Alkoholskatt är en punktskatt som tas ut per liter av den importerade volymen. Den betalas av importören när vinet förs in i Sverige (eller släpps från ett skatteupplag). Slutkonsumenten — i det här fallet restaurangen — får skatten inbakad i fakturapriset.
+            Alkoholskatt är en punktskatt som tas ut per liter av den importerade volymen. Den betalas av importören när vinet förs in i Sverige (eller släpps från ett skatteupplag). Slutkonsumenten, i det här fallet restaurangen, får skatten inbakad i fakturapriset.
           </p>
           <p>
             Skattesatsen varierar beroende på vintyp och alkoholhalt. Lagrum: <em>Lag (1994:1564) om alkoholskatt</em>.
@@ -150,7 +150,7 @@ export default function AlkoholskattPage() {
             För ett typiskt direktimporterat vin med 8 EUR ex cellar-pris (cirka 92 kr i SEK) blir alkoholskatten på cirka 21 kr per flaska en av de större kostnadsposterna efter producentpriset. Den motsvarar ofta 12–18 % av slutpriset till restaurangen.
           </p>
           <p>
-            Eftersom skatten är fix per liter och inte procentuell, slår den proportionellt hårdare på billiga viner. Ett vin med 4 EUR ex cellar och ett vin med 16 EUR ex cellar betalar samma skattekrona — men skatten utgör en mycket större andel av slutpriset på det billigare vinet.
+            Eftersom skatten är fix per liter och inte procentuell, slår den proportionellt hårdare på billiga viner. Ett vin med 4 EUR ex cellar och ett vin med 16 EUR ex cellar betalar samma skattekrona, men skatten utgör en mycket större andel av slutpriset på det billigare vinet.
           </p>
           <p>
             Det här är en av anledningarna till att direktimport ofta lönar sig bäst i mellan- och premiumsegmentet snarare än i absolut billigaste prisklassen.
@@ -160,9 +160,9 @@ export default function AlkoholskattPage() {
         <Section heading="Andra avgifter att räkna med">
           <p>Förutom alkoholskatt tillkommer:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li><strong>Tullavgift</strong> — 0 % inom EU, kan tillkomma vid import från USA, Sydafrika, Australien m.fl.</li>
-            <li><strong>Importörens påslag</strong> — branschuppskattning 12–25 %.</li>
-            <li><strong>Moms</strong> — 25 % (avdragsgill för restaurangen).</li>
+            <li><strong>Tullavgift</strong>: 0 % inom EU, kan tillkomma vid import från USA, Sydafrika, Australien m.fl.</li>
+            <li><strong>Importörspåslag</strong>: branschuppskattning 12–25 %.</li>
+            <li><strong>Moms</strong>: 25 % (avdragsgill för restaurangen).</li>
           </ul>
           <p>
             Allt detta räknas tillsammans i vår{' '}

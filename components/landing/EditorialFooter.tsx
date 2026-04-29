@@ -34,7 +34,7 @@ export function EditorialFooter() {
               className="w-[140px] h-auto"
             />
             <p className="text-sm text-white/70 leading-[1.6] max-w-[36ch] m-0">
-              Sluten B2B-marknadsplats där svenska restauranger hittar vin — och importörer hittar köpare. Source &amp; Serve.
+              Sluten B2B-marknadsplats där svenska restauranger hittar vin, och importörer hittar köpare. Source &amp; Serve.
             </p>
           </div>
           <FooterCol heading="Plattform" links={PLATFORM} />
