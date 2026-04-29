@@ -26,7 +26,6 @@ import {
   ShoppingCart,
   Building2,
   X,
-  Calculator,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -541,26 +540,6 @@ export default function RestaurantOverview() {
               </div>
             </div>
             <p className="text-xs text-gray-400 mt-2">Baserat på accepterade offerter</p>
-          </div>
-
-          {/* Verktyg */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Verktyg
-            </h2>
-            <Link
-              href="/dashboard/tools/price-calculator"
-              className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-wine hover:bg-red-50 transition-colors"
-            >
-              <div className="p-2 bg-wine/10 rounded-lg">
-                <Calculator className="h-4 w-4 text-wine" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">Direktimport-kalkylator</p>
-                <p className="text-xs text-gray-500">Räkna EUR ex-cellar → SEK landat pris</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            </Link>
           </div>
 
           {/* Help */}

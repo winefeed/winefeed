@@ -1,18 +1,7 @@
 'use client';
 
-/**
- * RESTAURANG-VERKTYG: DIREKTIMPORT-KALKYLATOR
- *
- * /dashboard/tools/price-calculator
- *
- * Räknar EUR ex-cellar → SEK landed cost inkl. punktskatt, IOR-marginal och
- * moms. Hjälper restauranger förstå totalkostnaden för direktimport innan de
- * skickar förfrågan.
- */
-
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Calculator, Info, RotateCcw } from 'lucide-react';
+import { Info, RotateCcw } from 'lucide-react';
 import {
   calculatePrice,
   DEFAULT_INPUT,
@@ -36,11 +25,10 @@ function fmtSek(n: number, decimals = 2): string {
   }).format(n);
 }
 
-export default function PriceCalculatorPage() {
+export function Calculator() {
   const [input, setInput] = useState<PriceCalculatorInput>(DEFAULT_INPUT);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Load saved values
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -53,7 +41,6 @@ export default function PriceCalculatorPage() {
     }
   }, []);
 
-  // Save on change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(input));
@@ -76,32 +63,11 @@ export default function PriceCalculatorPage() {
     input.exciseSekPerLiter ?? DEFAULT_EXCISE_SEK_PER_LITER[input.category];
 
   return (
-    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
-      {/* Back link */}
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Tillbaka till dashboard
-      </Link>
-
-      {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="p-2.5 rounded-lg bg-[#722F37]/10 text-[#722F37]">
-            <Calculator className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Direktimport-kalkylator</h1>
-            <p className="text-sm text-muted-foreground mt-1 max-w-[60ch]">
-              Räkna ut vad ett vin kostar landat i Sverige från producent — inklusive frakt, alkoholskatt, importörens marginal och moms.
-            </p>
-          </div>
-        </div>
+    <div>
+      <div className="flex justify-end mb-4">
         <button
           onClick={reset}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgba(22,20,18,0.12)] text-sm text-[#828181] hover:text-[#161412] hover:bg-white transition-colors"
         >
           <RotateCcw className="h-3.5 w-3.5" />
           Återställ
@@ -110,7 +76,7 @@ export default function PriceCalculatorPage() {
 
       <div className="grid lg:grid-cols-[1fr_1.2fr] gap-6">
         {/* Inputs */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-5">
+        <div className="bg-white border border-[rgba(22,20,18,0.08)] rounded-2xl p-5 space-y-5">
           <SectionHeading>Producent-pris</SectionHeading>
           <Field
             label="Pris ex cellar (EUR/flaska)"
@@ -140,11 +106,11 @@ export default function PriceCalculatorPage() {
 
           <SectionHeading>Vinet</SectionHeading>
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Kategori</label>
+            <label className="text-sm font-medium text-[#161412] block mb-1.5">Kategori</label>
             <select
               value={input.category}
               onChange={e => update('category', e.target.value as WineCategory)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+              className="w-full px-3 py-2 border border-[rgba(22,20,18,0.12)] rounded-lg bg-white text-sm"
             >
               {(['still', 'sparkling', 'fortified'] as WineCategory[]).map(c => (
                 <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>
@@ -171,27 +137,25 @@ export default function PriceCalculatorPage() {
             suffix="ml"
           />
 
-          <SectionHeading>Avgifter & marginal</SectionHeading>
-          <Field
-            label="Importörens marginal (%)"
-            value={input.iorMarginPercent}
-            onChange={v => update('iorMarginPercent', v)}
-            step={1}
-            min={0}
-            max={100}
-            suffix="%"
-            hint="Tas på landed cost + punktskatt. Branschnorm: 12–25 %."
-          />
-
           <button
             onClick={() => setShowAdvanced(s => !s)}
             className="text-sm text-[#722F37] font-medium hover:underline"
           >
-            {showAdvanced ? '− Dölj avancerade inställningar' : '+ Avancerat (valuta, punktskatt, moms)'}
+            {showAdvanced ? '− Dölj avancerade inställningar' : '+ Avancerat (importörspåslag, valuta, punktskatt, moms)'}
           </button>
 
           {showAdvanced && (
-            <div className="pt-2 space-y-5 border-t border-border">
+            <div className="pt-2 space-y-5 border-t border-[rgba(22,20,18,0.08)]">
+              <Field
+                label="Uppskattat importörspåslag (%)"
+                value={input.iorMarginPercent}
+                onChange={v => update('iorMarginPercent', v)}
+                step={1}
+                min={0}
+                max={100}
+                suffix="%"
+                hint="Branschuppskattning, vanligen 12–25 %. Importörens slutgiltiga pris sätts i deras offert."
+              />
               <Field
                 label="Valutakurs EUR → SEK"
                 value={input.eurToSekRate}
@@ -225,7 +189,7 @@ export default function PriceCalculatorPage() {
         {/* Results */}
         <div className="space-y-5">
           {/* Total card */}
-          <div className="bg-gradient-to-br from-[#722F37] to-[#4A1A1F] text-white rounded-xl p-6 shadow-md">
+          <div className="bg-gradient-to-br from-[#722F37] to-[#4A1A1F] text-white rounded-2xl p-6 shadow-md">
             <p className="text-xs uppercase tracking-[0.18em] text-white/70 mb-2">Totalt landat pris</p>
             <p className="text-4xl font-bold mb-1">
               {fmtSek(breakdown.perBottle.totalIncVatSek)} <span className="text-2xl font-normal">kr/flaska</span>
@@ -240,8 +204,8 @@ export default function PriceCalculatorPage() {
           </div>
 
           {/* Breakdown bar */}
-          <div className="bg-card border border-border rounded-xl p-5">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
+          <div className="bg-white border border-[rgba(22,20,18,0.08)] rounded-2xl p-5">
+            <h3 className="text-xs font-medium text-[#828181] uppercase tracking-[0.18em] mb-3">
               Andelar av totalpris
             </h3>
             <div className="flex h-3 rounded-full overflow-hidden mb-3">
@@ -255,18 +219,18 @@ export default function PriceCalculatorPage() {
               <Legend color="bg-[#722F37]" label="Producent" pct={breakdown.share.cellar} />
               <Legend color="bg-[#A94A54]" label="Frakt" pct={breakdown.share.shipping} />
               <Legend color="bg-amber-500" label="Punktskatt" pct={breakdown.share.excise} />
-              <Legend color="bg-blue-500" label="Importör" pct={breakdown.share.margin} />
+              <Legend color="bg-blue-500" label="Importörspåslag (uppskattat)" pct={breakdown.share.margin} />
               <Legend color="bg-slate-400" label="Moms" pct={breakdown.share.vat} />
             </div>
           </div>
 
           {/* Detail table */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-5 py-3 bg-muted/30 border-b border-border">
-              <h3 className="text-sm font-medium text-foreground">Per flaska — detalj</h3>
+          <div className="bg-white border border-[rgba(22,20,18,0.08)] rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 bg-[#fbfaf7] border-b border-[rgba(22,20,18,0.08)]">
+              <h3 className="text-sm font-medium text-[#161412]">Per flaska — detalj</h3>
             </div>
             <table className="w-full text-sm">
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-[rgba(22,20,18,0.08)]">
                 <Row label="Producent (EUR)" value={`${input.cellarPriceEur.toFixed(2)} €`} />
                 <Row label="Producent (SEK)" value={`${fmtSek(breakdown.perBottle.cellarSek)} kr`} />
                 <Row label="Frakt" value={`${fmtSek(breakdown.perBottle.shippingSek)} kr`} />
@@ -280,7 +244,7 @@ export default function PriceCalculatorPage() {
                   value={`${fmtSek(breakdown.perBottle.exciseSek)} kr`}
                 />
                 <Row
-                  label={`Importörens marginal (${input.iorMarginPercent} %)`}
+                  label="Uppskattat importörspåslag"
                   value={`${fmtSek(breakdown.perBottle.iorMarginSek)} kr`}
                 />
                 <Row
@@ -299,12 +263,12 @@ export default function PriceCalculatorPage() {
           </div>
 
           {/* Disclaimer */}
-          <div className="flex gap-2 text-xs text-muted-foreground bg-muted/30 border border-border rounded-lg p-3">
-            <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+          <div className="flex gap-2 text-xs text-[#828181] bg-[#f2e2b6]/30 border border-[#f2e2b6] rounded-xl p-3">
+            <Info className="h-4 w-4 text-[#828181] flex-shrink-0 mt-0.5" />
             <p>
-              Beräkningen är vägledande. Verifiera valutakurs (Riksbanken), aktuell punktskatt (Skatteverket) och
-              importörens marginal innan beslut. Tullavgift inom EU är vanligen 0 men kan tillkomma vid import från
-              tredjeland.
+              Beräkningen är vägledande — använd som riktpris innan du skickar förfrågan. Importörens slutgiltiga
+              pris sätts i deras offert och kan avvika. Verifiera valutakurs (Riksbanken) och aktuell punktskatt
+              (Skatteverket) vid behov. Tullavgift inom EU är vanligen 0 men kan tillkomma vid import från tredjeland.
             </p>
           </div>
         </div>
@@ -315,7 +279,7 @@ export default function PriceCalculatorPage() {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs uppercase tracking-[0.18em] text-muted-foreground font-semibold pt-2">
+    <h2 className="text-xs uppercase tracking-[0.18em] text-[#828181] font-semibold pt-2">
       {children}
     </h2>
   );
@@ -344,7 +308,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="text-sm font-medium text-foreground block mb-1.5">{label}</label>
+      <label className="text-sm font-medium text-[#161412] block mb-1.5">{label}</label>
       <div className="relative">
         <input
           type="number"
@@ -357,15 +321,15 @@ function Field({
             if (!Number.isFinite(v)) return;
             onChange(integer ? Math.round(v) : v);
           }}
-          className="w-full px-3 py-2 pr-10 border border-border rounded-lg bg-background text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-[#722F37]/40 focus:border-[#722F37]"
+          className="w-full px-3 py-2 pr-10 border border-[rgba(22,20,18,0.12)] rounded-lg bg-white text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-[#722F37]/40 focus:border-[#722F37]"
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#828181] pointer-events-none">
             {suffix}
           </span>
         )}
       </div>
-      {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
+      {hint && <p className="text-xs text-[#828181] mt-1">{hint}</p>}
     </div>
   );
 }
@@ -384,7 +348,7 @@ function Row({
   return (
     <tr className={highlight ? 'bg-[#722F37]/5' : ''}>
       <td
-        className={`px-5 py-2.5 text-foreground ${bold ? 'font-semibold' : ''} ${highlight ? 'font-bold text-[#722F37]' : ''}`}
+        className={`px-5 py-2.5 text-[#161412] ${bold ? 'font-semibold' : ''} ${highlight ? 'font-bold text-[#722F37]' : ''}`}
       >
         {label}
       </td>
@@ -406,8 +370,8 @@ function Legend({ color, label, pct }: { color: string; label: string; pct: numb
   return (
     <div className="flex items-center gap-1.5">
       <span className={`inline-block w-2.5 h-2.5 rounded-sm ${color}`} />
-      <span className="text-muted-foreground">{label}</span>
-      <span className="ml-auto text-foreground font-medium tabular-nums">{pct.toFixed(0)}%</span>
+      <span className="text-[#828181]">{label}</span>
+      <span className="ml-auto text-[#161412] font-medium tabular-nums">{pct.toFixed(0)}%</span>
     </div>
   );
 }

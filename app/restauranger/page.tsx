@@ -229,6 +229,13 @@ export default function RestaurangerPage() {
             <p className="text-[11px] uppercase tracking-[0.22em] text-[#f1b4b0] font-medium mt-4">
               Frågor? Maila <a href="mailto:hej@winefeed.se" className="underline">hej@winefeed.se</a>
             </p>
+            <p className="text-[13px] text-white/70 mt-3">
+              Funderar på direktimport?{' '}
+              <Link href="/direktimport/kalkylator" className="text-white underline hover:text-[#f1b4b0]">
+                Räkna ut totalkostnaden
+              </Link>
+              {' '}innan du registrerar dig.
+            </p>
           </div>
         </section>
 
