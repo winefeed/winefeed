@@ -8,6 +8,8 @@
 - [Sök viner](https://winefeed.se/): Bläddra bland viner från svenska importörer. Filtrera på druva, region, land och vintyp.
 - [Skicka förfrågan](https://winefeed.se/): Hitta rätt vin → skicka en förfrågan → importören svarar med offert → beställ direkt.
 - [Direktimport-kalkylator](https://winefeed.se/direktimport/kalkylator): Räkna ut totalkostnaden för direktimport av vin från europeisk producent — producentpris, frakt, alkoholskatt, importörspåslag och moms.
+- [Direktimport-guide](https://winefeed.se/direktimport/guide): Komplett guide för svenska restauranger som vill direktimportera vin. Aktörer, juridik, process, kostnader, leveranstid.
+- [Alkoholskatt på vin](https://winefeed.se/direktimport/alkoholskatt): Aktuella punktskatte-satser och hur de beräknas per flaska och vintyp.
 - [Registrera dig](https://winefeed.se/signup): Gratis att registrera sig och använda plattformen.
 
 ## För importörer och leverantörer
