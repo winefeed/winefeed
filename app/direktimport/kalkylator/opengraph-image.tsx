@@ -51,8 +51,8 @@ export default function OpengraphImage() {
               maxWidth: 920,
             }}
           >
-            Vad kostar vinet{' '}
-            <span style={{ fontStyle: 'italic', color: '#f1b4b0' }}>landat i Sverige?</span>
+            Vad blir slutpriset på vinet{' '}
+            <span style={{ fontStyle: 'italic', color: '#f1b4b0' }}>i Sverige?</span>
           </div>
           <div style={{ fontSize: 26, color: 'rgba(255,255,255,0.78)', maxWidth: 900, lineHeight: 1.4 }}>
             Producentpris · Frakt · Alkoholskatt · Importörspåslag · Moms

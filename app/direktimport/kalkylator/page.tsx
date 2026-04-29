@@ -5,9 +5,9 @@ import { EditorialFooter } from '@/components/landing/EditorialFooter';
 import { Calculator } from './Calculator';
 
 export const metadata: Metadata = {
-  title: 'Direktimport-kalkylator: vad kostar vinet landat i Sverige? | Winefeed',
+  title: 'Direktimport-kalkylator: vad blir slutpriset på vinet i Sverige? | Winefeed',
   description:
-    'Räkna ut vad ett vin kostar landat i Sverige från europeisk producent, inklusive alkoholskatt, importörspåslag och moms. Kostnadsfritt verktyg från Winefeed.',
+    'Räkna ut slutpriset i Sverige för ett vin från europeisk producent, inklusive alkoholskatt, importörspåslag och moms. Kostnadsfritt verktyg från Winefeed.',
   keywords: [
     'direktimport vin kostnad',
     'privatimport vin pris',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Direktimport-kalkylator för vin | Winefeed',
     description:
-      'Räkna ut vad ett vin kostar landat i Sverige från europeisk producent, inklusive alkoholskatt, importörspåslag och moms.',
+      'Räkna ut slutpriset i Sverige för ett vin från europeisk producent, inklusive alkoholskatt, importörspåslag och moms.',
     url: 'https://winefeed.se/direktimport/kalkylator',
     siteName: 'Winefeed',
     locale: 'sv_SE',
@@ -101,7 +101,7 @@ const howToJsonLd = {
   '@type': 'HowTo',
   name: 'Så räknar du ut totalkostnaden för direktimport av vin',
   description:
-    'Steg-för-steg-guide för att räkna ut vad ett vin kostar landat i Sverige från europeisk producent.',
+    'Steg-för-steg-guide för att räkna ut slutpriset i Sverige för ett vin från europeisk producent.',
   totalTime: 'PT5M',
   step: [
     {
@@ -164,7 +164,7 @@ export default function DirektimportKalkylatorPage() {
             Verktyg · gratis att använda
           </p>
           <h1 className="font-[family-name:var(--font-playfair)] text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.022em] text-[#161412] mb-4">
-            Vad kostar vinet <em className="italic text-[#722F37]">landat i Sverige?</em>
+            Vad blir slutpriset på vinet <em className="italic text-[#722F37]">i Sverige?</em>
           </h1>
           <p className="text-[17px] leading-[1.6] text-[#828181]">
             Hittat en producent du vill importera direkt från? Räkna ut totalkostnaden innan du skickar förfrågan. Vi räknar med allt: producentpris, frakt, alkoholskatt, importörspåslag och moms.
