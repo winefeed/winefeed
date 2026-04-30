@@ -533,74 +533,100 @@ Norrlands-argumentet: 500–1 200 km från Stockholm. Importörer besöker säll
 - **Kontakt:** info@tornhusetumea.se | hanna@tornhusetumea.se | 090-690 30 70 | @tornhusetumea (5 590 followers)
 - **Ägare:** Mathias Dahlgren (Michelin-stjärnkock) + Per "Perka" Söderberg (Umeå-veteran)
 - **Vinteam:** Hanna Eriksson (Lily Bollinger Award 2018, verksamhetschef), Sara Fritzell Collin (sommelier, restaurangchef Ateljé)
-- **Öppnat:** April 2025 (Bröd & Vin), september 2025 (Ateljé)
-- **Profil:** Star Wine List White Star. Vinpairing 995–1 995 kr. Tre koncept = tre olika vinbehov. Siktar på Michelin-stjärna. Historiskt elverk från 1892.
+- **Öppnat:** April 2025 (Bröd & Vin), september 2025 (Ateljé). Ateljé stängd juni–sept (säsong).
+- **Profil:** **Star Wine List Sverige 2026 FINALIST** (bekräftat). Vinpairing 995–1 995 kr. Tre koncept = tre olika vinbehov. Siktar på Michelin-stjärna. Historiskt elverk från 1892.
+- **Kommande events 2026:** Bourgogne-vinmiddag 28 maj, Norrbottens destilleri-takeover 2 maj, På Taket invigs 2 juni.
 - **Kvalificering:** wine_focus: 5, pilot_fit: 5. Lily Bollinger-sommelier + Dahlgren + nyöppnat + Umeå = perfekt. TOPPKANDIDAT.
 - **Personlig koppling:** Markus har träffat Hanna vid presentation av chilenska viner i Umeå.
-- **Outreach-vinkel:** Personlig referens till mötet + "Ni bygger vinkällare i Umeå — Winefeed kopplar er till importörer som annars inte når norr om Stockholm."
+- **Outreach-vinkel:** Personlig referens till mötet + Bourgogne-middagen 28 maj som öppning ("har ni bestämt producent än?") → erbjud nästa tema-takeover.
+- **Risk:** Dahlgren-koppling = troligen redan etablerade kanaler från Stockholm. Måste erbjuda något lokala storaktörer inte ger.
 
 ### 61. HarleQuin — Umeå 🟡
 - **Typ:** Vinbar & restaurang
-- **Adress:** Rådhuseplanaden 2E, Umeå
+- **Adress:** Rådhusesplanaden 2E, Umeå
 - **Kontakt:** info@harlequinumea.com | 090-77 85 88 | @harlequinumea
-- **Ägare:** Jörgen Engdahl (driver även Hunger & Torst, Facit Bar)
-- **Sommeliers:** Anette Andersson, Lukas, Mattia
-- **Profil:** 4 druvor (Munskänkarna), Star Wine List. 3 sommeliers som ständigt uppdaterar vinlistan.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Flaggskepp vinbar i Umeå med aktivt sommelier-team.
+- **Ägare:** Jörgen Engdahl (driver även Hunger & Törst, Facit Bar)
+- **Sommeliers:** Anette Andersson, Lukas, Mattia (efternamn på Lukas/Mattia OBEKRÄFTAT)
+- **Profil:** **Star Wine List Sverige 2026 FINALIST** (bekräftat — Harlequin + Facit båda). Stark Kalifornien-tonvikt + Bourgogne, Bordeaux, "fun stuff från Nya världen". Många glas. Roterande lista. Månatliga 3-rätters specialer 595 kr.
+- **Signature:** "Wine battle" mellan tre sommeliers — perfekt skylt för Winefeed-curated blind-flight.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4. Flaggskepp men Engdahls grupp har egen muskel = potentiellt tight nätverk redan.
+- **Outreach-vinkel:** Pitcha "wine battle"-takeover med tre okända importörer — Engdahl gick mot strömmen under pandemin = öppen för okonventionella partners.
+- **Risk:** California-fokus är ofta direkt-kontrakterat. Centraliserat inköp över 3 verksamheter.
 
 ### 62. Köksbaren — Umeå 🟡
 - **Typ:** Kvarterskrog med seriöst vinfokus
-- **Adress:** Rådhuseplanaden 17, 903 28 Umeå
+- **Adress:** Rådhusesplanaden 19, 903 28 Umeå (OBS: 19, ej 17)
 - **Kontakt:** info@koksbaren.com | 090-13 56 60
-- **Profil:** **500–550 viner** på listan. Europa-fokus. Privat "Vinrummet" (4-6 pers). Temafredagar (champagne & ost). 4 druvor.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Störst vinlista i Umeå = enormt inköpsbehov.
+- **Profil:** ~500 viner på listan. Bordeaux/Loire/Bourgogne/Piemonte. Etablerade hus + småproducenter. Privat "Vinrummet" upp till 40 pers. Temafredagar (champagne & ost). Gästsommelier-kvällar.
+- **VARNING:** Kristian Rönnlund (tidigare head sommelier) har lämnat och driver nu Visionary Wine. Köksbaren behöver sannolikt fylla luckor. **Verifiera först vem som är ansvarig idag.**
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Störst vinlista i Umeå.
+- **Outreach-vinkel:** Naturlig öppning: ring och fråga "vem ansvarar för vinkällaren idag?" Gäst-sommelier-format passar Winefeed-supplier-spotlight.
+- **Risk:** 500-vins-källare = lojala leverantörer. Ny supplier behöver stark differentiering (region, story, MOQ).
 
 ### 63. Bodegan — Umeå 🟡
 - **Typ:** Vinrestaurang / steakhouse
 - **Adress:** Storgatan 50, Umeå
-- **Kontakt:** 090-171217 | @bodegan_umea
-- **Profil:** 4 druvor, Star Wine List. Bourgogne/Piemonte-fokus. Ulysse-Colin, Chassorney, Roagna. Månatliga vinfester i källaren.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 4. Seriös vinkällare men eventuellt nöjd med befintliga leverantörer.
+- **Kontakt:** hej@bodeganumea.se | 090-171217 | @bodegan_umea
+- **Ägare:** Anders Karlsson, Elin Staaf, Sebastian Hellström. Elin = vin-driver ("Elins Vinmiddag").
+- **Profil:** Star Wine List. Bourgogne-fokus + bredd Frankrike & Europa. Producenter: **Ulysse-Colin, Domaine de Chassorney, Roagna**. 5-rätters tasting 725 kr / vinpaket 1 275 kr. Lokal mat (abborre från Obbola). Flamberingstorsdag som signature.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 3. Smal naturvinsprofil, etablerade ikoner = tröskeln är hög.
+- **Outreach-vinkel:** Pitcha till Elin direkt — naturmaterial off-piste Bourgogne, natur-Piemonte, eller producenter med själ Roagna-nivån inte täcker.
+- **Risk:** Roagna/Ulysse-Colin = allokerade ikoner = tight kontaktnät redan. Generiska kommersiella viner är fel målgrupp.
 
 ### 64. Gotthards Krog — Umeå 🟡
 - **Typ:** Fine dining & bar (Stora Hotellet)
 - **Adress:** Storgatan 46, 903 26 Umeå
 - **Kontakt:** info@gotthardskrog.se | +46 90 690 33 00 | @gotthardskrog
-- **Profil:** 4 druvor, Star Wine List. Champagne, Bourgogne, Bordeaux, Piemonte. Vinkällare med rariteter. Vinprovningar.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 4. Hotellrestaurang med köpkraft.
+- **Sommelier:** Fredrik Ljungberg (assisterande restaurangchef + ansvarig sommelier, bekräftat feb 2026)
+- **Profil:** Star Wine List. Champagne, Bourgogne, Bordeaux, Piemonte + USA + Brasilien. Vinkällare uppdaterad 30 dec 2025.
+- **Vårens 2026 program (8 provningar):** 11/2 Piemonte, 21/2 Mousserande, 7/3 Gotthards hemligheter, 21/3 Alsace, 25/3 Champagne, 18/4 Nya Världen, 29/4 Portugal, 13/5 Primavera (6 viner per).
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4. Strukturerad halvårsplan = öppning för höst-2026 takeover.
+- **Outreach-vinkel:** Fredrik bygger redan strukturerat program — pitcha "Bierzo-mencía-pass i höst" (Munskänkarnas region 2026) eller annat tema till H2 2026.
+- **Risk:** Hotellrestaurang = ofta avtal med stora distributörer. Stora Hotellet-ägare kan styra inköp.
 
 ### 65. Sjöbris — Umeå 🟡
 - **Typ:** Fisk/pizza vid ån
 - **Adress:** Kajen 10, 903 26 Umeå
-- **Kontakt:** @sjobrisumea
-- **Profil:** 4 druvor (ny 2024). Två sommeliers. Stort vin- och ölutbud.
+- **Kontakt:** sjobris@sjobris.nu | 090-777 123 | @sjobrisumea
+- **Ägare (sedan 2013):** Lars Knutsson, Patrik Berg, Emil Bjuhr. Två sommeliers ombord (namn OBEKRÄFTAT).
+- **Profil:** Skaldjur + neapolitansk vedugnspizza. Mycket bubbel på glas. "Stort intresse för vin & mat-pairing." Munskänkarna 4 druvor: OBEKRÄFTAT.
 - **Kvalificering:** wine_focus: 4, pilot_fit: 4.
+- **Outreach-vinkel:** Pizza + skaldjur + bubbel = perfekt för **lambrusco, frappato, vermentino, txakoli** från små importörer. Bierzo-mencía (Munskänkarnas region 2026) som pizza-pairing = unik vinkel.
+- **Risk:** Lägre prispunkt = volym-fokus. Privata kontakter via Munskänkarna-medlemmar internt = svårinträngd.
 
 ### 66. Bistro Le Garage — Umeå 🟡
 - **Typ:** Bistro i Umedalens skulpturpark
 - **Adress:** Umedalssallén 15, Umeå
-- **Kontakt:** @bistrolegarageumea
-- **Ägare:** Victor & Sindy
-- **Profil:** 4 druvor, Star Wine List. Franskt-dominerad vinlista. Vinprovningar (4 viner + mat, 585 kr).
+- **Kontakt:** info@bistrolegarage.com | 090-316 52 | @bistrolegarageumea
+- **Ägare:** Victor & Sindy Wu Nilsén
+- **Vinansvarig:** **Kristian Rönnlund / Visionary Wine** — driver månatliga vinutbildningar på BLG sedan 31 okt 2023, regions-baserade.
+- **Profil:** Star Wine List White Star sedan 2 dec 2021. Franskt fokus. Vinprovningar 4 viner + snacks à 585 kr.
 - **Kvalificering:** wine_focus: 4, pilot_fit: 4.
+- **Outreach-vinkel:** **Pitcha till Kristian, inte Victor/Sindy direkt.** Han väljer regioner månadsvis och är öppen för okonventionella vinkar. Erbjud månads-takeover med småimportörs region (Jura, Loire-secondaires, Hemel-en-Aarde).
+- **Risk:** Visionary Wine-monopolet = Kristian styr valet. Om man inte når honom är BLG troligen "låst" till hans val.
 
 ### Östersund
 
 ### 67. Krogen Astrid — Östersund 🟡
 - **Typ:** Asiatisk fusion vinbar, sharing plates
 - **Adress:** Postgrund 11, 831 31 Östersund
-- **Kontakt:** krogenastrid@gmail.com | 076-3128000 | @krogenastrid
-- **Sommelier:** Astrid
-- **Profil:** 4 druvor. 30+ glasviner inkl. champagne och Rioja. Handplockade viner. Vinprovningar.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 5. UNESCO-matstad, stark sommelier, hög rotation.
+- **Kontakt:** krogenastrid@gmail.com | 076-312 80 00 | @krogenastrid
+- **Krögare:** "Danne" (tog över 9 jan 2023). Astrid = möjligen anställd sommelier (OBEKRÄFTAT).
+- **Profil:** 30+ glasviner från hela världen, asiatisk-fokuserad mat → versatila glasviner krävs. Stor sake- och whiskysektion. ~25 lokala Jämtland-öl.
+- **Munskänkarna:** Östersund firar 50 år 2026 (jubileum 14 nov, Gamla Teatern). Krogen Astrid ej listad som provningsplats vt/ht 2026.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+- **Outreach-vinkel:** "Delningsmenyn = du behöver versatila glasviner som funkar tvärs över 8 rätter — stilprofil-matching är just det Winefeed gör bäst." Bonus: pitcha off-dry Riesling, lättkroppade Pinot, orange Friuli/Slovenien.
+- **Risk:** Solo-driven krögare = beslutsfattare åtkomlig men kort om tid. Tight nätverk till Jämtländska importörer + lokala bryggerier.
 
-### 68. Jazzköket — Östersund 🟡
-- **Typ:** Fine dining / konsertlokal
+### 68. Morbror Fabian (gamla Jazzköket) — Östersund 🔴 TIDSKRITISKT
+- **Typ:** Restaurang (koncept under uppbyggnad)
 - **Adress:** Prästgatan 44, Östersund
-- **Kontakt:** info@jazzkoket.se | 063-101575 | @jazzkoket
-- **Profil:** Star Wine List White Star. Argon-system = de flesta viner på glas. Naturvins-fokus.
-- **Status:** Öppet bara för konserter/event/privata bokningar.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 3. Begränsad drift.
+- **STATUS:** Jazzköket upphörde 30 mars 2026. Övertaget 1 april 2026 av **Wisam Gharzoul + Martin Dahl** → bytt namn till **Morbror Fabian**. Lunchstart 13 april. Bolag: Morbror Fabian AB (org. 556895-4506).
+- **Kontakt:** OBEKRÄFTAT — Wisam Gharzoul = bästa kontaktnamn.
+- **Vinprofil:** Gamla Jazzköket körde argon-system + naturvinsfokus + SWL White Star. **Vad nya ägarna kör är OBEKRÄFTAT** — koncept ej offentliggjort.
+- **Kvalificering:** wine_focus: TBD, pilot_fit: 5. **Vinlistan byggs från noll just nu — fönstret är vidöppet april–juni 2026.**
+- **Outreach-vinkel:** "Vi sett att ni precis tagit över Jazzköket — om vinlistan är under uppbyggnad kan Winefeed låta er broadcast-fråga 50+ importörer på 24h utan att ringa runt."
+- **Risk:** Vi vet inte ännu om de behåller naturvinsfilosofin eller skiftar. **Skicka mail innan månadsskiftet maj.**
 
 ### Sundsvall
 
@@ -608,74 +634,102 @@ Norrlands-argumentet: 500–1 200 km från Stockholm. Importörer besöker säll
 - **Typ:** Ny nordisk fine dining, 40 platser
 - **Adress:** Torggatan 1, 852 30 Sundsvall
 - **Kontakt:** info@naturaj.se | @restaurant_naturaj
-- **Kock:** Johan Backeus (Årets Kock 2017)
-- **Profil:** Bara europeiska viner, hållbarhetsfilosofi. Tasting menu 1 150 kr.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Toppkock, curad vinlista, liten restaurang.
+- **Ägare/kockar:** Johan Backéus (Årets Kock 2017) + Birgit Malmcrona (spansk bakgrund: Gondolen, Shibumi, Ichi). Sommelier-namn OBEKRÄFTAT.
+- **Profil:** **Falstaff Nordics 2026: 90 poäng (Mat 47/50, Service 18/20, Vin 17/20, Stil 8/10).** White Guide. Tripadvisor 4.9, #5 i Sundsvall. 7-rätters tasting 1 150 kr. **Endast europeiska producenter med kvalitets-/hållbarhetsfokus**. Egen odling/växthus.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Toppkock, curad lista, hög kvalitetsgräns.
+- **Outreach-vinkel:** "Endast europeiska + hållbart" = extremt smal sourcingprofil → matchar Brasri, Vinagenterna, Wena. **Bonus: Birgits spanska bakgrund** = pitcha undervärderade Spanien-regioner (Bierzo, Galicien, Méntrida, Sherry-stilar) — vi har Bierzo-content och Raúl Pérez-koppling.
+- **Risk:** Falstaff vin-17/20 = redan hög nivå. Tasting-fokus = små volymer per SKU.
 
 ### 70. La Bise — Sundsvall 🟡
-- **Typ:** Fransk bistro & vinbar
+- **Typ:** Fransk bistro & vinbar (NY — premiär 8 aug 2025)
 - **Adress:** Kyrkogatan 24, 852 32 Sundsvall
 - **Kontakt:** contact@labise.se | 070-851 34 91
-- **Profil:** Bourgogne, Rhône, Loire. Noggrant utvalda flaskor.
-- **Kvalificering:** wine_focus: 4, pilot_fit: 4. Franskt vinfokus, bra storlek.
+- **Ägare:** Jordan Benair (VD, 33 år) + Christopher Bret. Bolag: La Bise AB (org. 559526-3095). Sommelier-namn OBEKRÄFTAT — vinansvar troligen Jordan/Christopher.
+- **Profil:** Fransk klassisk bistro (Boeuf Bourguignon, lök-soppa, ratatouille). **"Carefully selected bottles" från Bourgogne, Rhône, Loire, norra Frankrike.** Vinbar-koncept ingår. Tripadvisor 4.3.
+- **Kvalificering:** wine_focus: 4, pilot_fit: 3.
+- **Outreach-vinkel:** "Två fransmän öppnar fransk vinbar" → pitcha Winefeed som verktyg för att hitta SVENSKA importörer med Bourgogne/Rhône/Loire-portföljer (Brasri, Wena, Vinagenterna).
+- **Risk:** **Två franska ägare har troligen redan importörsrelationer från Frankrike direkt eller via specifik Sverige-importör.** Kolla om de är registrerade som importör själva innan kontakt.
 
 ### Luleå
 
 ### 71. Restaurang CG — Luleå 🟡
 - **Typ:** Fine dining, vilt, lokalt
 - **Adress:** Storgatan 9, 972 38 Luleå
-- **Kontakt:** +46 920-200 700 | @restaurangcg
-- **Sommelier:** Petter Nyberg
-- **Profil:** Star Wine List **finalist 2026**. Exklusiv vinkällare "gömd skattkammare". Vinprovningar, mousserande events. Nordligaste Star Wine List-stället.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Dedikerad sommelier, Star Wine List finalist, nordligast = maximalt underservad.
+- **Kontakt:** 0920-200 700 | @restaurangcg | email OBEKRÄFTAT (sannolik gissning info@restaurangcg.se)
+- **Sommelier:** Petter Nyberg + delägare Pär "Perry" Eriksson. 17 heltidsanställda. Etablerad sedan 2012. Porträtterad i Företagarna Norrbotten mars 2026.
+- **Profil:** **Star Wine List 2026 FINALIST i kategori "Best By-the-Glass List"** (gala 2 mars 2026). Stor källare: Frankrike + Italien tunga, Burgund (DRC nämnt), Rhône (Guigal, Clape, Gonon), New World. "Förändrar karaktär med varje skörd" = aktiv rotation. Munskänkarna näst högsta betyg.
+- **Egna druvprovningar 2026:** 25 april "Blåa druvor" (5 viner, 650 kr) + Champagne. Format: 5 druvor, 5 viner, typicitet & ursprung.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+- **Outreach-vinkel:** By-the-glass-finalist = de behöver bredd och rotation. Pitcha mindre Rhône-namn (Guigal/Clape/Gonon redan inne) eller Sydafrika/Chile-uppdateringar för druvprovningarna.
+- **Risk:** Petter har 14 års nätverk + starka direktrelationer. Inte "hungrig" — etablerad. Måste leverera något han INTE redan har.
 
 ### 72. Bistron — Luleå 🟡
-- **Typ:** Restaurang vid vattnet
+- **Typ:** Restaurang vid vattnet, "punkig fine dining"
 - **Adress:** Norra Strandgatan 3, 972 39 Luleå
-- **Kontakt:** info@bistron.se | +46 920-52 31 00 | @bistron_lulea
-- **Profil:** Ny Munskänkarna-entrant 2024, White Guide.
+- **Kontakt:** info@bistron.se | 0920-52 31 00 | @bistron_lulea
+- **Ägare:** Fredrik Sidevärn + Mattias Elfmark (barndomsvänner, ~17 år). Sidevärn driver också Bryggan. Sommelier-namn OBEKRÄFTAT — ingen utpekad.
+- **Profil:** White Guide. Munskänkarna-vinkrog 2024. Nordisk-fusion (röding, ren, hjortron x global influens). Sommarfestival "Under solen" 2026.
 - **Kvalificering:** wine_focus: 4, pilot_fit: 4.
+- **Outreach-vinkel:** "Punkig" estetik = orange/skin contact, lågintervention naturvin från Jura/Loire/Sydafrika passar. Sidevärns parallella verksamheter signalerar öppen för nya partners.
+- **Risk:** Ingen utpekad sommelier = inköp på Sidevärn/Elfmark direkt. Långsammare beslutsväg.
 
 ### Skellefteå
 
 ### 73. Bryggargatan — Skellefteå 🟡
 - **Typ:** Restaurang & cocktailbar vid älven
 - **Adress:** Strandgatan 32, Skellefteå
-- **Kontakt:** 0910-21 16 50
-- **Ägare:** Runar, Jon Oskar & Sarah (isländska rötter)
-- **Profil:** 4 druvor, dedikerad sommelier från Piteå.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+- **Kontakt:** info@bryggargatan.se | 0910-21 16 50
+- **Ägarstatus:** **Sarah Arnason sålde sin andel jan 2025 till ex-maken Jón Óskar Arnason** (kronisk inflammation, jobbar nu med Brigade). **Jón Óskar = ensam ägare nu.** Briefen om "Runar" inaktuell.
+- **Sommelier-namn:** OBEKRÄFTAT — sajten beskriver "an artistic sommelier from Piteå" men namnger inte.
+- **Profil:** Time Magazine 50 mest intressanta platser 2022. **17 fredag-tema-provningar 2026:** Nebbiolo, Cab Sauv, orange, rosé bubbel, Jura, Sydafrika, English bubbel, Alvarinho, Pinot Noir, Portugal, Andalusien, Riesling, Loire vit, rosé, Priorat. Mycket bred kalender = behöver brett vinflöde.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5.
+- **Outreach-vinkel:** Direkt mappning mot konkreta provningsteman → bundle-erbjudande per fredag. Ägarbyte = mindre känslig för "lojalitet mot gamla importörer".
+- **Risk:** Jón Óskar är kock, inte sommelier — vinansvar fortfarande hos "Piteå-personen" (icke namngiven). Identifiera först.
 
 ### 74. Kork Vinbar — Skellefteå 🟡
-- **Typ:** Dedikerad vinbar
+- **Typ:** Dedikerad vinbar (öppnade mars 2023)
 - **Adress:** Nygatan 42, 931 30 Skellefteå
-- **Kontakt:** info@korkvinbar.se | 0709660341 | @kork_vinbar
-- **Ägare:** Ägare av La Cena + Robert Hunt
-- **Profil:** 3 druvor. Vinbar = vin är kärnan. Samma ägare som La Cena = multi-venue.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Dedikerad vinbar i Skellefteå.
+- **Kontakt:** info@korkvinbar.se | 070-966 03 41 | @kork_vinbar
+- **Ägare:** Mikael & Oliver Lundmark (även La Cena) + Robert Hunt (restaurangchef, ex-Paolos/Mandel).
+- **Sommelier:** **Oskar Lundqvist** — bekräftad. Höll Munskänkarna-provning "Mousserande från Italien" 1 feb 2026.
+- **Profil:** "Vin från hela världen", småplockmat + bistro-varmrätter. Skellefteås första riktiga vinbar. Bredd > djup.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 5.
+- **Outreach-vinkel:** **Oskar är utåtagerande sommelier som föreläser för Munskänkarna** = letar aktivt efter goda historier. Erbjud honom **producent-stories + provexemplar för en framtida Munskänkar-provning**. Vinbar = hög rotation av glas/månadens vin.
+- **Risk:** Vinbar = lägre snittpris, prispressad. La Cena-ägarna kan ha lojaliteter från andra restaurangen. Roberts erfarenhet = redan integrerad i Skellefteås krögarnätverk.
 
 ### Fjällen & Höga Kusten
 
 ### 75. Fjällnäs — Tänndalen 🟡
-- **Typ:** Fine dining, Sveriges äldsta fjällhotell
-- **Kontakt:** fjallnas.se
-- **Sommelier:** Christopher Smeds Bjerlö + Daniel Pettersson + Rovilla Hansson
-- **Profil:** Star Wine List **GULD 2024 + 2026**, vann även internationella finalen! 200–600 viner. Hållbarhet och terroir.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 4. Sveriges bästa medelstora vinlista. Avlägset fjälläge.
+- **Typ:** Fine dining, Sveriges äldsta fjällhotell. Året runt med åtta säsonger.
+- **Kontakt:** info@fjallnas.se | +46 684 230 30
+- **Sommelier-team:** Christopher Smeds Bjerlö (F&B Manager, primär kontakt) + Daniel Pettersson + Rovilla Hansson. Kökschef Patrik Moen.
+- **Profil:** **Star Wine List 2026: Gold "Best Medium-Sized List"** (offentliggjort 2 mars 2026). Tredje guldet i rad (2024 Sverige + International, 2026 Sverige). 200–600 referenser. Juryns omdöme 2026: "*excellenta producenter, dynamisk mousserande-sektion, mogna viner till rimliga priser*".
+- **Filosofi (Christopher mars 2026):** "drickbara viner och variation"; "fortsätta bygga en vinlista som känns relevant och generös för våra gäster, år efter år".
+- **Kvalificering:** wine_focus: 5, pilot_fit: 3. Världsledande lista i avlägset fjällhotell.
+- **Outreach-vinkel:** Sourcing-behov är troligen "udda raritet/mogna parti" snarare än volym — pitcha exklusiva små partier av producenter de inte har via standardimportörerna.
+- **Risk:** Mycket etablerat nätverk (3x guld). Säsongsdrift med 8 säsonger = leveranslogistik tight. Hög konkurrens mot etablerade importörer.
 
 ### 76. Linnea & Peter — Örnsköldsvik 🟡
-- **Typ:** Fine dining
-- **Adress:** Fabriksgatan 12, Örnsköldsvik
-- **Kontakt:** info@linneaochpeter.se | 0660-101 90
-- **Profil:** 4 druvor, Star Wine List, #1 TripAdvisor. Franskt vinfokus.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+- **Typ:** Fine dining + Jacks Bodega (säsongsöppen vinbar, Nygatan 18, öppnade 2024)
+- **Adress:** Fabriksgatan 12B, Örnsköldsvik
+- **Kontakt:** info@linneaochpeter.se | 070-361 01 90 (alt. 0660-101 90)
+- **Ägare:** Linnéa Liljedahl (kock, finalist Kockarnas Kamp) + Peter Eriksson.
+- **Vinprogram:** **Samarbetar med Johan Lidby Vinhandel** — Lidby har sommelier på plats vissa kvällar. Ingen dedikerad in-house sommelier.
+- **Profil:** White Guide "Very Fine Level". Bred lista, **Frankrike (Bordeaux + Champagne) + Tyskland + Italien**, flera årgångar per producent. Eko/biodynamiskt finns. Lokal cider. Västerbottensost-samarbete (Norrmejerier).
+- **SWL 2026:** Listad men **inte finalist 2026** (verifierat).
+- **Kvalificering:** wine_focus: 5, pilot_fit: 3.
+- **Outreach-vinkel:** Två platser att fylla (restaurang + Jacks Bodega) — Bodegan har "ingen fast meny" → **öppning för flexibel by-the-glass-sourcing utanför Lidbys huvudportfölj**. Pitcha terroir-historia + small-batch som Lidby saknar. Familje-vinkel (Jack = sonen) = personlig outreach landar bättre.
+- **Risk:** **Tight Lidby-partnerskap** — sommelier på plats, inte bara leverans. Bästa ingången: komplettera, inte ersätta.
 
 ### 77. Kittelfjälls Värdshus — Kittelfjäll 🟡
-- **Typ:** Fjällvärdshus
-- **Kontakt:** kittelfjallvardshus.se
-- **Ägare:** Jasper & Lotta Bergström
-- **Profil:** 4 druvor, White Guide. Lotta = entusiastisk sommelier, naturvin + eko. Ultra-avlägset.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 4.
+- **Typ:** Fjällvärdshus, vintertung säsong
+- **Adress:** Kittelfjäll 270, 923 95 Kittelfjäll
+- **Kontakt:** info@kittelfjallvardshus.se | +46 940 57 47 00
+- **Ägare:** Lotta Bergström (sommelier, ex-textildesigner) + Jasper "Jappe" Bergström (kock).
+- **Profil:** SWL White Star. **Två år i rad nominerade till "Sustainable Wine List"** men ej finalist 2026. **Endast hållbart producerade hantverksviner från Europa**. Allt öl svenskt, ofta från Norrbotten. Liten kuraterad lista.
+- **Kvalificering:** wine_focus: 5, pilot_fit: 3.
+- **Outreach-vinkel:** Lottas narrativ är **personligt och estetiskt drivet** (textildesigner som bytte karriär). Pitcha europeiska småproducenter med tydlig ekocertifiering/biodynamisk filosofi som matchar Jappes vilt — Jura, Savoie, höga Alperna eller skandinaviska producenter (matchar Norrbotten-öl-narrativet). Hänvisa till Sustainable-nomineringarna konkret.
+- **Risk:** Tight kuraterad lista = få platser. Filosofi-driven, inte priskänslig men extremt kräsen på producent-story. Säsongsdrift.
 
 ### Gävle (utöver Verovin #29)
 
@@ -694,7 +748,16 @@ Norrlands-argumentet: 500–1 200 km från Stockholm. Importörer besöker säll
 
 **OBS:** Vin i Umeå 2026 — vinmässa 20–21 november, Umeå Folkets Hus. Bra nätverkstillfälle. Kontakt: malin.sandberg@umeafolketshus.se
 
-**Strategi Norrland:** Tornhuset (#60, personlig koppling), HarleQuin (#61), Köksbaren (#62) i Umeå först. Sedan Restaurang CG (#71, Luleå) och Krogen Astrid (#67, Östersund). Naturaj (#69, Sundsvall) och Kork Vinbar (#74, Skellefteå) därefter.
+**Strategi Norrland (uppdaterad 2026-04-30):**
+1. 🔴 **Morbror Fabian (#68)** — TIDSKRITISKT, vinlista byggs från noll april–juni 2026.
+2. **Tornhuset (#60)** — personlig Hanna-koppling + Bourgogne-middag 28 maj som öppning.
+3. **Bistro Le Garage (#66)** — pitcha Kristian Rönnlund (Visionary Wine), inte ägarna.
+4. **Restaurang CG (#71)** — SWL Best By-the-Glass-finalist, behöver bredd.
+5. **Bryggargatan (#73)** — 17 fredag-tema-provningar 2026 = direkt mappning.
+6. **Kork Vinbar (#74)** — Oskar Lundqvist verifierad, story+samples-vinkel.
+7. **Naturaj (#69)** — Bierzo-vinkel via Birgits spanska bakgrund.
+
+**Avvakta/lågprio:** Fjällnäs (3x guld = mättat), Linnea & Peter (Lidby-partnerskap), Bodegan (allokerade ikoner), Köksbaren (verifiera vem som leder vinkällaren), Kittelfjälls (extremt smal kuration).
 
 ---
 
