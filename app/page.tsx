@@ -7,7 +7,7 @@
  *   header → hero → trust strip → how-it-works (with tab switcher) →
  *   featured regions → quote → pricing → final CTA → footer
  *
- * Numbers are README-canonical: 556 viner, 211 producenter, 460 direktimporterade,
+ * Numbers are README-canonical: 615 viner, 213 producenter, 519 direktimporterade,
  * 95 Saint-Émilion Grand Cru, 4 % success-fee.
  *
  * Fictional importer names from the HTML mockup were replaced with neutral labels
@@ -92,7 +92,7 @@ export default function LandingPage() {
 
               <div className="flex flex-wrap gap-x-14 gap-y-6 mt-4">
                 <div>
-                  <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">211</span>
+                  <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">213</span>
                   <div className="text-[13px] text-[#828181] mt-1.5">Producenter</div>
                 </div>
                 <div>
@@ -100,7 +100,7 @@ export default function LandingPage() {
                   <div className="text-[13px] text-[#828181] mt-1.5">Svenska importörer</div>
                 </div>
                 <div>
-                  <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">556</span>
+                  <span className="font-[family-name:var(--font-playfair)] text-[44px] leading-none text-[#722F37] block">615</span>
                   <div className="text-[13px] text-[#828181] mt-1.5">Aktiva viner</div>
                 </div>
               </div>
@@ -152,8 +152,8 @@ export default function LandingPage() {
       {/* ========== TRUST STRIP ========== */}
       <div className="border-y border-[rgba(22,20,18,0.08)] bg-white py-7">
         <div className="max-w-[1280px] mx-auto px-5 sm:px-8 flex flex-wrap items-center gap-x-14 gap-y-5 justify-between">
-          <div className="flex items-baseline gap-3"><span className="font-[family-name:var(--font-playfair)] text-[28px] text-[#722F37]">556</span><span className="text-[13px] text-[#828181]">aktiva viner</span></div>
-          <div className="flex items-baseline gap-3"><span className="font-[family-name:var(--font-playfair)] text-[28px] text-[#722F37]">211</span><span className="text-[13px] text-[#828181]">producenter</span></div>
+          <div className="flex items-baseline gap-3"><span className="font-[family-name:var(--font-playfair)] text-[28px] text-[#722F37]">615</span><span className="text-[13px] text-[#828181]">aktiva viner</span></div>
+          <div className="flex items-baseline gap-3"><span className="font-[family-name:var(--font-playfair)] text-[28px] text-[#722F37]">213</span><span className="text-[13px] text-[#828181]">producenter</span></div>
           <div className="flex items-baseline gap-3"><span className="font-[family-name:var(--font-playfair)] text-[28px] text-[#722F37]">95</span><span className="text-[13px] text-[#828181]">Saint-Émilion Grand Cru</span></div>
           <div className="flex items-baseline gap-3"><span className="font-[family-name:var(--font-playfair)] text-[28px] text-[#722F37]">4 %</span><span className="text-[13px] text-[#828181]">success-fee · inget mer</span></div>
         </div>
@@ -196,7 +196,7 @@ export default function LandingPage() {
               <Step
                 num="1."
                 title="Beskriv vad du söker"
-                body="Stil, tillfälle, budget, antal flaskor. Eller sök i sortimentet — 556 viner, sökbara på druva, region och pris."
+                body="Stil, tillfälle, budget, antal flaskor. Eller sök i sortimentet — 615 viner, sökbara på druva, region och pris."
                 icon={<><circle cx="11" cy="11" r="6"/><line x1="16" y1="16" x2="20" y2="20"/></>}
               />
               <Step

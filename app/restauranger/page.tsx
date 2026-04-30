@@ -90,9 +90,9 @@ export default function RestaurangerPage() {
                 </a>
               </div>
               <div className="flex flex-wrap gap-x-12 gap-y-5 mt-6">
-                <Stat num="556" label="Aktiva viner" />
-                <Stat num="211" label="Producenter" />
-                <Stat num="460" label="Direktimporterade" />
+                <Stat num="615" label="Aktiva viner" />
+                <Stat num="213" label="Producenter" />
+                <Stat num="519" label="Direktimporterade" />
               </div>
             </div>
 
@@ -115,8 +115,8 @@ export default function RestaurangerPage() {
         {/* TRUST STRIP */}
         <div className="border-y border-[rgba(22,20,18,0.08)] bg-white py-7">
           <div className="max-w-[1280px] mx-auto px-5 sm:px-8 flex flex-wrap items-center gap-x-14 gap-y-5 justify-between">
-            <TrustItem num="556" label="aktiva viner" />
-            <TrustItem num="211" label="producenter" />
+            <TrustItem num="615" label="aktiva viner" />
+            <TrustItem num="213" label="producenter" />
             <TrustItem num="95" label="Saint-Émilion Grand Cru" />
             <TrustItem num="Gratis" label="för restauranger · alltid" />
           </div>
@@ -167,7 +167,7 @@ export default function RestaurangerPage() {
               <Step
                 num="1."
                 title="Beskriv vad du söker"
-                body="Stil, tillfälle, budget, antal flaskor. Eller filtrera direkt på druva, region, pris och färg — 556 viner i katalogen."
+                body="Stil, tillfälle, budget, antal flaskor. Eller filtrera direkt på druva, region, pris och färg — 615 viner i katalogen."
               />
               <Step
                 num="2."
