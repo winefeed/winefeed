@@ -300,10 +300,13 @@ export default function WineDetailPanel({ wine, supplierId, onSave, onError }: W
               <input
                 type="text"
                 inputMode="numeric"
-                defaultValue={wine.price_ex_vat_sek}
+                defaultValue={Math.round(wine.price_ex_vat_sek / 100)}
                 onBlur={(e) => {
-                  const val = e.target.value ? parseInt(e.target.value) : null;
-                  if (val !== null && val > 0) handleBlur('price_ex_vat_sek', val, wine.price_ex_vat_sek);
+                  const krVal = e.target.value ? parseInt(e.target.value) : null;
+                  if (krVal !== null && krVal > 0) {
+                    const oreVal = krVal * 100;
+                    handleBlur('price_ex_vat_sek', oreVal, wine.price_ex_vat_sek);
+                  }
                 }}
                 className={inputClass}
               />
