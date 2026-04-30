@@ -1,6 +1,6 @@
 # Winefeed Growth Pipeline
 
-Senast uppdaterad: 2026-03-09
+Senast uppdaterad: 2026-04-30
 
 ## Status-kodning
 - 🟡 **Lead** — identifierad, ej kontaktad
@@ -12,6 +12,27 @@ Senast uppdaterad: 2026-03-09
 
 ## Importörer
 
+### Brasri AB ✅
+- **Kontakt:** Corentin (IOR-partner)
+- **Supplier ID:** `a1111111-1111-1111-1111-111111111111`
+- **Status:** Onboardad. 615 viner i katalogen totalt (varav 59 Tour-Calon vintage Bordeaux importerade 2026-04-29 via feed från precieu.se).
+- **Roll:** Dual — EU-importör + svensk importör. `default_importer_id` → egen importers-rad `b7540acf`.
+- **Nästa steg:** Bevaka feed-uppdateringar, fortsätt enrich style-data per nya viner
+
+### AKO Wine & Spirits ✅
+- **Profil:** Nya Zeeland-fokus
+- **Status:** Onboardad. 25 NZ-viner i katalogen.
+- **Nästa steg:** Hjälp med ev. utökat sortiment
+
+### Gardshol Wines ✅
+- **Kontakt:** Magnus Gardshol, magnus@gardsholwines.com
+- **Instagram:** @gardsholwines
+- **Webb:** gardsholwines.com
+- **Supplier ID:** `56618333`
+- **Profil:** Hantverksviner från Sydafrika och Europa. Miles Mossop, Babylonstoren, Tesselaarsdal, Catherine Marshall, Charles Fox. Hållbarhet och småskaliga producenter. Även Cockorico cocktails.
+- **Status:** Onboardad 2026-04-05. 15 sydafrikanska viner importerade (SKU GW-001–GW-015), AI-beskrivningar skrivna, stilprofiler infererade. Pilot (gratis).
+- **Nästa steg:** MOQ-svar inväntas, hjälp utöka sortiment vid behov
+
 ### Vinagenterna ✅
 - **Kontakt:** Fredrik Edsberg, info@vinagenterna.se, +46 766 335 126
 - **Instagram:** @vinagenterna
@@ -21,24 +42,32 @@ Senast uppdaterad: 2026-03-09
 - **Status:** Onboardad 2026-03-12. Fredrik svarade positivt → konto skapat, inloggning skickad. Pilot (gratis).
 - **Nästa steg:** Hjälp Fredrik ladda upp sortiment vid behov
 
-### Gardshol Wines 🟢
-- **Kontakt:** Magnus Gardshol, magnus@gardsholwines.com
-- **Instagram:** @gardsholwines
-- **Webb:** gardsholwines.com
-- **Profil:** Hantverksviner från Sydafrika och Europa. Miles Mossop, Babylonstoren, Tesselaarsdal, Catherine Marshall, Charles Fox. Hållbarhet och småskaliga producenter. Även Cockorico cocktails.
-- **Status:** Pratat med Magnus, intresserad. Onboarding-mail skickat 2026-03-09 med länk till leverantörsregistrering.
-- **Nästa steg:** Invänta att Magnus skapar konto och laddar upp sortiment → hjälp vid behov
+### Wena Wines ✅
+- **Kontakt:** Remi Marin, remi@wenawines.se
+- **Profil:** Chile-fokus
+- **Status:** Onboardad 2026-02-24. 9 chilenska viner i katalogen.
+- **Nästa steg:** Hjälp utöka sortiment vid behov
 
-### Nordique 4 (N4 Wine & Spirits) 🟡
-- **Kontakt:** Fredrik Madsen, n4ab.com
+### Nordique 4 (N4 Wine & Spirits) 🔵
+- **Kontakt:** Fredrik Madsen, sandra@n4ab.com
 - **Instagram:** @nordique4wines (635 followers)
 - **Bas:** Östersund, grundat 2023
 - **Profil:** Småskaligt, hållbart, 100% Slovenien (Goriska Brda, Štajerska)
 - **Producenter:** Matic Wines, Kmetija Stekar, Klinec Medana
 - **Sortiment:** 10 viner, starkt orange-vin-fokus, B2C 229–449 kr (restaurang uppskattningsvis 90–180 kr)
 - **Varför:** Unikt Slovenien-fokus, glasliste-vänliga priser, trendigt (orange), annorlunda
-- **Status:** Onboarding-mail skickat 2026-03-07 till sandra@n4ab.com
-- **Nästa steg:** Invänta svar
+- **Status:** Onboarding-mail skickat 2026-03-07. Inget svar än → överväg follow-up eller deprioritera.
+- **Nästa steg:** Follow-up i april/maj eller flagga som passiv lead
+
+### EU producent-shells (utan svensk importör)
+Producenter med viner i Winefeed-katalogen som EU-direktimport via Brasri (eller utan svensk importör listad). Dessa exponeras som "direktimport" på restaurangsidan.
+
+- **Chateau Tour-Calon** (Castillon Côtes de Bordeaux) — 32 vintager via Brasri-feed
+- **Chateau Bonalgue Bel-Air** (Pomerol) — vintager via Brasri-feed
+- **Chateau Lateyron** — Bordeaux
+- (5 fler EU-shells dokumenterade i `supplier_wines`-katalogen)
+
+**Status:** Listade som direktimport-alternativ för restauranger. Inga aktiva försäljnings-/onboarding-aktioner — leverans sker via Brasri som IOR.
 
 ---
 
