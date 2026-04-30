@@ -186,6 +186,7 @@ function resolveStyle(wine: SupplierWineRow): WineStyle {
     wine.color || '',
     wine.region || undefined,
     wine.description || undefined,
+    wine.vintage ?? undefined,
   );
 }
 

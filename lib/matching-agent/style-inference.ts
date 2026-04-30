@@ -567,11 +567,54 @@ function levelFromScale(n: number): 'low' | 'medium' | 'high' {
  * Regional overrides MERGE with grape defaults — only the dimensions specified
  * in the override are replaced; unspecified dimensions keep the grape default.
  */
+/**
+ * Apply aging adjustments to a base style profile based on vintage.
+ *
+ * Tannins polymerize and soften over time; body loses primary fruit weight
+ * at very advanced age; acidity stays mostly stable. White wines and other
+ * non-red colors are returned unchanged (most age-driven changes don't apply,
+ * or apply along different axes that we don't model yet).
+ *
+ * Thresholds tuned for everyday/mid-tier red wines (Bordeaux småchâteaux,
+ * Bourgogne Villages, Rhône Villages). Top Grand Crus age slower; we
+ * accept that minor inaccuracy in exchange for a single curve.
+ */
+export function applyAging(
+  base: WineStyle,
+  vintage: number | null | undefined,
+  color: string,
+): WineStyle {
+  if (!vintage || vintage === 0) return base;
+  if ((color || '').toLowerCase() !== 'red') return base;
+
+  const age = new Date().getFullYear() - vintage;
+  if (age < 8) return base; // Too young to soften meaningfully
+
+  let { body, tannin, acidity } = base;
+
+  // Tannin softening curve: high → medium (≥12y) → low (≥25y); medium → low (≥25y)
+  if (tannin === 'high') {
+    if (age >= 25) tannin = 'low';
+    else if (age >= 12) tannin = 'medium';
+  } else if (tannin === 'medium' && age >= 25) {
+    tannin = 'low';
+  }
+
+  // Body lightens at very advanced age: full → medium (≥40y), medium → light (≥60y)
+  if (body === 'full' && age >= 40) body = 'medium';
+  else if (body === 'medium' && age >= 60) body = 'light';
+
+  // Acidity stays put — it's the most stable dimension over time
+
+  return { body, tannin, acidity };
+}
+
 export function inferWineStyle(
   grape: string,
   color: string,
   region?: string,
   description?: string,
+  vintage?: number | null,
 ): WineStyle {
   let grapeStyle: PartialWineStyle | null = null;
 
@@ -613,7 +656,7 @@ export function inferWineStyle(
 
   // If grape (possibly region-corrected) gave a complete style, return it directly
   if (grapeStyle && grapeStyle.body && grapeStyle.tannin && grapeStyle.acidity) {
-    return grapeStyle as WineStyle;
+    return applyAging(grapeStyle as WineStyle, vintage, color);
   }
 
   // 3. Description-based inference (fills gaps or provides full style)
@@ -634,15 +677,17 @@ export function inferWineStyle(
     if (merged.body || merged.tannin || merged.acidity) {
       const colorLower = (color || '').toLowerCase();
       const colorFallback = COLOR_DEFAULTS[colorLower] || COLOR_DEFAULTS['red'];
-      return {
+      const result: WineStyle = {
         body: merged.body ?? colorFallback.body,
         tannin: merged.tannin ?? colorFallback.tannin,
         acidity: merged.acidity ?? colorFallback.acidity,
       };
+      return applyAging(result, vintage, color);
     }
   }
 
   // 4. Color-based fallback
   const colorLower = (color || '').toLowerCase();
-  return { ...(COLOR_DEFAULTS[colorLower] || COLOR_DEFAULTS['red']) };
+  const fallback = { ...(COLOR_DEFAULTS[colorLower] || COLOR_DEFAULTS['red']) };
+  return applyAging(fallback, vintage, color);
 }

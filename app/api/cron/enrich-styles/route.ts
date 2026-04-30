@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     // Fetch wines where any style column is NULL
     const { data: wines, error: fetchError } = await supabase
       .from('supplier_wines')
-      .select('id, name, grape_variety, wine_type, region, description, body, tannin, acidity')
+      .select('id, name, grape, color, region, description, vintage, body, tannin, acidity')
       .or('body.is.null,tannin.is.null,acidity.is.null');
 
     if (fetchError) {
@@ -58,10 +58,11 @@ export async function GET(request: NextRequest) {
       for (const wine of batch) {
         try {
           const style = inferWineStyle(
-            wine.grape_variety || '',
-            wine.wine_type || '',
+            wine.grape || '',
+            wine.color || '',
             wine.region || undefined,
             wine.description || undefined,
+            wine.vintage ?? undefined,
           );
 
           // Only fill NULL columns — respect manually-set values

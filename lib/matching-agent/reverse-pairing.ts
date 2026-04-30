@@ -32,6 +32,7 @@ interface WineInput {
   tannin: string | null;
   acidity: string | null;
   description?: string | null;
+  vintage?: number | null;
 }
 
 // ============================================================================
@@ -294,12 +295,13 @@ function resolveWineStyle(wine: WineInput): { body: string; tannin: string; acid
     return { body: wine.body, tannin: wine.tannin, acidity: wine.acidity };
   }
 
-  // Infer from grape/color/description
+  // Infer from grape/color/description/vintage
   const inferred = inferWineStyle(
     wine.grape || '',
     wine.color || '',
     wine.region || undefined,
     wine.description || undefined,
+    wine.vintage ?? undefined,
   );
 
   return {

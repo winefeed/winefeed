@@ -492,7 +492,7 @@ function scoreStyleMatch(wine: SupplierWineRow, prefs: MergedPreferences): numbe
   // If wine has no style data, try to infer from grape+color
   if (!wine.body && !wine.tannin && !wine.acidity) {
     if (wine.grape || wine.color) {
-      const inferred = inferWineStyle(wine.grape || '', wine.color || '', wine.region || undefined);
+      const inferred = inferWineStyle(wine.grape || '', wine.color || '', wine.region || undefined, undefined, wine.vintage);
       wine.body = inferred.body;
       wine.tannin = inferred.tannin;
       wine.acidity = inferred.acidity;
