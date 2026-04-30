@@ -202,7 +202,7 @@ export default function SupplierWinesPage() {
       const supplierData = await supplierRes.json();
       setSupplierId(supplierData.supplierId);
 
-      const winesRes = await fetch(`/api/suppliers/${supplierData.supplierId}/wines`);
+      const winesRes = await fetch(`/api/suppliers/${supplierData.supplierId}/wines?limit=10000`);
       if (winesRes.ok) {
         const winesData = await winesRes.json();
         setWines(winesData.wines || []);
