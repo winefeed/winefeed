@@ -15,7 +15,7 @@ import { createClient } from '@supabase/supabase-js';
 
 config({ path: '.env.local' });
 
-const FEED_URL = 'https://dpiszenzbjemzrizcmdf.supabase.co/functions/v1/feed/tour-calon-reserve-restaurant';
+const FEED_URL = 'https://precieu.se/feed/tour-calon-reserve-restaurant';
 const BRASRI_SUPPLIER_ID = 'a1111111-1111-1111-1111-111111111111';
 
 interface FeedItem {
