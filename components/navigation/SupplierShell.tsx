@@ -55,6 +55,7 @@ export function SupplierShell({ children }: SupplierShellProps) {
     // Public pages that don't require auth
     const publicPages = [
       '/supplier/login',
+      '/supplier/signup',
       '/supplier/forgot-password',
       '/supplier/reset-password',
     ];
@@ -86,7 +87,7 @@ export function SupplierShell({ children }: SupplierShellProps) {
   }, []);
 
   // Check if on public auth page - render without shell
-  const publicAuthPages = ['/supplier/login', '/supplier/forgot-password', '/supplier/reset-password'];
+  const publicAuthPages = ['/supplier/login', '/supplier/signup', '/supplier/forgot-password', '/supplier/reset-password'];
   const isPublicAuthPage = typeof window !== 'undefined' &&
     publicAuthPages.some(page => window.location.pathname.startsWith(page));
 

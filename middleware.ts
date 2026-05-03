@@ -66,6 +66,7 @@ export async function middleware(request: NextRequest) {
     '/api/restaurants/onboard',  // Restaurant registration (public)
     '/api/suppliers/onboard',    // Supplier registration (public)
     '/supplier/login',
+    '/supplier/signup',
     '/supplier/forgot-password',
     '/supplier/reset-password',
     '/api/auth/forgot-password',
