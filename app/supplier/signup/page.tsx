@@ -100,7 +100,7 @@ export default function SupplierSignupPage() {
       <EditorialFormShell
         eyebrow="Registrering"
         title="Skapa importörskonto"
-        subtitle="För svenska vinimportörer. Gratis att lista sortimentet och ta emot förfrågningar — vi tar 4 % först när en affär går igenom."
+        subtitle="För svenska vinimportörer. Gratis att lista sortimentet och ta emot förfrågningar — vi tar 4 % per accepterad offert (min 149 kr, max 1 995 kr per order). Faktureras månadsvis i efterskott."
         footer={
           <>
             Har du redan ett konto?{' '}
@@ -119,7 +119,7 @@ export default function SupplierSignupPage() {
               onChange={(e) => setSupplierName(e.target.value)}
               required
               autoFocus
-              placeholder="T.ex. N4 Wine & Spirits AB"
+              placeholder="T.ex. Vinhuset Lindberg AB"
               leadingIcon={<Building2 className="h-4 w-4" />}
             />
           </EditorialField>
