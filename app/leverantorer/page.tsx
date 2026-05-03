@@ -77,7 +77,7 @@ export default function LeverantorerPage() {
               </p>
               <div className="flex gap-3 flex-wrap">
                 <Link
-                  href="/signup?role=supplier"
+                  href="/supplier/signup"
                   className="inline-flex items-center justify-center h-[52px] px-6 rounded-[10px] bg-[#722F37] text-white text-[15px] font-medium hover:bg-[#6B1818] transition-colors"
                 >
                   Ansök som importör
@@ -234,7 +234,7 @@ export default function LeverantorerPage() {
             </p>
             <div className="flex gap-3 flex-wrap justify-center mt-2">
               <Link
-                href="/signup?role=supplier"
+                href="/supplier/signup"
                 className="inline-flex items-center justify-center h-[52px] px-6 rounded-[10px] bg-[#722F37] text-white text-[15px] font-medium hover:bg-[#6B1818] transition-colors"
               >
                 Ansök som importör
