@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useActor } from '@/lib/hooks/useActor';
 import { useDraftList } from '@/lib/hooks/useDraftList';
 import { formatPrice } from '@/lib/utils';
-import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine, HelpCircle, Send, Menu, Star } from 'lucide-react';
+import { CheckCircle2, Filter, X, ChevronDown, ChevronUp, Bell, ArrowRight, Inbox, AlertCircle, AlertTriangle, ListPlus, ShoppingCart, Check, Info, Minus, Plus, Wine, HelpCircle, Send, Menu, Star, Package, Leaf, Mail, Search, MapPin, Clock, CircleDollarSign, Moon } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { FloatingDraftList } from '@/components/FloatingDraftList';
 import { Spinner } from '@/components/ui/spinner';
@@ -731,7 +731,7 @@ export default function ResultsPage() {
   const renderBreakdownBar = (label: string, score: number, max: number) => {
     if (score <= 0) return null;
     const pct = Math.round((score / max) * 100);
-    const barColor = pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-400' : 'bg-gray-400';
+    const barColor = pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-400' : 'bg-muted-foreground/40';
     return (
       <div key={label} className="flex items-center gap-2 text-xs">
         <span className="w-16 text-muted-foreground truncate">{label}</span>
@@ -813,7 +813,7 @@ export default function ResultsPage() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-4xl">🍷</span>
+              <Wine className="h-8 w-8" />
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">Winefeed</h1>
                 <p className="text-sm text-primary-foreground/80">Din vininköpare</p>
@@ -1031,7 +1031,7 @@ export default function ResultsPage() {
                     : 'bg-green-50 text-green-600 hover:bg-green-100'
                 }`}
               >
-                📦 I lager
+                <Package className="h-3.5 w-3.5" /> I lager
                 <span className="text-xs opacity-70">({inStockCount})</span>
               </button>
             )}
@@ -1046,7 +1046,7 @@ export default function ResultsPage() {
                     : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
                 }`}
               >
-                🌱 Ekologiskt
+                <Leaf className="h-3.5 w-3.5" /> Ekologiskt
                 <span className="text-xs opacity-70">({organicCount})</span>
               </button>
             )}
@@ -1061,7 +1061,7 @@ export default function ResultsPage() {
                     : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                 }`}
               >
-                💰 Inom budget
+                <CircleDollarSign className="h-3.5 w-3.5" /> Inom budget
                 <span className="text-xs opacity-70">({withinBudgetCount})</span>
               </button>
             )}
@@ -1287,7 +1287,7 @@ export default function ResultsPage() {
                           </span>
                         )}
                         {suggestion.wine.ekologisk && (
-                          <span className="text-[10px] text-green-600 font-medium">🌱</span>
+                          <Leaf className="h-3 w-3 text-green-600" />
                         )}
                         {suggestion.wine.location === 'eu' ? (
                           <HelpTooltip content={GLOSSARY.direktimport} side="bottom">
@@ -1313,7 +1313,7 @@ export default function ResultsPage() {
                               : 'bg-primary text-white'
                           }`}
                         >
-                          {isSelected ? '✓ Vald' : 'Välj'}
+                          {isSelected ? (<span className="inline-flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Vald</span>) : 'Välj'}
                         </button>
                       </div>
                     </div>
@@ -1339,8 +1339,8 @@ export default function ResultsPage() {
                           </span>
                         )}
                         {suggestion.wine.ekologisk && (
-                          <span className="px-2 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-full">
-                            🌱 Eko
+                          <span className="px-2 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-full inline-flex items-center gap-1">
+                            <Leaf className="h-3 w-3" /> Eko
                           </span>
                         )}
                         {suggestion.wine.location === 'eu' ? (
@@ -1423,8 +1423,8 @@ export default function ResultsPage() {
                         );
                       })()}
                       {isSelected ? (
-                        <p className="text-xs text-green-600 font-medium mt-1">
-                          ✓ I förfrågan
+                        <p className="text-xs text-green-600 font-medium mt-1 inline-flex items-center gap-1">
+                          <Check className="h-3 w-3" /> I förfrågan
                         </p>
                       ) : (
                         <p className="text-xs text-primary font-medium mt-1 opacity-70 group-hover:opacity-100">
@@ -1552,8 +1552,8 @@ export default function ResultsPage() {
                         {/* Carton info */}
                         {suggestion.wine.kartong && suggestion.wine.kartong > 0 && (
                           <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-xs text-blue-700 font-medium">
-                              📦 {suggestion.wine.kartong} fl/kartong = {formatPrice(suggestion.wine.pris_sek * suggestion.wine.kartong)}/kartong
+                            <p className="text-xs text-blue-700 font-medium inline-flex items-center gap-1">
+                              <Package className="h-3 w-3" /> {suggestion.wine.kartong} fl/kartong = {formatPrice(suggestion.wine.pris_sek * suggestion.wine.kartong)}/kartong
                             </p>
                           </div>
                         )}
@@ -1596,7 +1596,7 @@ export default function ResultsPage() {
                                   return newSet;
                                 });
                               }}
-                              className="text-xs text-gray-500 hover:text-gray-700"
+                              className="text-xs text-muted-foreground hover:text-foreground"
                             >
                               Ångra
                             </button>
@@ -1615,7 +1615,7 @@ export default function ResultsPage() {
                                     e.stopPropagation();
                                     toggleBreakdown(suggestion.wine.id);
                                   }}
-                                  className="p-1 -m-1 rounded hover:bg-muted/50 transition-colors"
+                                  className="p-1 -m-1 rounded hover:bg-accent/50 transition-colors"
                                   title="Visa matchningsdetaljer"
                                 >
                                   {expandedBreakdowns.has(suggestion.wine.id) ? (
@@ -1692,7 +1692,7 @@ export default function ResultsPage() {
                             return (
                               <div className="flex flex-wrap items-center gap-1">
                                 {isGoodMatch && (
-                                  <span className="text-green-600 text-xs">✓</span>
+                                  <Check className="h-3 w-3 text-green-600" />
                                 )}
                                 {tags.length > 0 ? (
                                   <span className={`text-xs ${isGoodMatch ? 'text-green-600' : 'text-muted-foreground'}`}>
@@ -1743,7 +1743,7 @@ export default function ResultsPage() {
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${
                         expandedWines.has(suggestion.wine.id)
                           ? 'bg-primary/5 border-primary/20 text-primary'
-                          : 'bg-muted/40 border-border hover:bg-muted/60 hover:border-primary/30 text-muted-foreground hover:text-foreground'
+                          : 'bg-muted/40 border-border hover:bg-accent/60 hover:border-primary/30 text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       <span className="text-sm font-medium flex items-center gap-2">
@@ -1799,13 +1799,13 @@ export default function ResultsPage() {
                         {(suggestion.wine.biodynamiskt || suggestion.wine.veganskt) && (
                           <div className="flex gap-2 pt-3 border-t border-border">
                             {suggestion.wine.biodynamiskt && (
-                              <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                                🌙 Biodynamiskt
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full inline-flex items-center gap-1">
+                                <Moon className="h-3 w-3" /> Biodynamiskt
                               </span>
                             )}
                             {suggestion.wine.veganskt && (
-                              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                                🌱 Veganskt
+                              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full inline-flex items-center gap-1">
+                                <Leaf className="h-3 w-3" /> Veganskt
                               </span>
                             )}
                           </div>
@@ -1861,7 +1861,7 @@ export default function ResultsPage() {
                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Liknande viner</p>
                                 <div className="space-y-2">
                                   {similarWines.slice(0, 5).map((sw) => (
-                                    <div key={sw.wine.id} className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-100">
+                                    <div key={sw.wine.id} className="flex items-center justify-between p-2 bg-white rounded-lg border border-border">
                                       <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-foreground truncate">{sw.wine.name}</p>
                                         <p className="text-xs text-muted-foreground truncate">
@@ -1902,7 +1902,7 @@ export default function ResultsPage() {
                                           disabled={draftList.items.some(item => item.wine_id === sw.wine.id)}
                                           className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${
                                             draftList.items.some(item => item.wine_id === sw.wine.id)
-                                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                              ? 'bg-muted text-muted-foreground cursor-not-allowed'
                                               : 'bg-wine/10 text-wine hover:bg-wine/20'
                                           }`}
                                         >
@@ -1932,7 +1932,7 @@ export default function ResultsPage() {
                     <>
                       {/* Mobile: compact badge */}
                       <div className="md:hidden mb-4 flex items-center gap-2 p-2.5 bg-secondary/10 border border-secondary/20 rounded-lg">
-                        <span className="text-sm">💰</span>
+                        <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
                         <p className={`text-xs font-medium ${
                           parseFloat(suggestion.market_data.price_difference_percent) <= 0
                             ? 'text-green-600' : 'text-foreground'
@@ -1949,7 +1949,7 @@ export default function ResultsPage() {
                       {/* Desktop: full panel */}
                       <div className="hidden md:block mb-6 p-4 bg-secondary/10 border border-secondary/20 rounded-xl">
                         <div className="flex items-start gap-3">
-                          <span className="text-2xl">💰</span>
+                          <CircleDollarSign className="h-6 w-6 text-muted-foreground" />
                           <div className="flex-1">
                             <p className="text-sm font-medium text-foreground mb-2">Marknadsprisinfo</p>
                             <div className="grid grid-cols-2 gap-4">
@@ -1986,7 +1986,7 @@ export default function ResultsPage() {
                   {/* Supplier Info */}
                   <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
                     <div className="flex items-center gap-3 text-sm">
-                      <span className="text-xl">📦</span>
+                      <Package className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="font-medium text-foreground">
                           {suggestion.supplier.namn}
@@ -2109,7 +2109,7 @@ export default function ResultsPage() {
                                 isSaved
                                   ? 'bg-green-100 text-green-700 hover:bg-green-200'
                                   : !canAddToList
-                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  ? 'bg-muted text-muted-foreground cursor-not-allowed'
                                   : hasProvorder
                                   ? 'bg-green-600 text-white hover:bg-green-700'
                                   : 'bg-amber-500 text-white hover:bg-amber-600'
@@ -2167,8 +2167,8 @@ export default function ResultsPage() {
                             </div>
                           )}
                           {justAdjustedToMoq === suggestion.wine.id && (
-                            <span className="text-xs text-green-600 font-medium animate-pulse">
-                              ✓ Ändrat till {moq} fl
+                            <span className="text-xs text-green-600 font-medium animate-pulse inline-flex items-center gap-1">
+                              <Check className="h-3 w-3" /> Ändrat till {moq} fl
                             </span>
                           )}
                         </div>
@@ -2252,13 +2252,13 @@ export default function ResultsPage() {
                   disabled={draftList.items.length === 0}
                   className="px-8 py-3 bg-primary-foreground text-primary rounded-xl hover:bg-primary-foreground/90 transition-colors font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  📧 Granska och skicka ({draftList.items.length} viner)
+                  <span className="inline-flex items-center gap-2"><Mail className="h-4 w-4" /> Granska och skicka ({draftList.items.length} viner)</span>
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/new-request')}
                   className="px-8 py-3 bg-primary/20 text-primary-foreground rounded-xl hover:bg-primary/30 transition-colors font-medium"
                 >
-                  🔍 Ny förfrågan
+                  <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" /> Ny förfrågan</span>
                 </button>
               </div>
             </div>
@@ -2280,23 +2280,23 @@ export default function ResultsPage() {
             <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] md:max-h-[90vh] overflow-hidden">
               {/* Drag handle — mobile only */}
               <div className="flex justify-center pt-2 md:hidden">
-                <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
               </div>
               {/* Modal Header */}
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary/5 to-accent/5">
+              <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-primary/5 to-accent/5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Bekräfta din förfrågan</h2>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <h2 className="text-xl font-bold text-foreground">Bekräfta din förfrågan</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
                       Granska ditt val innan du skickar till leverantörer
                     </p>
                   </div>
                   <button
                     onClick={() => !sending && setShowConfirmModal(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-accent rounded-lg transition-colors"
                     disabled={sending}
                   >
-                    <X className="h-5 w-5 text-gray-500" />
+                    <X className="h-5 w-5 text-muted-foreground" />
                   </button>
                 </div>
               </div>
@@ -2322,33 +2322,33 @@ export default function ResultsPage() {
 
                 {/* Wine List - use draftList.items for accurate quantities */}
                 <div className="space-y-3">
-                  <p className="text-sm font-medium text-gray-700">Viner som ingår:</p>
+                  <p className="text-sm font-medium text-foreground">Viner som ingår:</p>
                   {draftList.items.map((item, index) => (
                     <div
                       key={item.wine_id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
+                      className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border"
                     >
                       <div className="flex items-center gap-3">
                         <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
                           {index + 1}
                         </span>
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-foreground">
                             {item.wine_name}
                             {item.vintage && (
-                              <span className="text-gray-500 ml-1">{item.vintage}</span>
+                              <span className="text-muted-foreground ml-1">{item.vintage}</span>
                             )}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             {item.producer} · {item.supplier_name}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-gray-500 mb-1">
+                        <p className="text-xs text-muted-foreground mb-1">
                           {item.quantity} fl × {formatPrice(item.price_sek)}
                         </p>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-foreground">
                           {formatPrice(item.price_sek * item.quantity)}
                         </p>
                       </div>
@@ -2386,11 +2386,11 @@ export default function ResultsPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <div className="px-6 py-4 border-t border-border bg-muted flex items-center justify-between">
                 <button
                   onClick={() => setShowConfirmModal(false)}
                   disabled={sending}
-                  className="px-6 py-2.5 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors font-medium disabled:opacity-50"
+                  className="px-6 py-2.5 text-foreground hover:bg-accent rounded-lg transition-colors font-medium disabled:opacity-50"
                 >
                   Tillbaka
                 </button>
@@ -2419,38 +2419,38 @@ export default function ResultsPage() {
 
       {/* Sticky action bar - shows when wines are in list */}
       {draftList.items.length > 0 && !sent && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-lg safe-area-inset-bottom">
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-border shadow-lg safe-area-inset-bottom">
           {/* RFQ Summary Bar — hidden on mobile */}
           <div className="hidden sm:block max-w-4xl mx-auto px-4 pt-3 pb-1">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               {searchDescription && (
                 <span className="truncate max-w-[200px]" title={searchDescription}>
                   &quot;{searchDescription}&quot;
                 </span>
               )}
               {wineType && wineType !== 'all' && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                   {wineType === 'red' ? 'Rött' : wineType === 'white' ? 'Vitt' : wineType === 'sparkling' ? 'Bubbel' : wineType === 'rose' ? 'Rosé' : wineType}
                 </span>
               )}
               {budgetMax && (
                 <span className="inline-flex items-center gap-1">
-                  <span className="text-green-600">✓</span> {budgetMax} kr
+                  <Check className="h-3 w-3 text-green-600" /> {budgetMax} kr
                 </span>
               )}
               {requestedQuantity && (
                 <span className="inline-flex items-center gap-1">
-                  <span className="text-green-600">✓</span> {requestedQuantity} fl
+                  <Check className="h-3 w-3 text-green-600" /> {requestedQuantity} fl
                 </span>
               )}
               {deliveryCity && (
                 <span className="inline-flex items-center gap-1">
-                  📍 {deliveryCity}
+                  <MapPin className="h-3 w-3" /> {deliveryCity}
                 </span>
               )}
               {deliveryTime && (
                 <span className="inline-flex items-center gap-1">
-                  🕐 {deliveryTime === 'this_week' ? 'Denna vecka' : deliveryTime === 'two_weeks' ? '2 veckor' : 'Flexibel'}
+                  <Clock className="h-3 w-3" /> {deliveryTime === 'this_week' ? 'Denna vecka' : deliveryTime === 'two_weeks' ? '2 veckor' : 'Flexibel'}
                 </span>
               )}
             </div>
@@ -2458,10 +2458,10 @@ export default function ResultsPage() {
           {/* Action Row */}
           <div className="px-4 py-3 flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 truncate">
+              <p className="font-medium text-foreground truncate">
                 {draftList.items.length} vin{draftList.items.length > 1 ? 'er' : ''} ({totalBottles} fl)
               </p>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 {formatPrice(totalEstimatedValue)}
               </p>
             </div>

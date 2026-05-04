@@ -119,8 +119,8 @@ export default function HelpPage() {
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Hjälp & Support</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Hjälp & Support</h1>
+        <p className="text-muted-foreground mt-1">
           Vanliga frågor och kontaktinformation
         </p>
       </div>
@@ -150,9 +150,9 @@ export default function HelpPage() {
       </div>
 
       {/* FAQ Section */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-lg border border-border">
+        <div className="p-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground mb-4">
             Vanliga frågor
           </h2>
 
@@ -163,7 +163,7 @@ export default function HelpPage() {
               className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                 selectedCategory === 'all'
                   ? 'bg-wine text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-muted text-muted-foreground hover:bg-accent'
               }`}
             >
               Alla
@@ -177,7 +177,7 @@ export default function HelpPage() {
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                     selectedCategory === category
                       ? 'bg-wine text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-muted text-muted-foreground hover:bg-accent'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -194,23 +194,23 @@ export default function HelpPage() {
             <div key={index}>
               <button
                 onClick={() => setOpenItem(openItem === index ? null : index)}
-                className="w-full px-4 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+                className="w-full px-4 py-4 flex items-center justify-between text-left hover:bg-accent transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                  <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
                     {item.category}
                   </span>
-                  <span className="font-medium text-gray-900">{item.question}</span>
+                  <span className="font-medium text-foreground">{item.question}</span>
                 </div>
                 {openItem === index ? (
-                  <ChevronUp className="h-5 w-5 text-gray-400" />
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
                 )}
               </button>
               {openItem === index && (
                 <div className="px-4 pb-4">
-                  <p className="text-gray-600 pl-[72px]">{item.answer}</p>
+                  <p className="text-muted-foreground pl-[72px]">{item.answer}</p>
                 </div>
               )}
             </div>
@@ -260,14 +260,14 @@ function QuickLink({ title, description, href, icon: Icon }: QuickLinkProps) {
   return (
     <a
       href={href}
-      className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-wine hover:bg-red-50 transition-colors"
+      className="flex items-center gap-3 p-4 bg-white rounded-lg border border-border hover:border-wine hover:bg-red-50 transition-colors"
     >
-      <div className="p-2 bg-gray-100 rounded-lg">
-        <Icon className="h-5 w-5 text-gray-600" />
+      <div className="p-2 bg-muted rounded-lg">
+        <Icon className="h-5 w-5 text-muted-foreground" />
       </div>
       <div>
-        <p className="font-medium text-gray-900">{title}</p>
-        <p className="text-sm text-gray-500">{description}</p>
+        <p className="font-medium text-foreground">{title}</p>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
     </a>
   );

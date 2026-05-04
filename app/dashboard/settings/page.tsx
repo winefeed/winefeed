@@ -730,7 +730,7 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={billingForm.use_same_address}
                       onChange={(e) => setBillingForm({ ...billingForm, use_same_address: e.target.checked })}
-                      className="rounded border-gray-300"
+                      className="rounded border-border"
                     />
                     <span className="text-sm">Samma fakturaadress som restaurangadress</span>
                   </label>
@@ -1038,7 +1038,7 @@ export default function SettingsPage() {
                             <FileText className="h-3.5 w-3.5" /> Angivet
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                          <span className="flex items-center gap-1.5 px-2.5 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium">
                             Ej angivet
                           </span>
                         )}
@@ -1075,7 +1075,7 @@ export default function SettingsPage() {
                             ) : (
                               <span className="font-medium">–</span>
                             )}
-                            <label className="flex items-center gap-1.5 px-2.5 py-1.5 border border-border rounded-lg cursor-pointer hover:bg-muted text-xs">
+                            <label className="flex items-center gap-1.5 px-2.5 py-1.5 border border-border rounded-lg cursor-pointer hover:bg-accent text-xs">
                               {uploadingLicense ? (
                                 <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Laddar upp...</>
                               ) : (
@@ -1147,7 +1147,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={notifications.email_new_offer}
                   onChange={(e) => setNotifications({ ...notifications, email_new_offer: e.target.checked })}
-                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
                 />
               </label>
 
@@ -1160,7 +1160,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={notifications.email_offer_reminder}
                   onChange={(e) => setNotifications({ ...notifications, email_offer_reminder: e.target.checked })}
-                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
                 />
               </label>
 
@@ -1173,7 +1173,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={notifications.email_order_status}
                   onChange={(e) => setNotifications({ ...notifications, email_order_status: e.target.checked })}
-                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
                 />
               </label>
             </div>
@@ -1406,7 +1406,7 @@ export default function SettingsPage() {
                     type="checkbox"
                     checked={formData.is_default}
                     onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
-                    className="rounded border-gray-300"
+                    className="rounded border-border"
                   />
                   <span className="text-sm">Använd som standardadress</span>
                 </label>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FreeTextEntry } from '@/components/rfq/FreeTextEntry';
-import { ChevronDown, ChevronUp, Globe2, Megaphone, Menu } from 'lucide-react';
+import { ChevronDown, ChevronUp, Globe2, Megaphone, Menu, Wine, MessageSquare, Search, Send } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -167,7 +167,7 @@ export default function NewRequestPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50">
       {/* Hero Header with Gradient */}
-      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42, #93092b)' }}>
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(to bottom right, #722F37, #8B3A42, #722F37)' }}>
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
 
@@ -187,7 +187,7 @@ export default function NewRequestPage() {
           <div className="text-center">
             {/* Icon Badge */}
             <div className="hidden sm:inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm mb-6 ring-1 ring-white/30 shadow-lg">
-              <span className="text-3xl sm:text-4xl">🍷</span>
+              <Wine className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
             </div>
 
             {/* Main Heading */}
@@ -226,7 +226,7 @@ export default function NewRequestPage() {
         <div className="relative">
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden">
             {/* Subtle gradient header */}
-            <div className="h-2" style={{ background: 'linear-gradient(to right, #93092b, #f1b4b0, #93092b)' }} />
+            <div className="h-2" style={{ background: 'linear-gradient(to right, #722F37, #A94A54, #722F37)' }} />
 
             <div className="p-6 sm:p-8">
               <FreeTextEntry
@@ -249,14 +249,14 @@ export default function NewRequestPage() {
           {/* EU Wine Card */}
           <div className="group relative overflow-hidden rounded-2xl border p-5 sm:p-6 hover:shadow-lg transition-all duration-300 touch-manipulation" style={{ background: 'linear-gradient(to bottom right, #fef5f5, #fff9f9)', borderColor: '#f1b4b0' }}>
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(to bottom right, #722F37, #8B3A42)' }}>
                 <Globe2 className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 mb-1 text-base sm:text-lg">
+                <h3 className="font-semibold text-foreground mb-1 text-base sm:text-lg">
                   Direktleverans från EU
                 </h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   Beställ direkt från franska, italienska och spanska producenter.
                 </p>
               </div>
@@ -270,17 +270,17 @@ export default function NewRequestPage() {
             style={{ background: 'linear-gradient(to bottom right, #fffbf5, #fffef9)', borderColor: '#f2e2b6' }}
           >
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(to bottom right, #722F37, #8B3A42)' }}>
                 <Megaphone className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 mb-1 text-base sm:text-lg">
+                <h3 className="font-semibold text-foreground mb-1 text-base sm:text-lg">
                   Sök hos flera importörer
                 </h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   Beskriv en kategori — t.ex. Chablis under 200 kr — och låt leverantörer tävla om affären.
                 </p>
-                <span className="inline-block mt-2 text-xs font-medium" style={{ color: '#93092b' }}>
+                <span className="inline-block mt-2 text-xs font-medium" style={{ color: '#722F37' }}>
                   Öppen förfrågan →
                 </span>
               </div>
@@ -291,28 +291,28 @@ export default function NewRequestPage() {
         {/* How It Works - Condensed on mobile, collapsible on desktop */}
         <div className="mt-6 sm:mt-8">
           {/* Mobile: always-visible condensed version */}
-          <div className="sm:hidden bg-white rounded-2xl shadow-sm border border-gray-200/60 p-4">
-            <h3 className="font-semibold text-gray-900 text-base mb-3 text-center">Så fungerar det</h3>
+          <div className="sm:hidden bg-white rounded-2xl shadow-sm border border-border/60 p-4">
+            <h3 className="font-semibold text-foreground text-base mb-3 text-center">Så fungerar det</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>1</div>
+                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(to bottom right, #722F37, #8B3A42)' }}>1</div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Beskriv fritt</p>
-                  <p className="text-xs text-gray-600">Skriv vad du söker med egna ord</p>
+                  <p className="text-sm font-medium text-foreground">Beskriv fritt</p>
+                  <p className="text-xs text-muted-foreground">Skriv vad du söker med egna ord</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>2</div>
+                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(to bottom right, #722F37, #8B3A42)' }}>2</div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Se förslag</p>
-                  <p className="text-xs text-gray-600">Få matchande viner direkt</p>
+                  <p className="text-sm font-medium text-foreground">Se förslag</p>
+                  <p className="text-xs text-muted-foreground">Få matchande viner direkt</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>3</div>
+                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(to bottom right, #722F37, #8B3A42)' }}>3</div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Skicka förfrågan</p>
-                  <p className="text-xs text-gray-600">Välj viner och skicka för offert</p>
+                  <p className="text-sm font-medium text-foreground">Skicka förfrågan</p>
+                  <p className="text-xs text-muted-foreground">Välj viner och skicka för offert</p>
                 </div>
               </div>
             </div>
@@ -320,19 +320,19 @@ export default function NewRequestPage() {
 
           {/* Desktop: collapsible detailed version */}
           <div className="hidden sm:block">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden hover:shadow-md transition-shadow duration-300">
+            <div className="bg-white rounded-2xl shadow-sm border border-border/60 overflow-hidden hover:shadow-md transition-shadow duration-300">
               <button
                 onClick={() => setShowHowItWorks(!showHowItWorks)}
-                className="w-full flex items-center justify-center p-5 sm:p-6 hover:bg-gray-50/50 transition-colors touch-manipulation min-h-[60px] relative"
+                className="w-full flex items-center justify-center p-5 sm:p-6 hover:bg-accent/50 transition-colors touch-manipulation min-h-[60px] relative"
               >
-                <span className="font-semibold text-gray-900 text-base sm:text-lg">
+                <span className="font-semibold text-foreground text-base sm:text-lg">
                   Så fungerar det
                 </span>
                 <div className="absolute right-5">
                   {showHowItWorks ? (
-                    <ChevronUp className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+                    <ChevronUp className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
                   ) : (
-                    <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+                    <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
                   )}
                 </div>
               </button>
@@ -346,40 +346,40 @@ export default function NewRequestPage() {
                 )}
               >
                 <div className="overflow-hidden">
-                  <div className="p-5 sm:p-6 pt-0 border-t border-gray-100">
+                  <div className="p-5 sm:p-6 pt-0 border-t border-border">
                     <div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
                       {/* Step 1 */}
-                      <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 hover:shadow-md transition-all duration-300">
-                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
+                      <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-border/60 hover:shadow-md transition-all duration-300">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #722F37, #8B3A42)' }}>
                           1
                         </div>
-                        <div className="text-3xl mb-3">💬</div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Beskriv fritt</h4>
-                        <p className="text-sm text-gray-600 leading-relaxed">
+                        <div className="mb-3"><MessageSquare className="h-7 w-7 text-primary" /></div>
+                        <h4 className="font-semibold text-foreground mb-2">Beskriv fritt</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                           Skriv vad du söker med egna ord - &quot;italienskt till lamm&quot;
                         </p>
                       </div>
 
                       {/* Step 2 */}
-                      <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 hover:shadow-md transition-all duration-300">
-                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
+                      <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-border/60 hover:shadow-md transition-all duration-300">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #722F37, #8B3A42)' }}>
                           2
                         </div>
-                        <div className="text-3xl mb-3">🔍</div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Se förslag</h4>
-                        <p className="text-sm text-gray-600 leading-relaxed">
+                        <div className="mb-3"><Search className="h-7 w-7 text-primary" /></div>
+                        <h4 className="font-semibold text-foreground mb-2">Se förslag</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                           Få matchande viner direkt - förfina med budget och antal
                         </p>
                       </div>
 
                       {/* Step 3 */}
-                      <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 hover:shadow-md transition-all duration-300">
-                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #93092b, #b41a42)' }}>
+                      <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-border/60 hover:shadow-md transition-all duration-300">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ background: 'linear-gradient(to bottom right, #722F37, #8B3A42)' }}>
                           3
                         </div>
-                        <div className="text-3xl mb-3">📨</div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Skicka förfrågan</h4>
-                        <p className="text-sm text-gray-600 leading-relaxed">
+                        <div className="mb-3"><Send className="h-7 w-7 text-primary" /></div>
+                        <h4 className="font-semibold text-foreground mb-2">Skicka förfrågan</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                           Välj viner och skicka till leverantörer för offert
                         </p>
                       </div>

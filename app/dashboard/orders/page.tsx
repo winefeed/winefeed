@@ -128,7 +128,7 @@ export default function RestaurantOrdersPage() {
       indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
       green: 'bg-green-100 text-green-700 border-green-200',
       red: 'bg-red-100 text-red-700 border-red-200',
-      gray: 'bg-gray-100 text-gray-700 border-gray-200',
+      gray: 'bg-muted text-foreground border-border',
     };
 
     return (
@@ -165,11 +165,11 @@ export default function RestaurantOrdersPage() {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-12 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="h-12 bg-muted rounded"></div>
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded-lg"></div>
+              <div key={i} className="h-24 bg-muted rounded-lg"></div>
             ))}
           </div>
         </div>
@@ -181,8 +181,8 @@ export default function RestaurantOrdersPage() {
     <div className="p-4 sm:p-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Mina ordrar</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Mina ordrar</h1>
+        <p className="text-muted-foreground mt-1">
           Följ dina beställningar och leveranser
         </p>
       </div>
@@ -191,13 +191,13 @@ export default function RestaurantOrdersPage() {
       <div className="mb-6 space-y-4">
         {/* Search */}
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Sök på leverantör eller produkt..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
           />
         </div>
 
@@ -239,12 +239,12 @@ export default function RestaurantOrdersPage() {
 
       {/* Orders List */}
       {filteredOrders.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="bg-white rounded-lg border border-border p-12 text-center">
+          <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             {orders.length === 0 ? 'Inga ordrar än' : 'Inga ordrar matchar filtret'}
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             {orders.length === 0
               ? 'När du accepterar en offert skapas en order automatiskt'
               : 'Prova att ändra filter eller sökterm'}
@@ -263,19 +263,19 @@ export default function RestaurantOrdersPage() {
           {filteredOrders.map((order) => (
             <div
               key={order.id}
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors"
+              className="bg-white rounded-lg border border-border overflow-hidden hover:border-border transition-colors"
             >
               {/* Order Header */}
-              <div className="px-4 py-3 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="px-4 py-3 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg flex-shrink-0">
-                    <Building2 className="h-5 w-5 text-gray-600" />
+                  <div className="p-2 bg-muted rounded-lg flex-shrink-0">
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
+                    <p className="font-medium text-foreground truncate">
                       {order.supplier?.namn || 'Leverantör'}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Order skapad {formatDistanceToNow(new Date(order.created_at), { addSuffix: true, locale: sv })}
                     </p>
                   </div>
@@ -292,7 +292,7 @@ export default function RestaurantOrdersPage() {
                     </div>
                     <div>
                       <p className="font-medium text-wine">Winefeed hanterar din order</p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-muted-foreground">
                         Vi sköter kontakten med leverantören åt dig. Frågor? <a href="mailto:hej@winefeed.se" className="underline hover:text-wine">hej@winefeed.se</a>
                       </p>
                     </div>
@@ -305,24 +305,24 @@ export default function RestaurantOrdersPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                   {/* Delivery Date */}
                   <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-600">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">
                       Leverans: {order.delivery_date ? format(new Date(order.delivery_date), 'd MMM yyyy', { locale: sv }) : 'Ej angiven'}
                     </span>
                   </div>
 
                   {/* Delivery Address */}
                   <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-600 truncate">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground truncate">
                       {order.delivery_address || 'Ej angiven'}
                     </span>
                   </div>
 
                   {/* Total */}
                   <div className="text-sm sm:text-right">
-                    <span className="text-gray-600">Totalt: </span>
-                    <span className="font-semibold text-gray-900">
+                    <span className="text-muted-foreground">Totalt: </span>
+                    <span className="font-semibold text-foreground">
                       {formatCurrency(order.total_amount)}
                     </span>
                   </div>
@@ -330,23 +330,23 @@ export default function RestaurantOrdersPage() {
 
                 {/* Order Lines Preview */}
                 {order.lines && order.lines.length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs font-medium text-gray-500 uppercase mb-2">
+                  <div className="bg-muted rounded-lg p-3">
+                    <p className="text-xs font-medium text-muted-foreground uppercase mb-2">
                       Produkter ({order.lines.length})
                     </p>
                     <div className="space-y-1">
                       {order.lines.slice(0, 3).map((line) => (
                         <div key={line.id} className="flex justify-between text-sm">
-                          <span className="text-gray-700 truncate flex-1">
+                          <span className="text-foreground truncate flex-1">
                             {line.quantity}x {line.name}
                           </span>
-                          <span className="text-gray-600 ml-2">
+                          <span className="text-muted-foreground ml-2">
                             {formatCurrency(line.unit_price * line.quantity)}
                           </span>
                         </div>
                       ))}
                       {order.lines.length > 3 && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           ... och {order.lines.length - 3} till
                         </p>
                       )}
@@ -356,7 +356,7 @@ export default function RestaurantOrdersPage() {
               </div>
 
               {/* Order Footer */}
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+              <div className="px-4 py-3 bg-muted border-t border-border flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   {/* Reorder button - available for confirmed, shipped, or delivered orders */}
                   {['CONFIRMED', 'confirmed', 'SHIPPED', 'shipped', 'DELIVERED', 'delivered'].includes(order.status) && order.lines?.length > 0 && (
@@ -456,7 +456,7 @@ function FilterButton({ label, count, active, onClick, highlight }: FilterButton
           ? 'bg-wine text-white'
           : highlight
           ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          : 'bg-muted text-muted-foreground hover:bg-accent'
       }`}
     >
       {label}
@@ -480,14 +480,14 @@ function OrderDetailModal({ order, onClose, formatCurrency, getStatusBadge }: Or
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+        <div className="p-6 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Orderdetaljer</h2>
-            <p className="text-sm text-gray-500">{order.supplier?.namn}</p>
+            <h2 className="text-lg font-semibold text-foreground">Orderdetaljer</h2>
+            <p className="text-sm text-muted-foreground">{order.supplier?.namn}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-muted-foreground hover:text-muted-foreground"
           >
             <XCircle className="h-6 w-6" />
           </button>
@@ -496,23 +496,23 @@ function OrderDetailModal({ order, onClose, formatCurrency, getStatusBadge }: Or
         <div className="p-6 space-y-6">
           {/* Status */}
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Status</span>
+            <span className="text-sm text-muted-foreground">Status</span>
             {getStatusBadge(order.status)}
           </div>
 
           {/* Delivery Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Leveransdatum</p>
-              <p className="font-medium text-gray-900">
+              <p className="text-sm text-muted-foreground mb-1">Leveransdatum</p>
+              <p className="font-medium text-foreground">
                 {order.delivery_date
                   ? format(new Date(order.delivery_date), 'd MMMM yyyy', { locale: sv })
                   : 'Ej angiven'}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 mb-1">Leveransadress</p>
-              <p className="font-medium text-gray-900">
+              <p className="text-sm text-muted-foreground mb-1">Leveransadress</p>
+              <p className="font-medium text-foreground">
                 {order.delivery_address || 'Ej angiven'}
               </p>
             </div>
@@ -520,35 +520,35 @@ function OrderDetailModal({ order, onClose, formatCurrency, getStatusBadge }: Or
 
           {/* Order Lines */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-3">Produkter</p>
+            <p className="text-sm font-medium text-foreground mb-3">Produkter</p>
             <div className="border rounded-lg overflow-x-auto">
               <table className="w-full min-w-[400px]">
-                <thead className="bg-gray-50">
+                <thead className="bg-muted">
                   <tr>
-                    <th className="text-left p-3 text-sm font-medium text-gray-600">Produkt</th>
-                    <th className="text-right p-3 text-sm font-medium text-gray-600">Antal</th>
-                    <th className="text-right p-3 text-sm font-medium text-gray-600">À-pris</th>
-                    <th className="text-right p-3 text-sm font-medium text-gray-600">Summa</th>
+                    <th className="text-left p-3 text-sm font-medium text-muted-foreground">Produkt</th>
+                    <th className="text-right p-3 text-sm font-medium text-muted-foreground">Antal</th>
+                    <th className="text-right p-3 text-sm font-medium text-muted-foreground">À-pris</th>
+                    <th className="text-right p-3 text-sm font-medium text-muted-foreground">Summa</th>
                   </tr>
                 </thead>
                 <tbody>
                   {order.lines?.map((line) => (
-                    <tr key={line.id} className="border-t border-gray-100">
-                      <td className="p-3 text-sm text-gray-900">{line.name}</td>
-                      <td className="p-3 text-sm text-gray-600 text-right">{line.quantity}</td>
-                      <td className="p-3 text-sm text-gray-600 text-right">{formatCurrency(line.unit_price)}</td>
-                      <td className="p-3 text-sm font-medium text-gray-900 text-right">
+                    <tr key={line.id} className="border-t border-border">
+                      <td className="p-3 text-sm text-foreground">{line.name}</td>
+                      <td className="p-3 text-sm text-muted-foreground text-right">{line.quantity}</td>
+                      <td className="p-3 text-sm text-muted-foreground text-right">{formatCurrency(line.unit_price)}</td>
+                      <td className="p-3 text-sm font-medium text-foreground text-right">
                         {formatCurrency(line.unit_price * line.quantity)}
                       </td>
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-gray-50">
+                <tfoot className="bg-muted">
                   <tr>
-                    <td colSpan={3} className="p-3 text-sm font-medium text-gray-700 text-right">
+                    <td colSpan={3} className="p-3 text-sm font-medium text-foreground text-right">
                       Totalt
                     </td>
-                    <td className="p-3 text-lg font-bold text-gray-900 text-right">
+                    <td className="p-3 text-lg font-bold text-foreground text-right">
                       {formatCurrency(order.total_amount)}
                     </td>
                   </tr>
@@ -559,7 +559,7 @@ function OrderDetailModal({ order, onClose, formatCurrency, getStatusBadge }: Or
 
           {/* Timeline */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-3">Historik</p>
+            <p className="text-sm font-medium text-foreground mb-3">Historik</p>
             <div className="space-y-3">
               <TimelineItem
                 label="Order skapad"
@@ -591,10 +591,10 @@ function OrderDetailModal({ order, onClose, formatCurrency, getStatusBadge }: Or
           </div>
         </div>
 
-        <div className="p-6 border-t border-gray-200 flex justify-end">
+        <div className="p-6 border-t border-border flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent"
           >
             Stäng
           </button>
@@ -613,11 +613,11 @@ interface TimelineItemProps {
 function TimelineItem({ label, date, active }: TimelineItemProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className={`w-2 h-2 rounded-full ${active ? 'bg-green-500' : 'bg-gray-300'}`} />
+      <div className={`w-2 h-2 rounded-full ${active ? 'bg-green-500' : 'bg-muted-foreground/30'}`} />
       <div className="flex-1">
-        <p className={`text-sm ${active ? 'text-gray-900' : 'text-gray-500'}`}>{label}</p>
+        <p className={`text-sm ${active ? 'text-foreground' : 'text-muted-foreground'}`}>{label}</p>
       </div>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-muted-foreground">
         {format(new Date(date), 'd MMM HH:mm', { locale: sv })}
       </p>
     </div>
@@ -709,13 +709,13 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Beställning skickad!
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             Din återbeställning har skickats till {order.supplier?.namn}.
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Du omdirigeras till dina förfrågningar...
           </p>
         </div>
@@ -727,20 +727,20 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-lg">
                 <RotateCcw className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Beställ igen</h2>
-                <p className="text-sm text-gray-500">{order.supplier?.namn}</p>
+                <h2 className="text-lg font-semibold text-foreground">Beställ igen</h2>
+                <p className="text-sm text-muted-foreground">{order.supplier?.namn}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-muted-foreground hover:text-muted-foreground"
             >
               <XCircle className="h-6 w-6" />
             </button>
@@ -749,7 +749,7 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[50vh]">
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Justera antal om du vill, sedan skickas beställningen direkt till leverantören.
           </p>
 
@@ -762,11 +762,11 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
               return (
                 <div
                   key={lineId}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
                 >
                   <div className="flex-1 min-w-0 mr-4">
-                    <p className="font-medium text-gray-900 truncate">{line.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-foreground truncate">{line.name}</p>
+                    <p className="text-sm text-muted-foreground">
                       {formatCurrency(line.unit_price)} / st
                     </p>
                   </div>
@@ -776,7 +776,7 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
                     <button
                       type="button"
                       onClick={() => updateQuantity(lineId, -1)}
-                      className="p-1.5 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+                      className="p-1.5 rounded-lg border border-border hover:bg-accent disabled:opacity-50"
                       disabled={qty <= 1}
                     >
                       <Minus className="h-4 w-4" />
@@ -785,13 +785,13 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
                       type="number"
                       value={qty}
                       onChange={(e) => setQuantity(lineId, parseInt(e.target.value) || 1)}
-                      className="w-16 text-center border border-gray-300 rounded-lg py-1 text-sm"
+                      className="w-16 text-center border border-border rounded-lg py-1 text-sm"
                       min="1"
                     />
                     <button
                       type="button"
                       onClick={() => updateQuantity(lineId, 1)}
-                      className="p-1.5 rounded-lg border border-gray-300 hover:bg-gray-100"
+                      className="p-1.5 rounded-lg border border-border hover:bg-accent"
                     >
                       <Plus className="h-4 w-4" />
                     </button>
@@ -809,12 +809,12 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50">
+        <div className="p-6 border-t border-border bg-muted">
           {/* Summary */}
           <div className="flex justify-between items-center mb-4">
             <div>
-              <p className="text-sm text-gray-600">Totalt</p>
-              <p className="text-lg font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">Totalt</p>
+              <p className="text-lg font-bold text-foreground">
                 {totalQuantity} flaskor = {formatCurrency(totalAmount)}
               </p>
             </div>
@@ -824,7 +824,7 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
+              className="flex-1 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent"
               disabled={isSubmitting}
             >
               Avbryt
@@ -848,7 +848,7 @@ function ReorderModal({ order, onClose, formatCurrency }: ReorderModalProps) {
             </button>
           </div>
 
-          <p className="text-xs text-center text-gray-500 mt-3">
+          <p className="text-xs text-center text-muted-foreground mt-3">
             Beställningen skickas direkt till {order.supplier?.namn}
           </p>
         </div>
@@ -913,10 +913,10 @@ function DisputeModal({ order, onClose, onSuccess }: DisputeModalProps) {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Tack för din rapport
           </h2>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Vi har tagit emot din reklamation och återkommer snarast.
           </p>
         </div>
@@ -928,21 +928,21 @@ function DisputeModal({ order, onClose, onSuccess }: DisputeModalProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-lg w-full">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-amber-100 rounded-lg">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Rapportera problem</h2>
-              <p className="text-sm text-gray-500">{order.supplier?.namn}</p>
+              <h2 className="text-lg font-semibold text-foreground">Rapportera problem</h2>
+              <p className="text-sm text-muted-foreground">{order.supplier?.namn}</p>
             </div>
           </div>
         </div>
 
         {/* Content */}
         <div className="p-6">
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Beskriv vad som är fel med leveransen. Vi kontaktar leverantören och återkommer till dig.
           </p>
 
@@ -959,7 +959,7 @@ function DisputeModal({ order, onClose, onSuccess }: DisputeModalProps) {
                   key={option}
                   type="button"
                   onClick={() => setReason(prev => prev ? `${prev}\n${option}` : option)}
-                  className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-3 py-1.5 text-sm bg-muted text-foreground rounded-lg hover:bg-accent transition-colors"
                 >
                   {option}
                 </button>
@@ -972,7 +972,7 @@ function DisputeModal({ order, onClose, onSuccess }: DisputeModalProps) {
               onChange={(e) => setReason(e.target.value)}
               rows={4}
               placeholder="Beskriv problemet i detalj..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+              className="w-full px-4 py-3 border border-border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
             />
 
             {error && (
@@ -984,11 +984,11 @@ function DisputeModal({ order, onClose, onSuccess }: DisputeModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50 flex gap-3">
+        <div className="p-6 border-t border-border bg-muted flex gap-3">
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
+            className="flex-1 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent"
           >
             Avbryt
           </button>

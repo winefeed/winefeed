@@ -239,7 +239,7 @@ export default function VerifieringPage() {
                 />
                 {uploading && <p className="text-xs text-slate-500 mt-1">Laddar upp...</p>}
                 {restaurant?.serving_license_file_url && !uploading && (
-                  <p className="text-xs text-green-700 mt-1">✓ Fil uppladdad</p>
+                  <p className="text-xs text-green-700 mt-1 inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Fil uppladdad</p>
                 )}
               </div>
 

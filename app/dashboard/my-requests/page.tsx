@@ -46,13 +46,13 @@ interface Request {
 }
 
 // Wine color config
-const COLOR_CONFIG: Record<string, { label: string; emoji: string; border: string; bg: string }> = {
-  red: { label: 'Rött', emoji: '🔴', border: 'border-l-red-500', bg: 'bg-red-50' },
-  white: { label: 'Vitt', emoji: '⚪', border: 'border-l-amber-300', bg: 'bg-amber-50' },
-  rose: { label: 'Rosé', emoji: '🩷', border: 'border-l-pink-400', bg: 'bg-pink-50' },
-  sparkling: { label: 'Mousserande', emoji: '🟡', border: 'border-l-yellow-400', bg: 'bg-yellow-50' },
-  orange: { label: 'Orange', emoji: '🟠', border: 'border-l-orange-400', bg: 'bg-orange-50' },
-  fortified: { label: 'Starkvin', emoji: '🟤', border: 'border-l-amber-600', bg: 'bg-amber-100' },
+const COLOR_CONFIG: Record<string, { label: string; dot: string; border: string; bg: string }> = {
+  red: { label: 'Rött', dot: 'bg-red-500', border: 'border-l-red-500', bg: 'bg-red-50' },
+  white: { label: 'Vitt', dot: 'bg-amber-200 border border-amber-300', border: 'border-l-amber-300', bg: 'bg-amber-50' },
+  rose: { label: 'Rosé', dot: 'bg-pink-400', border: 'border-l-pink-400', bg: 'bg-pink-50' },
+  sparkling: { label: 'Mousserande', dot: 'bg-yellow-400', border: 'border-l-yellow-400', bg: 'bg-yellow-50' },
+  orange: { label: 'Orange', dot: 'bg-orange-500', border: 'border-l-orange-400', bg: 'bg-orange-50' },
+  fortified: { label: 'Starkvin', dot: 'bg-amber-700', border: 'border-l-amber-600', bg: 'bg-amber-100' },
 };
 
 type FilterOption = 'all' | 'waiting' | 'has_offers' | 'completed';
@@ -222,7 +222,7 @@ export default function MyRequestsPage() {
               className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                 filter === option.value
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  : 'bg-muted text-muted-foreground hover:bg-accent/80'
               }`}
             >
               {option.label}
@@ -315,10 +315,10 @@ export default function MyRequestsPage() {
                   <div className="flex-1 p-5">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        {/* Title with wine type emoji */}
+                        {/* Title with wine type indicator */}
                         <div className="flex items-center gap-2 mb-2">
                           {colorConfig && (
-                            <span className="text-lg">{colorConfig.emoji}</span>
+                            <span className={`inline-block w-3 h-3 rounded-full ${colorConfig.dot}`} aria-label={colorConfig.label} />
                           )}
                           <h3 className="text-lg font-semibold text-foreground">
                             {structuredTitle}

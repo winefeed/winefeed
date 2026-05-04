@@ -79,7 +79,7 @@ export default function RequestStatusPage() {
       case 'VIEWED':
         return <Eye className="h-4 w-4 text-blue-600" />;
       default:
-        return <Mail className="h-4 w-4 text-gray-400" />;
+        return <Mail className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -101,7 +101,7 @@ export default function RequestStatusPage() {
       case 'VIEWED':
         return 'bg-blue-50 border-blue-200';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-muted border-border';
     }
   };
 
@@ -109,11 +109,11 @@ export default function RequestStatusPage() {
     return (
       <div className="p-6 max-w-2xl mx-auto">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
-          <div className="h-32 bg-gray-200 rounded-lg mb-4"></div>
+          <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
+          <div className="h-32 bg-muted rounded-lg mb-4"></div>
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded-lg"></div>
+              <div key={i} className="h-16 bg-muted rounded-lg"></div>
             ))}
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function RequestStatusPage() {
       <div className="p-6 max-w-2xl mx-auto">
         <button
           onClick={() => router.push('/dashboard/my-requests')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
           Tillbaka
@@ -144,7 +144,7 @@ export default function RequestStatusPage() {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => router.push('/dashboard/my-requests')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Tillbaka till mina förfrågningar
@@ -187,7 +187,7 @@ export default function RequestStatusPage() {
       )}
 
       {/* Request summary */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+      <div className="bg-white border border-border rounded-lg p-6 mb-6">
         {request.request_type === 'open' && (
           <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#722F37]/10 text-[#722F37] border border-[#722F37]/20">
@@ -196,7 +196,7 @@ export default function RequestStatusPage() {
             </span>
           </div>
         )}
-        <h1 className="text-xl font-bold text-gray-900 mb-2">
+        <h1 className="text-xl font-bold text-foreground mb-2">
           {request.freetext || 'Vinförfrågan'}
         </h1>
 
@@ -214,7 +214,7 @@ export default function RequestStatusPage() {
             )}
           </>
         ) : (
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
             {request.budget_sek && (
               <span>Budget: max {request.budget_sek} kr/flaska</span>
             )}
@@ -227,7 +227,7 @@ export default function RequestStatusPage() {
           </div>
         )}
 
-        <p className="text-xs text-gray-400 mt-3">
+        <p className="text-xs text-muted-foreground mt-3">
           Skapad {formatDistanceToNow(new Date(request.created_at), { addSuffix: true, locale: sv })}
         </p>
       </div>
@@ -236,20 +236,20 @@ export default function RequestStatusPage() {
           assignments exist yet and the banner above already explains
           what's happening. */}
       {request.status !== 'PENDING_REVIEW' && request.status !== 'REJECTED' && (
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-gray-600" />
+      <div className="bg-white border border-border rounded-lg overflow-hidden">
+        <div className="px-6 py-4 border-b border-border bg-muted">
+          <h2 className="font-semibold text-foreground flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-muted-foreground" />
             {request.request_type === 'open' ? 'Leverantörer som tävlar om affären' : 'Leverantörer som fått förfrågan'}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {request.assignments.length} leverantörer • {request.offers_count} har svarat med offert
           </p>
         </div>
 
         {request.assignments.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+          <div className="p-6 text-center text-muted-foreground">
+            <Clock className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
             <p>Förfrågan har inte skickats till några leverantörer ännu.</p>
             <p className="text-sm mt-1">Detta sker automatiskt inom kort.</p>
           </div>
@@ -261,12 +261,12 @@ export default function RequestStatusPage() {
                 className={`px-6 py-4 flex items-center justify-between ${getStatusBg(assignment.status)}`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center">
-                    <Building2 className="h-5 w-5 text-gray-400" />
+                  <div className="w-10 h-10 bg-white border border-border rounded-full flex items-center justify-center">
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{assignment.supplier_name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="font-medium text-foreground">{assignment.supplier_name}</p>
+                    <p className="text-xs text-muted-foreground">
                       Skickad {formatDistanceToNow(new Date(assignment.sent_at), { addSuffix: true, locale: sv })}
                     </p>
                   </div>
@@ -275,7 +275,7 @@ export default function RequestStatusPage() {
                   {getStatusIcon(assignment.status)}
                   <span className={`font-medium ${
                     assignment.status === 'RESPONDED' ? 'text-green-700' :
-                    assignment.status === 'VIEWED' ? 'text-blue-700' : 'text-gray-500'
+                    assignment.status === 'VIEWED' ? 'text-blue-700' : 'text-muted-foreground'
                   }`}>
                     {getStatusText(assignment.status)}
                   </span>

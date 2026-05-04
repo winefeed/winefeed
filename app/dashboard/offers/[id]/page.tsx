@@ -452,7 +452,7 @@ export default function OffersPage() {
                   key={key}
                   onClick={() => setGridSort(key)}
                   className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                    gridSort === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                    gridSort === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'
                   }`}
                 >
                   {label}
@@ -494,7 +494,7 @@ export default function OffersPage() {
                       return (
                         <tr
                           key={`${offer.id}-${line.id || i}`}
-                          className={`hover:bg-muted/20 cursor-pointer transition-colors ${
+                          className={`hover:bg-accent/20 cursor-pointer transition-colors ${
                             isAccepted ? 'bg-green-50/50' : offer.isExpired ? 'opacity-60' : ''
                           }`}
                           onClick={() => {
@@ -571,7 +571,7 @@ export default function OffersPage() {
               >
                 {/* Card Header — always visible */}
                 <div
-                  className="px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                  className="px-6 py-4 cursor-pointer hover:bg-accent/30 transition-colors"
                   onClick={() => toggleExpanded(offer.id)}
                 >
                   <div className="flex items-start justify-between">
@@ -648,7 +648,7 @@ export default function OffersPage() {
                               key={line.id || i}
                               className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
                                 lineAccepted === true ? 'bg-green-50 border border-green-200' :
-                                lineAccepted === false ? 'bg-gray-50 border border-gray-200 opacity-50' :
+                                lineAccepted === false ? 'bg-muted border border-border opacity-50' :
                                 isLineSelected ? 'bg-muted/30 border border-transparent' : 'bg-muted/10 border border-transparent opacity-60'
                               }`}
                             >
@@ -817,8 +817,8 @@ export default function OffersPage() {
                 <Building2 className="h-6 w-6 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Lagg till organisationsnummer</h3>
-                <p className="text-sm text-gray-500">Kravs for fakturering</p>
+                <h3 className="text-lg font-semibold text-foreground">Lagg till organisationsnummer</h3>
+                <p className="text-sm text-muted-foreground">Kravs for fakturering</p>
               </div>
             </div>
             <div className="mb-6">
@@ -829,14 +829,14 @@ export default function OffersPage() {
                 maxLength={11}
                 placeholder="XXXXXX-XXXX"
                 autoFocus
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg tracking-wider focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                className="w-full px-4 py-3 border border-border rounded-lg text-lg tracking-wider focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
               />
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => { setShowOrgNumberModal(false); setOrgNumber(''); }}
                 disabled={savingOrgNumber}
-                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
+                className="flex-1 px-4 py-2.5 border border-border text-foreground rounded-lg font-medium hover:bg-accent"
               >
                 Avbryt
               </button>

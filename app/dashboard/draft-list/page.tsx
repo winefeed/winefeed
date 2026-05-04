@@ -14,7 +14,10 @@ import {
   Plus,
   ShoppingCart,
   Send,
-  Clock
+  Clock,
+  TriangleAlert,
+  Package,
+  Lightbulb,
 } from 'lucide-react';
 
 const COLOR_LABELS: Record<string, { label: string; bg: string; text: string }> = {
@@ -223,8 +226,9 @@ export default function DraftListPage() {
           </div>
           {hasAnyBelowMoq && (
             <div className="mt-4 pt-4 border-t border-orange-200 bg-orange-50 -mx-6 -mb-6 px-6 pb-4 rounded-b-2xl">
-              <p className="text-sm text-orange-800 font-medium text-center">
-                ⚠️ {itemsBelowMoq.length} vin{itemsBelowMoq.length > 1 ? 'er' : ''} under minsta order – justera antal nedan
+              <p className="text-sm text-orange-800 font-medium text-center inline-flex items-center gap-1.5">
+                <TriangleAlert className="h-4 w-4 flex-shrink-0" />
+                {itemsBelowMoq.length} vin{itemsBelowMoq.length > 1 ? 'er' : ''} under minsta order – justera antal nedan
               </p>
             </div>
           )}
@@ -248,7 +252,7 @@ export default function DraftListPage() {
               <div className={`px-6 py-4 border-b ${group.meets_moq ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">📦</span>
+                    <Package className="h-6 w-6 text-muted-foreground" />
                     <div>
                       <h3 className="font-bold text-foreground">{group.supplier_name}</h3>
                       <p className="text-sm text-muted-foreground">
@@ -294,7 +298,7 @@ export default function DraftListPage() {
         {/* Non-binding info */}
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl max-w-lg mx-auto">
           <p className="text-sm text-blue-800 text-center">
-            <span className="font-medium">💡 Icke-bindande förfrågan</span>
+            <span className="font-medium inline-flex items-center gap-1.5"><Lightbulb className="h-4 w-4" /> Icke-bindande förfrågan</span>
             <br />
             <span className="text-blue-700">Du förbinder dig inte till något köp. Först när du accepterar en offert från en leverantör blir det en order.</span>
           </p>
@@ -304,8 +308,9 @@ export default function DraftListPage() {
         <div className="mt-6 flex flex-col items-center gap-4">
           {hasAnyBelowMoq && (
             <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl max-w-md text-center">
-              <p className="text-sm text-orange-800 font-medium mb-2">
-                ⚠️ {itemsBelowMoq.length} vin{itemsBelowMoq.length > 1 ? 'er' : ''} är under minsta order
+              <p className="text-sm text-orange-800 font-medium mb-2 inline-flex items-center gap-1.5">
+                <TriangleAlert className="h-4 w-4 flex-shrink-0" />
+                {itemsBelowMoq.length} vin{itemsBelowMoq.length > 1 ? 'er' : ''} är under minsta order
               </p>
               <p className="text-xs text-orange-700">
                 Justera antal ovan eller skicka ändå – leverantören kan välja att acceptera eller föreslå alternativ.
@@ -320,7 +325,7 @@ export default function DraftListPage() {
           <div className="flex gap-4">
             <button
               onClick={() => router.push('/dashboard/new-request')}
-              className="px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-muted/80 transition-colors font-medium"
+              className="px-6 py-3 bg-muted text-foreground rounded-xl hover:bg-accent/80 transition-colors font-medium"
               disabled={sending}
             >
               Fortsätt söka
@@ -360,7 +365,7 @@ export default function DraftListPage() {
               disabled={sending}
               className={`px-8 py-3 rounded-xl transition-colors font-medium flex items-center gap-2 shadow-lg ${
                 sending
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  ? 'bg-muted-foreground/40 text-white cursor-not-allowed'
                   : hasAnyBelowMoq
                   ? 'bg-orange-500 text-white hover:bg-orange-600'
                   : 'bg-primary text-primary-foreground hover:bg-primary/90'
@@ -405,7 +410,7 @@ export default function DraftListPage() {
                 <div className="flex gap-4 justify-center">
                   <button
                     onClick={() => setShowClearConfirm(false)}
-                    className="px-6 py-2.5 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors font-medium"
+                    className="px-6 py-2.5 bg-muted text-foreground rounded-lg hover:bg-accent/80 transition-colors font-medium"
                   >
                     Avbryt
                   </button>
@@ -489,7 +494,7 @@ function WineItem({
             <button
               onClick={() => onQuantityChange(item.wine_id, -1)}
               disabled={item.quantity <= 1}
-              className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg bg-muted hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               aria-label="Minska antal"
             >
               <Minus className="h-4 w-4" />
@@ -499,7 +504,7 @@ function WineItem({
             </span>
             <button
               onClick={() => onQuantityChange(item.wine_id, 1)}
-              className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
+              className="p-1.5 rounded-lg bg-muted hover:bg-accent/80 transition-colors"
               aria-label="Öka antal"
             >
               <Plus className="h-4 w-4" />
