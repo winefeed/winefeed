@@ -29,7 +29,7 @@ interface Request {
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'Alla' },
-  { value: 'OPEN', label: 'Oppna' },
+  { value: 'OPEN', label: 'Öppna' },
   { value: 'CLOSED', label: 'Avslutade' },
   { value: 'ACCEPTED', label: 'Accepterade' },
 ];
@@ -77,7 +77,7 @@ export default function AdminRequestsPage() {
       setRequests(data.requests);
     } catch (err) {
       console.error('Failed to fetch requests:', err);
-      setError(getErrorMessage(err, 'Kunde inte ladda forfragningar'));
+      setError(getErrorMessage(err, 'Kunde inte ladda förfrågningar'));
     } finally {
       setLoading(false);
     }
@@ -205,7 +205,7 @@ export default function AdminRequestsPage() {
       <div className="p-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
           <div className="text-destructive text-5xl mb-4">!</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
             onClick={() => router.push('/admin')}
@@ -223,9 +223,9 @@ export default function AdminRequestsPage() {
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Forfragningar</h1>
+          <h1 className="text-2xl font-bold text-foreground">Förfrågningar</h1>
           <p className="text-muted-foreground mt-1">
-            {filteredRequests.length} av {requests.length} forfragningar
+            {filteredRequests.length} av {requests.length} förfrågningar
           </p>
         </div>
         <div className="flex gap-3">
@@ -257,7 +257,7 @@ export default function AdminRequestsPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sok ID, restaurang, fritext..."
+                placeholder="Sök ID, restaurang, fritext..."
                 className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -325,13 +325,13 @@ export default function AdminRequestsPage() {
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
                     <Inbox className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="font-medium">Inga forfragningar hittades</p>
+                    <p className="font-medium">Inga förfrågningar hittades</p>
                     {statusFilter !== 'ALL' && (
                       <button
                         onClick={() => setStatusFilter('ALL')}
                         className="text-primary hover:underline mt-2 text-sm"
                       >
-                        Visa alla forfragningar
+                        Visa alla förfrågningar
                       </button>
                     )}
                   </td>

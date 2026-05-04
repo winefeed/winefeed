@@ -118,9 +118,9 @@ const SUPPLIER_TYPE_LABELS: Record<string, string> = {
 };
 
 const COLOR_LABELS: Record<string, { label: string; color: string }> = {
-  red: { label: 'Rott', color: 'bg-red-500' },
+  red: { label: 'Rött', color: 'bg-red-500' },
   white: { label: 'Vitt', color: 'bg-amber-200' },
-  rose: { label: 'Rose', color: 'bg-pink-300' },
+  rose: { label: 'Rosé', color: 'bg-pink-300' },
   sparkling: { label: 'Mousserande', color: 'bg-yellow-300' },
   orange: { label: 'Orange', color: 'bg-orange-400' },
   fortified: { label: 'Starkvin', color: 'bg-amber-700' },
@@ -154,7 +154,7 @@ export default function AdminSupplierDetailPage() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error('Leverantoren hittades inte');
+          throw new Error('Leverantören hittades inte');
         }
         if (response.status === 403) {
           throw new Error('Access Denied: Admin privileges required');
@@ -175,7 +175,7 @@ export default function AdminSupplierDetailPage() {
       }
     } catch (err) {
       console.error('Failed to fetch supplier:', err);
-      setError(getErrorMessage(err, 'Kunde inte ladda leverantor'));
+      setError(getErrorMessage(err, 'Kunde inte ladda leverantör'));
     } finally {
       setLoading(false);
     }
@@ -311,7 +311,7 @@ export default function AdminSupplierDetailPage() {
       <div className="p-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
           <div className="text-destructive text-5xl mb-4">!</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
             onClick={() => router.push('/admin/suppliers')}
@@ -416,7 +416,7 @@ export default function AdminSupplierDetailPage() {
         </div>
         <div className="bg-card rounded-lg border border-border p-4 text-center">
           <div className="text-3xl font-bold text-foreground">{users.length}</div>
-          <div className="text-sm text-muted-foreground">Anvandare</div>
+          <div className="text-sm text-muted-foreground">Användare</div>
         </div>
         <div className="bg-card rounded-lg border border-border p-4 text-center">
           <div className="text-3xl font-bold text-foreground">{recentOrders.length}</div>
@@ -500,10 +500,10 @@ export default function AdminSupplierDetailPage() {
         <div className="bg-card rounded-lg border border-border p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <Users className="h-5 w-5 text-muted-foreground" />
-            Anvandare ({users.length})
+            Användare ({users.length})
           </h2>
           {users.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Inga anvandare registrerade</p>
+            <p className="text-sm text-muted-foreground">Inga användare registrerade</p>
           ) : (
             <div className="space-y-3">
               {users.map((user) => (

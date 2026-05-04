@@ -155,7 +155,7 @@ export default function AdminRestaurantDetailPage() {
       <div className="p-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
           <div className="text-destructive text-5xl mb-4">!</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
             onClick={() => router.push('/admin/restaurants')}
@@ -359,10 +359,10 @@ export default function AdminRestaurantDetailPage() {
         <div className="bg-card rounded-lg border border-border p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <Users className="h-5 w-5 text-muted-foreground" />
-            Anvandare ({users.length})
+            Användare ({users.length})
           </h2>
           {users.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Inga anvandare registrerade</p>
+            <p className="text-sm text-muted-foreground">Inga användare registrerade</p>
           ) : (
             <div className="space-y-3">
               {users.map((user) => (
@@ -388,13 +388,13 @@ export default function AdminRestaurantDetailPage() {
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Inbox className="h-5 w-5 text-muted-foreground" />
-              Senaste forfragningar
+              Senaste förfrågningar
             </h2>
             <span className="text-sm text-muted-foreground">{recentRequests.length} st</span>
           </div>
           {recentRequests.length === 0 ? (
             <div className="p-6 text-center text-muted-foreground">
-              Inga forfragningar annu
+              Inga förfrågningar ännu
             </div>
           ) : (
             <div className="divide-y divide-border">

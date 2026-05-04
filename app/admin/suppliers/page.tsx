@@ -185,7 +185,7 @@ export default function AdminSuppliersPage() {
       setFilteredSuppliers(data.suppliers);
     } catch (err) {
       console.error('Failed to fetch suppliers:', err);
-      setError(getErrorMessage(err, 'Kunde inte ladda leverantorer'));
+      setError(getErrorMessage(err, 'Kunde inte ladda leverantörer'));
     } finally {
       setLoading(false);
     }
@@ -210,7 +210,7 @@ export default function AdminSuppliersPage() {
       <div className="p-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
           <div className="text-destructive text-5xl mb-4">!</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
             onClick={() => router.push('/admin')}
@@ -230,7 +230,7 @@ export default function AdminSuppliersPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Leverantorer</h1>
           <p className="text-muted-foreground mt-1">
-            {filteredSuppliers.length} av {suppliers.length} leverantorer
+            {filteredSuppliers.length} av {suppliers.length} leverantörer
           </p>
         </div>
         <div className="flex gap-3">
@@ -262,7 +262,7 @@ export default function AdminSuppliersPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sok namn, email, stad..."
+                placeholder="Sök namn, email, stad..."
                 className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -309,7 +309,7 @@ export default function AdminSuppliersPage() {
                 <SortableHeader column="type" label="Typ" className="text-left" />
                 <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">Kontakt</th>
                 <SortableHeader column="wines" label="Viner" className="text-right" />
-                <SortableHeader column="users" label="Anvandare" className="text-right" />
+                <SortableHeader column="users" label="Användare" className="text-right" />
                 <SortableHeader column="orders" label="Ordrar" className="text-right" />
                 <SortableHeader column="createdAt" label="Skapad" className="text-left" />
                 <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">Status</th>
@@ -320,7 +320,7 @@ export default function AdminSuppliersPage() {
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
                     <Building2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>Inga leverantorer hittades</p>
+                    <p>Inga leverantörer hittades</p>
                   </td>
                 </tr>
               ) : (

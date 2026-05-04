@@ -357,7 +357,7 @@ export default function OffersPage() {
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Mottagna offerter</h1>
               <p className="text-sm text-primary-foreground/80">
-                Valj viner och acceptera — du kan acceptera fran flera leverantorer
+                Välj viner och acceptera — du kan acceptera från flera leverantörer
               </p>
             </div>
             <button
@@ -431,7 +431,7 @@ export default function OffersPage() {
         {offers.length === 0 && (
           <div className="text-center py-12">
             <p className="text-xl font-medium text-foreground mb-2">Inga aktiva offerter</p>
-            <p className="text-sm text-muted-foreground">Vantar pa svar fran leverantorer...</p>
+            <p className="text-sm text-muted-foreground">Väntar på svar från leverantörer...</p>
           </div>
         )}
 
@@ -634,7 +634,7 @@ export default function OffersPage() {
                             onChange={() => toggleAllLines(offer.id, offer)}
                             className="rounded border-border text-primary focus:ring-primary"
                           />
-                          <span className="text-sm text-muted-foreground font-medium">Valj alla</span>
+                          <span className="text-sm text-muted-foreground font-medium">Välj alla</span>
                         </div>
                       )}
 
@@ -817,7 +817,7 @@ export default function OffersPage() {
                 <Building2 className="h-6 w-6 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Lagg till organisationsnummer</h3>
+                <h3 className="text-lg font-semibold text-foreground">Lägg till organisationsnummer</h3>
                 <p className="text-sm text-muted-foreground">Kravs for fakturering</p>
               </div>
             </div>

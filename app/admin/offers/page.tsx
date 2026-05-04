@@ -215,7 +215,7 @@ export default function AdminOffersPage() {
       <div className="p-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
           <div className="text-destructive text-5xl mb-4">!</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
             onClick={() => router.push('/admin')}
@@ -267,7 +267,7 @@ export default function AdminOffersPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sok leverantor, restaurang..."
+                placeholder="Sök leverantör, restaurang..."
                 className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>

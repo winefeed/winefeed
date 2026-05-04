@@ -1909,7 +1909,7 @@ export default function ResultsPage() {
                                           {draftList.items.some(item => item.wine_id === sw.wine.id) ? (
                                             <span className="flex items-center gap-1"><Check className="h-3 w-3" /> Tillagd</span>
                                           ) : (
-                                            <span className="flex items-center gap-1"><ListPlus className="h-3 w-3" /> Lagg till</span>
+                                            <span className="flex items-center gap-1"><ListPlus className="h-3 w-3" /> Lägg till</span>
                                           )}
                                         </button>
                                       </div>

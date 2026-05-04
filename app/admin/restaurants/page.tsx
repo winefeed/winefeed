@@ -195,7 +195,7 @@ export default function AdminRestaurantsPage() {
       <div className="p-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
           <div className="text-destructive text-5xl mb-4">!</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
             onClick={() => router.push('/admin')}
@@ -247,7 +247,7 @@ export default function AdminRestaurantsPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sok namn, stad, org.nr..."
+                placeholder="Sök namn, stad, org.nr..."
                 className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -263,7 +263,7 @@ export default function AdminRestaurantsPage() {
               <option value="ALL">Alla</option>
               <option value="HAS_ORDERS">Har ordrar</option>
               <option value="NO_ORDERS">Inga ordrar</option>
-              <option value="HAS_REQUESTS">Har forfragningar</option>
+              <option value="HAS_REQUESTS">Har förfrågningar</option>
             </select>
           </div>
         </div>
@@ -278,8 +278,8 @@ export default function AdminRestaurantsPage() {
                 <SortableHeader column="name" label="Namn" className="text-left" />
                 <SortableHeader column="city" label="Stad" className="text-left" />
                 <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-left">Org.nr</th>
-                <SortableHeader column="users" label="Anvandare" className="text-right" />
-                <SortableHeader column="requests" label="Forfragningar" className="text-right" />
+                <SortableHeader column="users" label="Användare" className="text-right" />
+                <SortableHeader column="requests" label="Förfrågningar" className="text-right" />
                 <SortableHeader column="orders" label="Ordrar" className="text-right" />
                 <SortableHeader column="createdAt" label="Registrerad" className="text-left" />
               </tr>

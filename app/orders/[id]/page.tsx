@@ -238,7 +238,7 @@ export default function OrderDetailPage(props: { params: Promise<{ id: string }>
       <div className="p-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center max-w-md mx-auto">
           <div className="text-destructive text-5xl mb-4">!</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Nagot gick fel</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Något gick fel</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <div className="flex gap-3 justify-center">
             <Link
@@ -351,7 +351,7 @@ export default function OrderDetailPage(props: { params: Promise<{ id: string }>
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6 flex items-center gap-4">
           <Clock className="h-6 w-6 text-amber-600" />
           <div>
-            <p className="font-medium text-amber-800">Vantar pa leverantorsbekraftelse</p>
+            <p className="font-medium text-amber-800">Väntar på leverantörsbekräftelse</p>
             <p className="text-sm text-amber-700">Du far besked nar leverantoren svarar.</p>
           </div>
         </div>
