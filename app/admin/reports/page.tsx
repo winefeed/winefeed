@@ -440,7 +440,7 @@ export default function AdminReportsPage() {
                     {report.orders.map((order) => {
                       const statusInfo = STATUS_LABELS[order.status] || {
                         label: order.status,
-                        color: 'bg-gray-100 text-gray-800',
+                        color: 'bg-muted text-foreground',
                       };
                       const shortRef = order.id.slice(0, 8).toUpperCase();
                       return (

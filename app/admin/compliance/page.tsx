@@ -692,7 +692,7 @@ function VatView({ report, formatSEK, onExport, exporting }: {
 // Imports View
 function ImportsView({ report }: { report: ImportsReport }) {
   const statusLabels: Record<string, { label: string; color: string }> = {
-    NOT_REGISTERED: { label: 'Ej registrerad', color: 'bg-gray-100 text-gray-800' },
+    NOT_REGISTERED: { label: 'Ej registrerad', color: 'bg-muted text-foreground' },
     SUBMITTED: { label: 'Inskickad', color: 'bg-blue-100 text-blue-800' },
     APPROVED: { label: 'Godkänd', color: 'bg-green-100 text-green-800' },
     REJECTED: { label: 'Avvisad', color: 'bg-red-100 text-red-800' },
@@ -711,7 +711,7 @@ function ImportsView({ report }: { report: ImportsReport }) {
       <div className="bg-card rounded-lg border border-border p-6">
         <h2 className="font-semibold mb-4">Status-fördelning</h2>
         <div className="flex flex-wrap gap-3">
-          <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+          <span className="px-3 py-1 bg-muted text-foreground rounded-full text-sm">
             Ej registrerad: {report.totals.by_status.not_registered}
           </span>
           <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">

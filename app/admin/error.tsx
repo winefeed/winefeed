@@ -28,10 +28,10 @@ export default function AdminError({
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
             <Shield className="w-6 h-6 text-red-600" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Fel i Admin-sektionen
           </h2>
-          <p className="text-gray-600 text-sm">
+          <p className="text-muted-foreground text-sm">
             Ett oväntat fel uppstod i administratörsgränssnittet.
           </p>
         </div>
@@ -53,7 +53,7 @@ export default function AdminError({
           </button>
           <a
             href="/admin"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-muted hover:bg-accent rounded-lg transition-colors"
           >
             <Home className="w-4 h-4" />
             Admin-översikt
@@ -61,10 +61,10 @@ export default function AdminError({
         </div>
 
         {error.digest && (
-          <div className="mt-6 p-3 bg-gray-100 rounded-lg text-center">
-            <p className="text-xs text-gray-500">
+          <div className="mt-6 p-3 bg-muted rounded-lg text-center">
+            <p className="text-xs text-muted-foreground">
               Referera till fel-ID vid felsökning:{' '}
-              <code className="font-mono bg-gray-200 px-1 py-0.5 rounded">
+              <code className="font-mono bg-accent px-1 py-0.5 rounded">
                 {error.digest}
               </code>
             </p>

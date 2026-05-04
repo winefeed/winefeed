@@ -471,7 +471,7 @@ export default function AdminDashboardPage() {
                   <div className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
                     item.ageHours >= 168 ? 'bg-red-100 text-red-800' :
                     item.ageHours >= 72 ? 'bg-amber-100 text-amber-800' :
-                    'bg-gray-100 text-gray-700'
+                    'bg-muted text-muted-foreground'
                   }`}>
                     {item.ageLabel}
                   </div>
@@ -566,7 +566,7 @@ export default function AdminDashboardPage() {
               <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded">
                 {stats.requests.open} öppna
               </span>
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded">
+              <span className="px-2 py-0.5 bg-muted text-foreground rounded">
                 {stats.requests.closed} avslutade
               </span>
             </div>
@@ -590,7 +590,7 @@ export default function AdminDashboardPage() {
               <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded">
                 {stats.offers.accepted} accepterade
               </span>
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded">
+              <span className="px-2 py-0.5 bg-muted text-foreground rounded">
                 {stats.offers.draft} utkast
               </span>
             </div>

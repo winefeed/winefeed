@@ -177,7 +177,7 @@ export default function AdminOffersPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'DRAFT':
-        return <span className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">Utkast</span>;
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-muted text-foreground">Utkast</span>;
       case 'SENT':
         return <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">Skickad</span>;
       case 'ACCEPTED':
@@ -185,7 +185,7 @@ export default function AdminOffersPage() {
       case 'REJECTED':
         return <span className="px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-800">Avvisad</span>;
       default:
-        return <span className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">{status}</span>;
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-muted text-foreground">{status}</span>;
     }
   };
 
