@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertBadge } from '../components/AlertBadge';
 import { getAlertColor } from '@/lib/design-system/alert-colors';
+import { RefreshCw, ArrowLeft, AlertTriangle, ChevronRight, ChevronDown, Package, FileText, Lightbulb, TrendingUp, Inbox, Bell, XCircle, Check, X } from 'lucide-react';
 
 interface Request {
   id: string;
@@ -174,12 +175,12 @@ export default function PilotAdminPage() {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'OPEN': return 'bg-blue-500';
-      case 'DRAFT': return 'bg-gray-500';
+      case 'DRAFT': return 'bg-muted-foreground';
       case 'SENT': return 'bg-yellow-500';
       case 'ACCEPTED': return 'bg-green-500';
       case 'REJECTED': return 'bg-red-500';
-      case 'CLOSED': return 'bg-gray-700';
-      default: return 'bg-gray-400';
+      case 'CLOSED': return 'bg-foreground';
+      default: return 'bg-muted-foreground';
     }
   };
 
@@ -189,17 +190,19 @@ export default function PilotAdminPage() {
       case 'UPDATED': return 'bg-yellow-500';
       case 'ACCEPTED': return 'bg-green-500';
       case 'REJECTED': return 'bg-red-500';
-      case 'MAIL_SENT': return 'bg-wine-dark';
-      default: return 'bg-gray-500';
+      case 'MAIL_SENT': return 'bg-primary';
+      default: return 'bg-muted-foreground';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-rose/10 via-white to-wine-riesling/10 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wine-dark mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Laddar pilot overview...</p>
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="flex items-center justify-center py-24">
+          <div className="text-center">
+            <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">Laddar pilot overview...</p>
+          </div>
         </div>
       </div>
     );
@@ -207,19 +210,18 @@ export default function PilotAdminPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-rose/10 via-white to-wine-riesling/10 flex items-center justify-center">
-        <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
-          <div className="text-center">
-            <span className="text-6xl mb-4 block">🚫</span>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="px-6 py-2 bg-wine-dark text-white rounded-lg hover:bg-wine-deep transition-colors"
-            >
-              ← Tillbaka till Dashboard
-            </button>
-          </div>
+      <div className="p-6 max-w-2xl mx-auto">
+        <div className="bg-card border border-border rounded-lg p-8 text-center">
+          <AlertTriangle className="h-10 w-10 text-destructive mx-auto mb-3" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">Access Denied</h2>
+          <p className="text-muted-foreground mb-5">{error}</p>
+          <button
+            onClick={() => router.push('/admin')}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm font-medium"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Tillbaka till Dashboard
+          </button>
         </div>
       </div>
     );
@@ -230,87 +232,80 @@ export default function PilotAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-rose/10 via-white to-wine-riesling/10">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <header className="bg-gradient-to-r from-wine-dark to-wine-medium text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">🔧</span>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Pilot Konsol</h1>
-                <p className="text-sm text-white/80">Övervaka flöden: förfrågningar → offerter → ordrar</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={fetchOverview}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                🔄 Uppdatera
-              </button>
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="px-4 py-2 bg-white text-wine-dark rounded-lg hover:bg-white/90 transition-colors text-sm font-medium"
-              >
-                ← Dashboard
-              </button>
-            </div>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Pilot Konsol</h1>
+          <p className="text-muted-foreground mt-1">Övervaka flöden: förfrågningar → offerter → ordrar</p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={fetchOverview}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm font-medium"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Uppdatera
+          </button>
+          <button
+            onClick={() => router.push('/admin')}
+            className="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground hover:bg-accent rounded-lg transition-colors text-sm font-medium"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
+          </button>
+        </div>
+      </div>
+
+      {/* Timestamp */}
+      <div className="mb-6 text-sm text-muted-foreground">
+        Senast uppdaterad: {formatDate(data.timestamp)}
+      </div>
+
+      {/* Pilot Ops Alerts Section */}
+      {data.alerts && (
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertTriangle className="h-5 w-5 text-amber-600" />
+            <h2 className="text-lg font-semibold text-foreground">Driftsvarningar</h2>
+            <span className="text-sm text-muted-foreground">(Operationella varningar för pilotövervakning)</span>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Timestamp */}
-        <div className="mb-6 text-sm text-gray-500">
-          Senast uppdaterad: {formatDate(data.timestamp)}
-        </div>
-
-        {/* Pilot Ops Alerts Section */}
-        {data.alerts && (
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">⚠️</span>
-              <h2 className="text-xl font-bold text-gray-800">Driftsvarningar</h2>
-              <span className="text-sm text-gray-500">(Operationella varningar för pilotövervakning)</span>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Alert 1: EU Orders Without Import Case */}
-              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('ERROR').borderClass}`}>
+              <div className={`bg-card rounded-lg border overflow-hidden ${getAlertColor('ERROR').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'eu_orders' ? null : 'eu_orders')}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full px-4 py-3 text-left hover:bg-accent transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="text-xs font-medium text-red-600 uppercase mb-1">EU-ordrar</div>
-                      <div className="text-sm text-gray-700">Saknar importärende</div>
+                      <div className="text-sm text-foreground">Saknar importärende</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
                         count={data.alerts.eu_orders_without_import_case.count}
                         severity={data.alerts.eu_orders_without_import_case.count > 0 ? 'ERROR' : 'OK'}
                       />
-                      <span className="text-gray-400">{expandedAlert === 'eu_orders' ? '▼' : '▶'}</span>
+                      {expandedAlert === 'eu_orders' ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                     </div>
                   </div>
                 </button>
                 {expandedAlert === 'eu_orders' && data.alerts.eu_orders_without_import_case.items.length > 0 && (
-                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                  <div className="px-4 py-3 bg-muted border-t border-border">
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {data.alerts.eu_orders_without_import_case.items.map((item, index) => (
                         <div
                           key={item.id || index}
                           onClick={() => item.id && router.push(`/direct-import/orders/${item.id}`)}
-                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
+                          className="text-xs bg-card p-2 rounded border border-border cursor-pointer hover:bg-accent hover:border-primary transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-mono text-wine-dark">{item.id?.substring(0, 16) || 'N/A'}...</div>
-                            <span className="text-wine-dark">→</span>
+                            <div className="font-mono text-primary">{item.id?.substring(0, 16) || 'N/A'}...</div>
+                            <ChevronRight className="h-3 w-3 text-primary" />
                           </div>
-                          <div className="text-gray-500 mt-1">Created: {formatDate(item.created_at!)}</div>
+                          <div className="text-muted-foreground mt-1">Created: {formatDate(item.created_at!)}</div>
                         </div>
                       ))}
                     </div>
@@ -319,42 +314,42 @@ export default function PilotAdminPage() {
               </div>
 
               {/* Alert 2: Import Cases Missing DDL */}
-              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('WARNING').borderClass}`}>
+              <div className={`bg-card rounded-lg border overflow-hidden ${getAlertColor('WARNING').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'missing_ddl' ? null : 'missing_ddl')}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full px-4 py-3 text-left hover:bg-accent transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="text-xs font-medium text-orange-600 uppercase mb-1">Importärenden</div>
-                      <div className="text-sm text-gray-700">Saknar/ej godkänd DDL</div>
+                      <div className="text-sm text-foreground">Saknar/ej godkänd DDL</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
                         count={data.alerts.import_cases_missing_ddl_or_not_approved.count}
                         severity={data.alerts.import_cases_missing_ddl_or_not_approved.count > 0 ? 'WARNING' : 'OK'}
                       />
-                      <span className="text-gray-400">{expandedAlert === 'missing_ddl' ? '▼' : '▶'}</span>
+                      {expandedAlert === 'missing_ddl' ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                     </div>
                   </div>
                 </button>
                 {expandedAlert === 'missing_ddl' && data.alerts.import_cases_missing_ddl_or_not_approved.items.length > 0 && (
-                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                  <div className="px-4 py-3 bg-muted border-t border-border">
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {data.alerts.import_cases_missing_ddl_or_not_approved.items.map((item, index) => (
                         <div
                           key={item.id || index}
                           onClick={() => item.id && router.push(`/direct-import/orders/${item.id}`)}
-                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
+                          className="text-xs bg-card p-2 rounded border border-border cursor-pointer hover:bg-accent hover:border-primary transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-mono text-wine-dark">{item.id?.substring(0, 16) || 'N/A'}...</div>
-                            <span className="text-wine-dark">→</span>
+                            <div className="font-mono text-primary">{item.id?.substring(0, 16) || 'N/A'}...</div>
+                            <ChevronRight className="h-3 w-3 text-primary" />
                           </div>
-                          <div className="text-gray-500 mt-1">
+                          <div className="text-muted-foreground mt-1">
                             DDL Status: <span className="font-medium">{item.ddl_status || 'MISSING'}</span>
                           </div>
-                          <div className="text-gray-500">Created: {formatDate(item.created_at!)}</div>
+                          <div className="text-muted-foreground">Created: {formatDate(item.created_at!)}</div>
                         </div>
                       ))}
                     </div>
@@ -363,39 +358,39 @@ export default function PilotAdminPage() {
               </div>
 
               {/* Alert 3: Approved Imports Missing 5369 */}
-              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('INFO').borderClass}`}>
+              <div className={`bg-card rounded-lg border overflow-hidden ${getAlertColor('INFO').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'missing_5369' ? null : 'missing_5369')}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full px-4 py-3 text-left hover:bg-accent transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="text-xs font-medium text-yellow-600 uppercase mb-1">Godkända importer</div>
-                      <div className="text-sm text-gray-700">Saknar 5369-dok</div>
+                      <div className="text-sm text-foreground">Saknar 5369-dok</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
                         count={data.alerts.approved_import_cases_missing_5369.count}
                         severity={data.alerts.approved_import_cases_missing_5369.count > 0 ? 'INFO' : 'OK'}
                       />
-                      <span className="text-gray-400">{expandedAlert === 'missing_5369' ? '▼' : '▶'}</span>
+                      {expandedAlert === 'missing_5369' ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                     </div>
                   </div>
                 </button>
                 {expandedAlert === 'missing_5369' && data.alerts.approved_import_cases_missing_5369.items.length > 0 && (
-                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                  <div className="px-4 py-3 bg-muted border-t border-border">
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {data.alerts.approved_import_cases_missing_5369.items.map((item, index) => (
                         <div
                           key={item.id || index}
                           onClick={() => item.id && router.push(`/direct-import/orders/${item.id}`)}
-                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
+                          className="text-xs bg-card p-2 rounded border border-border cursor-pointer hover:bg-accent hover:border-primary transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-mono text-wine-dark">{item.id?.substring(0, 16) || 'N/A'}...</div>
-                            <span className="text-wine-dark">→</span>
+                            <div className="font-mono text-primary">{item.id?.substring(0, 16) || 'N/A'}...</div>
+                            <ChevronRight className="h-3 w-3 text-primary" />
                           </div>
-                          <div className="text-gray-500 mt-1">Created: {formatDate(item.created_at!)}</div>
+                          <div className="text-muted-foreground mt-1">Created: {formatDate(item.created_at!)}</div>
                         </div>
                       ))}
                     </div>
@@ -404,40 +399,40 @@ export default function PilotAdminPage() {
               </div>
 
               {/* Alert 4: Orders Stuck Over 3 Days */}
-              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('SPECIAL').borderClass}`}>
+              <div className={`bg-card rounded-lg border overflow-hidden ${getAlertColor('SPECIAL').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'stuck_orders' ? null : 'stuck_orders')}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full px-4 py-3 text-left hover:bg-accent transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="text-xs font-medium text-wine-dark uppercase mb-1">Fastnade ordrar</div>
-                      <div className="text-sm text-gray-700">Ingen uppdatering &gt; 3 dagar</div>
+                      <div className="text-xs font-medium text-primary uppercase mb-1">Fastnade ordrar</div>
+                      <div className="text-sm text-foreground">Ingen uppdatering &gt; 3 dagar</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
                         count={data.alerts.orders_stuck_over_3_days.count}
                         severity={data.alerts.orders_stuck_over_3_days.count > 0 ? 'SPECIAL' : 'OK'}
                       />
-                      <span className="text-gray-400">{expandedAlert === 'stuck_orders' ? '▼' : '▶'}</span>
+                      {expandedAlert === 'stuck_orders' ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                     </div>
                   </div>
                 </button>
                 {expandedAlert === 'stuck_orders' && data.alerts.orders_stuck_over_3_days.items.length > 0 && (
-                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                  <div className="px-4 py-3 bg-muted border-t border-border">
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {data.alerts.orders_stuck_over_3_days.items.map((item, index) => (
                         <div
                           key={item.id || index}
                           onClick={() => item.id && router.push(`/direct-import/orders/${item.id}`)}
-                          className="text-xs bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors"
+                          className="text-xs bg-card p-2 rounded border border-border cursor-pointer hover:bg-accent hover:border-primary transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-mono text-wine-dark">{item.id?.substring(0, 16) || 'N/A'}...</div>
-                            <span className="text-wine-dark">→</span>
+                            <div className="font-mono text-primary">{item.id?.substring(0, 16) || 'N/A'}...</div>
+                            <ChevronRight className="h-3 w-3 text-primary" />
                           </div>
-                          <div className="text-gray-500 mt-1">Status: <span className="font-medium">{item.status}</span></div>
-                          <div className="text-gray-500">Last Update: {formatDate(item.updated_at!)}</div>
+                          <div className="text-muted-foreground mt-1">Status: <span className="font-medium">{item.status}</span></div>
+                          <div className="text-muted-foreground">Last Update: {formatDate(item.updated_at!)}</div>
                         </div>
                       ))}
                     </div>
@@ -446,27 +441,27 @@ export default function PilotAdminPage() {
               </div>
 
               {/* Alert 5: Email Failures Last 24h */}
-              <div className={`bg-white rounded-lg shadow-md overflow-hidden ${getAlertColor('EMAIL_FAILURE').borderClass}`}>
+              <div className={`bg-card rounded-lg border overflow-hidden ${getAlertColor('EMAIL_FAILURE').borderClass}`}>
                 <button
                   onClick={() => setExpandedAlert(expandedAlert === 'email_failures' ? null : 'email_failures')}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full px-4 py-3 text-left hover:bg-accent transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="text-xs font-medium text-pink-600 uppercase mb-1">E-postfel</div>
-                      <div className="text-sm text-gray-700">Senaste 24 timmar</div>
+                      <div className="text-sm text-foreground">Senaste 24 timmar</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertBadge
                         count={data.alerts.email_failures_last_24h.count}
                         severity={data.alerts.email_failures_last_24h.count > 0 ? 'EMAIL_FAILURE' : 'OK'}
                       />
-                      <span className="text-gray-400">{expandedAlert === 'email_failures' ? '▼' : '▶'}</span>
+                      <span className="text-muted-foreground">{expandedAlert === 'email_failures' ? '▼' : '▶'}</span>
                     </div>
                   </div>
                 </button>
                 {expandedAlert === 'email_failures' && data.alerts.email_failures_last_24h.items.length > 0 && (
-                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                  <div className="px-4 py-3 bg-muted border-t border-border">
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {data.alerts.email_failures_last_24h.items.map((item, index) => {
                         // Determine display values based on source
@@ -485,8 +480,8 @@ export default function PilotAdminPage() {
                           <div
                             key={item.event_id || item.id || index}
                             onClick={() => linkPath && router.push(linkPath)}
-                            className={`text-xs bg-white p-3 rounded border border-gray-200 ${
-                              linkPath ? 'cursor-pointer hover:bg-gray-50 hover:border-wine-light transition-colors' : ''
+                            className={`text-xs bg-card p-3 rounded border border-border ${
+                              linkPath ? 'cursor-pointer hover:bg-accent hover:border-primary transition-colors' : ''
                             }`}
                           >
                             {/* Header: Source badge + Template */}
@@ -496,48 +491,51 @@ export default function PilotAdminPage() {
                                   <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
                                     getAlertColor(item.source === 'order_events' ? 'SPECIAL' : 'NEUTRAL').badgeClass
                                   }`}>
-                                    {item.source === 'order_events' ? '📦 Order' : '📄 Offer'}
+                                    <span className="inline-flex items-center gap-1">
+                                      {item.source === 'order_events' ? <Package className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
+                                      {item.source === 'order_events' ? 'Order' : 'Offer'}
+                                    </span>
                                   </span>
                                 )}
                                 {item.template && (
-                                  <span className="text-gray-600 font-medium">
+                                  <span className="text-muted-foreground font-medium">
                                     {item.template}
                                   </span>
                                 )}
                               </div>
                               {linkPath && (
-                                <span className="text-wine-dark text-xs">→</span>
+                                <span className="text-primary text-xs">→</span>
                               )}
                             </div>
 
                             {/* Entity ID */}
-                            <div className="font-mono text-wine-dark mb-1 text-sm">
+                            <div className="font-mono text-primary mb-1 text-sm">
                               {entityType}: {entityId?.substring(0, 16)}...
                             </div>
 
                             {/* Email recipient */}
-                            <div className="text-gray-500 mb-1">
+                            <div className="text-muted-foreground mb-1">
                               To: <span className="font-mono">{emailTo}</span>
                             </div>
 
                             {/* Error message */}
                             {item.error && (
                               <div className="text-red-600 mb-2">
-                                ❌ {item.error || 'Unknown error'}
+                                <span className="inline-flex items-center gap-1.5"><XCircle className="h-3 w-3" /> {item.error || 'Unknown error'}</span>
                               </div>
                             )}
 
                             {/* Action hint */}
                             {item.action_hint && (
-                              <div className="mt-2 pt-2 border-t border-gray-200">
-                                <div className="text-xs text-gray-600">
-                                  <span className="font-medium text-wine-dark">💡 Åtgärd:</span> {item.action_hint}
+                              <div className="mt-2 pt-2 border-t border-border">
+                                <div className="text-xs text-muted-foreground">
+                                  <span className="font-medium text-primary inline-flex items-center gap-1"><Lightbulb className="h-3 w-3" /> Åtgärd:</span> {item.action_hint}
                                 </div>
                               </div>
                             )}
 
                             {/* Timestamp */}
-                            <div className="text-gray-400 text-xs mt-2">
+                            <div className="text-muted-foreground text-xs mt-2">
                               {formatDate(item.created_at!)}
                             </div>
                           </div>
@@ -555,89 +553,89 @@ export default function PilotAdminPage() {
         {data.pilot_metrics && (
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">📈</span>
-              <h2 className="text-xl font-bold text-gray-800">Pilot KPI</h2>
-              <span className="text-sm text-gray-500">(Senaste 30 dagar)</span>
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-bold text-foreground">Pilot KPI</h2>
+              <span className="text-sm text-muted-foreground">(Senaste 30 dagar)</span>
             </div>
 
             {/* Funnel Cards */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">Konverteringstratt</h3>
+            <div className="bg-card border border-border rounded-lg p-6 mb-6">
+              <h3 className="text-sm font-semibold text-foreground uppercase mb-4">Konverteringstratt</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                 {/* Requests */}
-                <div className="bg-gradient-to-br from-wine-riesling/20 to-wine-riesling/30 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-wine-dark">{data.pilot_metrics.counts.requests_created}</div>
-                  <div className="text-xs text-gray-600 mt-1">Förfrågningar</div>
+                <div className="bg-muted rounded-lg p-4 text-center border border-border">
+                  <div className="text-2xl font-bold text-primary">{data.pilot_metrics.counts.requests_created}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Förfrågningar</div>
                 </div>
 
                 {/* Offers Created */}
-                <div className="bg-gradient-to-br from-wine-rose/20 to-wine-rose/30 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-wine-dark">{data.pilot_metrics.counts.offers_created}</div>
-                  <div className="text-xs text-gray-600 mt-1">Offerter skapade</div>
+                <div className="bg-muted rounded-lg p-4 text-center border border-border">
+                  <div className="text-2xl font-bold text-primary">{data.pilot_metrics.counts.offers_created}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Offerter skapade</div>
                 </div>
 
                 {/* Offers Sent */}
                 <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-yellow-700">{data.pilot_metrics.counts.offers_sent}</div>
-                  <div className="text-xs text-gray-600 mt-1">Offerter skickade</div>
+                  <div className="text-xs text-muted-foreground mt-1">Offerter skickade</div>
                 </div>
 
                 {/* Offers Accepted */}
                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-700">{data.pilot_metrics.counts.offers_accepted}</div>
-                  <div className="text-xs text-gray-600 mt-1">Accepterade</div>
+                  <div className="text-xs text-muted-foreground mt-1">Accepterade</div>
                 </div>
 
                 {/* Orders */}
-                <div className="bg-gradient-to-br from-wine-dark/10 to-wine-dark/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-wine-dark">{data.pilot_metrics.counts.orders_created}</div>
-                  <div className="text-xs text-gray-600 mt-1">Ordrar</div>
+                <div className="bg-muted rounded-lg p-4 text-center border border-border">
+                  <div className="text-2xl font-bold text-primary">{data.pilot_metrics.counts.orders_created}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Ordrar</div>
                 </div>
 
                 {/* Imports Created */}
                 <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-pink-700">{data.pilot_metrics.counts.imports_created}</div>
-                  <div className="text-xs text-gray-600 mt-1">Importer</div>
+                  <div className="text-xs text-muted-foreground mt-1">Importer</div>
                 </div>
 
                 {/* Imports Approved */}
                 <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-teal-700">{data.pilot_metrics.counts.imports_approved}</div>
-                  <div className="text-xs text-gray-600 mt-1">Godkända</div>
+                  <div className="text-xs text-muted-foreground mt-1">Godkända</div>
                 </div>
 
                 {/* Orders Shipped */}
                 <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-emerald-700">{data.pilot_metrics.counts.orders_shipped}</div>
-                  <div className="text-xs text-gray-600 mt-1">Skickade</div>
+                  <div className="text-xs text-muted-foreground mt-1">Skickade</div>
                 </div>
               </div>
             </div>
 
             {/* Timing Metrics */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">Tidsmått (timmar)</h3>
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h3 className="text-sm font-semibold text-foreground uppercase mb-4">Tidsmått (timmar)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Request to Offer Created */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-700 mb-2">Request → Offer Created</div>
+                <div className="border border-border rounded-lg p-4">
+                  <div className="text-sm font-medium text-foreground mb-2">Request → Offer Created</div>
                   {data.pilot_metrics.timings.request_to_offer_created.sample_size >= 5 ? (
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">Median</div>
-                        <div className="text-lg font-semibold text-wine-dark">
+                        <div className="text-xs text-muted-foreground">Median</div>
+                        <div className="text-lg font-semibold text-primary">
                           {data.pilot_metrics.timings.request_to_offer_created.median_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">P90</div>
-                        <div className="text-lg font-semibold text-wine-dark">
+                        <div className="text-xs text-muted-foreground">P90</div>
+                        <div className="text-lg font-semibold text-primary">
                           {data.pilot_metrics.timings.request_to_offer_created.p90_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">Sample</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs text-muted-foreground">Sample</div>
+                        <div className="text-sm text-muted-foreground">
                           {data.pilot_metrics.timings.request_to_offer_created.sample_size}
                         </div>
                       </div>
@@ -650,25 +648,25 @@ export default function PilotAdminPage() {
                 </div>
 
                 {/* Offer Created to Accepted */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-700 mb-2">Offer Created → Accepted</div>
+                <div className="border border-border rounded-lg p-4">
+                  <div className="text-sm font-medium text-foreground mb-2">Offer Created → Accepted</div>
                   {data.pilot_metrics.timings.offer_created_to_accepted.sample_size >= 5 ? (
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">Median</div>
-                        <div className="text-lg font-semibold text-wine-dark">
+                        <div className="text-xs text-muted-foreground">Median</div>
+                        <div className="text-lg font-semibold text-primary">
                           {data.pilot_metrics.timings.offer_created_to_accepted.median_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">P90</div>
-                        <div className="text-lg font-semibold text-wine-dark">
+                        <div className="text-xs text-muted-foreground">P90</div>
+                        <div className="text-lg font-semibold text-primary">
                           {data.pilot_metrics.timings.offer_created_to_accepted.p90_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">Sample</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs text-muted-foreground">Sample</div>
+                        <div className="text-sm text-muted-foreground">
                           {data.pilot_metrics.timings.offer_created_to_accepted.sample_size}
                         </div>
                       </div>
@@ -681,25 +679,25 @@ export default function PilotAdminPage() {
                 </div>
 
                 {/* Accept to Order Created */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-700 mb-2">Accept → Order Created</div>
+                <div className="border border-border rounded-lg p-4">
+                  <div className="text-sm font-medium text-foreground mb-2">Accept → Order Created</div>
                   {data.pilot_metrics.timings.accept_to_order_created.sample_size >= 5 ? (
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">Median</div>
-                        <div className="text-lg font-semibold text-wine-dark">
+                        <div className="text-xs text-muted-foreground">Median</div>
+                        <div className="text-lg font-semibold text-primary">
                           {data.pilot_metrics.timings.accept_to_order_created.median_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">P90</div>
-                        <div className="text-lg font-semibold text-wine-dark">
+                        <div className="text-xs text-muted-foreground">P90</div>
+                        <div className="text-lg font-semibold text-primary">
                           {data.pilot_metrics.timings.accept_to_order_created.p90_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">Sample</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs text-muted-foreground">Sample</div>
+                        <div className="text-sm text-muted-foreground">
                           {data.pilot_metrics.timings.accept_to_order_created.sample_size}
                         </div>
                       </div>
@@ -712,25 +710,25 @@ export default function PilotAdminPage() {
                 </div>
 
                 {/* Order Created to Import Approved */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-700 mb-2">Order → Import Approved</div>
+                <div className="border border-border rounded-lg p-4">
+                  <div className="text-sm font-medium text-foreground mb-2">Order → Import Approved</div>
                   {data.pilot_metrics.timings.order_created_to_import_approved.sample_size >= 5 ? (
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">Median</div>
-                        <div className="text-lg font-semibold text-wine-dark">
+                        <div className="text-xs text-muted-foreground">Median</div>
+                        <div className="text-lg font-semibold text-primary">
                           {data.pilot_metrics.timings.order_created_to_import_approved.median_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">P90</div>
-                        <div className="text-lg font-semibold text-wine-dark">
+                        <div className="text-xs text-muted-foreground">P90</div>
+                        <div className="text-lg font-semibold text-primary">
                           {data.pilot_metrics.timings.order_created_to_import_approved.p90_hours}h
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500">Sample</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs text-muted-foreground">Sample</div>
+                        <div className="text-sm text-muted-foreground">
                           {data.pilot_metrics.timings.order_created_to_import_approved.sample_size}
                         </div>
                       </div>
@@ -747,38 +745,38 @@ export default function PilotAdminPage() {
         )}
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
           {/* Tab Headers */}
-          <div className="flex border-b border-gray-200">
+          <div className="flex border-b border-border">
             <button
               onClick={() => setActiveTab('requests')}
               className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
                 activeTab === 'requests'
-                  ? 'bg-wine-rose/30 text-wine-dark border-b-2 border-wine-dark'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-accent text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:bg-accent'
               }`}
             >
-              📋 Requests ({data.recent_requests.length})
+              <span className="inline-flex items-center gap-2"><Inbox className="h-4 w-4" /> Requests ({data.recent_requests.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('offers')}
               className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
                 activeTab === 'offers'
-                  ? 'bg-wine-rose/30 text-wine-dark border-b-2 border-wine-dark'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-accent text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:bg-accent'
               }`}
             >
-              📄 Offers ({data.recent_offers.length})
+              <span className="inline-flex items-center gap-2"><FileText className="h-4 w-4" /> Offers ({data.recent_offers.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('events')}
               className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
                 activeTab === 'events'
-                  ? 'bg-wine-rose/30 text-wine-dark border-b-2 border-wine-dark'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-accent text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:bg-accent'
               }`}
             >
-              🔔 Events ({data.recent_events.length})
+              <span className="inline-flex items-center gap-2"><Bell className="h-4 w-4" /> Events ({data.recent_events.length})</span>
             </button>
           </div>
 
@@ -788,32 +786,32 @@ export default function PilotAdminPage() {
             {activeTab === 'requests' && (
               <div>
                 {data.recent_requests.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">Inga requests ännu</p>
+                  <p className="text-muted-foreground text-center py-8">Inga requests ännu</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-muted border-b border-border">
                         <tr>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">ID</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Fritext</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Restaurant</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Email</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Created</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Actions</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">ID</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Fritext</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Restaurant</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Email</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Created</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {data.recent_requests.map((req) => (
-                          <tr key={req.id} className="hover:bg-gray-50">
+                          <tr key={req.id} className="hover:bg-accent">
                             <td className="px-4 py-3 font-mono text-xs">{req.id.substring(0, 8)}...</td>
                             <td className="px-4 py-3 max-w-xs truncate">{req.fritext}</td>
                             <td className="px-4 py-3">{req.restaurant_name}</td>
                             <td className="px-4 py-3 font-mono text-xs">{req.restaurant_email}</td>
-                            <td className="px-4 py-3 text-gray-600">{formatDate(req.created_at)}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{formatDate(req.created_at)}</td>
                             <td className="px-4 py-3">
                               <button
                                 onClick={() => router.push(`/dashboard/requests/${req.id}`)}
-                                className="text-wine-dark hover:text-wine-deep text-sm font-medium"
+                                className="text-primary hover:text-primary/80 text-sm font-medium"
                               >
                                 View →
                               </button>
@@ -831,24 +829,24 @@ export default function PilotAdminPage() {
             {activeTab === 'offers' && (
               <div>
                 {data.recent_offers.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">Inga offers ännu</p>
+                  <p className="text-muted-foreground text-center py-8">Inga offers ännu</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-muted border-b border-border">
                         <tr>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">ID</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Title</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Status</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Restaurant</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Supplier</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Created</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Actions</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">ID</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Title</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Status</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Restaurant</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Supplier</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Created</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {data.recent_offers.map((offer) => (
-                          <tr key={offer.id} className="hover:bg-gray-50">
+                          <tr key={offer.id} className="hover:bg-accent">
                             <td className="px-4 py-3 font-mono text-xs">{offer.id.substring(0, 8)}...</td>
                             <td className="px-4 py-3">{offer.title}</td>
                             <td className="px-4 py-3">
@@ -858,11 +856,11 @@ export default function PilotAdminPage() {
                             </td>
                             <td className="px-4 py-3">{offer.restaurant_name}</td>
                             <td className="px-4 py-3">{offer.supplier_name}</td>
-                            <td className="px-4 py-3 text-gray-600">{formatDate(offer.created_at)}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{formatDate(offer.created_at)}</td>
                             <td className="px-4 py-3">
                               <button
                                 onClick={() => router.push(`/offers/${offer.id}`)}
-                                className="text-wine-dark hover:text-wine-deep text-sm font-medium"
+                                className="text-primary hover:text-primary/80 text-sm font-medium"
                               >
                                 View →
                               </button>
@@ -880,21 +878,21 @@ export default function PilotAdminPage() {
             {activeTab === 'events' && (
               <div>
                 {data.recent_events.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">Inga events ännu</p>
+                  <p className="text-muted-foreground text-center py-8">Inga events ännu</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-muted border-b border-border">
                         <tr>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Event Type</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Offer ID</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Details</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Created</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Event Type</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Offer ID</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Details</th>
+                          <th className="px-4 py-3 text-left font-medium text-foreground">Created</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {data.recent_events.map((event) => (
-                          <tr key={event.id} className="hover:bg-gray-50">
+                          <tr key={event.id} className="hover:bg-accent">
                             <td className="px-4 py-3">
                               <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getEventTypeBadgeColor(event.event_type)}`}>
                                 {event.event_type}
@@ -903,7 +901,7 @@ export default function PilotAdminPage() {
                             <td className="px-4 py-3">
                               <button
                                 onClick={() => router.push(`/offers/${event.offer_id}`)}
-                                className="font-mono text-xs text-wine-dark hover:text-wine-deep"
+                                className="font-mono text-xs text-primary hover:text-primary/80"
                               >
                                 {event.offer_id.substring(0, 8)}...
                               </button>
@@ -920,7 +918,7 @@ export default function PilotAdminPage() {
                                   <div className="text-xs">
                                     <span className="font-medium">Success:</span>{' '}
                                     <span className={event.payload.success ? 'text-green-600' : 'text-red-600'}>
-                                      {event.payload.success ? '✓ Yes' : '✗ No'}
+                                      <span className="inline-flex items-center gap-1">{event.payload.success ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />} {event.payload.success ? 'Yes' : 'No'}</span>
                                     </span>
                                   </div>
                                   {event.payload.error && (
@@ -930,12 +928,12 @@ export default function PilotAdminPage() {
                                   )}
                                 </div>
                               ) : event.payload.note ? (
-                                <div className="text-xs text-gray-600">{event.payload.note}</div>
+                                <div className="text-xs text-muted-foreground">{event.payload.note}</div>
                               ) : (
-                                <span className="text-xs text-gray-400">—</span>
+                                <span className="text-xs text-muted-foreground">—</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-gray-600">{formatDate(event.created_at)}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{formatDate(event.created_at)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -946,7 +944,6 @@ export default function PilotAdminPage() {
             )}
           </div>
         </div>
-      </main>
     </div>
   );
 }
