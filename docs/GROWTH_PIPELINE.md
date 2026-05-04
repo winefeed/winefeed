@@ -307,13 +307,14 @@ Producenter med viner i Winefeed-katalogen som EU-direktimport via Brasri (eller
 - **Varför:** 200 glasviner = enormt importörsbehov och konstant rotation. Koppling till L'Enoteca Malmö. Topptiming att nå dem nu inför våröppning.
 - **Outreach-vinkel:** "Med 200 glasviner och vårsäsongen runt hörnet — Winefeed förenklar sourcing från många importörer."
 
-### 23. Bankpalatset (Simon Weinberg) — Helsingborg 🟡
-- **Typ:** Bistro + vinbar + cocktailbar (öppnar vår 2026)
-- **Adress:** Järnvägsgatan 7, Helsingborg (600 kvm, historisk byggnad från 1884)
-- **Kontakt:** Simon Weinberg (ex-NOMA, Bagatelle Oslo, Operakällaren, Weinbergs Hotell White Guide Mästarklass)
-- **Profil:** Helt nytt koncept med dedikerad vinbar. Bygger leverantörsnätverk NU.
-- **Varför:** TIDSKRITISKT — öppnar snart, har inget etablerat leverantörsnätverk i Helsingborg. Toppkock med internationell bakgrund vill ha tillgång till intressanta producenter.
-- **Outreach-vinkel:** "Vi hjälper nya restaurangkoncept hitta svenska importörer snabbt — gratis under piloten."
+### 23. Bankpalatset (Simon Weinberg) — Helsingborg 🟡 KONTAKTAD
+- **Typ:** Bistro + vinbar (Weinberry) + cocktail-lounge + food bar (öppnar vår 2026)
+- **Adress:** Järnvägsgatan 7, 252 24 Helsingborg (600 kvm, historisk byggnad från 1884, fastighetsägare Wihlborgs)
+- **Kontakt:** info@bankpalats.se | press@bankpalats.se | restaurang@bankpalats.se | +46 76-163 40 40 | bankpalats.se
+- **Ägare/kock:** Simon Weinberg (ex-NOMA, Bagatelle Oslo, Operakällaren, Bokbacka Oslo, Weinbergs Hotell Trelleborg White Guide Mästarklass + "Bästa hotell i Skåne")
+- **Profil:** Modern bistro med nordiska + medelhavsinfluenser. Vinbaren Weinberry signalerar att vinkulturen är prioriterad. À la carte lunch + middag, aperitif-/vinbar, cocktailbar, food bar, uteservering.
+- **Outreach skickat:** 2026-05-04 till info@bankpalats.se med Markus i BCC. Vinkel: gratis pilot + import-stöd + tre Bordeaux-exempel (Tour-Calon, Bonalgue, Lateyron). Personlig hook refererar Weinberry-namnet. Skript: `scripts/send-bankpalatset-outreach.mjs`. Resend-ID: `afefc80f-c127-49f8-b19d-7951c406b6d4`.
+- **Nästa steg:** Följ upp om inget svar inom 7 dagar (≈ 2026-05-11). Efter premiären: skicka uppföljning med konkret menymatchning baserat på publicerad meny.
 
 ### 24. Pellegrino — Helsingborg 🟡
 - **Typ:** Italiensk restaurang & vinbar
