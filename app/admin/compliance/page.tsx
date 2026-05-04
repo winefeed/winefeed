@@ -13,7 +13,7 @@
 'use client';
 
 import { getErrorMessage } from '@/lib/utils';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useToast } from '@/components/ui/toast';
 import {
   FileText,
@@ -25,6 +25,9 @@ import {
   Globe,
   List,
   AlertTriangle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 
 type ReportType = 'summary' | 'alcohol-tax' | 'vat' | 'imports' | 'transactions';
@@ -768,15 +771,103 @@ function ImportsView({ report }: { report: ImportsReport }) {
 }
 
 // Transactions View
+type TxSortKey = 'date' | 'restaurant' | 'supplier' | 'importer' | 'bottles' | 'total';
+type TxSortDir = 'asc' | 'desc';
+type TxGroupBy = 'none' | 'restaurant' | 'supplier' | 'importer';
+
+interface AggregatedRow {
+  key: string;
+  name: string;
+  order_count: number;
+  total_bottles: number;
+  total_sek: number;
+}
+
 function TransactionsView({ report, formatSEK, onExport, exporting }: {
   report: TransactionsReport;
   formatSEK: (n: number) => string;
   onExport: () => void;
   exporting: boolean;
 }) {
+  const [sortKey, setSortKey] = useState<TxSortKey>('date');
+  const [sortDir, setSortDir] = useState<TxSortDir>('desc');
+  const [groupBy, setGroupBy] = useState<TxGroupBy>('none');
+
+  const toggleSort = (key: TxSortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'date' ? 'desc' : 'asc');
+    }
+  };
+
+  const SortIcon = ({ column }: { column: TxSortKey }) => {
+    if (sortKey !== column) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  };
+
+  // Sorted flat transactions
+  const sortedTransactions = useMemo(() => {
+    const arr = [...report.transactions];
+    arr.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case 'date':
+          cmp = new Date(a.order_date).getTime() - new Date(b.order_date).getTime();
+          break;
+        case 'restaurant':
+          cmp = a.restaurant.name.localeCompare(b.restaurant.name, 'sv');
+          break;
+        case 'supplier':
+          cmp = a.supplier.name.localeCompare(b.supplier.name, 'sv');
+          break;
+        case 'importer':
+          cmp = a.importer.name.localeCompare(b.importer.name, 'sv');
+          break;
+        case 'bottles':
+          cmp = a.total_bottles - b.total_bottles;
+          break;
+        case 'total':
+          cmp = a.total_sek - b.total_sek;
+          break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return arr;
+  }, [report.transactions, sortKey, sortDir]);
+
+  // Aggregated rows when grouping is active
+  const aggregatedRows = useMemo<AggregatedRow[]>(() => {
+    if (groupBy === 'none') return [];
+    const map = new Map<string, AggregatedRow>();
+    for (const t of report.transactions) {
+      const name =
+        groupBy === 'restaurant' ? t.restaurant.name :
+        groupBy === 'supplier' ? t.supplier.name :
+        t.importer.name;
+      const existing = map.get(name);
+      if (existing) {
+        existing.order_count += 1;
+        existing.total_bottles += t.total_bottles;
+        existing.total_sek += t.total_sek;
+      } else {
+        map.set(name, { key: name, name, order_count: 1, total_bottles: t.total_bottles, total_sek: t.total_sek });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.total_sek - a.total_sek);
+  }, [report.transactions, groupBy]);
+
+  const groupLabel: Record<TxGroupBy, string> = {
+    none: 'Per order',
+    restaurant: 'Per restaurang',
+    supplier: 'Per leverantör',
+    importer: 'Per importör',
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <p className="text-sm text-muted-foreground">{report.totals.transaction_count} transaktioner</p>
         <button
           onClick={onExport}
@@ -796,35 +887,108 @@ function TransactionsView({ report, formatSEK, onExport, exporting }: {
         <StatCard title="Totalt" value={formatSEK(report.totals.total_sek)} highlight />
       </div>
 
+      {/* Group-by toggle */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-sm font-medium text-foreground">Gruppera:</span>
+        {(['none', 'restaurant', 'supplier', 'importer'] as TxGroupBy[]).map((g) => (
+          <button
+            key={g}
+            onClick={() => setGroupBy(g)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              groupBy === g
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card border border-border text-foreground hover:bg-accent'
+            }`}
+          >
+            {groupLabel[g]}
+          </button>
+        ))}
+      </div>
+
       <div className="bg-card rounded-lg border border-border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-muted/50">
-                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Datum</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Restaurang</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Leverantör</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Importör</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-muted-foreground">Flaskor</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-muted-foreground">Totalt</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {report.transactions.map((t) => (
-                <tr key={t.order_id} className="hover:bg-accent">
-                  <td className="px-6 py-4 text-sm">{new Date(t.order_date).toLocaleDateString('sv-SE')}</td>
-                  <td className="px-6 py-4 text-sm">{t.restaurant.name}</td>
-                  <td className="px-6 py-4 text-sm">{t.supplier.name}</td>
-                  <td className="px-6 py-4 text-sm">{t.importer.name}</td>
-                  <td className="px-6 py-4 text-sm text-right">{t.total_bottles}</td>
-                  <td className="px-6 py-4 text-sm text-right font-medium">{formatSEK(t.total_sek)}</td>
+          {groupBy === 'none' ? (
+            <table className="w-full">
+              <thead>
+                <tr className="bg-muted/50">
+                  <SortableTh label="Datum" column="date" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Restaurang" column="restaurant" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Leverantör" column="supplier" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Importör" column="importer" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Flaskor" column="bottles" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
+                  <SortableTh label="Totalt" column="total" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {sortedTransactions.map((t) => (
+                  <tr key={t.order_id} className="hover:bg-accent">
+                    <td className="px-6 py-4 text-sm">{new Date(t.order_date).toLocaleDateString('sv-SE')}</td>
+                    <td className="px-6 py-4 text-sm">{t.restaurant.name}</td>
+                    <td className="px-6 py-4 text-sm">{t.supplier.name}</td>
+                    <td className="px-6 py-4 text-sm">{t.importer.name}</td>
+                    <td className="px-6 py-4 text-sm text-right">{t.total_bottles}</td>
+                    <td className="px-6 py-4 text-sm text-right font-medium">{formatSEK(t.total_sek)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="bg-muted/50">
+                  <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">
+                    {groupBy === 'restaurant' ? 'Restaurang' : groupBy === 'supplier' ? 'Leverantör' : 'Importör'}
+                  </th>
+                  <th className="text-right px-6 py-3 text-sm font-medium text-muted-foreground">Ordrar</th>
+                  <th className="text-right px-6 py-3 text-sm font-medium text-muted-foreground">Flaskor</th>
+                  <th className="text-right px-6 py-3 text-sm font-medium text-muted-foreground">Totalt</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {aggregatedRows.map((r) => (
+                  <tr key={r.key} className="hover:bg-accent">
+                    <td className="px-6 py-4 text-sm font-medium text-foreground">{r.name}</td>
+                    <td className="px-6 py-4 text-sm text-right">{r.order_count}</td>
+                    <td className="px-6 py-4 text-sm text-right">{r.total_bottles}</td>
+                    <td className="px-6 py-4 text-sm text-right font-medium">{formatSEK(r.total_sek)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-muted/30 border-t border-border">
+                <tr>
+                  <td className="px-6 py-3 text-sm font-medium text-muted-foreground">Totalt ({aggregatedRows.length})</td>
+                  <td className="px-6 py-3 text-sm text-right font-medium">{report.totals.transaction_count}</td>
+                  <td className="px-6 py-3 text-sm text-right font-medium">{report.totals.total_bottles}</td>
+                  <td className="px-6 py-3 text-sm text-right font-bold text-primary">{formatSEK(report.totals.total_sek)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+function SortableTh({ label, column, sortKey, sortDir, onClick, align = 'left' }: {
+  label: string;
+  column: TxSortKey;
+  sortKey: TxSortKey;
+  sortDir: TxSortDir;
+  onClick: (key: TxSortKey) => void;
+  align?: 'left' | 'right';
+}) {
+  const isActive = sortKey === column;
+  return (
+    <th
+      onClick={() => onClick(column)}
+      className={`px-6 py-3 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none ${align === 'right' ? 'text-right' : 'text-left'}`}
+    >
+      <span className={`inline-flex items-center gap-1.5 ${align === 'right' ? 'justify-end w-full' : ''}`}>
+        {label}
+        {isActive ? (sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-40" />}
+      </span>
+    </th>
   );
 }
 
