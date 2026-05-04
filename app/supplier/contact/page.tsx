@@ -50,14 +50,14 @@ export default function ContactPage() {
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Kontakta Winefeed</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Kontakta Winefeed</h1>
+        <p className="text-muted-foreground mt-1">
           Vi hjälper dig gärna med frågor och support
         </p>
       </div>
 
       {/* Contact Card */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+      <div className="bg-white rounded-lg border border-border overflow-hidden mb-6">
         <div className="bg-gradient-to-r from-wine to-wine-active p-6 text-white">
           <div className="flex items-center gap-4">
             <div className="bg-white/20 p-3 rounded-lg">
@@ -83,14 +83,14 @@ export default function ContactPage() {
             <Mail className="h-5 w-5" />
             Skicka e-post till support
           </a>
-          <p className="text-sm text-gray-500 mt-3">
+          <p className="text-sm text-muted-foreground mt-3">
             Öppnar din e-postklient med förifylld information
           </p>
         </div>
       </div>
 
       {/* Quick Topics */}
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Vanliga ärenden</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-4">Vanliga ärenden</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <ContactTopic
           icon={FileQuestion}
@@ -131,16 +131,16 @@ export default function ContactPage() {
       </div>
 
       {/* Direct Contact Info */}
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+      <div className="bg-muted rounded-lg border border-border p-6">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
           Direktkontakt
         </h3>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-white rounded-lg border border-gray-200">
-            <Mail className="h-5 w-5 text-gray-600" />
+          <div className="p-2 bg-white rounded-lg border border-border">
+            <Mail className="h-5 w-5 text-muted-foreground" />
           </div>
           <div>
-            <p className="text-sm text-gray-500">E-post</p>
+            <p className="text-sm text-muted-foreground">E-post</p>
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
               target="_blank"
@@ -169,14 +169,14 @@ function ContactTopic({ icon: Icon, title, description, href }: ContactTopicProp
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
+      className="flex items-start gap-4 p-4 bg-white rounded-lg border border-border hover:border-border hover:shadow-sm transition-all"
     >
-      <div className="p-2 bg-gray-100 rounded-lg">
-        <Icon className="h-5 w-5 text-gray-600" />
+      <div className="p-2 bg-muted rounded-lg">
+        <Icon className="h-5 w-5 text-muted-foreground" />
       </div>
       <div>
-        <h4 className="font-medium text-gray-900">{title}</h4>
-        <p className="text-sm text-gray-500 mt-0.5">{description}</p>
+        <h4 className="font-medium text-foreground">{title}</h4>
+        <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
       </div>
     </a>
   );

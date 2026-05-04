@@ -212,14 +212,14 @@ export default function PromotionsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-wine" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-muted py-12 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -227,10 +227,10 @@ export default function PromotionsPage() {
             <Sparkles className="w-4 h-4" />
             Sponsrade Platser
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             Öka din synlighet i kategorier
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Få en framträdande plats i kategorierna du vill synas i.
             Begränsade platser per kategori garanterar exklusivitet.
           </p>
@@ -270,11 +270,11 @@ export default function PromotionsPage() {
 
         {/* Entitlement Card */}
         {entitlement && (
-          <div className="max-w-2xl mx-auto mb-12 p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="max-w-2xl mx-auto mb-12 p-6 bg-white rounded-xl shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-gray-900">Dina sponsrade platser</h3>
-                <p className="text-gray-500 text-sm mt-1">
+                <h3 className="font-semibold text-foreground">Dina sponsrade platser</h3>
+                <p className="text-muted-foreground text-sm mt-1">
                   {entitlement.included_slots > 0 && (
                     <span className="text-amber-600">
                       {entitlement.included_slots} inkluderad i Premium
@@ -290,13 +290,13 @@ export default function PromotionsPage() {
                 <div className="text-3xl font-bold text-wine">
                   {entitlement.remaining_slots}
                 </div>
-                <div className="text-sm text-gray-500">lediga av {entitlement.total_slots}</div>
+                <div className="text-sm text-muted-foreground">lediga av {entitlement.total_slots}</div>
               </div>
             </div>
 
             {/* Progress bar */}
             <div className="mt-4">
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-muted rounded-full h-2">
                 <div
                   className="bg-wine h-2 rounded-full transition-all"
                   style={{
@@ -313,7 +313,7 @@ export default function PromotionsPage() {
         {/* Active Slots */}
         {slots.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Dina aktiva platser</h2>
+            <h2 className="text-xl font-bold text-foreground mb-6">Dina aktiva platser</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {slots.map((slot) => (
                 <div
@@ -324,21 +324,21 @@ export default function PromotionsPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-foreground">
                           {slot.category?.name || 'Kategori'}
                         </h3>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         {slot.slot_type === 'INCLUDED' ? 'Inkluderad i Premium' : 'Köpt'}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Aktiv sedan {new Date(slot.starts_at).toLocaleDateString('sv-SE')}
                       </p>
                     </div>
                     <button
                       onClick={() => handleUnassignSlot(slot.id)}
                       disabled={actionLoading === slot.id}
-                      className="text-gray-400 hover:text-red-500 transition-colors"
+                      className="text-muted-foreground hover:text-red-500 transition-colors"
                       title="Ta bort plats"
                     >
                       {actionLoading === slot.id ? (
@@ -356,11 +356,11 @@ export default function PromotionsPage() {
 
         {/* Available Categories */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Tillgängliga kategorier</h2>
+          <h2 className="text-xl font-bold text-foreground mb-6">Tillgängliga kategorier</h2>
 
           {categories.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-              <p className="text-gray-500">Inga kategorier tillgängliga just nu.</p>
+            <div className="text-center py-12 bg-white rounded-xl border border-border">
+              <p className="text-muted-foreground">Inga kategorier tillgängliga just nu.</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -373,13 +373,13 @@ export default function PromotionsPage() {
                   <div
                     key={category.id}
                     className={`bg-white rounded-xl shadow-sm overflow-hidden border ${
-                      hasSlot ? 'border-amber-300' : 'border-gray-200'
+                      hasSlot ? 'border-amber-300' : 'border-border'
                     }`}
                   >
                     {/* Category header */}
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-lg font-semibold text-foreground">
                           {category.name}
                         </h3>
                         {hasSlot && (
@@ -390,7 +390,7 @@ export default function PromotionsPage() {
                       </div>
 
                       {category.description && (
-                        <p className="text-sm text-gray-500 mb-4">
+                        <p className="text-sm text-muted-foreground mb-4">
                           {category.description}
                         </p>
                       )}
@@ -404,23 +404,23 @@ export default function PromotionsPage() {
                               className={`w-6 h-6 rounded-full border-2 border-white ${
                                 i < category.active_slot_count
                                   ? 'bg-amber-400'
-                                  : 'bg-gray-200'
+                                  : 'bg-muted'
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           {category.active_slot_count}/{category.sponsor_cap} platser upptagna
                         </span>
                       </div>
 
                       {/* Price */}
                       {!hasSlot && (
-                        <div className="text-sm text-gray-600 mb-4">
-                          <span className="font-semibold text-lg text-gray-900">
+                        <div className="text-sm text-muted-foreground mb-4">
+                          <span className="font-semibold text-lg text-foreground">
                             {category.price_monthly_sek.toLocaleString('sv-SE')} kr
                           </span>
-                          <span className="text-gray-500">/månad</span>
+                          <span className="text-muted-foreground">/månad</span>
                         </div>
                       )}
                     </div>
@@ -431,7 +431,7 @@ export default function PromotionsPage() {
                         <button
                           onClick={() => existingSlot && handleUnassignSlot(existingSlot.id)}
                           disabled={actionLoading === existingSlot?.id}
-                          className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm disabled:opacity-50"
+                          className="w-full py-2 px-4 border border-border text-foreground rounded-lg hover:bg-accent transition-colors text-sm disabled:opacity-50"
                         >
                           {actionLoading === existingSlot?.id ? (
                             <span className="flex items-center justify-center">
@@ -445,7 +445,7 @@ export default function PromotionsPage() {
                       ) : category.is_full ? (
                         <button
                           disabled
-                          className="w-full py-2 px-4 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed text-sm"
+                          className="w-full py-2 px-4 bg-muted text-muted-foreground rounded-lg cursor-not-allowed text-sm"
                         >
                           Fullbokad
                         </button>
@@ -502,10 +502,10 @@ export default function PromotionsPage() {
                 <Crown className="w-6 h-6 text-amber-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                <h3 className="text-xl font-bold text-foreground mb-2">
                   Uppgradera till Premium
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Med Premium får du 1 sponsrad plats inkluderad, plus högsta sökprioritet,
                   konkurrentanalys och dedikerad support.
                 </p>

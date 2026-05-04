@@ -48,7 +48,7 @@ const statusConfig: Record<string, { label: string; color: string; bgColor: stri
   ACCEPTED: { label: 'Accepterad', color: 'text-green-800', bgColor: 'bg-green-100', icon: CheckCircle },
   PARTIALLY_ACCEPTED: { label: 'Delvis accepterad', color: 'text-amber-800', bgColor: 'bg-amber-100', icon: AlertCircle },
   rejected: { label: 'Avböjd', color: 'text-red-800', bgColor: 'bg-red-100', icon: XCircle },
-  expired: { label: 'Utgången', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: AlertCircle },
+  expired: { label: 'Utgången', color: 'text-muted-foreground', bgColor: 'bg-muted', icon: AlertCircle },
 };
 
 function getStatusConfig(status: string) {
@@ -104,11 +104,11 @@ export default function SupplierOffersPage() {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-12 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="h-12 bg-muted rounded"></div>
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-28 bg-gray-200 rounded-lg"></div>
+              <div key={i} className="h-28 bg-muted rounded-lg"></div>
             ))}
           </div>
         </div>
@@ -150,8 +150,8 @@ export default function SupplierOffersPage() {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Offerter</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Offerter</h1>
+        <p className="text-muted-foreground mt-1">
           Hantera och följ upp dina skickade offerter
         </p>
       </div>
@@ -172,7 +172,7 @@ export default function SupplierOffersPage() {
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                 filter === status
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-muted text-muted-foreground hover:bg-accent'
               }`}
             >
               {labels[status]}
@@ -200,26 +200,26 @@ export default function SupplierOffersPage() {
                     ? 'border-green-200'
                     : offer.status === 'PARTIALLY_ACCEPTED'
                       ? 'border-amber-200'
-                      : 'border-gray-200'
+                      : 'border-border'
                 }`}
               >
                 {/* Offer Header — always visible */}
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : offer.id)}
-                  className="w-full p-4 text-left hover:bg-gray-50 transition-colors rounded-lg"
+                  className="w-full p-4 text-left hover:bg-accent transition-colors rounded-lg"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       {/* Restaurant name */}
                       <div className="flex items-center gap-2 mb-1">
-                        <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                        <span className="font-medium text-gray-900 truncate">
+                        <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium text-foreground truncate">
                           {offer.restaurant_name}
                         </span>
                       </div>
 
                       {/* Summary line */}
-                      <div className="flex items-center gap-3 text-sm text-gray-600 ml-6">
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground ml-6">
                         <span className="flex items-center gap-1">
                           <Wine className="h-3.5 w-3.5" />
                           {offer.wineCount} {offer.wineCount === 1 ? 'vin' : 'viner'}
@@ -247,7 +247,7 @@ export default function SupplierOffersPage() {
                       )}
 
                       {/* Time */}
-                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-400 ml-6">
+                      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground ml-6">
                         <Clock className="h-3 w-3" />
                         <span>
                           Skickad {new Date(offer.created_at).toLocaleDateString('sv-SE', {
@@ -266,10 +266,10 @@ export default function SupplierOffersPage() {
                       </span>
                       {hasMultipleLines ? (
                         isExpanded
-                          ? <ChevronDown className="h-5 w-5 text-gray-400" />
-                          : <ChevronRight className="h-5 w-5 text-gray-400" />
+                          ? <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                          : <ChevronRight className="h-5 w-5 text-muted-foreground" />
                       ) : (
-                        <ChevronRight className="h-5 w-5 text-gray-300" />
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
                   </div>
@@ -277,10 +277,10 @@ export default function SupplierOffersPage() {
 
                 {/* Expanded wine lines */}
                 {isExpanded && (
-                  <div className="border-t border-gray-100 px-4 pb-4">
+                  <div className="border-t border-border px-4 pb-4">
                     <table className="w-full mt-3 text-sm">
                       <thead>
-                        <tr className="text-left text-xs text-gray-500 uppercase tracking-wider">
+                        <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider">
                           <th className="pb-2 font-medium">Vin</th>
                           <th className="pb-2 font-medium text-right">Pris/fl</th>
                           <th className="pb-2 font-medium text-right">Antal</th>
@@ -294,7 +294,7 @@ export default function SupplierOffersPage() {
                         {offer.lines.map((line, idx) => (
                           <tr key={line.id || idx} className={
                             line.accepted === true ? 'bg-green-50/50' :
-                            line.accepted === false ? 'bg-gray-50 text-gray-400' : ''
+                            line.accepted === false ? 'bg-muted text-muted-foreground' : ''
                           }>
                             <td className="py-2 pr-4">
                               <span className={line.accepted === false ? 'line-through' : ''}>
@@ -302,7 +302,7 @@ export default function SupplierOffersPage() {
                                 {line.vintage ? ` ${line.vintage}` : ''}
                               </span>
                               {line.producer && (
-                                <span className="text-xs text-gray-400 ml-1">
+                                <span className="text-xs text-muted-foreground ml-1">
                                   — {line.producer}
                                 </span>
                               )}
@@ -322,17 +322,17 @@ export default function SupplierOffersPage() {
                                   <span className="text-green-600 text-xs font-medium">Accepterad</span>
                                 )}
                                 {line.accepted === false && (
-                                  <span className="text-gray-400 text-xs">Avböjd</span>
+                                  <span className="text-muted-foreground text-xs">Avböjd</span>
                                 )}
                                 {line.accepted === null && (
-                                  <span className="text-gray-300 text-xs">—</span>
+                                  <span className="text-muted-foreground text-xs">—</span>
                                 )}
                               </td>
                             )}
                           </tr>
                         ))}
                       </tbody>
-                      <tfoot className="border-t border-gray-200">
+                      <tfoot className="border-t border-border">
                         <tr className="text-sm font-medium">
                           <td className="pt-2">Summa</td>
                           <td></td>
@@ -343,7 +343,7 @@ export default function SupplierOffersPage() {
                           {isAccepted(offer.status) && <td></td>}
                         </tr>
                         {!offer.is_franco && offer.shipping_cost_sek && (
-                          <tr className="text-xs text-gray-500">
+                          <tr className="text-xs text-muted-foreground">
                             <td className="pt-1">Frakt</td>
                             <td></td>
                             <td></td>
@@ -362,12 +362,12 @@ export default function SupplierOffersPage() {
           })}
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="bg-white rounded-lg border border-border p-12 text-center">
+          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             Inga offerter
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             {filter === 'all'
               ? 'Du har inte skickat några offerter ännu.'
               : `Inga ${filter === 'pending' ? 'väntande' : filter === 'accepted' ? 'accepterade' : 'avböjda'} offerter.`}
@@ -384,21 +384,21 @@ export default function SupplierOffersPage() {
       {/* Stats summary */}
       {offers.length > 0 && (
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{counts.total}</p>
-            <p className="text-sm text-gray-500">Totalt</p>
+          <div className="bg-white rounded-lg border border-border p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{counts.total}</p>
+            <p className="text-sm text-muted-foreground">Totalt</p>
           </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <div className="bg-white rounded-lg border border-border p-4 text-center">
             <p className="text-2xl font-bold text-blue-600">{counts.pending}</p>
-            <p className="text-sm text-gray-500">Väntar</p>
+            <p className="text-sm text-muted-foreground">Väntar</p>
           </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <div className="bg-white rounded-lg border border-border p-4 text-center">
             <p className="text-2xl font-bold text-green-600">{counts.accepted}</p>
-            <p className="text-sm text-gray-500">Accepterade</p>
+            <p className="text-sm text-muted-foreground">Accepterade</p>
           </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <div className="bg-white rounded-lg border border-border p-4 text-center">
             <p className="text-2xl font-bold text-red-600">{counts.rejected}</p>
-            <p className="text-sm text-gray-500">Avböjda</p>
+            <p className="text-sm text-muted-foreground">Avböjda</p>
           </div>
         </div>
       )}

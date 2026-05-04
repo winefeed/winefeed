@@ -116,7 +116,7 @@ function getUrgencyStyles(urgency: UrgencyLevel): { badge: string; bg: string } 
   switch (urgency) {
     case 'critical': return { badge: 'bg-red-100 text-red-800 border-red-200', bg: 'bg-red-50' };
     case 'urgent': return { badge: 'bg-amber-100 text-amber-800 border-amber-200', bg: 'bg-amber-50' };
-    case 'expired': return { badge: 'bg-gray-100 text-gray-500 border-gray-200', bg: 'bg-gray-50' };
+    case 'expired': return { badge: 'bg-muted text-muted-foreground border-border', bg: 'bg-muted' };
     default: return { badge: 'bg-green-100 text-green-800 border-green-200', bg: 'bg-green-50' };
   }
 }
@@ -309,8 +309,8 @@ export default function SupplierRequestDetailPage({
     return (
       <div className="p-6 max-w-4xl mx-auto">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded-lg"></div>
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="h-64 bg-muted rounded-lg"></div>
         </div>
       </div>
     );
@@ -319,7 +319,7 @@ export default function SupplierRequestDetailPage({
   if (error || !request) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="h-4 w-4" /> Tillbaka
         </button>
         <div className="bg-white border border-black rounded-lg p-6 text-center">
@@ -355,7 +355,7 @@ export default function SupplierRequestDetailPage({
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {/* Back button */}
-      <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
+      <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="h-4 w-4" /> Tillbaka till förfrågningar
       </button>
 
@@ -371,12 +371,12 @@ export default function SupplierRequestDetailPage({
       )}
 
       {/* Header */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-lg border border-border p-6 mb-6">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <Building2 className="h-5 w-5 text-gray-400" />
-              <h1 className="text-xl font-bold text-gray-900">{request.restaurantName}</h1>
+              <Building2 className="h-5 w-5 text-muted-foreground" />
+              <h1 className="text-xl font-bold text-foreground">{request.restaurantName}</h1>
               {request.restaurantLicenseVerified ? (
                 <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                   <Shield className="h-3 w-3" /> Serveringstillstånd
@@ -388,7 +388,7 @@ export default function SupplierRequestDetailPage({
               ) : null}
             </div>
             {/* Restaurant profile details */}
-            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-2">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-2">
               {request.restaurantCity && (
                 <span>{request.restaurantCity}</span>
               )}
@@ -396,19 +396,19 @@ export default function SupplierRequestDetailPage({
                 <span>Org: {request.restaurantOrgNumber}</span>
               )}
               {request.restaurantPriceSegment && (
-                <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
+                <span className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">
                   {{ casual: 'Casual', 'mid-range': 'Mellansegment', 'fine-dining': 'Fine dining' }[request.restaurantPriceSegment] || request.restaurantPriceSegment}
                 </span>
               )}
               {request.restaurantCuisineType && request.restaurantCuisineType.length > 0 && (
                 <span className="flex gap-1">
                   {request.restaurantCuisineType.map(c => (
-                    <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">{c}</span>
+                    <span key={c} className="px-2 py-0.5 bg-muted text-foreground rounded text-xs">{c}</span>
                   ))}
                 </span>
               )}
             </div>
-            <p className="text-gray-600">{request.fritext}</p>
+            <p className="text-muted-foreground">{request.fritext}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
             {hasResponded ? (
@@ -426,27 +426,27 @@ export default function SupplierRequestDetailPage({
         {/* Quick Stats */}
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
           {request.antalFlaskor && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500">Antal</p>
-              <p className="font-semibold text-gray-900">{request.antalFlaskor} flaskor</p>
+            <div className="bg-muted rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">Antal</p>
+              <p className="font-semibold text-foreground">{request.antalFlaskor} flaskor</p>
             </div>
           )}
           {request.budgetPerFlaska && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500">Budget</p>
+            <div className="bg-muted rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">Budget</p>
               <p className="font-semibold text-green-600">{request.budgetPerFlaska} kr/fl</p>
             </div>
           )}
           {request.leveransOrt && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500">Leveransort</p>
-              <p className="font-semibold text-gray-900">{request.leveransOrt}</p>
+            <div className="bg-muted rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">Leveransort</p>
+              <p className="font-semibold text-foreground">{request.leveransOrt}</p>
             </div>
           )}
           {request.leveransSenast && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500">Onskat datum</p>
-              <p className="font-semibold text-gray-900">
+            <div className="bg-muted rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">Onskat datum</p>
+              <p className="font-semibold text-foreground">
                 {new Date(request.leveransSenast).toLocaleDateString('sv-SE')}
               </p>
             </div>
@@ -455,7 +455,7 @@ export default function SupplierRequestDetailPage({
 
         {/* CTA */}
         {!hasResponded && !request.assignment.isExpired && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="mt-6 pt-6 border-t border-border">
             <button
               onClick={() => setShowOfferForm(true)}
               className="w-full px-4 py-3 bg-wine text-white rounded-lg hover:bg-wine/90 font-medium flex items-center justify-center gap-2"
@@ -468,31 +468,31 @@ export default function SupplierRequestDetailPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Request Details */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Package className="h-5 w-5 text-gray-400" /> Förfrågan
+        <div className="bg-white rounded-lg border border-border p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Package className="h-5 w-5 text-muted-foreground" /> Förfrågan
           </h2>
           <div className="space-y-4">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Beskrivning</p>
-              <p className="text-gray-900">{request.fritext}</p>
+              <p className="text-sm text-muted-foreground mb-1">Beskrivning</p>
+              <p className="text-foreground">{request.fritext}</p>
             </div>
             {request.specialkrav && request.specialkrav.length > 0 && (
               <div>
-                <p className="text-sm text-gray-500 mb-2">Specialkrav</p>
+                <p className="text-sm text-muted-foreground mb-2">Specialkrav</p>
                 <div className="flex flex-wrap gap-2">
                   {request.specialkrav.map((krav, i) => (
-                    <span key={i} className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded">{krav}</span>
+                    <span key={i} className="px-2 py-1 bg-muted text-foreground text-sm rounded">{krav}</span>
                   ))}
                 </div>
               </div>
             )}
             {request.assignment.matchReasons && request.assignment.matchReasons.length > 0 && (
               <div>
-                <p className="text-sm text-gray-500 mb-2">Varfor du matchade</p>
+                <p className="text-sm text-muted-foreground mb-2">Varfor du matchade</p>
                 <div className="space-y-1">
                   {request.assignment.matchReasons.map((reason, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                    <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-green-500" /> {reason}
                     </div>
                   ))}
@@ -504,9 +504,9 @@ export default function SupplierRequestDetailPage({
 
         {/* Wine Items */}
         {request.items && request.items.length > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Wine className="h-5 w-5 text-gray-400" /> Efterfragade viner ({request.items.length})
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Wine className="h-5 w-5 text-muted-foreground" /> Efterfragade viner ({request.items.length})
             </h2>
             {request.hasProvorder && (
               <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -522,24 +522,24 @@ export default function SupplierRequestDetailPage({
               {request.items.map((item) => (
                 <div
                   key={item.id}
-                  className={`p-3 rounded-lg border ${item.provorder ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}
+                  className={`p-3 rounded-lg border ${item.provorder ? 'bg-green-50 border-green-200' : 'bg-muted border-border'}`}
                 >
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900">{item.wineName}</p>
-                        {item.vintage && <span className="text-gray-500">{item.vintage}</span>}
+                        <p className="font-medium text-foreground">{item.wineName}</p>
+                        {item.vintage && <span className="text-muted-foreground">{item.vintage}</span>}
                         {item.provorder && (
                           <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">Provorder</span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         {item.producer}{item.country && ` · ${item.country}`}{item.region && ` · ${item.region}`}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">{item.quantity} fl</p>
-                      {item.priceSek && <p className="text-xs text-gray-500">{item.priceSek} kr/fl</p>}
+                      <p className="font-semibold text-foreground">{item.quantity} fl</p>
+                      {item.priceSek && <p className="text-xs text-muted-foreground">{item.priceSek} kr/fl</p>}
                       {item.provorder && item.provorderFee && (
                         <p className="text-xs text-green-600 font-medium">+{item.provorderFee} kr avgift</p>
                       )}
@@ -553,44 +553,44 @@ export default function SupplierRequestDetailPage({
 
         {/* Competition & Timeline */}
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Wine className="h-5 w-5 text-gray-400" /> Konkurrens
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Wine className="h-5 w-5 text-muted-foreground" /> Konkurrens
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Totalt antal offerter</span>
-                <span className="font-medium text-gray-900">{request.totalOfferCount}</span>
+                <span className="text-muted-foreground">Totalt antal offerter</span>
+                <span className="font-medium text-foreground">{request.totalOfferCount}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500">Dina offerter</span>
-                <span className={`font-medium ${hasResponded ? 'text-green-600' : 'text-gray-400'}`}>{request.myOfferCount}</span>
+                <span className="text-muted-foreground">Dina offerter</span>
+                <span className={`font-medium ${hasResponded ? 'text-green-600' : 'text-muted-foreground'}`}>{request.myOfferCount}</span>
               </div>
               {request.assignment.matchScore > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Matchningspoang</span>
+                  <span className="text-muted-foreground">Matchningspoang</span>
                   <span className="font-medium text-blue-600">{request.assignment.matchScore}%</span>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock className="h-5 w-5 text-gray-400" /> Tidslinje
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-muted-foreground" /> Tidslinje
             </h2>
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="text-gray-600">
+                <span className="text-muted-foreground">
                   Förfrågan skickad{' '}
                   {new Date(request.assignment.sentAt).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
               {request.assignment.viewedAt && (
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                  <span className="text-gray-600">
+                  <div className="w-2 h-2 rounded-full bg-muted-foreground/40"></div>
+                  <span className="text-muted-foreground">
                     Visad {new Date(request.assignment.viewedAt).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
@@ -605,7 +605,7 @@ export default function SupplierRequestDetailPage({
               )}
               <div className="flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full ${request.assignment.isExpired ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
-                <span className={request.assignment.isExpired ? 'text-red-700' : 'text-gray-600'}>
+                <span className={request.assignment.isExpired ? 'text-red-700' : 'text-muted-foreground'}>
                   {request.assignment.isExpired ? 'Utgick' : 'Utgar'}{' '}
                   {new Date(request.assignment.expiresAt).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
                 </span>
@@ -619,16 +619,16 @@ export default function SupplierRequestDetailPage({
       {showOfferForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full my-8">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Skicka offert</h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h2 className="text-xl font-bold text-foreground">Skicka offert</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
                     {request.restaurantName} — {getIncludedLines().length} viner
                   </p>
                 </div>
-                <button onClick={() => setShowOfferForm(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <X className="h-5 w-5 text-gray-500" />
+                <button onClick={() => setShowOfferForm(false)} className="p-2 hover:bg-accent rounded-lg transition-colors">
+                  <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
             </div>
@@ -642,17 +642,17 @@ export default function SupplierRequestDetailPage({
 
               {/* Wine Lines Table */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Viner</h3>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <h3 className="text-sm font-medium text-foreground mb-3">Viner</h3>
+                <div className="border border-border rounded-lg overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-muted border-b border-border">
                       <tr>
-                        <th className="text-left px-3 py-2 font-medium text-gray-500 w-8"></th>
-                        <th className="text-left px-3 py-2 font-medium text-gray-500">Vin</th>
-                        <th className="text-left px-3 py-2 font-medium text-gray-500 w-20">Onskat</th>
-                        <th className="text-left px-3 py-2 font-medium text-gray-500 w-28">Pris (kr/fl)</th>
-                        <th className="text-left px-3 py-2 font-medium text-gray-500 w-24">Antal</th>
-                        <th className="text-right px-3 py-2 font-medium text-gray-500 w-24">Summa</th>
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground w-8"></th>
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground">Vin</th>
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground w-20">Onskat</th>
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground w-28">Pris (kr/fl)</th>
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground w-24">Antal</th>
+                        <th className="text-right px-3 py-2 font-medium text-muted-foreground w-24">Summa</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -661,20 +661,20 @@ export default function SupplierRequestDetailPage({
                         const qty = parseInt(line.quantity) || 0;
                         const lineTotal = price * qty;
                         return (
-                          <tr key={index} className={line.included ? '' : 'opacity-40 bg-gray-50'}>
+                          <tr key={index} className={line.included ? '' : 'opacity-40 bg-muted'}>
                             <td className="px-3 py-3">
                               <input
                                 type="checkbox"
                                 checked={line.included}
                                 onChange={(e) => updateLine(index, 'included', e.target.checked)}
-                                className="rounded border-gray-300 text-green-600 focus:ring-wine"
+                                className="rounded border-border text-green-600 focus:ring-wine"
                               />
                             </td>
                             <td className="px-3 py-3">
-                              <p className="font-medium text-gray-900">{line.wineName}</p>
-                              <p className="text-xs text-gray-500">{line.producer}</p>
+                              <p className="font-medium text-foreground">{line.wineName}</p>
+                              <p className="text-xs text-muted-foreground">{line.producer}</p>
                             </td>
-                            <td className="px-3 py-3 text-gray-600">
+                            <td className="px-3 py-3 text-muted-foreground">
                               {line.requestedQuantity} fl
                             </td>
                             <td className="px-3 py-3">
@@ -685,7 +685,7 @@ export default function SupplierRequestDetailPage({
                                 onChange={(e) => updateLine(index, 'offeredPriceExVatSek', e.target.value)}
                                 disabled={!line.included}
                                 placeholder="0"
-                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-wine focus:border-wine disabled:bg-gray-100"
+                                className="w-full px-2 py-1.5 border border-border rounded text-sm focus:ring-1 focus:ring-wine focus:border-wine disabled:bg-muted"
                               />
                             </td>
                             <td className="px-3 py-3">
@@ -696,10 +696,10 @@ export default function SupplierRequestDetailPage({
                                 onChange={(e) => updateLine(index, 'quantity', e.target.value)}
                                 disabled={!line.included}
                                 placeholder="0"
-                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-wine focus:border-wine disabled:bg-gray-100"
+                                className="w-full px-2 py-1.5 border border-border rounded text-sm focus:ring-1 focus:ring-wine focus:border-wine disabled:bg-muted"
                               />
                             </td>
-                            <td className="px-3 py-3 text-right font-medium text-gray-900">
+                            <td className="px-3 py-3 text-right font-medium text-foreground">
                               {line.included && lineTotal > 0 ? `${lineTotal.toLocaleString('sv-SE')} kr` : '—'}
                             </td>
                           </tr>
@@ -713,20 +713,20 @@ export default function SupplierRequestDetailPage({
               {/* Delivery */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Leveransdatum</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Leveransdatum</label>
                   <input
                     type="date"
                     value={offerDeliveryDate}
                     onChange={(e) => setOfferDeliveryDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Leveranstid</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Leveranstid</label>
                   <select
                     value={offerLeadTime}
                     onChange={(e) => setOfferLeadTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                   >
                     <option value="7">7 dagar</option>
                     <option value="14">14 dagar</option>
@@ -739,24 +739,24 @@ export default function SupplierRequestDetailPage({
               </div>
 
               {/* Shipping */}
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-border pt-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Truck className="h-4 w-4 text-gray-500" />
-                  <label className="text-sm font-medium text-gray-700">Frakt</label>
+                  <Truck className="h-4 w-4 text-muted-foreground" />
+                  <label className="text-sm font-medium text-foreground">Frakt</label>
                 </div>
                 <div className="space-y-2 mb-3">
-                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent">
                     <input type="radio" checked={shippingType === 'specified'} onChange={() => setShippingType('specified')} className="text-green-600" />
                     <div>
-                      <span className="font-medium text-gray-900">Ange fraktkostnad</span>
-                      <p className="text-xs text-gray-500">Separat frakt tillkommer</p>
+                      <span className="font-medium text-foreground">Ange fraktkostnad</span>
+                      <p className="text-xs text-muted-foreground">Separat frakt tillkommer</p>
                     </div>
                   </label>
-                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent">
                     <input type="radio" checked={shippingType === 'franco'} onChange={() => setShippingType('franco')} className="text-green-600" />
                     <div>
-                      <span className="font-medium text-gray-900">Fritt levererat (franco)</span>
-                      <p className="text-xs text-gray-500">Frakt ingar i priset</p>
+                      <span className="font-medium text-foreground">Fritt levererat (franco)</span>
+                      <p className="text-xs text-muted-foreground">Frakt ingar i priset</p>
                     </div>
                   </label>
                 </div>
@@ -768,7 +768,7 @@ export default function SupplierRequestDetailPage({
                       value={shippingCost}
                       onChange={(e) => setShippingCost(e.target.value)}
                       placeholder="Fraktkostnad (SEK)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                     />
                   </div>
                 )}
@@ -777,13 +777,13 @@ export default function SupplierRequestDetailPage({
                   value={shippingNotes}
                   onChange={(e) => setShippingNotes(e.target.value)}
                   placeholder="Fraktnotering (valfritt)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                 />
               </div>
 
               {/* MOQ */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Minsta totala antal flaskor (valfritt)
                 </label>
                 <input
@@ -792,16 +792,16 @@ export default function SupplierRequestDetailPage({
                   value={minTotalQuantity}
                   onChange={(e) => setMinTotalQuantity(e.target.value)}
                   placeholder="T.ex. 12"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Restaurangen kan inte acceptera under detta antal (t.ex. for franco-villkor)
                 </p>
               </div>
 
               {/* Estimated delivery days */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Uppskattad leveranstid i dagar (valfritt)
                 </label>
                 <input
@@ -810,40 +810,40 @@ export default function SupplierRequestDetailPage({
                   value={estimatedDeliveryDays}
                   onChange={(e) => setEstimatedDeliveryDays(e.target.value)}
                   placeholder="T.ex. 5"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Antal arbetsdagar från orderbekräftelse till leverans
                 </p>
               </div>
 
               {/* Note */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kommentar (valfritt)</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Kommentar (valfritt)</label>
                 <textarea
                   value={offerNote}
                   onChange={(e) => setOfferNote(e.target.value)}
                   placeholder="Extra information till restaurangen"
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-wine"
                 />
               </div>
 
               {/* Totals Summary */}
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="bg-muted rounded-lg p-4 border border-border">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{getIncludedLines().length} viner, {totals.totalBottles} flaskor</span>
+                    <span className="text-muted-foreground">{getIncludedLines().length} viner, {totals.totalBottles} flaskor</span>
                     <span className="font-medium">{totals.totalWinePrice.toLocaleString('sv-SE')} kr</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Frakt</span>
+                    <span className="text-muted-foreground">Frakt</span>
                     <span className="font-medium">
                       {shippingType === 'franco' ? 'Franco' : totals.shipping > 0 ? `${totals.shipping} kr` : 'Ej angiven'}
                     </span>
                   </div>
-                  <div className="border-t border-gray-300 pt-2 flex justify-between text-base">
-                    <span className="font-bold text-gray-900">Totalt ex moms</span>
+                  <div className="border-t border-border pt-2 flex justify-between text-base">
+                    <span className="font-bold text-foreground">Totalt ex moms</span>
                     <span className="font-bold text-green-700">{totals.total.toLocaleString('sv-SE')} kr</span>
                   </div>
                 </div>
@@ -851,10 +851,10 @@ export default function SupplierRequestDetailPage({
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-gray-200 flex gap-3">
+            <div className="p-6 border-t border-border flex gap-3">
               <button
                 onClick={() => setShowOfferForm(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent font-medium"
               >
                 Avbryt
               </button>

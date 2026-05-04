@@ -58,8 +58,8 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.E
   pending: { label: 'Väntar på svar', color: 'bg-blue-100 text-blue-800', icon: Clock },
   accepted: { label: 'Accepterad', color: 'bg-green-100 text-green-800', icon: CheckCircle },
   rejected: { label: 'Avböjd', color: 'bg-red-100 text-red-800', icon: XCircle },
-  expired: { label: 'Utgången', color: 'bg-gray-100 text-gray-600', icon: AlertCircle },
-  DRAFT: { label: 'Utkast', color: 'bg-gray-100 text-gray-600', icon: FileText },
+  expired: { label: 'Utgången', color: 'bg-muted text-muted-foreground', icon: AlertCircle },
+  DRAFT: { label: 'Utkast', color: 'bg-muted text-muted-foreground', icon: FileText },
   SENT: { label: 'Skickad', color: 'bg-blue-100 text-blue-800', icon: Clock },
   ACCEPTED: { label: 'Accepterad', color: 'bg-green-100 text-green-800', icon: CheckCircle },
   REJECTED: { label: 'Avböjd', color: 'bg-red-100 text-red-800', icon: XCircle },
@@ -167,8 +167,8 @@ export default function SupplierOfferDetailPage({
     return (
       <div className="p-6 max-w-4xl mx-auto">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded-lg"></div>
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="h-64 bg-muted rounded-lg"></div>
         </div>
       </div>
     );
@@ -179,7 +179,7 @@ export default function SupplierOfferDetailPage({
       <div className="p-6 max-w-4xl mx-auto">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
           Tillbaka
@@ -206,24 +206,24 @@ export default function SupplierOfferDetailPage({
       {/* Back button */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
       >
         <ArrowLeft className="h-4 w-4" />
         Tillbaka till offerter
       </button>
 
       {/* Header */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-lg border border-border p-6 mb-6">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <Building2 className="h-5 w-5 text-gray-400" />
-              <h1 className="text-xl font-bold text-gray-900">
+              <Building2 className="h-5 w-5 text-muted-foreground" />
+              <h1 className="text-xl font-bold text-foreground">
                 {offer.restaurant_name}
               </h1>
             </div>
             {offer.wine_name && (
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Wine className="h-4 w-4" />
                 <span>{offer.wine_name}</span>
               </div>
@@ -238,70 +238,70 @@ export default function SupplierOfferDetailPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Offer Details */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <FileText className="h-5 w-5 text-gray-400" />
+        <div className="bg-white rounded-lg border border-border p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <FileText className="h-5 w-5 text-muted-foreground" />
             Offertdetaljer
           </h2>
 
           <dl className="space-y-4">
             <div className="flex justify-between">
-              <dt className="text-gray-500">Pris per flaska</dt>
-              <dd className="font-medium text-gray-900">
+              <dt className="text-muted-foreground">Pris per flaska</dt>
+              <dd className="font-medium text-foreground">
                 {offer.offered_price.toLocaleString('sv-SE')} kr
               </dd>
             </div>
 
             <div className="flex justify-between">
-              <dt className="text-gray-500">Antal flaskor</dt>
-              <dd className="font-medium text-gray-900">{offer.quantity} st</dd>
+              <dt className="text-muted-foreground">Antal flaskor</dt>
+              <dd className="font-medium text-foreground">{offer.quantity} st</dd>
             </div>
 
-            <div className="flex justify-between border-t border-gray-100 pt-4">
-              <dt className="text-gray-500">Vinpris totalt</dt>
-              <dd className="font-medium text-gray-900">
+            <div className="flex justify-between border-t border-border pt-4">
+              <dt className="text-muted-foreground">Vinpris totalt</dt>
+              <dd className="font-medium text-foreground">
                 {offer.total_wine_price.toLocaleString('sv-SE')} kr
               </dd>
             </div>
 
             {/* Shipping */}
             <div className="flex justify-between">
-              <dt className="text-gray-500 flex items-center gap-1">
+              <dt className="text-muted-foreground flex items-center gap-1">
                 <Truck className="h-4 w-4" />
                 Frakt
               </dt>
-              <dd className="font-medium text-gray-900">
+              <dd className="font-medium text-foreground">
                 {offer.is_franco ? (
                   <span className="text-green-600">Fritt levererat</span>
                 ) : offer.shipping_cost_sek ? (
                   `${offer.shipping_cost_sek.toLocaleString('sv-SE')} kr`
                 ) : (
-                  <span className="text-gray-400">Ej angiven</span>
+                  <span className="text-muted-foreground">Ej angiven</span>
                 )}
               </dd>
             </div>
 
             {offer.shipping_notes && (
-              <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600">
-                <p className="font-medium text-gray-700 mb-1">Fraktnotering:</p>
+              <div className="bg-muted rounded-lg p-3 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">Fraktnotering:</p>
                 {offer.shipping_notes}
               </div>
             )}
 
-            <div className="flex justify-between border-t border-gray-200 pt-4">
-              <dt className="text-gray-900 font-medium">Totalt inkl. frakt</dt>
-              <dd className="font-bold text-lg text-gray-900">
+            <div className="flex justify-between border-t border-border pt-4">
+              <dt className="text-foreground font-medium">Totalt inkl. frakt</dt>
+              <dd className="font-bold text-lg text-foreground">
                 {offer.total_with_shipping.toLocaleString('sv-SE')} kr
               </dd>
             </div>
 
             {offer.lead_time_days && (
               <div className="flex justify-between">
-                <dt className="text-gray-500 flex items-center gap-1">
+                <dt className="text-muted-foreground flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   Leveranstid
                 </dt>
-                <dd className="font-medium text-gray-900">
+                <dd className="font-medium text-foreground">
                   {offer.lead_time_days} dagar
                 </dd>
               </div>
@@ -309,9 +309,9 @@ export default function SupplierOfferDetailPage({
           </dl>
 
           {offer.notes && (
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Kommentar</h3>
-              <p className="text-gray-600 text-sm bg-gray-50 rounded-lg p-3">
+            <div className="mt-6 pt-4 border-t border-border">
+              <h3 className="text-sm font-medium text-foreground mb-2">Kommentar</h3>
+              <p className="text-muted-foreground text-sm bg-muted rounded-lg p-3">
                 {offer.notes}
               </p>
             </div>
@@ -321,16 +321,16 @@ export default function SupplierOfferDetailPage({
         {/* Request Info */}
         <div className="space-y-6">
           {/* Restaurant Info */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-gray-400" />
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-muted-foreground" />
               Restaurang
             </h2>
 
             <div className="space-y-3">
-              <p className="font-medium text-gray-900">{offer.restaurant_name}</p>
+              <p className="font-medium text-foreground">{offer.restaurant_name}</p>
               {(offer.restaurant_address || offer.restaurant_city) && (
-                <div className="flex items-start gap-2 text-gray-600">
+                <div className="flex items-start gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4 mt-0.5" />
                   <div>
                     {offer.restaurant_address && <p>{offer.restaurant_address}</p>}
@@ -343,31 +343,31 @@ export default function SupplierOfferDetailPage({
 
           {/* Original Request */}
           {offer.quote_request && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Package className="h-5 w-5 text-gray-400" />
+            <div className="bg-white rounded-lg border border-border p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Package className="h-5 w-5 text-muted-foreground" />
                 Ursprunglig förfrågan
               </h2>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Beskrivning</p>
-                  <p className="text-gray-900">{offer.quote_request.fritext}</p>
+                  <p className="text-sm text-muted-foreground mb-1">Beskrivning</p>
+                  <p className="text-foreground">{offer.quote_request.fritext}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   {offer.quote_request.antal_flaskor && (
                     <div>
-                      <p className="text-sm text-gray-500">Önskat antal</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-sm text-muted-foreground">Önskat antal</p>
+                      <p className="font-medium text-foreground">
                         {offer.quote_request.antal_flaskor} flaskor
                       </p>
                     </div>
                   )}
                   {offer.quote_request.budget_per_flaska && (
                     <div>
-                      <p className="text-sm text-gray-500">Budget</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-sm text-muted-foreground">Budget</p>
+                      <p className="font-medium text-foreground">
                         {offer.quote_request.budget_per_flaska} kr/flaska
                       </p>
                     </div>
@@ -376,8 +376,8 @@ export default function SupplierOfferDetailPage({
 
                 {offer.quote_request.leverans_ort && (
                   <div>
-                    <p className="text-sm text-gray-500">Leveransort</p>
-                    <p className="font-medium text-gray-900">
+                    <p className="text-sm text-muted-foreground">Leveransort</p>
+                    <p className="font-medium text-foreground">
                       {offer.quote_request.leverans_ort}
                     </p>
                   </div>
@@ -385,8 +385,8 @@ export default function SupplierOfferDetailPage({
 
                 {offer.quote_request.leverans_senast && (
                   <div>
-                    <p className="text-sm text-gray-500">Önskat leveransdatum</p>
-                    <p className="font-medium text-gray-900">
+                    <p className="text-sm text-muted-foreground">Önskat leveransdatum</p>
+                    <p className="font-medium text-foreground">
                       {new Date(offer.quote_request.leverans_senast).toLocaleDateString('sv-SE')}
                     </p>
                   </div>
@@ -394,12 +394,12 @@ export default function SupplierOfferDetailPage({
 
                 {offer.quote_request.specialkrav && offer.quote_request.specialkrav.length > 0 && (
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Specialkrav</p>
+                    <p className="text-sm text-muted-foreground mb-1">Specialkrav</p>
                     <div className="flex flex-wrap gap-2">
                       {offer.quote_request.specialkrav.map((krav, i) => (
                         <span
                           key={i}
-                          className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded"
+                          className="px-2 py-1 bg-muted text-foreground text-sm rounded"
                         >
                           {krav}
                         </span>
@@ -412,16 +412,16 @@ export default function SupplierOfferDetailPage({
           )}
 
           {/* Timeline */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock className="h-5 w-5 text-gray-400" />
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-muted-foreground" />
               Tidslinje
             </h2>
 
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="text-gray-600">
+                <span className="text-muted-foreground">
                   Offert skickad{' '}
                   {new Date(offer.created_at).toLocaleDateString('sv-SE', {
                     day: 'numeric',
@@ -438,7 +438,7 @@ export default function SupplierOfferDetailPage({
                   <div className={`w-2 h-2 rounded-full ${
                     new Date(offer.expires_at) < new Date() ? 'bg-red-500' : 'bg-yellow-500'
                   }`}></div>
-                  <span className="text-gray-600">
+                  <span className="text-muted-foreground">
                     {new Date(offer.expires_at) < new Date() ? 'Utgick' : 'Utgår'}{' '}
                     {new Date(offer.expires_at).toLocaleDateString('sv-SE', {
                       day: 'numeric',

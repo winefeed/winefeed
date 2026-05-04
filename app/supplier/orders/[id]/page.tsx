@@ -207,8 +207,8 @@ export default function SupplierOrderDetailPage({
     return (
       <div className="p-6 max-w-4xl mx-auto">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded-lg"></div>
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="h-64 bg-muted rounded-lg"></div>
         </div>
       </div>
     );
@@ -219,7 +219,7 @@ export default function SupplierOrderDetailPage({
       <div className="p-6 max-w-4xl mx-auto">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
           Tillbaka
@@ -246,23 +246,23 @@ export default function SupplierOrderDetailPage({
       {/* Back button */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
       >
         <ArrowLeft className="h-4 w-4" />
         Tillbaka till ordrar
       </button>
 
       {/* Header */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-lg border border-border p-6 mb-6">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <Package className="h-5 w-5 text-gray-400" />
-              <h1 className="text-xl font-bold text-gray-900">
+              <Package className="h-5 w-5 text-muted-foreground" />
+              <h1 className="text-xl font-bold text-foreground">
                 Order #{order.id.slice(0, 8)}
               </h1>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex items-center gap-2 text-muted-foreground">
               <Building2 className="h-4 w-4" />
               <span>{order.restaurant_name}</span>
             </div>
@@ -275,7 +275,7 @@ export default function SupplierOrderDetailPage({
 
         {/* Action Buttons */}
         {order.status === 'pending' && (
-          <div className="mt-6 pt-6 border-t border-gray-200 flex gap-3">
+          <div className="mt-6 pt-6 border-t border-border flex gap-3">
             <button
               onClick={confirmOrder}
               disabled={actionLoading === 'confirm'}
@@ -300,7 +300,7 @@ export default function SupplierOrderDetailPage({
         )}
 
         {order.status === 'confirmed' && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="mt-6 pt-6 border-t border-border">
             <button
               onClick={() => setShowShipModal(true)}
               disabled={!!actionLoading}
@@ -319,29 +319,29 @@ export default function SupplierOrderDetailPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Order Details */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Package className="h-5 w-5 text-gray-400" />
+        <div className="bg-white rounded-lg border border-border p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Package className="h-5 w-5 text-muted-foreground" />
             Orderdetaljer
           </h2>
 
           <dl className="space-y-4">
             <div>
-              <dt className="text-sm text-gray-500">Vin</dt>
-              <dd className="font-medium text-gray-900 flex items-center gap-2">
-                <Wine className="h-4 w-4 text-gray-400" />
+              <dt className="text-sm text-muted-foreground">Vin</dt>
+              <dd className="font-medium text-foreground flex items-center gap-2">
+                <Wine className="h-4 w-4 text-muted-foreground" />
                 {order.wine_name}
               </dd>
             </div>
 
             <div className="flex justify-between">
-              <dt className="text-gray-500">Antal flaskor</dt>
-              <dd className="font-medium text-gray-900">{order.quantity} st</dd>
+              <dt className="text-muted-foreground">Antal flaskor</dt>
+              <dd className="font-medium text-foreground">{order.quantity} st</dd>
             </div>
 
-            <div className="flex justify-between border-t border-gray-100 pt-4">
-              <dt className="text-gray-900 font-medium">Totalpris</dt>
-              <dd className="font-bold text-lg text-gray-900">
+            <div className="flex justify-between border-t border-border pt-4">
+              <dt className="text-foreground font-medium">Totalpris</dt>
+              <dd className="font-bold text-lg text-foreground">
                 {order.total_price.toLocaleString('sv-SE')} kr
               </dd>
             </div>
@@ -350,19 +350,19 @@ export default function SupplierOrderDetailPage({
 
         {/* Restaurant & Delivery */}
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-gray-400" />
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-muted-foreground" />
               Restaurang
             </h2>
 
             <div className="space-y-3">
-              <p className="font-medium text-gray-900">{order.restaurant_name}</p>
+              <p className="font-medium text-foreground">{order.restaurant_name}</p>
 
               {order.restaurant_email && (
                 <a
                   href={`mailto:${order.restaurant_email}`}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
                 >
                   <Mail className="h-4 w-4" />
                   {order.restaurant_email}
@@ -372,7 +372,7 @@ export default function SupplierOrderDetailPage({
               {order.restaurant_phone && (
                 <a
                   href={`tel:${order.restaurant_phone}`}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
                 >
                   <Phone className="h-4 w-4" />
                   {order.restaurant_phone}
@@ -382,29 +382,29 @@ export default function SupplierOrderDetailPage({
           </div>
 
           {/* Delivery Info */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Truck className="h-5 w-5 text-gray-400" />
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Truck className="h-5 w-5 text-muted-foreground" />
               Leverans
             </h2>
 
             <div className="space-y-4">
               {order.shipping_address && (
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Leveransadress</p>
+                  <p className="text-sm text-muted-foreground mb-1">Leveransadress</p>
                   <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
-                    <p className="text-gray-900">{order.shipping_address}</p>
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <p className="text-foreground">{order.shipping_address}</p>
                   </div>
                 </div>
               )}
 
               {order.delivery_date && (
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Önskat leveransdatum</p>
+                  <p className="text-sm text-muted-foreground mb-1">Önskat leveransdatum</p>
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    <p className="font-medium text-gray-900">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <p className="font-medium text-foreground">
                       {new Date(order.delivery_date).toLocaleDateString('sv-SE', {
                         weekday: 'long',
                         day: 'numeric',
@@ -417,7 +417,7 @@ export default function SupplierOrderDetailPage({
               )}
 
               {!order.shipping_address && !order.delivery_date && (
-                <p className="text-gray-500 text-sm">
+                <p className="text-muted-foreground text-sm">
                   Ingen leveransinformation angiven
                 </p>
               )}
@@ -425,16 +425,16 @@ export default function SupplierOrderDetailPage({
           </div>
 
           {/* Timeline */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock className="h-5 w-5 text-gray-400" />
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-muted-foreground" />
               Tidslinje
             </h2>
 
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="text-gray-600">
+                <span className="text-muted-foreground">
                   Order skapad{' '}
                   {new Date(order.created_at).toLocaleDateString('sv-SE', {
                     day: 'numeric',
@@ -482,10 +482,10 @@ export default function SupplierOrderDetailPage({
       {showDeclineModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               Avböj order
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Ange en anledning till varför du inte kan uppfylla denna order.
               Restaurangen kommer att informeras.
             </p>
@@ -493,7 +493,7 @@ export default function SupplierOrderDetailPage({
               value={declineReason}
               onChange={(e) => setDeclineReason(e.target.value)}
               placeholder="T.ex. 'Vinet är tillfälligt slut i lager'"
-              className="w-full border border-gray-300 rounded-lg p-3 text-sm mb-4 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg p-3 text-sm mb-4 focus:ring-2 focus:ring-red-500 focus:border-transparent"
               rows={3}
             />
             <div className="flex gap-3 justify-end">
@@ -502,7 +502,7 @@ export default function SupplierOrderDetailPage({
                   setShowDeclineModal(false);
                   setDeclineReason('');
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+                className="px-4 py-2 text-sm font-medium text-foreground hover:bg-accent rounded-lg"
               >
                 Avbryt
               </button>
@@ -523,10 +523,10 @@ export default function SupplierOrderDetailPage({
       {showShipModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               Markera som skickad
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Ange ett spårningsnummer om tillgängligt (valfritt).
             </p>
             <input
@@ -534,7 +534,7 @@ export default function SupplierOrderDetailPage({
               value={trackingNumber}
               onChange={(e) => setTrackingNumber(e.target.value)}
               placeholder="Spårningsnummer (valfritt)"
-              className="w-full border border-gray-300 rounded-lg p-3 text-sm mb-4 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg p-3 text-sm mb-4 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
             <div className="flex gap-3 justify-end">
               <button
@@ -542,7 +542,7 @@ export default function SupplierOrderDetailPage({
                   setShowShipModal(false);
                   setTrackingNumber('');
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+                className="px-4 py-2 text-sm font-medium text-foreground hover:bg-accent rounded-lg"
               >
                 Avbryt
               </button>

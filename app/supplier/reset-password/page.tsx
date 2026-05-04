@@ -111,10 +111,10 @@ function ResetPasswordContent() {
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-muted flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-gray-600">Verifierar länk...</p>
+          <p className="mt-4 text-muted-foreground">Verifierar länk...</p>
         </div>
       </div>
     );
@@ -122,24 +122,24 @@ function ResetPasswordContent() {
 
   if (!hasValidSession && !success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-muted flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
             <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
               <Wine className="h-7 w-7 text-white" />
             </div>
           </div>
-          <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
+          <h2 className="mt-6 text-center text-2xl font-bold text-foreground">
             Ogiltig eller utgången länk
           </h2>
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow-sm border border-gray-200 sm:rounded-lg sm:px-10 text-center">
+          <div className="bg-white py-8 px-4 shadow-sm border border-border sm:rounded-lg sm:px-10 text-center">
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
               <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               Återställningslänken är ogiltig eller har gått ut. Vänligen begär en ny länk.
             </p>
             <Link
@@ -151,7 +151,7 @@ function ResetPasswordContent() {
             <div className="mt-4">
               <Link
                 href="/supplier/login"
-                className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Tillbaka till inloggning
@@ -164,32 +164,32 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-muted flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
             <Wine className="h-7 w-7 text-white" />
           </div>
         </div>
-        <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
+        <h2 className="mt-6 text-center text-2xl font-bold text-foreground">
           Skapa nytt lösenord
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-muted-foreground">
           Ange ditt nya lösenord nedan
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm border border-gray-200 sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow-sm border border-border sm:rounded-lg sm:px-10">
           {success ? (
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
                 <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 Lösenord uppdaterat!
               </h3>
-              <p className="text-sm text-gray-600 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Ditt lösenord har uppdaterats. Du skickas nu till inloggningssidan...
               </p>
               <Link
@@ -211,13 +211,13 @@ function ResetPasswordContent() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-foreground"
                 >
                   Nytt lösenord
                 </label>
                 <div className="mt-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <input
                     id="password"
@@ -228,7 +228,7 @@ function ResetPasswordContent() {
                     minLength={8}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     placeholder="Minst 8 tecken"
                   />
                 </div>
@@ -237,13 +237,13 @@ function ResetPasswordContent() {
               <div>
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-foreground"
                 >
                   Bekräfta lösenord
                 </label>
                 <div className="mt-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <input
                     id="confirmPassword"
@@ -254,7 +254,7 @@ function ResetPasswordContent() {
                     minLength={8}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     placeholder="Ange lösenordet igen"
                   />
                 </div>
@@ -285,10 +285,10 @@ function ResetPasswordContent() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-muted flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-gray-600">Laddar...</p>
+          <p className="mt-4 text-muted-foreground">Laddar...</p>
         </div>
       </div>
     }>

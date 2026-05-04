@@ -358,11 +358,11 @@ export default function SupplierProfilePage() {
     return (
       <div className="p-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+          <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
           <div className="bg-white rounded-lg border p-6">
             <div className="space-y-4">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-6 bg-gray-200 rounded w-2/3"></div>
+                <div key={i} className="h-6 bg-muted rounded w-2/3"></div>
               ))}
             </div>
           </div>
@@ -385,14 +385,14 @@ export default function SupplierProfilePage() {
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Företagsprofil</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Företagsprofil</h1>
+        <p className="text-muted-foreground mt-1">
           Information om ditt företag i Winefeed
         </p>
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-border overflow-hidden">
         {/* Company Header */}
         <div className="bg-gradient-to-r from-wine to-wine-active p-6 text-white">
           <div className="flex items-center gap-4">
@@ -426,7 +426,7 @@ export default function SupplierProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Företagsinformation
               </h3>
 
@@ -446,7 +446,7 @@ export default function SupplierProfilePage() {
             {/* Right Column */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                   Kontaktuppgifter
                 </h3>
                 {!editingContact && (
@@ -463,7 +463,7 @@ export default function SupplierProfilePage() {
               {editingContact ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                       <Mail className="h-3 w-3" />
                       E-post
                     </label>
@@ -472,12 +472,12 @@ export default function SupplierProfilePage() {
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
                       placeholder="kontakt@foretag.se"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     />
                   </div>
 
                   <div>
-                    <label className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                       <Phone className="h-3 w-3" />
                       Telefon
                     </label>
@@ -486,12 +486,12 @@ export default function SupplierProfilePage() {
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
                       placeholder="08-123 456 78"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     />
                   </div>
 
                   <div>
-                    <label className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                       <Globe className="h-3 w-3" />
                       Hemsida
                     </label>
@@ -500,7 +500,7 @@ export default function SupplierProfilePage() {
                       value={contactWebsite}
                       onChange={(e) => setContactWebsite(e.target.value)}
                       placeholder="https://www.foretag.se"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     />
                   </div>
 
@@ -515,7 +515,7 @@ export default function SupplierProfilePage() {
                     </button>
                     <button
                       onClick={cancelContactEdit}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 flex items-center gap-1"
+                      className="px-4 py-2 border border-border rounded-lg text-sm text-muted-foreground hover:bg-accent flex items-center gap-1"
                     >
                       <X className="h-4 w-4" />
                       Avbryt
@@ -552,8 +552,8 @@ export default function SupplierProfilePage() {
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
+        <div className="bg-muted px-6 py-4 border-t border-border">
+          <p className="text-sm text-muted-foreground">
             Behöver du ändra företagsnamn, organisationsnummer eller licensnummer?{' '}
             <a
               href={`mailto:hej@winefeed.se?subject=Uppdatera företagsuppgifter: ${encodeURIComponent(profile.supplierName)}&body=Hej,%0A%0AJag vill uppdatera följande uppgifter för ${encodeURIComponent(profile.supplierName)}:%0A%0A`}
@@ -568,8 +568,8 @@ export default function SupplierProfilePage() {
       </div>
 
       {/* Order Settings */}
-      <div className="mt-6 bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+      <div className="mt-6 bg-white rounded-lg border border-border p-6">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
           Orderinställningar
         </h3>
 
@@ -601,11 +601,11 @@ export default function SupplierProfilePage() {
 
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <Package className="h-4 w-4 text-gray-600" />
+            <div className="p-2 bg-muted rounded-lg">
+              <Package className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Minsta totalorder (flaskor)
               </p>
               {editingMoq ? (
@@ -616,7 +616,7 @@ export default function SupplierProfilePage() {
                     onChange={(e) => setMoqValue(e.target.value)}
                     placeholder="t.ex. 90"
                     min="0"
-                    className="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+                    className="w-32 px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     autoFocus
                   />
                   <button
@@ -632,14 +632,14 @@ export default function SupplierProfilePage() {
                       setEditingMoq(false);
                       setMoqValue(profile.minOrderBottles?.toString() || '');
                     }}
-                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+                    className="px-3 py-1.5 border border-border rounded-lg text-sm text-muted-foreground hover:bg-accent"
                   >
                     Avbryt
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <p className={`text-sm font-medium ${profile.minOrderBottles ? 'text-gray-900' : 'text-gray-400'}`}>
+                  <p className={`text-sm font-medium ${profile.minOrderBottles ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {profile.minOrderBottles ? `${profile.minOrderBottles} flaskor` : 'Ej angivet'}
                   </p>
                   <button
@@ -650,7 +650,7 @@ export default function SupplierProfilePage() {
                   </button>
                 </div>
               )}
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Kunden kan kombinera olika viner för att nå minimum. Lämna tomt om du inte har krav på antal.
               </p>
             </div>
@@ -658,11 +658,11 @@ export default function SupplierProfilePage() {
 
           {/* Min order value (SEK) */}
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <span className="text-gray-600 text-sm font-bold">kr</span>
+            <div className="p-2 bg-muted rounded-lg">
+              <span className="text-muted-foreground text-sm font-bold">kr</span>
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500 flex items-center gap-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
                 Minsta ordervärde (SEK)
                 <HelpTooltip content="Alternativt minimum i kronor. Om en restaurang beställer för t.ex. 5 000 kr men färre flaskor än ditt minimum — godkänns ordern ändå." side="right" icon="info" />
               </p>
@@ -674,7 +674,7 @@ export default function SupplierProfilePage() {
                     onChange={(e) => setMinValueSek(e.target.value)}
                     placeholder="t.ex. 4500"
                     min="0"
-                    className="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+                    className="w-32 px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     autoFocus
                   />
                   <button
@@ -690,14 +690,14 @@ export default function SupplierProfilePage() {
                       setEditingMinValue(false);
                       setMinValueSek(profile.minOrderValueSek?.toString() || '');
                     }}
-                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+                    className="px-3 py-1.5 border border-border rounded-lg text-sm text-muted-foreground hover:bg-accent"
                   >
                     Avbryt
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <p className={`text-sm font-medium ${profile.minOrderValueSek ? 'text-gray-900' : 'text-gray-400'}`}>
+                  <p className={`text-sm font-medium ${profile.minOrderValueSek ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {profile.minOrderValueSek ? `${profile.minOrderValueSek.toLocaleString('sv-SE')} kr` : 'Ej angivet'}
                   </p>
                   <button
@@ -708,7 +708,7 @@ export default function SupplierProfilePage() {
                   </button>
                 </div>
               )}
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Det räcker att ett av kraven uppfylls (flaskor eller kronor). Lämna tomt om du inte har krav på ordervärde.
               </p>
             </div>
@@ -716,11 +716,11 @@ export default function SupplierProfilePage() {
 
           {/* Payment Terms — inside Orderinställningar */}
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <FileText className="h-4 w-4 text-gray-600" />
+            <div className="p-2 bg-muted rounded-lg">
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500 flex items-center gap-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
                 Betalvillkor
                 <HelpTooltip content="Visas för restauranger när de tar emot din offert. T.ex. '30 dagar netto' eller '10 dagar netto, 2% kassarabatt'." side="right" icon="info" />
               </p>
@@ -732,7 +732,7 @@ export default function SupplierProfilePage() {
                     onChange={(e) => setPaymentTermsValue(e.target.value)}
                     placeholder="t.ex. 30 dagar netto"
                     maxLength={500}
-                    className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+                    className="w-full px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
                     autoFocus
                   />
                   <div className="flex items-center gap-2">
@@ -749,7 +749,7 @@ export default function SupplierProfilePage() {
                         setEditingPaymentTerms(false);
                         setPaymentTermsValue(profile.paymentTerms || '');
                       }}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+                      className="px-3 py-1.5 border border-border rounded-lg text-sm text-muted-foreground hover:bg-accent"
                     >
                       Avbryt
                     </button>
@@ -757,7 +757,7 @@ export default function SupplierProfilePage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <p className={`text-sm font-medium ${profile.paymentTerms ? 'text-gray-900' : 'text-gray-400'}`}>
+                  <p className={`text-sm font-medium ${profile.paymentTerms ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {profile.paymentTerms || 'Ej angivet'}
                   </p>
                   <button
@@ -768,7 +768,7 @@ export default function SupplierProfilePage() {
                   </button>
                 </div>
               )}
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Visas för restauranger tillsammans med dina offerter.
               </p>
             </div>
@@ -777,27 +777,27 @@ export default function SupplierProfilePage() {
       </div>
 
       {/* Provorder Settings */}
-      <div className="mt-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="mt-6 bg-white rounded-lg border border-border overflow-hidden">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-amber-500" />
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
                 Provorder
               </h3>
             </div>
           </div>
 
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Aktivera provorder för att låta restauranger beställa mindre kvantiteter
             under din minsta order mot en fast avgift. Perfekt för nya kunder som vill testa dina viner.
           </p>
 
           {/* Enable toggle */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
+          <div className="flex items-center justify-between p-4 bg-muted rounded-lg mb-4">
             <div>
-              <p className="font-medium text-gray-900">Aktivera provorder</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-foreground">Aktivera provorder</p>
+              <p className="text-sm text-muted-foreground">
                 Tillåt beställningar under minsta order
               </p>
             </div>
@@ -805,7 +805,7 @@ export default function SupplierProfilePage() {
               onClick={() => saveProvorder(!provorderEnabled)}
               disabled={savingProvorder}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                provorderEnabled ? 'bg-green-500' : 'bg-gray-300'
+                provorderEnabled ? 'bg-green-500' : 'bg-muted-foreground/30'
               } ${savingProvorder ? 'opacity-50' : ''}`}
             >
               <span
@@ -818,13 +818,13 @@ export default function SupplierProfilePage() {
 
           {/* Fee setting (only shown when enabled) */}
           {provorderEnabled && (
-            <div className="p-4 border border-gray-200 rounded-lg">
+            <div className="p-4 border border-border rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-amber-100 rounded-lg">
                   <Wine className="h-4 w-4 text-amber-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs text-gray-500">Provorder-avgift (SEK)</p>
+                  <p className="text-xs text-muted-foreground">Provorder-avgift (SEK)</p>
                   <div className="flex items-center gap-2 mt-1">
                     <input
                       type="number"
@@ -832,7 +832,7 @@ export default function SupplierProfilePage() {
                       onChange={(e) => setProvorderFee(e.target.value)}
                       placeholder="500"
                       min="0"
-                      className="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                      className="w-32 px-3 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                     />
                     <button
                       onClick={() => {
@@ -846,7 +846,7 @@ export default function SupplierProfilePage() {
                       Spara
                     </button>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Fast avgift som läggs på beställningar under minsta order
                   </p>
                 </div>
@@ -872,25 +872,25 @@ export default function SupplierProfilePage() {
       </div>
 
       {/* Catalog Sharing */}
-      <div className="mt-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="mt-6 bg-white rounded-lg border border-border overflow-hidden">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <Link2 className="h-5 w-5 text-blue-500" />
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
               Katalogdelning
             </h3>
           </div>
 
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Dela din vinkatalog via en publik länk. Perfekt att skicka till potentiella kunder
             eller använda i marknadsföring.
           </p>
 
           {/* Enable toggle */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
+          <div className="flex items-center justify-between p-4 bg-muted rounded-lg mb-4">
             <div>
-              <p className="font-medium text-gray-900">Aktivera publik katalog</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-foreground">Aktivera publik katalog</p>
+              <p className="text-sm text-muted-foreground">
                 Gör din vinkatalog tillgänglig via en delbar länk
               </p>
             </div>
@@ -898,7 +898,7 @@ export default function SupplierProfilePage() {
               onClick={() => saveCatalogShared(!catalogShared)}
               disabled={savingCatalog}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                catalogShared ? 'bg-green-500' : 'bg-gray-300'
+                catalogShared ? 'bg-green-500' : 'bg-muted-foreground/30'
               } ${savingCatalog ? 'opacity-50' : ''}`}
             >
               <span
@@ -911,19 +911,19 @@ export default function SupplierProfilePage() {
 
           {/* URL display when enabled */}
           {catalogShared && catalogUrl && (
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <p className="text-xs text-gray-500 mb-2">Din kataloglänk</p>
+            <div className="p-4 border border-border rounded-lg">
+              <p className="text-xs text-muted-foreground mb-2">Din kataloglänk</p>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   value={catalogUrl}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 select-all"
+                  className="flex-1 px-3 py-2 bg-muted border border-border rounded-lg text-sm text-foreground select-all"
                   onClick={(e) => (e.target as HTMLInputElement).select()}
                 />
                 <button
                   onClick={copyCatalogUrl}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-1"
+                  className="px-3 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent flex items-center gap-1"
                 >
                   {catalogCopied ? (
                     <>
@@ -941,13 +941,13 @@ export default function SupplierProfilePage() {
                   href={catalogUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-1"
+                  className="px-3 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent flex items-center gap-1"
                 >
                   <ExternalLink className="h-4 w-4" />
                   Öppna
                 </a>
               </div>
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Länken visar aktiva viner utan priser. Indexeras inte av sökmotorer.
               </p>
             </div>
@@ -956,8 +956,8 @@ export default function SupplierProfilePage() {
       </div>
 
       {/* Account Info */}
-      <div className="mt-6 bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+      <div className="mt-6 bg-white rounded-lg border border-border p-6">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
           Ditt konto
         </h3>
         <ProfileField
@@ -981,12 +981,12 @@ interface ProfileFieldProps {
 function ProfileField({ icon: Icon, label, value, href, external }: ProfileFieldProps) {
   const content = (
     <div className="flex items-start gap-3">
-      <div className="p-2 bg-gray-100 rounded-lg">
-        <Icon className="h-4 w-4 text-gray-600" />
+      <div className="p-2 bg-muted rounded-lg">
+        <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
       <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className={`text-sm font-medium ${value ? 'text-gray-900' : 'text-gray-400'}`}>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className={`text-sm font-medium ${value ? 'text-foreground' : 'text-muted-foreground'}`}>
           {value || 'Ej angivet'}
         </p>
       </div>
@@ -999,7 +999,7 @@ function ProfileField({ icon: Icon, label, value, href, external }: ProfileField
         href={href}
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
-        className="block hover:bg-gray-50 -mx-2 px-2 py-1 rounded-lg transition-colors"
+        className="block hover:bg-accent -mx-2 px-2 py-1 rounded-lg transition-colors"
       >
         {content}
       </a>

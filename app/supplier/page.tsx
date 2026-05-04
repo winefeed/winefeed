@@ -26,6 +26,7 @@ import {
   X,
   CheckCircle,
   Info,
+  Check,
 } from 'lucide-react';
 import { HelpTooltip, GLOSSARY } from '@/components/ui/help-tooltip';
 import { WineCard, type SupplierWine } from '@/components/supplier/WineCard';
@@ -209,10 +210,10 @@ export default function SupplierDashboard() {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-foreground">
               Välkommen{supplierName ? `, ${supplierName}` : ''}
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-muted-foreground mt-1">
               Här ser du en översikt av din verksamhet
             </p>
           </div>
@@ -228,7 +229,7 @@ export default function SupplierDashboard() {
             </a>
             <a
               href="/supplier/requests"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-border text-foreground rounded-lg hover:bg-accent transition-colors text-sm font-medium"
             >
               <Inbox className="h-4 w-4" />
               Förfrågningar
@@ -340,9 +341,9 @@ export default function SupplierDashboard() {
 
           {/* Recent Wines */}
           {recentWines.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-lg border border-border p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold text-foreground">
                   Senast tillagda viner
                 </h2>
                 <a
@@ -373,8 +374,8 @@ export default function SupplierDashboard() {
 
           {/* Performance Summary */}
           {hasActivity && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-white rounded-lg border border-border p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Target className="h-5 w-5 text-green-500" />
                 Din prestation
               </h2>
@@ -382,15 +383,15 @@ export default function SupplierDashboard() {
                 {/* Win rate */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-gray-600 flex items-center gap-1">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
                       Win rate
                       <HelpTooltip content={GLOSSARY.winRate} side="bottom" />
                     </span>
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-foreground">
                       {stats?.winRate || 0}%
                     </span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
                         (stats?.winRate || 0) >= 50 ? 'bg-green-500' : 'bg-amber-500'
@@ -403,15 +404,15 @@ export default function SupplierDashboard() {
                 {/* Response rate */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-gray-600 flex items-center gap-1">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
                       Svarsfrekvens
                       <HelpTooltip content={GLOSSARY.responseRate} side="bottom" />
                     </span>
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-foreground">
                       {stats?.responseRate || 0}%
                     </span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
                         (stats?.responseRate || 0) >= 80 ? 'bg-green-500' : (stats?.responseRate || 0) >= 50 ? 'bg-amber-500' : 'bg-red-400'
@@ -423,7 +424,7 @@ export default function SupplierDashboard() {
 
                 {/* Avg response time */}
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 flex items-center gap-1">
+                  <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" />
                     Snitt svarstid
                   </span>
@@ -441,9 +442,9 @@ export default function SupplierDashboard() {
 
                 {/* Trend indicator */}
                 {stats?.trends && stats.trends.offersLast30 > 0 && (
-                  <div className="pt-3 border-t border-gray-100">
+                  <div className="pt-3 border-t border-border">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Senaste 30 dagarna</span>
+                      <span className="text-muted-foreground">Senaste 30 dagarna</span>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{stats.trends.offersLast30} offerter</span>
                         {stats.trends.offersTrend !== 0 && (
@@ -460,7 +461,7 @@ export default function SupplierDashboard() {
                   </div>
                 )}
 
-                <div className="pt-3 border-t border-gray-100">
+                <div className="pt-3 border-t border-border">
                   <a
                     href="/supplier/analytics"
                     className="inline-flex items-center gap-1 text-sm font-medium text-wine hover:text-wine/80"
@@ -474,33 +475,33 @@ export default function SupplierDashboard() {
           )}
 
           {/* Help Widget */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
               Behöver du hjälp?
             </h2>
             <div className="space-y-3">
               <a
                 href="/supplier/contact"
-                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-wine hover:bg-red-50 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-wine hover:bg-red-50 transition-colors"
               >
                 <div className="p-2 bg-wine/10 rounded-lg">
                   <HelpCircle className="h-4 w-4 text-wine" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Kontakta support</p>
-                  <p className="text-xs text-gray-500">Frågor eller teknisk hjälp</p>
+                  <p className="text-sm font-medium text-foreground">Kontakta support</p>
+                  <p className="text-xs text-muted-foreground">Frågor eller teknisk hjälp</p>
                 </div>
               </a>
               <a
                 href="/supplier/profile"
-                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-wine hover:bg-red-50 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-wine hover:bg-red-50 transition-colors"
               >
                 <div className="p-2 bg-wine/10 rounded-lg">
                   <Building2 className="h-4 w-4 text-wine" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Företagsprofil</p>
-                  <p className="text-xs text-gray-500">Se dina företagsuppgifter</p>
+                  <p className="text-sm font-medium text-foreground">Företagsprofil</p>
+                  <p className="text-xs text-muted-foreground">Se dina företagsuppgifter</p>
                 </div>
               </a>
             </div>
@@ -555,7 +556,7 @@ function StatCard({ title, value, subtitle, icon: Icon, color, href, highlight }
     <a
       href={href}
       className={`group block bg-white rounded-lg border p-5 transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${
-        highlight ? 'border-amber-300 ring-2 ring-amber-100' : 'border-gray-200 hover:border-gray-300'
+        highlight ? 'border-amber-300 ring-2 ring-amber-100' : 'border-border hover:border-border'
       }`}
     >
       <div className="flex items-center justify-between mb-3">
@@ -563,12 +564,12 @@ function StatCard({ title, value, subtitle, icon: Icon, color, href, highlight }
           <div className={`p-2 rounded-lg transition-colors ${colorClasses[color]} ${hoverColorClasses[color]}`}>
             <Icon className="h-5 w-5" />
           </div>
-          <span className="text-sm font-medium text-gray-600">{title}</span>
+          <span className="text-sm font-medium text-muted-foreground">{title}</span>
         </div>
-        <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" />
+        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
       </div>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
-      <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+      <p className="text-3xl font-bold text-foreground">{value}</p>
+      <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
     </a>
   );
 }
@@ -588,20 +589,20 @@ function QuickAction({ title, description, href, icon: Icon, done }: QuickAction
       className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
         done
           ? 'border-green-200 bg-green-50'
-          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+          : 'border-border hover:border-border hover:bg-accent'
       }`}
     >
-      <div className={`p-2 rounded-lg ${done ? 'bg-green-100' : 'bg-gray-100'}`}>
-        <Icon className={`h-4 w-4 ${done ? 'text-green-600' : 'text-gray-600'}`} />
+      <div className={`p-2 rounded-lg ${done ? 'bg-green-100' : 'bg-muted'}`}>
+        <Icon className={`h-4 w-4 ${done ? 'text-green-600' : 'text-muted-foreground'}`} />
       </div>
       <div className="flex-1">
-        <p className={`text-sm font-medium ${done ? 'text-green-800' : 'text-gray-900'}`}>
+        <p className={`text-sm font-medium ${done ? 'text-green-800' : 'text-foreground'}`}>
           {title}
         </p>
-        <p className="text-xs text-gray-500">{description}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
       {done && (
-        <span className="text-xs font-medium text-green-600">✓ Klar</span>
+        <span className="text-xs font-medium text-green-600 inline-flex items-center gap-1"><Check className="h-3 w-3" /> Klar</span>
       )}
     </a>
   );
@@ -700,19 +701,19 @@ function OnboardingProgress({ stats, profile, onDismiss }: OnboardingProgressPro
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-border p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Zap className="h-5 w-5 text-amber-500" />
           Kom igång
         </h2>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted-foreground">
             {completedCount} av {ONBOARDING_STEPS.length} klara
           </span>
           <button
             onClick={onDismiss}
-            className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            className="text-muted-foreground hover:text-muted-foreground p-1 rounded-lg hover:bg-accent transition-colors"
             aria-label="Dölj checklista"
           >
             <X className="h-4 w-4" />
@@ -722,7 +723,7 @@ function OnboardingProgress({ stats, profile, onDismiss }: OnboardingProgressPro
 
       {/* Progress bar */}
       <div className="mb-6">
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
             className="h-full bg-green-500 rounded-full transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
@@ -746,7 +747,7 @@ function OnboardingProgress({ stats, profile, onDismiss }: OnboardingProgressPro
                   ? 'bg-green-50 hover:bg-green-100'
                   : isCurrent
                   ? 'bg-amber-50 border border-amber-200 hover:bg-amber-100'
-                  : 'hover:bg-gray-50'
+                  : 'hover:bg-accent'
               }`}
             >
               {/* Step indicator */}
@@ -756,10 +757,10 @@ function OnboardingProgress({ stats, profile, onDismiss }: OnboardingProgressPro
                     ? 'bg-green-500 text-white'
                     : isCurrent
                     ? 'bg-amber-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
+                    : 'bg-muted text-muted-foreground'
                 }`}
               >
-                {isDone ? '✓' : index + 1}
+                {isDone ? <Check className="h-3 w-3" /> : index + 1}
               </div>
 
               {/* Icon */}
@@ -769,7 +770,7 @@ function OnboardingProgress({ stats, profile, onDismiss }: OnboardingProgressPro
                     ? 'bg-green-100'
                     : isCurrent
                     ? 'bg-amber-100'
-                    : 'bg-gray-100'
+                    : 'bg-muted'
                 }`}
               >
                 <Icon
@@ -778,7 +779,7 @@ function OnboardingProgress({ stats, profile, onDismiss }: OnboardingProgressPro
                       ? 'text-green-600'
                       : isCurrent
                       ? 'text-amber-600'
-                      : 'text-gray-400'
+                      : 'text-muted-foreground'
                   }`}
                 />
               </div>
@@ -791,12 +792,12 @@ function OnboardingProgress({ stats, profile, onDismiss }: OnboardingProgressPro
                       ? 'text-green-800'
                       : isCurrent
                       ? 'text-amber-800'
-                      : 'text-gray-600'
+                      : 'text-muted-foreground'
                   }`}
                 >
                   {step.title}
                 </p>
-                <p className="text-xs text-gray-500 truncate">{step.description}</p>
+                <p className="text-xs text-muted-foreground truncate">{step.description}</p>
               </div>
 
               {/* Status badge */}

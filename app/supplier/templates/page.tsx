@@ -165,10 +165,10 @@ export default function SupplierTemplatesPage() {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-8 bg-muted rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-40 bg-gray-200 rounded-lg"></div>
+              <div key={i} className="h-40 bg-muted rounded-lg"></div>
             ))}
           </div>
         </div>
@@ -181,8 +181,8 @@ export default function SupplierTemplatesPage() {
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Offertmallar</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Offertmallar</h1>
+          <p className="text-muted-foreground mt-1">
             Skapa och hantera mallar för snabbare offertsvar
           </p>
         </div>
@@ -201,29 +201,29 @@ export default function SupplierTemplatesPage() {
           {templates.map((template) => (
             <div
               key={template.id}
-              className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow"
+              className="bg-white rounded-lg border border-border p-5 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="font-bold text-gray-900">{template.name}</h3>
+                  <h3 className="font-bold text-foreground">{template.name}</h3>
                   {template.description && (
-                    <p className="text-sm text-gray-500 mt-1">{template.description}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => duplicateTemplate(template)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-accent rounded-lg transition-colors"
                     title="Duplicera"
                   >
-                    <Copy className="h-4 w-4 text-gray-400" />
+                    <Copy className="h-4 w-4 text-muted-foreground" />
                   </button>
                   <button
                     onClick={() => openEditModal(template)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-accent rounded-lg transition-colors"
                     title="Redigera"
                   >
-                    <Edit2 className="h-4 w-4 text-gray-400" />
+                    <Edit2 className="h-4 w-4 text-muted-foreground" />
                   </button>
                   <button
                     onClick={() => handleDelete(template.id)}
@@ -238,28 +238,28 @@ export default function SupplierTemplatesPage() {
               <div className="space-y-2">
                 {template.default_price_sek && (
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-gray-400">Pris:</span>
+                    <span className="text-muted-foreground">Pris:</span>
                     <span className="font-medium text-green-600">{template.default_price_sek} kr/fl</span>
                   </div>
                 )}
 
                 <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600">{template.lead_time_days} dagars leveranstid</span>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">{template.lead_time_days} dagars leveranstid</span>
                 </div>
 
                 {template.wine_type && (
                   <div className="flex items-center gap-2 text-sm">
-                    <Wine className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-600">
+                    <Wine className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">
                       {WINE_TYPES.find(t => t.value === template.wine_type)?.label}
                     </span>
                   </div>
                 )}
 
                 {template.notes && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600 italic">&ldquo;{template.notes}&rdquo;</p>
+                  <div className="mt-3 p-3 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground italic">&ldquo;{template.notes}&rdquo;</p>
                   </div>
                 )}
               </div>
@@ -267,12 +267,12 @@ export default function SupplierTemplatesPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Wine className="h-8 w-8 text-gray-400" />
+        <div className="bg-white rounded-lg border border-border p-12 text-center">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <Wine className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Inga mallar ännu</h3>
-          <p className="text-gray-500 mb-6">
+          <h3 className="text-lg font-medium text-foreground mb-2">Inga mallar ännu</h3>
+          <p className="text-muted-foreground mb-6">
             Skapa din första mall för att snabba upp dina offertsvar.
           </p>
           <button
@@ -300,16 +300,16 @@ export default function SupplierTemplatesPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-foreground">
                   {editingTemplate ? 'Redigera mall' : 'Ny offertmall'}
                 </h2>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-accent rounded-lg transition-colors"
                 >
-                  <X className="h-5 w-5 text-gray-500" />
+                  <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
             </div>
@@ -317,7 +317,7 @@ export default function SupplierTemplatesPage() {
             <div className="p-6 space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Mallnamn *
                 </label>
                 <input
@@ -325,13 +325,13 @@ export default function SupplierTemplatesPage() {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="T.ex. Standard rödvin"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Beskrivning
                 </label>
                 <input
@@ -339,19 +339,19 @@ export default function SupplierTemplatesPage() {
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
                   placeholder="Valfri beskrivning av mallen"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               {/* Wine type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Vintyp (valfritt)
                 </label>
                 <select
                   value={formWineType}
                   onChange={(e) => setFormWineType(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   {WINE_TYPES.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -361,7 +361,7 @@ export default function SupplierTemplatesPage() {
 
               {/* Price */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Standardpris (SEK per flaska)
                 </label>
                 <input
@@ -369,19 +369,19 @@ export default function SupplierTemplatesPage() {
                   value={formPrice}
                   onChange={(e) => setFormPrice(e.target.value)}
                   placeholder="Lämna tomt för att ange vid offert"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               {/* Lead time */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Leveranstid (dagar)
                 </label>
                 <select
                   value={formLeadTime}
                   onChange={(e) => setFormLeadTime(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="7">7 dagar</option>
                   <option value="14">14 dagar</option>
@@ -395,7 +395,7 @@ export default function SupplierTemplatesPage() {
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Standardanteckningar
                 </label>
                 <textarea
@@ -403,15 +403,15 @@ export default function SupplierTemplatesPage() {
                   onChange={(e) => setFormNotes(e.target.value)}
                   placeholder="T.ex. leverans- och betalningsvillkor"
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex gap-3">
+            <div className="p-6 border-t border-border flex gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent font-medium"
               >
                 Avbryt
               </button>

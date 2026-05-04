@@ -107,14 +107,14 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-muted py-12 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             Välj rätt plan för din verksamhet
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Börja gratis och uppgradera när du vill. Alla betalningar hanteras säkert via Stripe.
           </p>
         </div>
@@ -134,7 +134,7 @@ export default function PricingPage() {
               className={`relative bg-white rounded-2xl shadow-lg overflow-hidden ${
                 tier.highlighted
                   ? 'ring-2 ring-wine scale-105'
-                  : 'border border-gray-200'
+                  : 'border border-border'
               }`}
             >
               {/* Highlighted badge */}
@@ -148,8 +148,8 @@ export default function PricingPage() {
                 {/* Tier icon */}
                 <div className="mb-4">
                   {tier.tier === 'free' && (
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                      <Check className="w-6 h-6 text-gray-600" />
+                    <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                      <Check className="w-6 h-6 text-muted-foreground" />
                     </div>
                   )}
                   {tier.tier === 'pro' && (
@@ -165,12 +165,12 @@ export default function PricingPage() {
                 </div>
 
                 {/* Tier name & price */}
-                <h2 className="text-2xl font-bold text-gray-900">{tier.name}</h2>
-                <p className="text-gray-500 mb-4">{tier.description}</p>
+                <h2 className="text-2xl font-bold text-foreground">{tier.name}</h2>
+                <p className="text-muted-foreground mb-4">{tier.description}</p>
 
                 <div className="flex items-baseline mb-6">
-                  <span className="text-4xl font-bold text-gray-900">{tier.price}</span>
-                  <span className="text-gray-500 ml-1">{tier.priceNote}</span>
+                  <span className="text-4xl font-bold text-foreground">{tier.price}</span>
+                  <span className="text-muted-foreground ml-1">{tier.priceNote}</span>
                 </div>
 
                 {/* Features */}
@@ -178,7 +178,7 @@ export default function PricingPage() {
                   {tier.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start">
                       <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-600">{feature}</span>
+                      <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -193,7 +193,7 @@ export default function PricingPage() {
                   disabled={tier.tier === 'free' || loading !== null}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
                     tier.buttonVariant === 'outline'
-                      ? 'border-2 border-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'border-2 border-border text-muted-foreground cursor-not-allowed'
                       : tier.buttonVariant === 'primary'
                       ? 'bg-wine text-white hover:bg-primary/90 disabled:opacity-50'
                       : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 disabled:opacity-50'
@@ -215,25 +215,25 @@ export default function PricingPage() {
 
         {/* FAQ / Info */}
         <div className="mt-16 text-center">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          <h3 className="text-xl font-semibold text-foreground mb-4">
             Vanliga frågor
           </h3>
           <div className="max-w-2xl mx-auto text-left space-y-4">
-            <div className="bg-white p-4 rounded-lg border border-gray-200">
-              <h4 className="font-medium text-gray-900">Kan jag byta plan när som helst?</h4>
-              <p className="text-gray-600 mt-1">
+            <div className="bg-white p-4 rounded-lg border border-border">
+              <h4 className="font-medium text-foreground">Kan jag byta plan när som helst?</h4>
+              <p className="text-muted-foreground mt-1">
                 Ja! Du kan uppgradera eller nedgradera din plan när som helst. Ändringar träder i kraft omedelbart.
               </p>
             </div>
-            <div className="bg-white p-4 rounded-lg border border-gray-200">
-              <h4 className="font-medium text-gray-900">Vad händer om jag når min gräns?</h4>
-              <p className="text-gray-600 mt-1">
+            <div className="bg-white p-4 rounded-lg border border-border">
+              <h4 className="font-medium text-foreground">Vad händer om jag når min gräns?</h4>
+              <p className="text-muted-foreground mt-1">
                 Du får en notifikation och kan välja att uppgradera för att fortsätta. Dina befintliga data påverkas inte.
               </p>
             </div>
-            <div className="bg-white p-4 rounded-lg border border-gray-200">
-              <h4 className="font-medium text-gray-900">Hur fungerar betalningen?</h4>
-              <p className="text-gray-600 mt-1">
+            <div className="bg-white p-4 rounded-lg border border-border">
+              <h4 className="font-medium text-foreground">Hur fungerar betalningen?</h4>
+              <p className="text-muted-foreground mt-1">
                 Vi använder Stripe för säker betalning. Du kan betala med kort och faktureras månadsvis.
               </p>
             </div>

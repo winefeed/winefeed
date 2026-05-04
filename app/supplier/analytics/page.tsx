@@ -108,7 +108,7 @@ export default function SupplierAnalyticsPage() {
       case 'ACCEPTED': return 'bg-green-100 text-green-800';
       case 'REJECTED': return 'bg-red-100 text-red-800';
       case 'PENDING': return 'bg-amber-100 text-amber-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-muted text-foreground';
     }
   };
 
@@ -125,13 +125,13 @@ export default function SupplierAnalyticsPage() {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-8 bg-muted rounded w-1/4"></div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-28 bg-gray-200 rounded-xl"></div>
+              <div key={i} className="h-28 bg-muted rounded-xl"></div>
             ))}
           </div>
-          <div className="h-64 bg-gray-200 rounded-xl"></div>
+          <div className="h-64 bg-muted rounded-xl"></div>
         </div>
       </div>
     );
@@ -141,7 +141,7 @@ export default function SupplierAnalyticsPage() {
     return (
       <div className="p-6">
         <div className="text-center py-12">
-          <p className="text-gray-500">Kunde inte ladda analysdata</p>
+          <p className="text-muted-foreground">Kunde inte ladda analysdata</p>
         </div>
       </div>
     );
@@ -152,15 +152,15 @@ export default function SupplierAnalyticsPage() {
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analys & Insikter</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Analys & Insikter</h1>
+          <p className="text-muted-foreground mt-1">
             Se hur dina offerter presterar jämfört med marknaden
           </p>
         </div>
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value as any)}
-          className="px-4 py-2 border border-gray-300 rounded-lg bg-white"
+          className="px-4 py-2 border border-border rounded-lg bg-white"
         >
           <option value="week">Senaste veckan</option>
           <option value="month">Senaste månaden</option>
@@ -172,7 +172,7 @@ export default function SupplierAnalyticsPage() {
       {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {/* Win Rate */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="p-2 bg-green-100 rounded-lg">
               <Target className="h-5 w-5 text-green-600" />
@@ -181,12 +181,12 @@ export default function SupplierAnalyticsPage() {
               {stats.winRate >= 50 ? '↑' : '↓'} {Math.abs(stats.winRate - 50).toFixed(1)}%
             </span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.winRate.toFixed(1)}%</p>
-          <p className="text-sm text-gray-500">Win rate</p>
+          <p className="text-2xl font-bold text-foreground">{stats.winRate.toFixed(1)}%</p>
+          <p className="text-sm text-muted-foreground">Win rate</p>
         </div>
 
         {/* Response Time */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Clock className="h-5 w-5 text-blue-600" />
@@ -195,12 +195,12 @@ export default function SupplierAnalyticsPage() {
               {stats.avgResponseTime <= 4 ? 'Snabbt' : 'Normalt'}
             </span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.avgResponseTime}h</p>
-          <p className="text-sm text-gray-500">Svarstid (snitt)</p>
+          <p className="text-2xl font-bold text-foreground">{stats.avgResponseTime}h</p>
+          <p className="text-sm text-muted-foreground">Svarstid (snitt)</p>
         </div>
 
         {/* Price vs Market */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
             <div className={`p-2 rounded-lg ${stats.avgPriceVsMarket <= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
               {stats.avgPriceVsMarket <= 0 ? (
@@ -213,12 +213,12 @@ export default function SupplierAnalyticsPage() {
               {stats.avgPriceVsMarket <= 0 ? 'Under' : 'Över'} marknad
             </span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.avgPriceVsMarket.toFixed(1)}%</p>
-          <p className="text-sm text-gray-500">Pris vs marknad</p>
+          <p className="text-2xl font-bold text-foreground">{stats.avgPriceVsMarket.toFixed(1)}%</p>
+          <p className="text-sm text-muted-foreground">Pris vs marknad</p>
         </div>
 
         {/* Total Offers */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="p-2 bg-purple-100 rounded-lg">
               <Award className="h-5 w-5 text-purple-600" />
@@ -227,16 +227,16 @@ export default function SupplierAnalyticsPage() {
               {stats.acceptedOffers} accepterade
             </span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.totalOffers}</p>
-          <p className="text-sm text-gray-500">Totalt offerter</p>
+          <p className="text-2xl font-bold text-foreground">{stats.totalOffers}</p>
+          <p className="text-sm text-muted-foreground">Totalt offerter</p>
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Price Comparison Chart */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-gray-400" />
+        <div className="bg-white rounded-xl border border-border p-6">
+          <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-muted-foreground" />
             Prisjämförelse - Senaste offerter
           </h2>
           <div className="space-y-4">
@@ -245,23 +245,23 @@ export default function SupplierAnalyticsPage() {
               const isLower = priceDiff <= 0;
 
               return (
-                <div key={offer.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                <div key={offer.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="font-medium text-gray-900 text-sm">{offer.wine_name}</p>
+                      <p className="font-medium text-foreground text-sm">{offer.wine_name}</p>
                       <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(offer.status)}`}>
                         {getStatusLabel(offer.status)}
                       </span>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-gray-900">{offer.price_sek} kr</p>
-                      <p className="text-xs text-gray-500">Marknad: {offer.market_price} kr</p>
+                      <p className="font-bold text-foreground">{offer.price_sek} kr</p>
+                      <p className="text-xs text-muted-foreground">Marknad: {offer.market_price} kr</p>
                     </div>
                   </div>
 
                   {/* Price bar */}
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full ${isLower ? 'bg-green-500' : 'bg-red-400'}`}
                         style={{ width: `${Math.min(100, Math.abs(priceDiff) * 5 + 50)}%` }}
@@ -278,9 +278,9 @@ export default function SupplierAnalyticsPage() {
         </div>
 
         {/* Popular Categories */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Wine className="h-5 w-5 text-gray-400" />
+        <div className="bg-white rounded-xl border border-border p-6">
+          <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+            <Wine className="h-5 w-5 text-muted-foreground" />
             Förfrågningar per kategori
           </h2>
           <div className="space-y-4">
@@ -291,10 +291,10 @@ export default function SupplierAnalyticsPage() {
               return (
                 <div key={category.name}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-700">{category.name}</span>
-                    <span className="text-sm text-gray-500">{category.count} förfrågningar</span>
+                    <span className="text-sm font-medium text-foreground">{category.name}</span>
+                    <span className="text-sm text-muted-foreground">{category.count} förfrågningar</span>
                   </div>
-                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-3 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
                       style={{ width: `${percentage}%` }}

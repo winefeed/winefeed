@@ -79,8 +79,8 @@ function getUrgencyStyles(urgency: UrgencyLevel): { badge: string; dot: string }
       };
     case 'expired':
       return {
-        badge: 'bg-gray-100 text-gray-500 border-gray-200',
-        dot: 'bg-gray-400'
+        badge: 'bg-muted text-muted-foreground border-border',
+        dot: 'bg-muted-foreground/40'
       };
     default:
       return {
@@ -584,8 +584,8 @@ export default function SupplierRequestsPage() {
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Förfrågningar</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Förfrågningar</h1>
+          <p className="text-muted-foreground mt-1">
             Förfrågningar från restauranger som väntar på ditt svar
           </p>
         </div>
@@ -597,7 +597,7 @@ export default function SupplierRequestsPage() {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
             bulkMode
               ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-muted text-foreground hover:bg-accent'
           }`}
         >
           <Zap className="h-4 w-4" />
@@ -622,7 +622,7 @@ export default function SupplierRequestsPage() {
               {selectedRequests.size > 0 && (
                 <button
                   onClick={clearSelection}
-                  className="text-sm text-gray-500 hover:text-gray-700"
+                  className="text-sm text-muted-foreground hover:text-foreground"
                 >
                   Rensa
                 </button>
@@ -648,7 +648,7 @@ export default function SupplierRequestsPage() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === 'pending' && urgencyFilter === 'all'
                 ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-muted text-muted-foreground hover:bg-accent'
             }`}
           >
             Väntar på svar
@@ -663,7 +663,7 @@ export default function SupplierRequestsPage() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === 'responded'
                 ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-muted text-muted-foreground hover:bg-accent'
             }`}
           >
             Besvarade
@@ -673,7 +673,7 @@ export default function SupplierRequestsPage() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === 'all' && urgencyFilter === 'all'
                 ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-muted text-muted-foreground hover:bg-accent'
             }`}
           >
             Alla
@@ -683,7 +683,7 @@ export default function SupplierRequestsPage() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === 'dismissed'
                 ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-muted text-muted-foreground hover:bg-accent'
             }`}
           >
             Ignorerade
@@ -708,16 +708,16 @@ export default function SupplierRequestsPage() {
 
         {/* Sort Toggle */}
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-gray-500">Sortera:</span>
+          <span className="text-muted-foreground">Sortera:</span>
           <button
             onClick={() => setSortBy('urgency')}
-            className={`px-3 py-1 rounded ${sortBy === 'urgency' ? 'bg-gray-200 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+            className={`px-3 py-1 rounded ${sortBy === 'urgency' ? 'bg-muted text-foreground font-medium' : 'text-muted-foreground hover:bg-accent'}`}
           >
             Brådskande först
           </button>
           <button
             onClick={() => setSortBy('date')}
-            className={`px-3 py-1 rounded ${sortBy === 'date' ? 'bg-gray-200 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+            className={`px-3 py-1 rounded ${sortBy === 'date' ? 'bg-muted text-foreground font-medium' : 'text-muted-foreground hover:bg-accent'}`}
           >
             Nyast först
           </button>
@@ -731,25 +731,25 @@ export default function SupplierRequestsPage() {
             {dismissedRequests.map((request) => (
               <div
                 key={request.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 opacity-75"
+                className="bg-white rounded-lg border border-border p-4 opacity-75"
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-1">
                     {/* Restaurant */}
                     <div className="flex items-center gap-2 mb-2">
-                      <Building2 className="h-4 w-4 text-gray-400" />
-                      <span className="font-medium text-gray-700">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-foreground">
                         {request.restaurantName}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
+                      <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
                         Ignorerad
                       </span>
                     </div>
 
                     {/* Request info */}
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <Wine className="h-4 w-4 text-gray-400" />
+                        <Wine className="h-4 w-4 text-muted-foreground" />
                         <span className="line-clamp-1">{request.fritext}</span>
                       </div>
                       {request.antalFlaskor && (
@@ -771,7 +771,7 @@ export default function SupplierRequestsPage() {
                   <button
                     onClick={() => undismissRequest(request.id)}
                     disabled={dismissingIds.has(request.id)}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                    className="px-3 py-1.5 text-sm font-medium text-foreground bg-muted hover:bg-accent rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
                   >
                     <Undo2 className="h-3.5 w-3.5" />
                     Ångra
@@ -781,12 +781,12 @@ export default function SupplierRequestsPage() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-            <Archive className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="bg-white rounded-lg border border-border p-12 text-center">
+            <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">
               Inga ignorerade förfrågningar
             </h3>
-            <p className="text-gray-500">
+            <p className="text-muted-foreground">
               Förfrågningar du ignorerar hamnar här. Du kan alltid ångra.
             </p>
           </div>
@@ -806,7 +806,7 @@ export default function SupplierRequestsPage() {
               className={`bg-white rounded-lg border p-4 transition-all ${
                 bulkMode && selectedRequests.has(request.id)
                   ? 'border-blue-400 bg-blue-50/50 shadow-sm'
-                  : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                  : 'border-border hover:border-border hover:shadow-sm'
               }`}
             >
               <div className="flex items-start gap-4">
@@ -819,7 +819,7 @@ export default function SupplierRequestsPage() {
                     {selectedRequests.has(request.id) ? (
                       <CheckSquare className="h-5 w-5 text-blue-600" />
                     ) : (
-                      <Square className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                      <Square className="h-5 w-5 text-muted-foreground hover:text-muted-foreground" />
                     )}
                   </button>
                 )}
@@ -839,8 +839,8 @@ export default function SupplierRequestsPage() {
                     <div className="flex-1">
                       {/* Restaurant */}
                       <div className="flex items-center gap-2 mb-2">
-                        <Building2 className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium text-gray-900">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-foreground">
                           {request.restaurantName}
                         </span>
                         {request.myOfferCount === 0 && activityInfo.isNew && (
@@ -849,16 +849,16 @@ export default function SupplierRequestsPage() {
                           </span>
                         )}
                         {request.myOfferCount === 0 && !activityInfo.isNew && (
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-muted-foreground">
                             {activityInfo.label}
                           </span>
                         )}
                       </div>
 
                       {/* Request info */}
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
-                          <Wine className="h-4 w-4 text-gray-400" />
+                          <Wine className="h-4 w-4 text-muted-foreground" />
                           <span className="line-clamp-1">{request.fritext}</span>
                         </div>
                         {request.antalFlaskor && (
@@ -896,13 +896,13 @@ export default function SupplierRequestsPage() {
 
                       {/* Special requirements */}
                       {request.specialkrav && request.specialkrav.length > 0 && (
-                        <p className="mt-2 text-sm text-gray-500">
+                        <p className="mt-2 text-sm text-muted-foreground">
                           Krav: {request.specialkrav.join(', ')}
                         </p>
                       )}
 
                       {/* Time + Deadline */}
-                      <div className="flex items-center gap-2 mt-3 text-xs text-gray-400">
+                      <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         <span>
                           {new Date(request.createdAt).toLocaleDateString('sv-SE', {
@@ -940,7 +940,7 @@ export default function SupplierRequestsPage() {
                               dismissRequest(request.id);
                             }}
                             disabled={dismissingIds.has(request.id)}
-                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="p-1.5 text-muted-foreground hover:text-muted-foreground hover:bg-accent rounded-lg transition-colors"
                             title="Ignorera förfrågan"
                           >
                             <Archive className="h-4 w-4" />
@@ -960,7 +960,7 @@ export default function SupplierRequestsPage() {
                           </button>
                         </>
                       )}
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
                     </div>
                   </div>
                 </a>
@@ -970,16 +970,16 @@ export default function SupplierRequestsPage() {
           })}
         </div>
       ) : filter !== 'dismissed' ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <Inbox className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="bg-white rounded-lg border border-border p-12 text-center">
+          <Inbox className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             {filter === 'pending'
               ? 'Inga väntande förfrågningar'
               : filter === 'responded'
               ? 'Inga besvarade förfrågningar'
               : 'Inga förfrågningar'}
           </h3>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             {filter === 'pending'
               ? 'Du har svarat på alla förfrågningar. Bra jobbat!'
               : 'Förfrågningar från restauranger kommer att visas här.'}
@@ -991,7 +991,7 @@ export default function SupplierRequestsPage() {
       {requests.length > 0 && pendingCount === 0 && filter === 'pending' && (
         <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-            <span className="text-lg">🎉</span>
+            <CheckCircle className="h-4 w-4 text-green-700" />
           </div>
           <div>
             <p className="font-medium text-green-800">Alla förfrågningar besvarade!</p>
@@ -1030,18 +1030,18 @@ export default function SupplierRequestsPage() {
           }}
         >
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900">Snabbsvar</h2>
+                <h2 className="text-lg font-bold text-foreground">Snabbsvar</h2>
                 <button
                   onClick={() => {
                     setQuickRespondRequest(null);
                     setQuickRespondPrice('');
                     setQuickRespondNote('');
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-accent rounded-lg transition-colors"
                 >
-                  <X className="h-5 w-5 text-gray-500" />
+                  <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
             </div>
@@ -1064,13 +1064,13 @@ export default function SupplierRequestsPage() {
               className="p-6 space-y-4"
             >
               {/* Request summary */}
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-muted rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Building2 className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium text-gray-900">{quickRespondRequest.restaurantName}</span>
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-foreground">{quickRespondRequest.restaurantName}</span>
                 </div>
-                <p className="text-sm text-gray-600 line-clamp-2">{quickRespondRequest.fritext}</p>
-                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground line-clamp-2">{quickRespondRequest.fritext}</p>
+                <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                   {quickRespondRequest.antalFlaskor && <span>{quickRespondRequest.antalFlaskor} flaskor</span>}
                   {quickRespondRequest.budgetPerFlaska && <span>Budget: {quickRespondRequest.budgetPerFlaska} kr/fl</span>}
                 </div>
@@ -1088,7 +1088,7 @@ export default function SupplierRequestsPage() {
 
               {/* Price input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Ditt pris per flaska (SEK) *
                 </label>
                 <input
@@ -1096,14 +1096,14 @@ export default function SupplierRequestsPage() {
                   value={quickRespondPrice}
                   onChange={(e) => setQuickRespondPrice(e.target.value)}
                   placeholder={quickRespondRequest.budgetPerFlaska?.toString() || 'Ange pris'}
-                  className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-4 py-3 text-lg border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   autoFocus
                 />
               </div>
 
               {/* Note input (optional) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Kommentar (valfritt)
                 </label>
                 <input
@@ -1111,7 +1111,7 @@ export default function SupplierRequestsPage() {
                   value={quickRespondNote}
                   onChange={(e) => setQuickRespondNote(e.target.value)}
                   placeholder="T.ex. Kan leverera inom 7 dagar"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 />
               </div>
 
@@ -1129,7 +1129,7 @@ export default function SupplierRequestsPage() {
                     setQuickRespondPrice('');
                     setQuickRespondNote('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                  className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent font-medium"
                 >
                   Avbryt
                 </button>
@@ -1160,24 +1160,24 @@ export default function SupplierRequestsPage() {
       {showBulkModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-foreground">
                   Skicka {selectedRequests.size} offerter
                 </h2>
                 <button
                   onClick={() => setShowBulkModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-accent rounded-lg transition-colors"
                 >
-                  <X className="h-5 w-5 text-gray-500" />
+                  <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
             </div>
 
             <div className="p-6 space-y-4">
               {/* Summary of selected requests with progress */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">
+              <div className="bg-muted rounded-lg p-4">
+                <p className="text-sm font-medium text-foreground mb-2">
                   {bulkSubmitting ? 'Skickar offerter...' : 'Valda förfrågningar:'}
                 </p>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -1186,11 +1186,11 @@ export default function SupplierRequestsPage() {
                     const status = bulkResults.get(id);
                     return req ? (
                       <div key={id} className="text-sm flex items-center justify-between gap-2">
-                        <span className={status === 'error' ? 'text-red-600' : 'text-gray-600'}>
+                        <span className={status === 'error' ? 'text-red-600' : 'text-muted-foreground'}>
                           {req.restaurantName}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-400">{req.antalFlaskor || 0} fl</span>
+                          <span className="text-muted-foreground">{req.antalFlaskor || 0} fl</span>
                           {status === 'pending' && bulkSubmitting && (
                             <ButtonSpinner className="text-blue-500" />
                           )}
@@ -1209,7 +1209,7 @@ export default function SupplierRequestsPage() {
 
               {/* Price input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Pris per flaska (SEK)
                 </label>
                 <input
@@ -1217,22 +1217,22 @@ export default function SupplierRequestsPage() {
                   value={bulkPrice}
                   onChange={(e) => setBulkPrice(e.target.value)}
                   placeholder="Lämna tomt för att använda restaurangens budget"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Lämna tomt för att använda varje restaurangs angivna budget
                 </p>
               </div>
 
               {/* Lead time input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Leveranstid (dagar)
                 </label>
                 <select
                   value={bulkLeadTime}
                   onChange={(e) => setBulkLeadTime(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="7">7 dagar</option>
                   <option value="14">14 dagar</option>
@@ -1244,17 +1244,17 @@ export default function SupplierRequestsPage() {
               </div>
 
               {/* Shipping section */}
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-border pt-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Truck className="h-4 w-4 text-gray-500" />
-                  <label className="text-sm font-medium text-gray-700">
+                  <Truck className="h-4 w-4 text-muted-foreground" />
+                  <label className="text-sm font-medium text-foreground">
                     Frakt
                   </label>
                 </div>
 
                 {/* Shipping type selection */}
                 <div className="space-y-2 mb-3">
-                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors">
                     <input
                       type="radio"
                       name="shippingType"
@@ -1263,11 +1263,11 @@ export default function SupplierRequestsPage() {
                       className="text-blue-600"
                     />
                     <div>
-                      <span className="font-medium text-gray-900">Ange fraktkostnad</span>
-                      <p className="text-xs text-gray-500">Separat frakt tillkommer utöver vinpriset</p>
+                      <span className="font-medium text-foreground">Ange fraktkostnad</span>
+                      <p className="text-xs text-muted-foreground">Separat frakt tillkommer utöver vinpriset</p>
                     </div>
                   </label>
-                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors">
                     <input
                       type="radio"
                       name="shippingType"
@@ -1276,8 +1276,8 @@ export default function SupplierRequestsPage() {
                       className="text-blue-600"
                     />
                     <div>
-                      <span className="font-medium text-gray-900">Fritt levererat (franco)</span>
-                      <p className="text-xs text-gray-500">Frakt ingår i priset</p>
+                      <span className="font-medium text-foreground">Fritt levererat (franco)</span>
+                      <p className="text-xs text-muted-foreground">Frakt ingår i priset</p>
                     </div>
                   </label>
                 </div>
@@ -1285,7 +1285,7 @@ export default function SupplierRequestsPage() {
                 {/* Shipping cost input - only shown if specified */}
                 {bulkShippingType === 'specified' && (
                   <div className="mb-3">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Fraktkostnad (SEK)
                     </label>
                     <input
@@ -1293,9 +1293,9 @@ export default function SupplierRequestsPage() {
                       value={bulkShippingCost}
                       onChange={(e) => setBulkShippingCost(e.target.value)}
                       placeholder="T.ex. 500"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Total fraktkostnad för hela leveransen
                     </p>
                   </div>
@@ -1303,7 +1303,7 @@ export default function SupplierRequestsPage() {
 
                 {/* Shipping notes */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Fraktnotering (valfritt)
                   </label>
                   <input
@@ -1311,16 +1311,16 @@ export default function SupplierRequestsPage() {
                     value={bulkShippingNotes}
                     onChange={(e) => setBulkShippingNotes(e.target.value)}
                     placeholder="T.ex. Leverans Sthlm, andra orter +200 kr"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex gap-3">
+            <div className="p-6 border-t border-border flex gap-3">
               <button
                 onClick={() => setShowBulkModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent font-medium"
               >
                 Avbryt
               </button>

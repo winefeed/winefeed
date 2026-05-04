@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-muted flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Logo & Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
@@ -52,29 +52,29 @@ export default function ForgotPasswordPage() {
             <Wine className="h-7 w-7 text-white" />
           </div>
         </div>
-        <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
+        <h2 className="mt-6 text-center text-2xl font-bold text-foreground">
           Glömt lösenord?
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-muted-foreground">
           Ange din e-postadress så skickar vi en återställningslänk
         </p>
       </div>
 
       {/* Form */}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm border border-gray-200 sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow-sm border border-border sm:rounded-lg sm:px-10">
           {sent ? (
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
                 <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 E-post skickad!
               </h3>
-              <p className="text-sm text-gray-600 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Om det finns ett konto kopplat till <strong>{email}</strong> har vi skickat en länk för att återställa lösenordet.
               </p>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Kolla din inkorg (och skräpposten) och klicka på länken i mejlet.
               </p>
               <Link
@@ -99,13 +99,13 @@ export default function ForgotPasswordPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-foreground"
                 >
                   E-postadress
                 </label>
                 <div className="mt-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
+                    <Mail className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <input
                     id="email"
@@ -115,7 +115,7 @@ export default function ForgotPasswordPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     placeholder="din@email.se"
                   />
                 </div>
@@ -141,7 +141,7 @@ export default function ForgotPasswordPage() {
               <div className="text-center">
                 <Link
                   href="/supplier/login"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Tillbaka till inloggning
