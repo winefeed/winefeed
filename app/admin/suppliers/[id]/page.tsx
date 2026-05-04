@@ -111,9 +111,9 @@ interface SubscriptionData {
 }
 
 const SUPPLIER_TYPE_LABELS: Record<string, string> = {
-  'SWEDISH_IMPORTER': 'Svensk importor',
+  'SWEDISH_IMPORTER': 'Svensk importör',
   'EU_PRODUCER': 'EU-producent',
-  'EU_IMPORTER': 'EU-importor',
+  'EU_IMPORTER': 'EU-importör',
   'IOR': 'Importor',
 };
 
