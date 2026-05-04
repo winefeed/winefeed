@@ -769,15 +769,15 @@ Norrlands-argumentet: 500–1 200 km från Stockholm. Importörer besöker säll
 
 OBS: Volare Vinbar (#37) redan i pipeline ovan.
 
-### 41. Krakas Krog — Kraklingbo 🟡
+### 41. Krakas Krog — Kraklingbo 🟡 KONTAKTAD
 - **Typ:** Fine dining, 22 sittplatser, säsong
 - **Adress:** Kraklingbo Kraklings 223, 623 70 Katthammarsvik
 - **Kontakt:** info@krakas.se | +46 498 53062 | @krakaskrog
 - **Ägare/Sommelier:** Ulrika Karlsson (sommelier + ägare, 15+ år)
-- **Profil:** ~300 referensar, Bourgogne-fokus + US, Barolo, Barbaresco. Blygsamma marginaler. White Guide "Wine Experience of the Year 2017". Michelin Guide, 360 Eat Guide, Di Weekend "Årets Destination 2020".
+- **Profil:** ~300 referenser, Bourgogne-fokus + US, Barolo, Barbaresco. Blygsamma marginaler. White Guide "Wine Experience of the Year 2017". Michelin Guide, 360 Eat Guide, Di Weekend "Årets Destination 2020".
 - **Säsong:** Juni–oktober, 4 kvällar/vecka, 1 sittning/kväll
-- **Kvalificering:** wine_focus: 5, pilot_fit: 5. Avlägsen östkust Gotland = extremt svårt att nå importörer. Seriös sommelier, 300 refs att underhålla på en ö. TOPPKANDIDAT.
-- **Outreach-vinkel:** "300 viner på en ö — Winefeed kan förenkla er sourcing."
+- **Outreach skickat:** 2026-05-04 till info@krakas.se med Markus i BCC. Subject: "Vinleveranser till Gotland inför sommaren?". Vinkel: ödmjuk profil-fit-kommentar (Bourgogne-täckning begränsad) + två Pinot Noir-jämförelser (Misha's Central Otago via AKO/Wena, Hemel-en-Aarde via Gardshol) + ö-/säsong-deadline. Skript: `scripts/send-krakas-krog-outreach.mjs`. Resend-ID: `3e258914-b9a3-4f2f-a7d3-9e54c7382184`.
+- **Nästa steg:** Följ upp om inget svar inom 7 dagar (≈ 2026-05-11). Säsongstart 1 juni = naturlig deadline.
 
 ### 42. Lilla Bjers Gårdskrog — Västerhejde 🟡
 - **Typ:** Ekologisk gård-till-bord, fine dining (1 250–1 350 kr/pers)
