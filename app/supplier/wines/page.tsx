@@ -1779,8 +1779,8 @@ export default function SupplierWinesPage() {
                             </span>
                           )}
                           {importResult.details.errors > 0 && (
-                            <span className="text-red-700">
-                              ✕ {importResult.details.errors} fel
+                            <span className="text-red-700 inline-flex items-center gap-1">
+                              <X className="h-3 w-3" /> {importResult.details.errors} fel
                             </span>
                           )}
                         </div>
@@ -1863,8 +1863,9 @@ export default function SupplierWinesPage() {
                   {deleteConfirm.producer} &middot; {deleteConfirm.vintage || 'NV'}
                 </p>
                 {deleteConfirm.offer_count && deleteConfirm.offer_count > 0 && (
-                  <p className="text-sm text-amber-600 mt-2">
-                    ⚠️ Används i {deleteConfirm.offer_count} {deleteConfirm.offer_count === 1 ? 'offert' : 'offerter'}
+                  <p className="text-sm text-amber-600 mt-2 inline-flex items-center gap-1.5">
+                    <TriangleAlert className="h-3.5 w-3.5" />
+                    Används i {deleteConfirm.offer_count} {deleteConfirm.offer_count === 1 ? 'offert' : 'offerter'}
                   </p>
                 )}
               </div>

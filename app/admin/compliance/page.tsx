@@ -745,7 +745,7 @@ function ImportsView({ report }: { report: ImportsReport }) {
               </thead>
               <tbody className="divide-y divide-border">
                 {report.eu_imports.map((item) => {
-                  const status = statusLabels[item.status] || { label: item.status, color: 'bg-gray-100' };
+                  const status = statusLabels[item.status] || { label: item.status, color: 'bg-muted' };
                   return (
                     <tr key={item.import_id} className="hover:bg-accent">
                       <td className="px-6 py-4 text-sm">{new Date(item.created_at).toLocaleDateString('sv-SE')}</td>

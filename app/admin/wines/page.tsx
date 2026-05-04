@@ -383,7 +383,7 @@ function AdminWinesPageContent() {
             {/* Modal Header */}
             <div className="flex items-start justify-between p-6 border-b border-border">
               <div className="flex items-center gap-4">
-                <div className={`w-3 h-12 rounded ${COLOR_LABELS[selectedWine.color]?.color || 'bg-gray-400'}`}></div>
+                <div className={`w-3 h-12 rounded ${COLOR_LABELS[selectedWine.color]?.color || 'bg-muted-foreground/40'}`}></div>
                 <div>
                   <h2 className="text-xl font-bold text-foreground">{selectedWine.name}</h2>
                   <p className="text-muted-foreground">{selectedWine.producer}</p>
@@ -540,7 +540,7 @@ function AdminWinesPageContent() {
                 </tr>
               ) : (
                 filteredWines.map((wine) => {
-                  const colorInfo = COLOR_LABELS[wine.color] || { label: wine.color, color: 'bg-gray-400' };
+                  const colorInfo = COLOR_LABELS[wine.color] || { label: wine.color, color: 'bg-muted-foreground/40' };
                   return (
                     <tr
                       key={wine.id}
