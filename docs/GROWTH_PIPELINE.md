@@ -287,15 +287,15 @@ Producenter med viner i Winefeed-katalogen som EU-direktimport via Brasri (eller
 - **Varför:** Dedikerad vinbar med hög glasvinsvolym. Sundbyberg växer.
 - **Outreach-vinkel:** "Med 30 glasviner behöver ni konstant pipeline av nya viner — Winefeed gör det enkelt."
 
-### 21. Nabo Matbar — Helsingborg 🟡
+### 21. Nabo Matbar — Helsingborg 🟡 KONTAKTAD
 - **Typ:** Modern bistro, fine-casual
 - **Adress:** Drottninggatan 124, 252 22 Helsingborg
 - **Kontakt:** info@nabomatbar.se | @nabomatbar | 042-42 47 401
 - **Ägare:** Isabell Seger (köksmästare) & Felix Paradis (front of house)
 - **Profil:** Curad Old/New World-lista, regelbundna Winemakers Dinners, egen gård i Hjortshög. White Guide Recommended.
-- **Nyckelinsikt:** Isabell Seger driver/delar även L'Enoteque, Regio och Culise — en kontakt = 4 restauranger.
-- **Varför:** Viktigaste vinpersonen i Helsingborg. Winemakers Dinners = aktivt söker nya producenter. Säsongsrotation.
-- **Outreach-vinkel:** "Winefeed kan sourca intressanta producenter till era Winemakers Dinners — en onboarding för alla era koncept."
+- **Nyckelinsikt:** Isabell Seger driver/delar även L'Enoteque, Regio och Culise. En kontakt = 4 restauranger.
+- **Outreach skickat:** 2026-05-04 till info@nabomatbar.se med Markus i BCC. Subject: "Sourcing till era fyra koncept i Helsingborg?". Vinkel: multi-koncept-hävstång + Tour-Calon-vertikal som Winemakers Dinners-pitch. Skript: `scripts/send-nabo-matbar-outreach.mjs`. Resend-ID: `1d2ad74d-eb96-4df9-b636-b5e462196d87`.
+- **Nästa steg:** Följ upp om inget svar inom 7 dagar (≈ 2026-05-11). Om Isabell biter, en signup öppnar Nabo + L'Enoteque + Regio + Culise samtidigt.
 
 ### 22. L'Enoteque — Helsingborg 🟡
 - **Typ:** Vinbar / gastropub
