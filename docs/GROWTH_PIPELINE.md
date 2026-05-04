@@ -48,16 +48,17 @@ Senast uppdaterad: 2026-04-30
 - **Status:** Onboardad 2026-02-24. 9 chilenska viner i katalogen.
 - **Nästa steg:** Hjälp utöka sortiment vid behov
 
-### Nordique 4 (N4 Wine & Spirits) 🔵
-- **Kontakt:** Fredrik Madsen, sandra@n4ab.com
-- **Instagram:** @nordique4wines (635 followers)
+### Nordique 4 (N4 Wine & Spirits) 🟢
+- **Kontakt:** Sandra Hedenmark, sandra@n4ab.com, +46 720 70 68 97
+- **Instagram:** @nordic4wines (635 followers)
 - **Bas:** Östersund, grundat 2023
 - **Profil:** Småskaligt, hållbart, 100% Slovenien (Goriska Brda, Štajerska)
 - **Producenter:** Matic Wines, Kmetija Stekar, Klinec Medana
 - **Sortiment:** 10 viner, starkt orange-vin-fokus, B2C 229–449 kr (restaurang uppskattningsvis 90–180 kr)
 - **Varför:** Unikt Slovenien-fokus, glasliste-vänliga priser, trendigt (orange), annorlunda
-- **Status:** Onboarding-mail skickat 2026-03-07. Inget svar än → överväg follow-up eller deprioritera.
-- **Nästa steg:** Follow-up i april/maj eller flagga som passiv lead
+- **Faktura-email:** inbox.5594355256@vismadoc.net
+- **Status:** Onboarding-mail 2026-03-07 → svar 2026-03-08 (positiv, ville pitch + länk) → upplägg + avgifter mejlat 2026-03-08 → svar 2026-05-03 (vill ha registreringslänk) → 2026-05-04 mejlat registreringslänk + Excel-mall (`winefeed-vinkatalog-mall.xlsx`) + ärlig pilot-status. Väntar på att de registrerar sig.
+- **Nästa steg:** Följ upp om ingen registrering inom 7 dagar (≈ 2026-05-11)
 
 ### EU producent-shells (utan svensk importör)
 Producenter med viner i Winefeed-katalogen som EU-direktimport via Brasri (eller utan svensk importör listad). Dessa exponeras som "direktimport" på restaurangsidan.

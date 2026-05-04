@@ -368,8 +368,8 @@ export function generateExampleCSV(): string {
 
   const exampleRows = [
     [
-      'Château La Yotte',
-      'Château La Yotte',
+      'Château Pin Sauvage',
+      'Château Pin Sauvage',
       'Bordeaux',
       'red',
       '2022',
@@ -380,7 +380,7 @@ export function generateExampleCSV(): string {
       '750',
       'false',
       'Elegant bordeaux med mogna tanniner',
-      'CLY-2022-750',
+      'CPS-2022-750',
       '6',
       'Côtes de Bordeaux',
       'France',
@@ -460,8 +460,8 @@ export function generateExcelTemplate(): Buffer {
 
   const exampleData = [
     {
-      wine_name: 'Château La Yotte',
-      producer: 'Château La Yotte',
+      wine_name: 'Château Pin Sauvage',
+      producer: 'Château Pin Sauvage',
       region: 'Bordeaux',
       color: 'red',
       vintage: '2022',
@@ -472,7 +472,7 @@ export function generateExcelTemplate(): Buffer {
       bottle_size_ml: 750,
       organic: 'false',
       description: 'Elegant bordeaux med mogna tanniner',
-      sku: 'CLY-2022-750',
+      sku: 'CPS-2022-750',
       case_size: 6,
       appellation: 'Côtes de Bordeaux',
       country: 'France',
@@ -519,12 +519,38 @@ export function generateExcelTemplate(): Buffer {
   ];
 
   const workbook = XLSX.utils.book_new();
-  const worksheet = XLSX.utils.json_to_sheet(exampleData, { header: headers });
 
-  // Set column widths
-  worksheet['!cols'] = headers.map(h => ({ wch: Math.max(h.length, 15) }));
+  // Sheet 1: Vinkatalog (data sheet)
+  const wineSheet = XLSX.utils.json_to_sheet(exampleData, { header: headers });
+  wineSheet['!cols'] = headers.map(h => ({ wch: Math.max(h.length, 15) }));
+  XLSX.utils.book_append_sheet(workbook, wineSheet, 'Vinkatalog');
 
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Wines');
+  // Sheet 2: Förklaringar (column documentation)
+  const fieldDocs = [
+    { Kolumn: 'wine_name',       Svenska: 'Vinets namn',       Krävs: 'Ja',  Format: 'Text',           Exempel: 'Château Pin Sauvage',         Kommentar: 'Inkludera cuvée/produktnamn om relevant' },
+    { Kolumn: 'producer',        Svenska: 'Producent',         Krävs: 'Ja',  Format: 'Text',           Exempel: 'Domaine des Trois Pierres',   Kommentar: 'Vingården eller producenten' },
+    { Kolumn: 'region',          Svenska: 'Region',            Krävs: 'Ja',  Format: 'Text',           Exempel: 'Bordeaux',                    Kommentar: 'Övergripande vinregion' },
+    { Kolumn: 'color',           Svenska: 'Färg',              Krävs: 'Ja',  Format: 'red/white/rosé/sparkling/orange/dessert', Exempel: 'red',           Kommentar: 'Använd engelska värden' },
+    { Kolumn: 'vintage',         Svenska: 'Årgång',            Krävs: 'Ja',  Format: 'År eller "NV"',  Exempel: '2022',                        Kommentar: 'NV = Non-Vintage (utan årgång)' },
+    { Kolumn: 'grape',           Svenska: 'Druvor',            Krävs: 'Ja',  Format: 'Text, kommaseparerad', Exempel: 'Merlot, Cabernet Sauvignon', Kommentar: 'Lista alla druvor i blandningen' },
+    { Kolumn: 'price',           Svenska: 'Pris (SEK)',        Krävs: 'Ja',  Format: 'Tal',            Exempel: '89',                          Kommentar: 'Inköpspris exkl. moms per flaska/enhet' },
+    { Kolumn: 'moq',             Svenska: 'Minsta order',      Krävs: 'Ja',  Format: 'Tal',            Exempel: '36',                          Kommentar: 'Antal flaskor (eller kolli — se case_size)' },
+    { Kolumn: 'alcohol_pct',     Svenska: 'Alkoholhalt (%)',   Krävs: 'Nej', Format: 'Decimaltal',     Exempel: '13.5',                        Kommentar: 'Procent — använd punkt som decimaltecken' },
+    { Kolumn: 'bottle_size_ml',  Svenska: 'Flaskstorlek (ml)', Krävs: 'Nej', Format: 'Tal',            Exempel: '750',                         Kommentar: 'Standard 750, magnum 1500, fat 20000' },
+    { Kolumn: 'organic',         Svenska: 'Ekologiskt',        Krävs: 'Nej', Format: 'true/false',     Exempel: 'true',                        Kommentar: 'Lämna tomt eller false om ej ekologiskt' },
+    { Kolumn: 'description',     Svenska: 'Beskrivning',       Krävs: 'Nej', Format: 'Text',           Exempel: 'Elegant bordeaux med mogna tanniner', Kommentar: 'Smakprofil, stil, matpassning' },
+    { Kolumn: 'sku',             Svenska: 'Artikelnr',         Krävs: 'Nej', Format: 'Text',           Exempel: 'CPS-2022-750',                Kommentar: 'Ert egna artikelnummer (fri text)' },
+    { Kolumn: 'case_size',       Svenska: 'Kolli-storlek',     Krävs: 'Nej', Format: 'Tal',            Exempel: '6',                           Kommentar: 'Antal flaskor per kolli (vanligast 6 eller 12)' },
+    { Kolumn: 'appellation',     Svenska: 'Appellation',       Krävs: 'Nej', Format: 'Text',           Exempel: 'Côtes de Bordeaux',           Kommentar: 'Klassificering (AOP/DOC/DOCG/DO etc.)' },
+    { Kolumn: 'country',         Svenska: 'Land',              Krävs: 'Nej', Format: 'Text',           Exempel: 'France',                      Kommentar: 'Använd engelskt landsnamn' },
+    { Kolumn: 'packaging_type',  Svenska: 'Förpackning',       Krävs: 'Nej', Format: 'bottle/keg/can/bag-in-box', Exempel: 'bottle',           Kommentar: 'Standard är bottle' },
+  ];
+  const docHeaders = ['Kolumn', 'Svenska', 'Krävs', 'Format', 'Exempel', 'Kommentar'];
+  const docSheet = XLSX.utils.json_to_sheet(fieldDocs, { header: docHeaders });
+  docSheet['!cols'] = [
+    { wch: 18 }, { wch: 22 }, { wch: 7 }, { wch: 38 }, { wch: 32 }, { wch: 50 },
+  ];
+  XLSX.utils.book_append_sheet(workbook, docSheet, 'Förklaringar');
 
   return Buffer.from(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }));
 }
