@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { useActor } from '@/lib/hooks/useActor';
+import { RefreshCw, ArrowLeft, Mail, UtensilsCrossed, Truck, Send, CheckCircle2, XCircle, Ban } from 'lucide-react';
 
 interface Restaurant {
   id: string;
@@ -172,25 +173,32 @@ export default function AdminInvitesPage() {
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeClasses = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-500';
-      case 'used': return 'bg-green-500';
-      case 'expired': return 'bg-gray-500';
-      default: return 'bg-gray-400';
+      case 'pending':
+        return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'used':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'expired':
+        return 'bg-muted text-muted-foreground border-border';
+      default:
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
-  const getRoleIcon = (role: string) => {
-    return role === 'RESTAURANT' ? '🍽️' : '🚚';
+  const RoleIcon = ({ role }: { role: string }) => {
+    const Icon = role === 'RESTAURANT' ? UtensilsCrossed : Truck;
+    return <Icon className="h-4 w-4 text-muted-foreground" />;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wine mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Laddar...</p>
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="flex items-center justify-center py-24">
+          <div className="text-center">
+            <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">Laddar...</p>
+          </div>
         </div>
       </div>
     );
@@ -198,194 +206,194 @@ export default function AdminInvitesPage() {
 
   if (error && invites.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center">
-        <div className="max-w-md bg-white p-8 rounded-lg shadow-lg">
-          <div className="text-center">
-            <span className="text-6xl mb-4 block">🚫</span>
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Åtkomst nekad</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="px-6 py-2 bg-wine text-white rounded-lg hover:bg-wine/90 transition-colors"
-            >
-              ← Tillbaka till Dashboard
-            </button>
-          </div>
+      <div className="p-6 max-w-2xl mx-auto">
+        <div className="bg-card border border-border rounded-lg p-8 text-center">
+          <Ban className="h-10 w-10 text-destructive mx-auto mb-3" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">Åtkomst nekad</h2>
+          <p className="text-muted-foreground mb-5">{error}</p>
+          <button
+            onClick={() => router.push('/admin')}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm font-medium"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Tillbaka till Dashboard
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <header className="bg-gradient-to-r from-wine to-wine/80 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">📧</span>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Inbjudningar</h1>
-                <p className="text-sm text-white/80">Bjud in restauranger och leverantörer</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={fetchData}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
-              >
-                🔄 Uppdatera
-              </button>
-              <button
-                onClick={() => router.push('/admin/pilot')}
-                className="px-4 py-2 bg-white text-wine rounded-lg hover:bg-white/90 transition-colors text-sm font-medium"
-              >
-                ← Admin Console
-              </button>
-            </div>
-          </div>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Inbjudningar</h1>
+          <p className="text-muted-foreground mt-1">Bjud in restauranger och leverantörer</p>
         </div>
-      </header>
+        <div className="flex gap-3">
+          <button
+            onClick={fetchData}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm font-medium"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Uppdatera
+          </button>
+          <button
+            onClick={() => router.push('/admin')}
+            className="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground hover:bg-accent rounded-lg transition-colors text-sm font-medium"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
+          </button>
+        </div>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Success/Error Messages */}
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
-            ✓ {success}
-          </div>
-        )}
+      {/* Status messages */}
+      {success && (
+        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-2 text-emerald-800">
+          <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span className="text-sm">{success}</span>
+        </div>
+      )}
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-            ✗ {error}
-          </div>
-        )}
+      {error && (
+        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-2 text-destructive">
+          <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span className="text-sm">{error}</span>
+        </div>
+      )}
 
-        {/* Create Invite Form */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Skapa ny inbjudan</h2>
+      {/* Create Invite Form */}
+      <div className="mb-8 bg-card rounded-lg p-6 border border-border">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Skapa ny inbjudan</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
-                  placeholder="user@example.com"
-                />
-              </div>
-
-              {/* Role */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Roll
-                </label>
-                <select
-                  value={role}
-                  onChange={(e) => {
-                    setRole(e.target.value as 'RESTAURANT' | 'SUPPLIER');
-                    setSelectedEntityId('');
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
-                >
-                  <option value="RESTAURANT">🍽️ Restaurang</option>
-                  <option value="SUPPLIER">🚚 Leverantör</option>
-                </select>
-              </div>
-
-              {/* Entity (Restaurant or Supplier) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {role === 'RESTAURANT' ? 'Restaurang' : 'Leverantör'}
-                </label>
-                <select
-                  value={selectedEntityId}
-                  onChange={(e) => setSelectedEntityId(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
-                >
-                  <option value="">Välj...</option>
-                  {role === 'RESTAURANT'
-                    ? restaurants.map(r => (
-                        <option key={r.id} value={r.id}>{r.name}</option>
-                      ))
-                    : suppliers.map(s => (
-                        <option key={s.id} value={s.id}>{s.namn}</option>
-                      ))
-                  }
-                </select>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="namn@exempel.se"
+              />
             </div>
 
-            <button
-              type="submit"
-              disabled={submitting || !email || !selectedEntityId}
-              className="w-full md:w-auto px-6 py-2 bg-wine text-white rounded-lg hover:bg-wine/90 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-            >
-              {submitting ? 'Skickar...' : '📧 Skicka inbjudan'}
-            </button>
-          </form>
-        </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Roll</label>
+              <select
+                value={role}
+                onChange={(e) => {
+                  setRole(e.target.value as 'RESTAURANT' | 'SUPPLIER');
+                  setSelectedEntityId('');
+                }}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="RESTAURANT">Restaurang</option>
+                <option value="SUPPLIER">Leverantör</option>
+              </select>
+            </div>
 
-        {/* Invites List */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800">
-              Senaste inbjudningar ({invites.length})
-            </h2>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                {role === 'RESTAURANT' ? 'Restaurang' : 'Leverantör'}
+              </label>
+              <select
+                value={selectedEntityId}
+                onChange={(e) => setSelectedEntityId(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">Välj...</option>
+                {role === 'RESTAURANT'
+                  ? restaurants.map((r) => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))
+                  : suppliers.map((s) => (
+                      <option key={s.id} value={s.id}>{s.namn}</option>
+                    ))}
+              </select>
+            </div>
           </div>
 
-          {invites.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Inga inbjudningar ännu</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Email</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Roll</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Organisation</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Status</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Skapad</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-700">Används</th>
+          <button
+            type="submit"
+            disabled={submitting || !email || !selectedEntityId}
+            className="inline-flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed rounded-lg transition-colors text-sm font-medium"
+          >
+            {submitting ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Skickar...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                Skicka inbjudan
+              </>
+            )}
+          </button>
+        </form>
+      </div>
+
+      {/* Invites List */}
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-lg font-semibold text-foreground">
+            Senaste inbjudningar ({invites.length})
+          </h2>
+        </div>
+
+        {invites.length === 0 ? (
+          <p className="text-muted-foreground text-center py-12 text-sm">
+            Inga inbjudningar ännu
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border text-sm">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Roll</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Organisation</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Skapad</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Använd</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {invites.map((invite) => (
+                  <tr key={invite.id} className="hover:bg-accent/50">
+                    <td className="px-6 py-3 font-mono text-xs text-foreground">{invite.email}</td>
+                    <td className="px-6 py-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs text-foreground">
+                        <RoleIcon role={invite.role} />
+                        {invite.role === 'RESTAURANT' ? 'Restaurang' : 'Leverantör'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-foreground">{invite.entity_name}</td>
+                    <td className="px-6 py-3">
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadgeClasses(invite.status)}`}
+                      >
+                        {invite.status === 'pending' ? 'Väntar' : invite.status === 'used' ? 'Använd' : 'Utgången'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-muted-foreground">{formatDate(invite.created_at)}</td>
+                    <td className="px-6 py-3 text-muted-foreground">
+                      {invite.used_at ? formatDate(invite.used_at) : '—'}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {invites.map((invite) => (
-                    <tr key={invite.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-xs">{invite.email}</td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-1">
-                          {getRoleIcon(invite.role)}
-                          <span className="text-xs">{invite.role}</span>
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">{invite.entity_name}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(invite.status)}`}>
-                          {invite.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{formatDate(invite.created_at)}</td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {invite.used_at ? formatDate(invite.used_at) : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </main>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
