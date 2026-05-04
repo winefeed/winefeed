@@ -619,15 +619,15 @@ Norrlands-argumentet: 500–1 200 km från Stockholm. Importörer besöker säll
 - **Outreach-vinkel:** "Delningsmenyn = du behöver versatila glasviner som funkar tvärs över 8 rätter — stilprofil-matching är just det Winefeed gör bäst." Bonus: pitcha off-dry Riesling, lättkroppade Pinot, orange Friuli/Slovenien.
 - **Risk:** Solo-driven krögare = beslutsfattare åtkomlig men kort om tid. Tight nätverk till Jämtländska importörer + lokala bryggerier.
 
-### 68. Morbror Fabian (gamla Jazzköket) — Östersund 🔴 TIDSKRITISKT
-- **Typ:** Restaurang (koncept under uppbyggnad)
-- **Adress:** Prästgatan 44, Östersund
-- **STATUS:** Jazzköket upphörde 30 mars 2026. Övertaget 1 april 2026 av **Wisam Gharzoul + Martin Dahl** → bytt namn till **Morbror Fabian**. Lunchstart 13 april. Bolag: Morbror Fabian AB (org. 556895-4506).
-- **Kontakt:** OBEKRÄFTAT — Wisam Gharzoul = bästa kontaktnamn.
-- **Vinprofil:** Gamla Jazzköket körde argon-system + naturvinsfokus + SWL White Star. **Vad nya ägarna kör är OBEKRÄFTAT** — koncept ej offentliggjort.
-- **Kvalificering:** wine_focus: TBD, pilot_fit: 5. **Vinlistan byggs från noll just nu — fönstret är vidöppet april–juni 2026.**
-- **Outreach-vinkel:** "Vi sett att ni precis tagit över Jazzköket — om vinlistan är under uppbyggnad kan Winefeed låta er broadcast-fråga 50+ importörer på 24h utan att ringa runt."
-- **Risk:** Vi vet inte ännu om de behåller naturvinsfilosofin eller skiftar. **Skicka mail innan månadsskiftet maj.**
+### 68. Morbror Fabian (gamla Jazzköket) — Östersund 🟡 KONTAKTAD
+- **Typ:** Restaurang — världsbistro / global trattoria med deli ("Inga regler – bara goa grejer")
+- **Adress:** Prästgatan 44, 831 33 Östersund
+- **STATUS:** Jazzköket upphörde 30 mars 2026. Övertaget 1 april 2026 av **Wisam Gharzoul + Martin Dahl** → bytt namn till **Morbror Fabian**. Lunchstart 13 april (11:00–14:00). Bolag: Morbror Fabian AB (org. 556895-4506).
+- **Kontakt:** info@morbrorfabian.se | 063-10 15 75 | @morbrorfabian (FB/IG)
+- **Vinprofil:** Pivot från Jazzkökets naturvinsfinkrog → casual världskök + deli. Vinlista byggs från noll april–juni 2026.
+- **Kvalificering:** wine_focus: TBD, pilot_fit: 5.
+- **Outreach skickat:** 2026-05-04 till info@ med Markus i BCC. Vinkel: gratis pilot + import-stöd (pappersexercis, tull, alkoholskatt, 5369) + tre Bordeaux-exempel (Tour-Calon, Bonalgue, Lateyron). Mall: `docs/OUTREACH_TEMPLATE_RESTAURANG.md`. Skript: `scripts/send-morbror-fabian-outreach.mjs`. Resend-ID: `fcb397ac-7be7-4170-bb7e-586fca58e5bc`.
+- **Nästa steg:** Följ upp om inget svar inom 7 dagar (≈ 2026-05-11).
 
 ### Sundsvall
 
