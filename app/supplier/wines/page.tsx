@@ -813,7 +813,7 @@ export default function SupplierWinesPage() {
     const colors = {
       green: 'bg-green-100 text-green-800',
       yellow: 'bg-yellow-100 text-yellow-800',
-      gray: 'bg-gray-100 text-gray-600',
+      gray: 'bg-muted text-muted-foreground',
     };
 
     return (
@@ -837,8 +837,8 @@ export default function SupplierWinesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Vinkatalog</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Vinkatalog</h1>
+          <p className="text-muted-foreground mt-1">
             {wines.length} viner i din katalog
             {wines.filter(w => w.status === 'ACTIVE').length !== wines.length && (
               <span className="ml-2">({wines.filter(w => w.status === 'ACTIVE').length} aktiva)</span>
@@ -849,7 +849,7 @@ export default function SupplierWinesPage() {
           {supplierId && (
             <a
               href={`/api/suppliers/${supplierId}/wines/template?format=xlsx`}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent"
             >
               <Download className="h-4 w-4" />
               Mall
@@ -892,7 +892,7 @@ export default function SupplierWinesPage() {
         <div className={`mb-4 p-4 rounded-lg flex items-center gap-3 ${importResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
           {importResult.success ? <CheckCircle className="h-5 w-5 text-green-600" /> : <AlertCircle className="h-5 w-5 text-red-600" />}
           <span className={importResult.success ? 'text-green-800' : 'text-red-800'}>{importResult.message}</span>
-          <button onClick={() => setImportResult(null)} className="ml-auto text-gray-400 hover:text-gray-600" aria-label="Stäng"><X className="h-4 w-4" /></button>
+          <button onClick={() => setImportResult(null)} className="ml-auto text-muted-foreground hover:text-muted-foreground" aria-label="Stäng"><X className="h-4 w-4" /></button>
         </div>
       )}
 
@@ -904,13 +904,13 @@ export default function SupplierWinesPage() {
 
             {/* Status buttons */}
             <div className="flex gap-2 items-center">
-              <span className="text-sm text-gray-600">Status:</span>
+              <span className="text-sm text-muted-foreground">Status:</span>
               {STATUS_OPTIONS.map(option => (
                 <button
                   key={option.value}
                   onClick={() => bulkUpdateStatus(option.value)}
                   disabled={bulkUpdating}
-                  className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50"
+                  className="px-3 py-1 text-sm font-medium border border-border rounded-lg hover:bg-white disabled:opacity-50"
                 >
                   {bulkUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : option.label}
                 </button>
@@ -919,13 +919,13 @@ export default function SupplierWinesPage() {
 
             {/* MOQ section */}
             <div className="flex gap-2 items-center border-l border-blue-200 pl-4">
-              <span className="text-sm text-gray-600" title="Minimum Order Quantity — minsta antal flaskor per beställning">MOQ:</span>
+              <span className="text-sm text-muted-foreground" title="Minimum Order Quantity — minsta antal flaskor per beställning">MOQ:</span>
               {!showBulkMoqInput ? (
                 <>
                   <button
                     onClick={() => bulkUpdateMoq(1)}
                     disabled={bulkUpdating}
-                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50"
+                    className="px-3 py-1 text-sm font-medium border border-border rounded-lg hover:bg-white disabled:opacity-50"
                     title="Sampling - tillåt enstaka flaskor"
                   >
                     1 (sampling)
@@ -933,21 +933,21 @@ export default function SupplierWinesPage() {
                   <button
                     onClick={() => bulkUpdateMoq(6)}
                     disabled={bulkUpdating}
-                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50"
+                    className="px-3 py-1 text-sm font-medium border border-border rounded-lg hover:bg-white disabled:opacity-50"
                   >
                     6
                   </button>
                   <button
                     onClick={() => bulkUpdateMoq(12)}
                     disabled={bulkUpdating}
-                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50"
+                    className="px-3 py-1 text-sm font-medium border border-border rounded-lg hover:bg-white disabled:opacity-50"
                   >
                     12
                   </button>
                   <button
                     onClick={() => setShowBulkMoqInput(true)}
                     disabled={bulkUpdating}
-                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 text-blue-600"
+                    className="px-3 py-1 text-sm font-medium border border-border rounded-lg hover:bg-white disabled:opacity-50 text-blue-600"
                   >
                     Annat...
                   </button>
@@ -969,7 +969,7 @@ export default function SupplierWinesPage() {
                       }
                     }}
                     placeholder="MOQ"
-                    className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-wine focus:border-wine"
+                    className="w-20 px-2 py-1 text-sm border border-border rounded-lg focus:ring-1 focus:ring-wine focus:border-wine"
                     autoFocus
                     min="1"
                   />
@@ -988,7 +988,7 @@ export default function SupplierWinesPage() {
                       setShowBulkMoqInput(false);
                       setBulkMoqValue('');
                     }}
-                    className="p-1 text-gray-400 hover:text-gray-600"
+                    className="p-1 text-muted-foreground hover:text-muted-foreground"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -1008,19 +1008,19 @@ export default function SupplierWinesPage() {
         {/* Search + Status Row */}
         <div className="flex gap-4 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Sök viner..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
+              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine"
             />
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setStatusFilter('ALL')}
-              className={`px-3 py-2 text-sm rounded-lg ${statusFilter === 'ALL' ? 'bg-wine text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`px-3 py-2 text-sm rounded-lg ${statusFilter === 'ALL' ? 'bg-wine text-white' : 'bg-muted text-foreground hover:bg-accent'}`}
             >
               Alla
             </button>
@@ -1028,7 +1028,7 @@ export default function SupplierWinesPage() {
               <button
                 key={option.value}
                 onClick={() => setStatusFilter(option.value)}
-                className={`px-3 py-2 text-sm rounded-lg ${statusFilter === option.value ? 'bg-wine text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                className={`px-3 py-2 text-sm rounded-lg ${statusFilter === option.value ? 'bg-wine text-white' : 'bg-muted text-foreground hover:bg-accent'}`}
               >
                 {option.label}
               </button>
@@ -1038,14 +1038,14 @@ export default function SupplierWinesPage() {
 
         {/* Quick Filters Row */}
         <div className="flex gap-3 flex-wrap items-center">
-          <span className="text-sm text-gray-500">Snabbfilter:</span>
+          <span className="text-sm text-muted-foreground">Snabbfilter:</span>
 
           {/* Color Filter */}
           <select
             value={colorFilter}
             onChange={(e) => setColorFilter(e.target.value)}
             className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine ${
-              colorFilter !== 'ALL' ? 'border-wine bg-wine/5 text-wine' : 'border-gray-300 text-gray-700'
+              colorFilter !== 'ALL' ? 'border-wine bg-wine/5 text-wine' : 'border-border text-foreground'
             }`}
           >
             <option value="ALL">Alla färger</option>
@@ -1059,7 +1059,7 @@ export default function SupplierWinesPage() {
             value={countryFilter}
             onChange={(e) => setCountryFilter(e.target.value)}
             className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine ${
-              countryFilter !== 'ALL' ? 'border-wine bg-wine/5 text-wine' : 'border-gray-300 text-gray-700'
+              countryFilter !== 'ALL' ? 'border-wine bg-wine/5 text-wine' : 'border-border text-foreground'
             }`}
           >
             <option value="ALL">Alla länder</option>
@@ -1073,7 +1073,7 @@ export default function SupplierWinesPage() {
             value={priceFilter}
             onChange={(e) => setPriceFilter(e.target.value)}
             className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-wine/20 focus:border-wine ${
-              priceFilter !== 'ALL' ? 'border-wine bg-wine/5 text-wine' : 'border-gray-300 text-gray-700'
+              priceFilter !== 'ALL' ? 'border-wine bg-wine/5 text-wine' : 'border-border text-foreground'
             }`}
           >
             {PRICE_RANGES.map(range => (
@@ -1091,7 +1091,7 @@ export default function SupplierWinesPage() {
                 setStatusFilter('ALL');
                 setSearchTerm('');
               }}
-              className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
             >
               Rensa filter
             </button>
@@ -1099,7 +1099,7 @@ export default function SupplierWinesPage() {
 
           {/* Active filter count */}
           {(colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL') && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted-foreground">
               {[colorFilter !== 'ALL', countryFilter !== 'ALL', priceFilter !== 'ALL'].filter(Boolean).length} filter aktiva
             </span>
           )}
@@ -1108,30 +1108,30 @@ export default function SupplierWinesPage() {
 
       {/* Filter Results Info */}
       {(searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL') && filteredAndSortedWines.length > 0 && (
-        <div className="mb-3 text-sm text-gray-500">
+        <div className="mb-3 text-sm text-muted-foreground">
           Visar {filteredAndSortedWines.length} av {wines.length} viner
         </div>
       )}
 
       {/* Wine List */}
       {filteredAndSortedWines.length > 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden max-h-[70vh] overflow-y-auto">
+        <div className="bg-white rounded-lg border border-border overflow-hidden max-h-[70vh] overflow-y-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+            <thead className="bg-muted border-b border-border sticky top-0 z-10">
               <tr>
                 <th className="w-10 p-4 hidden sm:table-cell">
                   <input
                     type="checkbox"
                     checked={selectedWines.size === filteredAndSortedWines.length && filteredAndSortedWines.length > 0}
                     onChange={toggleSelectAll}
-                    className="rounded border-gray-300 text-wine focus:ring-wine"
+                    className="rounded border-border text-wine focus:ring-wine"
                   />
                 </th>
                 <SortableHeader label="Vin" field="name" currentField={sortField} direction={sortDirection} onSort={handleSort} />
                 <SortableHeader label="Pris" field="price_ex_vat_sek" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" tooltip="Pris exklusive moms (25%)" />
-                <th className="p-4 font-medium text-gray-600 text-sm text-right hidden lg:table-cell">Årgång</th>
+                <th className="p-4 font-medium text-muted-foreground text-sm text-right hidden lg:table-cell">Årgång</th>
                 <SortableHeader label="Status" field="status" currentField={sortField} direction={sortDirection} onSort={handleSort} className="hidden md:table-cell" tooltip="Aktiv = synlig för restauranger. Tillfälligt slut = pausad. Årgång slut = arkiverad." />
-                <th className="p-4 font-medium text-gray-600 text-sm hidden xl:table-cell">
+                <th className="p-4 font-medium text-muted-foreground text-sm hidden xl:table-cell">
                   <span className="inline-flex items-center gap-1">
                     Intern notering
                     <HelpTooltip
@@ -1142,7 +1142,7 @@ export default function SupplierWinesPage() {
                   </span>
                 </th>
                 <SortableHeader label="Offerter" field="offer_count" currentField={sortField} direction={sortDirection} onSort={handleSort} align="right" className="hidden lg:table-cell" tooltip="Antal aktiva offerter där detta vin ingår" />
-                <th className="p-4 font-medium text-gray-600 text-sm w-12"></th>
+                <th className="p-4 font-medium text-muted-foreground text-sm w-12"></th>
               </tr>
             </thead>
             <tbody>
@@ -1152,14 +1152,14 @@ export default function SupplierWinesPage() {
                 return (
                 <React.Fragment key={wine.id}>
                 <tr
-                  className={`border-b border-gray-100 hover:bg-gray-50 group ${isEndOfVintage ? 'opacity-60' : ''} ${isExpanded ? 'bg-gray-50' : ''}`}
+                  className={`border-b border-border hover:bg-accent group ${isEndOfVintage ? 'opacity-60' : ''} ${isExpanded ? 'bg-muted' : ''}`}
                 >
                   <td className="p-4 hidden sm:table-cell">
                     <input
                       type="checkbox"
                       checked={selectedWines.has(wine.id)}
                       onChange={() => toggleSelect(wine.id)}
-                      className="rounded border-gray-300 text-wine focus:ring-wine"
+                      className="rounded border-border text-wine focus:ring-wine"
                     />
                   </td>
                   <td className="p-4">
@@ -1167,17 +1167,17 @@ export default function SupplierWinesPage() {
                       className="flex items-center gap-1.5 cursor-pointer"
                       onClick={() => setExpandedWineId(isExpanded ? null : wine.id)}
                     >
-                      <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
                       <div className="min-w-0">
-                        <div className="font-medium text-gray-900 line-clamp-1">{wine.name}</div>
-                        <div className="text-sm text-gray-500 line-clamp-1">{wine.producer} &middot; {wine.region}</div>
+                        <div className="font-medium text-foreground line-clamp-1">{wine.name}</div>
+                        <div className="text-sm text-muted-foreground line-clamp-1">{wine.producer} &middot; {wine.region}</div>
                       </div>
                     </div>
                     {/* Show status badge on mobile since column is hidden */}
                     <div className="md:hidden mt-1">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                         wine.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
-                        wine.status === 'END_OF_VINTAGE' ? 'bg-gray-100 text-gray-700' :
+                        wine.status === 'END_OF_VINTAGE' ? 'bg-muted text-foreground' :
                         'bg-yellow-100 text-yellow-700'
                       }`}>
                         {wine.status === 'ACTIVE' ? 'Aktiv' :
@@ -1203,15 +1203,15 @@ export default function SupplierWinesPage() {
                             }
                           }}
                           onBlur={handleBlur}
-                          className="w-24 px-2 py-1 text-right border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-wine"
+                          className="w-24 px-2 py-1 text-right border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-wine"
                           autoFocus
                         />
-                        {saving === wine.id && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                        {saving === wine.id && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                       </div>
                     ) : (
                       <span
                         onClick={() => startEdit(wine.id, 'price_ex_vat_sek', wine.price_ex_vat_sek / 100)}
-                        className="cursor-pointer hover:bg-yellow-50 px-2 py-1 rounded font-medium text-gray-900"
+                        className="cursor-pointer hover:bg-yellow-50 px-2 py-1 rounded font-medium text-foreground"
                         title="Klicka för att redigera"
                       >
                         {(wine.price_ex_vat_sek / 100).toLocaleString('sv-SE')} kr
@@ -1237,15 +1237,15 @@ export default function SupplierWinesPage() {
                           }}
                           onBlur={handleBlur}
                           placeholder="NV"
-                          className="w-20 px-2 py-1 text-right border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-wine"
+                          className="w-20 px-2 py-1 text-right border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-wine"
                           autoFocus
                         />
-                        {saving === wine.id && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                        {saving === wine.id && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                       </div>
                     ) : (
                       <span
                         onClick={() => startEdit(wine.id, 'vintage', wine.vintage ?? '')}
-                        className="cursor-pointer hover:bg-yellow-50 px-2 py-1 rounded text-gray-600"
+                        className="cursor-pointer hover:bg-yellow-50 px-2 py-1 rounded text-muted-foreground"
                         title="Klicka för att redigera"
                       >
                         {wine.vintage || 'NV'}
@@ -1256,14 +1256,14 @@ export default function SupplierWinesPage() {
                   {/* Status Badge + Dropdown */}
                   <td className="p-4 hidden md:table-cell">
                     {saving === wine.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     ) : (
                       <div className="flex items-center gap-2">
                         {getStatusBadge(wine.status)}
                         <select
                           value={wine.status}
                           onChange={(e) => updateStatus(wine.id, e.target.value)}
-                          className="text-xs border border-gray-200 rounded px-1 py-0.5 bg-white cursor-pointer focus:ring-1 focus:ring-wine focus:border-wine"
+                          className="text-xs border border-border rounded px-1 py-0.5 bg-white cursor-pointer focus:ring-1 focus:ring-wine focus:border-wine"
                         >
                           {STATUS_OPTIONS.map(option => (
                             <option key={option.value} value={option.value}>{option.label}</option>
@@ -1292,19 +1292,19 @@ export default function SupplierWinesPage() {
                           onBlur={handleBlur}
                           maxLength={140}
                           placeholder="T.ex. 'Sista partiet' eller 'Kampanjpris'"
-                          className="w-48 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-wine"
+                          className="w-48 px-2 py-1 border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-wine"
                           autoFocus
                         />
-                        <span className="text-xs text-gray-400">{editValue.length}/140</span>
-                        {saving === wine.id && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                        <span className="text-xs text-muted-foreground">{editValue.length}/140</span>
+                        {saving === wine.id && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                       </div>
                     ) : (
                       <span
                         onClick={() => startEdit(wine.id, 'notes', wine.notes ?? '')}
-                        className="cursor-pointer hover:bg-yellow-50 px-2 py-1 rounded text-gray-600 text-sm truncate max-w-[200px] inline-block"
+                        className="cursor-pointer hover:bg-yellow-50 px-2 py-1 rounded text-muted-foreground text-sm truncate max-w-[200px] inline-block"
                         title={wine.notes || 'Klicka för att lägga till anteckning'}
                       >
-                        {wine.notes || <span className="text-gray-300 italic">Lägg till...</span>}
+                        {wine.notes || <span className="text-muted-foreground italic">Lägg till...</span>}
                       </span>
                     )}
                   </td>
@@ -1320,7 +1320,7 @@ export default function SupplierWinesPage() {
                         {wine.offer_count}
                       </span>
                     ) : (
-                      <span className="text-gray-300" title="Inte använd i några offerter">—</span>
+                      <span className="text-muted-foreground" title="Inte använd i några offerter">—</span>
                     )}
                   </td>
 
@@ -1328,7 +1328,7 @@ export default function SupplierWinesPage() {
                   <td className="p-4">
                     <button
                       onClick={() => setDeleteConfirm(wine)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
                       title="Radera vin"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -1336,7 +1336,7 @@ export default function SupplierWinesPage() {
                   </td>
                 </tr>
                 {isExpanded && supplierId && (
-                  <tr className="border-b border-gray-200">
+                  <tr className="border-b border-border">
                     <td colSpan={8}>
                       <WineDetailPanel
                         wine={wine}
@@ -1357,20 +1357,20 @@ export default function SupplierWinesPage() {
           </table>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <Wine className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="bg-white rounded-lg border border-border p-12 text-center">
+          <Wine className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             {searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL' ? 'Inga viner hittades' : 'Din katalog är tom'}
           </h3>
           {searchTerm || statusFilter !== 'ALL' || colorFilter !== 'ALL' || countryFilter !== 'ALL' || priceFilter !== 'ALL' ? (
-            <p className="text-gray-500 mb-4">Prova med en annan sökning eller filter</p>
+            <p className="text-muted-foreground mb-4">Prova med en annan sökning eller filter</p>
           ) : (
             <>
-              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 Så här laddar du upp dina viner — det tar cirka 10 minuter första gången.
               </p>
-              <div className="max-w-md mx-auto mb-6 text-left bg-gray-50 rounded-lg p-4 text-sm">
-                <ol className="space-y-2 text-gray-700">
+              <div className="max-w-md mx-auto mb-6 text-left bg-muted rounded-lg p-4 text-sm">
+                <ol className="space-y-2 text-foreground">
                   <li className="flex gap-2">
                     <span className="font-semibold text-wine flex-shrink-0">1.</span>
                     <span>Ladda ner mallen (Excel) nedan — förifyllda kolumner med exempelvin</span>
@@ -1389,7 +1389,7 @@ export default function SupplierWinesPage() {
                 {supplierId && (
                   <a
                     href={`/api/suppliers/${supplierId}/wines/template?format=xlsx`}
-                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent"
                   >
                     <Download className="h-4 w-4" />
                     Ladda ner mall
@@ -1403,7 +1403,7 @@ export default function SupplierWinesPage() {
                   Importera viner
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-4">
+              <p className="text-xs text-muted-foreground mt-4">
                 Excel (.xlsx) och CSV stöds · Inga filer? Kontakta <a href="mailto:hej@winefeed.se" className="text-wine hover:underline">hej@winefeed.se</a> så hjälper vi till.
               </p>
             </>
@@ -1424,9 +1424,9 @@ export default function SupplierWinesPage() {
       {showUpload && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+            <div className="p-6 border-b border-border flex items-center justify-between">
               <h2 className="text-lg font-semibold">Importera viner</h2>
-              <button onClick={() => { setShowUpload(false); setPreview(null); setQualityReport(null); setEnrichments([]); setAnomalies([]); setDescriptionMeta({}); }} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => { setShowUpload(false); setPreview(null); setQualityReport(null); setEnrichments([]); setAnomalies([]); setDescriptionMeta({}); }} className="text-muted-foreground hover:text-muted-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -1435,13 +1435,13 @@ export default function SupplierWinesPage() {
               {!preview ? (
                 <>
                   {/* Catalog Agent Toggle */}
-                  <div className="mb-4 p-4 border border-gray-200 rounded-lg">
+                  <div className="mb-4 p-4 border border-border rounded-lg">
                     <label className="flex items-center justify-between cursor-pointer">
                       <div className="flex items-center gap-3">
-                        <Sparkles className={`h-5 w-5 ${catalogAgentEnabled ? 'text-amber-500' : 'text-gray-400'}`} />
+                        <Sparkles className={`h-5 w-5 ${catalogAgentEnabled ? 'text-amber-500' : 'text-muted-foreground'}`} />
                         <div>
-                          <span className="font-medium text-gray-900">Catalog Agent</span>
-                          <p className="text-xs text-gray-500">Smart mappning, databerikning & anomalidetektion</p>
+                          <span className="font-medium text-foreground">Catalog Agent</span>
+                          <p className="text-xs text-muted-foreground">Smart mappning, databerikning & anomalidetektion</p>
                         </div>
                       </div>
                       <div
@@ -1449,7 +1449,7 @@ export default function SupplierWinesPage() {
                         aria-checked={catalogAgentEnabled}
                         onClick={() => setCatalogAgentEnabled(!catalogAgentEnabled)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          catalogAgentEnabled ? 'bg-wine' : 'bg-gray-300'
+                          catalogAgentEnabled ? 'bg-primary' : 'bg-muted-foreground/30'
                         }`}
                       >
                         <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
@@ -1459,17 +1459,17 @@ export default function SupplierWinesPage() {
                     </label>
                   </div>
 
-                  <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-wine bg-wine/5' : 'border-gray-300 hover:border-gray-400'}`}>
+                  <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-wine bg-wine/5' : 'border-border hover:border-primary'}`}>
                     <input {...getInputProps()} />
-                    <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">{isDragActive ? 'Släpp filen här...' : 'Dra och släpp en Excel-, CSV- eller PDF-fil här'}</p>
-                    <p className="text-sm text-gray-400">eller klicka för att välja fil</p>
-                    <p className="text-xs text-gray-400 mt-2">Max 5 MB • Excel (.xlsx, .xls), CSV eller PDF</p>
+                    <FileSpreadsheet className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground mb-2">{isDragActive ? 'Släpp filen här...' : 'Dra och släpp en Excel-, CSV- eller PDF-fil här'}</p>
+                    <p className="text-sm text-muted-foreground">eller klicka för att välja fil</p>
+                    <p className="text-xs text-muted-foreground mt-2">Max 5 MB • Excel (.xlsx, .xls), CSV eller PDF</p>
                   </div>
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-medium text-gray-900 mb-2">Kolumner som krävs:</h3>
-                    <p className="text-sm text-gray-600">wine_name, producer, vintage, region, country, grape, color, price</p>
-                    <p className="text-xs text-gray-400 mt-1">Valfritt: moq (min. orderantal — defaultar till case_size), case_size, alcohol_pct, organic, description, sku</p>
+                  <div className="mt-4 p-4 bg-muted rounded-lg">
+                    <h3 className="font-medium text-foreground mb-2">Kolumner som krävs:</h3>
+                    <p className="text-sm text-muted-foreground">wine_name, producer, vintage, region, country, grape, color, price</p>
+                    <p className="text-xs text-muted-foreground mt-1">Valfritt: moq (min. orderantal — defaultar till case_size), case_size, alcohol_pct, organic, description, sku</p>
                     {supplierId && (
                       <a href={`/api/suppliers/${supplierId}/wines/template?format=xlsx`} className="text-sm text-wine hover:underline mt-2 inline-block">Ladda ner mall &rarr;</a>
                     )}
@@ -1478,18 +1478,18 @@ export default function SupplierWinesPage() {
               ) : (
                 <>
                   {/* Summary Header */}
-                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="mb-6 p-4 bg-muted rounded-lg">
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm text-gray-600">Fil: <strong>{preview.filename}</strong></p>
-                      <span className="text-xs text-gray-400">{preview.valid.length + preview.invalid.length} rader totalt</span>
+                      <p className="text-sm text-muted-foreground">Fil: <strong>{preview.filename}</strong></p>
+                      <span className="text-xs text-muted-foreground">{preview.valid.length + preview.invalid.length} rader totalt</span>
                     </div>
                     <div className="flex gap-3">
-                      <div className={`flex-1 p-3 rounded-lg border ${preview.valid.length > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-100 border-gray-200'}`}>
+                      <div className={`flex-1 p-3 rounded-lg border ${preview.valid.length > 0 ? 'bg-green-50 border-green-200' : 'bg-muted border-border'}`}>
                         <div className="flex items-center gap-2">
-                          <CheckCircle className={`h-5 w-5 ${preview.valid.length > 0 ? 'text-green-600' : 'text-gray-400'}`} />
+                          <CheckCircle className={`h-5 w-5 ${preview.valid.length > 0 ? 'text-green-600' : 'text-muted-foreground'}`} />
                           <div>
-                            <p className={`text-lg font-semibold ${preview.valid.length > 0 ? 'text-green-700' : 'text-gray-500'}`}>{preview.valid.length}</p>
-                            <p className="text-xs text-gray-500">Redo att importeras</p>
+                            <p className={`text-lg font-semibold ${preview.valid.length > 0 ? 'text-green-700' : 'text-muted-foreground'}`}>{preview.valid.length}</p>
+                            <p className="text-xs text-muted-foreground">Redo att importeras</p>
                           </div>
                         </div>
                       </div>
@@ -1499,7 +1499,7 @@ export default function SupplierWinesPage() {
                             <AlertCircle className="h-5 w-5 text-red-600" />
                             <div>
                               <p className="text-lg font-semibold text-red-700">{preview.invalid.length}</p>
-                              <p className="text-xs text-gray-500">Kan ej importeras</p>
+                              <p className="text-xs text-muted-foreground">Kan ej importeras</p>
                             </div>
                           </div>
                         </div>
@@ -1512,7 +1512,7 @@ export default function SupplierWinesPage() {
                     <div className="mb-6 p-4 border border-amber-200 bg-amber-50 rounded-lg">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="h-5 w-5 text-amber-500" />
-                        <h3 className="font-medium text-gray-900">Catalog Agent — Kvalitetsrapport</h3>
+                        <h3 className="font-medium text-foreground">Catalog Agent — Kvalitetsrapport</h3>
                         <span className={`ml-auto text-sm font-semibold px-2 py-0.5 rounded-full ${
                           qualityReport.score >= 80 ? 'bg-green-100 text-green-700' :
                           qualityReport.score >= 60 ? 'bg-yellow-100 text-yellow-700' :
@@ -1524,30 +1524,30 @@ export default function SupplierWinesPage() {
 
                       <div className="grid grid-cols-3 gap-3 text-sm">
                         {/* Enrichment */}
-                        <div className="p-3 bg-white rounded-lg border border-gray-200">
+                        <div className="p-3 bg-white rounded-lg border border-border">
                           <div className="flex items-center gap-1.5 mb-1">
                             <Zap className="h-4 w-4 text-blue-500" />
-                            <span className="font-medium text-gray-700">Berikning</span>
+                            <span className="font-medium text-foreground">Berikning</span>
                           </div>
                           {qualityReport.enrichment.totalEnriched > 0 ? (
                             <div className="space-y-1">
                               {Object.entries(qualityReport.enrichment.byField).map(([field, count]) => (
-                                <p key={field} className="text-xs text-gray-600">
+                                <p key={field} className="text-xs text-muted-foreground">
                                   <Sparkles className="h-3 w-3 inline text-amber-400 mr-1" />
                                   {field}: {count} rader
                                 </p>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-xs text-gray-400">Ingen berikning behövdes</p>
+                            <p className="text-xs text-muted-foreground">Ingen berikning behövdes</p>
                           )}
                         </div>
 
                         {/* Anomalies */}
-                        <div className="p-3 bg-white rounded-lg border border-gray-200">
+                        <div className="p-3 bg-white rounded-lg border border-border">
                           <div className="flex items-center gap-1.5 mb-1">
                             <Shield className="h-4 w-4 text-orange-500" />
-                            <span className="font-medium text-gray-700">Anomalier</span>
+                            <span className="font-medium text-foreground">Anomalier</span>
                           </div>
                           {qualityReport.anomalies.total > 0 ? (
                             <div className="space-y-1">
@@ -1558,7 +1558,7 @@ export default function SupplierWinesPage() {
                                 </p>
                               )}
                               {qualityReport.anomalies.bySeverity.info > 0 && (
-                                <p className="text-xs text-gray-600">
+                                <p className="text-xs text-muted-foreground">
                                   <Info className="h-3 w-3 inline mr-1" />
                                   {qualityReport.anomalies.bySeverity.info} info
                                 </p>
@@ -1570,13 +1570,13 @@ export default function SupplierWinesPage() {
                         </div>
 
                         {/* Column Mapping */}
-                        <div className="p-3 bg-white rounded-lg border border-gray-200">
+                        <div className="p-3 bg-white rounded-lg border border-border">
                           <div className="flex items-center gap-1.5 mb-1">
                             <FileSpreadsheet className="h-4 w-4 text-purple-500" />
-                            <span className="font-medium text-gray-700">Kolumner</span>
+                            <span className="font-medium text-foreground">Kolumner</span>
                           </div>
                           <div className="space-y-1">
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-muted-foreground">
                               {qualityReport.columnMapping.aliasMapped} mappade
                             </p>
                             {qualityReport.columnMapping.aiMapped > 0 && (
@@ -1597,7 +1597,7 @@ export default function SupplierWinesPage() {
                       {/* Anomaly Details (expandable) */}
                       {anomalies.length > 0 && (
                         <details className="mt-3">
-                          <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                          <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
                             Visa {anomalies.length} anomalier i detalj
                           </summary>
                           <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
@@ -1605,12 +1605,12 @@ export default function SupplierWinesPage() {
                               <div key={i} className={`text-xs p-2 rounded ${
                                 a.severity === 'warning' ? 'bg-yellow-50 text-yellow-800' :
                                 a.severity === 'error' ? 'bg-red-50 text-red-800' :
-                                'bg-gray-50 text-gray-600'
+                                'bg-muted text-muted-foreground'
                               }`}>
                                 {a.severity === 'warning' && <TriangleAlert className="h-3 w-3 inline mr-1" />}
                                 {a.severity === 'info' && <Info className="h-3 w-3 inline mr-1" />}
                                 {a.message}
-                                {a.suggestion && <span className="ml-1 text-gray-500">— {a.suggestion}</span>}
+                                {a.suggestion && <span className="ml-1 text-muted-foreground">— {a.suggestion}</span>}
                               </div>
                             ))}
                           </div>
@@ -1622,21 +1622,21 @@ export default function SupplierWinesPage() {
                   {/* Preview Table - Enhanced */}
                   {preview.valid.length > 0 && (
                     <div className="mb-4">
-                      <h3 className="font-medium text-gray-900 mb-2 flex items-center justify-between">
+                      <h3 className="font-medium text-foreground mb-2 flex items-center justify-between">
                         <span>Förhandsvisning</span>
-                        <span className="text-xs font-normal text-gray-400">Visar {Math.min(10, preview.valid.length)} av {preview.valid.length}</span>
+                        <span className="text-xs font-normal text-muted-foreground">Visar {Math.min(10, preview.valid.length)} av {preview.valid.length}</span>
                       </h3>
                       <div className="border rounded-lg overflow-hidden max-h-64 overflow-y-auto">
                         <table className="w-full text-sm">
-                          <thead className="bg-gray-50 sticky top-0 z-10">
+                          <thead className="bg-muted sticky top-0 z-10">
                             <tr>
-                              <th className="text-left p-2 font-medium text-gray-600">Vin</th>
-                              <th className="text-left p-2 font-medium text-gray-600">Producent</th>
-                              <th className="text-left p-2 font-medium text-gray-600 hidden sm:table-cell">Land</th>
-                              <th className="text-left p-2 font-medium text-gray-600 hidden md:table-cell">Färg</th>
-                              <th className="text-center p-2 font-medium text-gray-600">År</th>
-                              <th className="text-right p-2 font-medium text-gray-600">Pris</th>
-                              <th className="text-right p-2 font-medium text-gray-600 hidden sm:table-cell" title="Minimum Order Quantity — minsta antal flaskor per beställning">MOQ</th>
+                              <th className="text-left p-2 font-medium text-muted-foreground">Vin</th>
+                              <th className="text-left p-2 font-medium text-muted-foreground">Producent</th>
+                              <th className="text-left p-2 font-medium text-muted-foreground hidden sm:table-cell">Land</th>
+                              <th className="text-left p-2 font-medium text-muted-foreground hidden md:table-cell">Färg</th>
+                              <th className="text-center p-2 font-medium text-muted-foreground">År</th>
+                              <th className="text-right p-2 font-medium text-muted-foreground">Pris</th>
+                              <th className="text-right p-2 font-medium text-muted-foreground hidden sm:table-cell" title="Minimum Order Quantity — minsta antal flaskor per beställning">MOQ</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1647,10 +1647,10 @@ export default function SupplierWinesPage() {
                               const rowDescMeta = descriptionMeta[i];
 
                               return (
-                              <tr key={i} className="border-t hover:bg-gray-50">
+                              <tr key={i} className="border-t hover:bg-accent">
                                 <td className="p-2 font-medium">{wine.wine_name || wine.name}</td>
-                                <td className="p-2 text-gray-600">{wine.producer}</td>
-                                <td className="p-2 text-gray-600 hidden sm:table-cell">
+                                <td className="p-2 text-muted-foreground">{wine.producer}</td>
+                                <td className="p-2 text-muted-foreground hidden sm:table-cell">
                                   <span className="inline-flex items-center gap-1">
                                     {wine.country || '—'}
                                     {isEnriched('country') && (
@@ -1664,14 +1664,14 @@ export default function SupplierWinesPage() {
                                     wine.color === 'white' ? 'bg-yellow-100 text-yellow-700' :
                                     wine.color === 'rose' ? 'bg-pink-100 text-pink-700' :
                                     wine.color === 'sparkling' ? 'bg-blue-100 text-blue-700' :
-                                    'bg-gray-100 text-gray-700'
+                                    'bg-muted text-foreground'
                                   }`}>
                                     {colorLabels[wine.color || wine.type || ''] || wine.color || wine.type || '—'}
                                   </span>
                                 </td>
                                 <td className="p-2 text-center">{wine.vintage || 'NV'}</td>
                                 <td className="p-2 text-right font-medium">{wine.price} kr</td>
-                                <td className="p-2 text-right text-gray-600 hidden sm:table-cell">
+                                <td className="p-2 text-right text-muted-foreground hidden sm:table-cell">
                                   <span className="inline-flex items-center gap-1">
                                     {wine.moq || wine.q_per_box || '—'}
                                     {isEnriched('grape') && (
@@ -1685,7 +1685,7 @@ export default function SupplierWinesPage() {
                           </tbody>
                         </table>
                         {preview.valid.length > 10 && (
-                          <p className="text-sm text-gray-500 p-3 text-center bg-gray-50 border-t">
+                          <p className="text-sm text-muted-foreground p-3 text-center bg-muted border-t">
                             + {preview.valid.length - 10} fler viner
                           </p>
                         )}
@@ -1719,7 +1719,7 @@ export default function SupplierWinesPage() {
                                     ))}
                                   </ul>
                                   {item.data && (
-                                    <p className="text-xs text-gray-500 mt-1 truncate">
+                                    <p className="text-xs text-muted-foreground mt-1 truncate">
                                       Data: {JSON.stringify(item.data).slice(0, 80)}...
                                     </p>
                                   )}
@@ -1736,12 +1736,12 @@ export default function SupplierWinesPage() {
                   {importProgress && (
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-gray-600">Importerar viner...</span>
-                        <span className="font-medium text-gray-900">
+                        <span className="text-muted-foreground">Importerar viner...</span>
+                        <span className="font-medium text-foreground">
                           {importProgress.current} / {importProgress.total}
                         </span>
                       </div>
-                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div
                           className="h-full bg-wine transition-all duration-200"
                           style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
@@ -1792,7 +1792,7 @@ export default function SupplierWinesPage() {
                     <button
                       onClick={() => setPreview(null)}
                       disabled={importing}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                      className="px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent disabled:opacity-50"
                     >
                       Välj annan fil
                     </button>
@@ -1852,14 +1852,14 @@ export default function SupplierWinesPage() {
                   <Trash2 className="h-6 w-6 text-red-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Radera vin?</h2>
-                  <p className="text-sm text-gray-500">Detta går inte att ångra</p>
+                  <h2 className="text-lg font-semibold text-foreground">Radera vin?</h2>
+                  <p className="text-sm text-muted-foreground">Detta går inte att ångra</p>
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <p className="font-medium text-gray-900">{deleteConfirm.name}</p>
-                <p className="text-sm text-gray-500">
+              <div className="bg-muted rounded-lg p-4 mb-6">
+                <p className="font-medium text-foreground">{deleteConfirm.name}</p>
+                <p className="text-sm text-muted-foreground">
                   {deleteConfirm.producer} &middot; {deleteConfirm.vintage || 'NV'}
                 </p>
                 {deleteConfirm.offer_count && deleteConfirm.offer_count > 0 && (
@@ -1874,7 +1874,7 @@ export default function SupplierWinesPage() {
                 <button
                   onClick={() => setDeleteConfirm(null)}
                   disabled={deleting}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent disabled:opacity-50"
                 >
                   Avbryt
                 </button>
@@ -1918,11 +1918,11 @@ interface SortableHeaderProps {
 function SortableHeader({ label, field, currentField, direction, onSort, align = 'left', className = '', tooltip }: SortableHeaderProps) {
   const isActive = currentField === field;
   return (
-    <th className={`p-4 font-medium text-gray-600 text-sm cursor-pointer hover:bg-gray-100 transition-colors select-none ${align === 'right' ? 'text-right' : 'text-left'} ${className}`} onClick={() => onSort(field)}>
+    <th className={`p-4 font-medium text-muted-foreground text-sm cursor-pointer hover:bg-accent transition-colors select-none ${align === 'right' ? 'text-right' : 'text-left'} ${className}`} onClick={() => onSort(field)}>
       <div className={`inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
         <span>{label}</span>
         {tooltip && <HelpTooltip content={tooltip} side="bottom" />}
-        <span className="text-gray-400">
+        <span className="text-muted-foreground">
           {isActive ? (direction === 'asc' ? <ChevronUp className="h-4 w-4 text-wine" /> : <ChevronDown className="h-4 w-4 text-wine" />) : <ChevronsUpDown className="h-3 w-3" />}
         </span>
       </div>

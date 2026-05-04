@@ -1109,7 +1109,7 @@ export function accessRequestConfirmationEmail(params: AccessRequestConfirmation
 
     <p>Din förfrågan har registrerats! Importören kommer att kontakta dig.</p>
 
-    <div style="background: #f9fafb; border-left: 4px solid #722F37; padding: 15px; margin: 20px 0;">
+    <div style="background: #f9fafb; border-left: 4px solid #93092b; padding: 15px; margin: 20px 0;">
       <p style="margin: 0 0 10px 0;"><strong>Vin:</strong> ${wineName}</p>
       <p style="margin: 0 0 10px 0;"><strong>Importör:</strong> ${importerName}</p>
       <p style="margin: 0;"><strong>Antal:</strong> ${quantity} flaskor</p>
@@ -1186,7 +1186,7 @@ export function renderImporterConfirmEmail(params: ImporterConfirmEmailParams): 
 
     <p>En kund har gått vidare med sin beställning via Vinkoll. Vi ber er bekräfta att ni har mottagit beställningen.</p>
 
-    <div style="background: #f9fafb; border-left: 4px solid #722F37; padding: 15px; margin: 20px 0;">
+    <div style="background: #f9fafb; border-left: 4px solid #93092b; padding: 15px; margin: 20px 0;">
       <p style="margin: 0 0 8px 0;"><strong>Referenskod:</strong> ${referenceCode}</p>
       <p style="margin: 0 0 8px 0;"><strong>Vin:</strong> ${wineName}${vintageStr}</p>
       <p style="margin: 0 0 8px 0;"><strong>Antal:</strong> ${quantity} flaskor</p>
@@ -1272,14 +1272,14 @@ export function renderConsumerOrderConfirmedEmail(params: ConsumerOrderConfirmed
       <p style="margin: 0;"><strong>Referenskod:</strong> ${referenceCode}</p>
     </div>
 
-    <h3 style="color: #722F37; margin-top: 25px; font-size: 16px;">Vad händer nu?</h3>
+    <h3 style="color: #93092b; margin-top: 25px; font-size: 16px;">Vad händer nu?</h3>
     <p style="color: #4b5563; font-size: 14px;">
       Från och med nu hanteras din beställning av <strong>Systembolaget</strong> och importören. Vinkoll är inte längre inblandad i processen och hanterar inga betalningar.
     </p>
 
     <ol style="color: #4b5563; padding-left: 20px; font-size: 14px;">
       <li style="margin-bottom: 8px;">Systembolaget skickar dig en <strong>offert</strong> baserad på importörens uppgifter.</li>
-      <li style="margin-bottom: 8px;"><strong>Acceptera offerten</strong> via mail eller på <a href="https://www.systembolaget.se" style="color: #722F37;">Mina Sidor</a> på systembolaget.se.</li>
+      <li style="margin-bottom: 8px;"><strong>Acceptera offerten</strong> via mail eller på <a href="https://www.systembolaget.se" style="color: #93092b;">Mina Sidor</a> på systembolaget.se.</li>
       <li style="margin-bottom: 8px;"><strong>Betalning</strong> sker enligt Systembolagets vanliga villkor.</li>
       <li style="margin-bottom: 8px;">Du får <strong>meddelande</strong> när vinet finns att hämta i din butik.</li>
     </ol>
@@ -1384,7 +1384,7 @@ export function renderImporterForwardEmail(params: ImporterForwardEmailParams): 
 
     <p>En kund har visat intresse för ett vin i ert sortiment via Vinkoll. Vi skulle uppskatta om ni kan svara på förfrågan.</p>
 
-    <div style="background: #f9fafb; border-left: 4px solid #722F37; padding: 15px; margin: 20px 0;">
+    <div style="background: #f9fafb; border-left: 4px solid #93092b; padding: 15px; margin: 20px 0;">
       <p style="margin: 0 0 8px 0;"><strong>Vin:</strong> ${wineName}${vintageStr}</p>
       <p style="margin: 0 0 8px 0;"><strong>Typ:</strong> ${wineType}</p>
       ${grape ? `<p style="margin: 0 0 8px 0;"><strong>Druva:</strong> ${grape}</p>` : ''}
@@ -1488,7 +1488,7 @@ export function renderConsumerResponseEmail(params: ConsumerResponseEmailParams)
 
     <p>Vi har fått svar på din förfrågan om <strong>${wineName}${vintageStr}</strong> — och importören kan leverera!</p>
 
-    <div style="background: #fdf2f3; border-left: 4px solid #722F37; padding: 15px; margin: 20px 0;">
+    <div style="background: #fdf2f3; border-left: 4px solid #93092b; padding: 15px; margin: 20px 0;">
       <p style="margin: 0 0 8px 0;"><strong>Vin:</strong> ${wineName}${vintageStr}</p>
       ${priceSek ? `<p style="margin: 0 0 8px 0;"><strong>Pris:</strong> ${priceSek} kr/flaska</p>` : ''}
       ${quantity ? `<p style="margin: 0 0 8px 0;"><strong>Antal tillgängligt:</strong> ${quantity} flaskor</p>` : ''}
@@ -1502,13 +1502,13 @@ export function renderConsumerResponseEmail(params: ConsumerResponseEmailParams)
       <p style="margin: 5px 0 0 0; font-size: 12px; color: #92400e;">Ange denna kod vid beställning</p>
     </div>
 
-    <h3 style="color: #722F37; margin-top: 25px; font-size: 16px;">Så här beställer du via privatimport</h3>
+    <h3 style="color: #93092b; margin-top: 25px; font-size: 16px;">Så här beställer du via privatimport</h3>
     <p style="color: #4b5563; font-size: 14px; margin-bottom: 15px;">
       Privatimport innebär att du beställer via Systembolagets webbplats och hämtar ut vinet i din närmaste Systembolagsbutik. Så här gör du:
     </p>
     <ol style="color: #4b5563; padding-left: 20px; font-size: 14px;">
-      <li style="margin-bottom: 8px;"><strong>Logga in</strong> på <a href="https://www.systembolaget.se" style="color: #722F37;">systembolaget.se</a> (skapa konto om du inte har ett).</li>
-      <li style="margin-bottom: 8px;">Gå direkt till <a href="https://www.systembolaget.se/bestalla-och-handla/privatimport/forfragan/" style="color: #722F37; font-weight: 600;">Systembolagets privatimport-formulär</a> och registrera en ny förfrågan.</li>
+      <li style="margin-bottom: 8px;"><strong>Logga in</strong> på <a href="https://www.systembolaget.se" style="color: #93092b;">systembolaget.se</a> (skapa konto om du inte har ett).</li>
+      <li style="margin-bottom: 8px;">Gå direkt till <a href="https://www.systembolaget.se/bestalla-och-handla/privatimport/forfragan/" style="color: #93092b; font-weight: 600;">Systembolagets privatimport-formulär</a> och registrera en ny förfrågan.</li>
       <li style="margin-bottom: 8px;"><strong>Välj säljare/leverantör</strong> — den importör vi kopplat dig till.</li>
       <li style="margin-bottom: 8px;"><strong>Fyll i dryckesinformation:</strong> vinnamn, typ, årgång, volym (750 ml) och antal flaskor.</li>
       <li style="margin-bottom: 8px;"><strong>Ange referenskod ${referenceCode}</strong> i kommentarsfältet så importören vet vilken order det gäller.</li>
@@ -1517,7 +1517,7 @@ export function renderConsumerResponseEmail(params: ConsumerResponseEmailParams)
       <li style="margin-bottom: 8px;"><strong>Hämta i butik</strong> — du får meddelande när vinet finns att hämta.</li>
     </ol>
 
-    <div style="background: #fdf2f3; border: 1px solid #f5c6cb; padding: 12px 15px; margin: 20px 0; border-radius: 6px; font-size: 13px; color: #722F37;">
+    <div style="background: #fdf2f3; border: 1px solid #f5c6cb; padding: 12px 15px; margin: 20px 0; border-radius: 6px; font-size: 13px; color: #93092b;">
       <strong>Tips:</strong> Ange alltid referenskod <strong>${referenceCode}</strong> i kommentarsfältet på Systembolaget. Det säkerställer att importören kopplar din beställning till rätt erbjudande.
     </div>
 
@@ -1530,7 +1530,7 @@ export function renderConsumerResponseEmail(params: ConsumerResponseEmailParams)
     </div>
 
     <div style="text-align: center; margin: 20px 0;">
-      <a href="${browseUrl}" style="color: #722F37; font-size: 14px; text-decoration: underline;">
+      <a href="${browseUrl}" style="color: #93092b; font-size: 14px; text-decoration: underline;">
         Utforska fler viner på Vinkoll
       </a>
     </div>
