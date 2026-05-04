@@ -66,7 +66,7 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof Package; color
 };
 
 const PAYMENT_CONFIG: Record<string, { label: string; color: string }> = {
-  pending: { label: 'Ej fakturerad', color: 'bg-gray-100 text-gray-700' },
+  pending: { label: 'Ej fakturerad', color: 'bg-muted text-foreground' },
   invoiced: { label: 'Fakturerad', color: 'bg-wine-riesling/30 text-wine-dark' },
   paid: { label: 'Betald', color: 'bg-green-100 text-green-700' },
   overdue: { label: 'Förfallen', color: 'bg-red-100 text-red-700' },
@@ -74,7 +74,7 @@ const PAYMENT_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 const DISPUTE_CONFIG: Record<string, { label: string; color: string }> = {
-  none: { label: 'Ingen', color: 'bg-gray-100 text-gray-500' },
+  none: { label: 'Ingen', color: 'bg-muted text-muted-foreground' },
   reported: { label: 'Rapporterad', color: 'bg-amber-100 text-amber-700' },
   investigating: { label: 'Utreds', color: 'bg-wine-riesling/30 text-wine-dark' },
   resolved: { label: 'Löst', color: 'bg-green-100 text-green-700' },
@@ -259,15 +259,15 @@ export default function AdminOrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Orderhantering</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Orderhantering</h1>
+          <p className="text-muted-foreground mt-1">
             Hantera ordrar och aktivera concierge-läge
           </p>
         </div>
         <button
           onClick={fetchOrders}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-lg hover:bg-accent disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Uppdatera
@@ -276,24 +276,24 @@ export default function AdminOrdersPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Totalt</p>
-          <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
+        <div className="bg-white rounded-lg border border-border p-4">
+          <p className="text-sm text-muted-foreground">Totalt</p>
+          <p className="text-2xl font-bold text-foreground">{orders.length}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Concierge</p>
+        <div className="bg-white rounded-lg border border-border p-4">
+          <p className="text-sm text-muted-foreground">Concierge</p>
           <p className="text-2xl font-bold text-wine">{conciergeCount}</p>
         </div>
-        <div className={`bg-white rounded-lg border p-4 ${disputeCount > 0 ? 'border-amber-300 bg-amber-50' : 'border-gray-200'}`}>
-          <p className="text-sm text-gray-500">Reklamationer</p>
-          <p className={`text-2xl font-bold ${disputeCount > 0 ? 'text-amber-600' : 'text-gray-400'}`}>{disputeCount}</p>
+        <div className={`bg-white rounded-lg border p-4 ${disputeCount > 0 ? 'border-amber-300 bg-amber-50' : 'border-border'}`}>
+          <p className="text-sm text-muted-foreground">Reklamationer</p>
+          <p className={`text-2xl font-bold ${disputeCount > 0 ? 'text-amber-600' : 'text-muted-foreground'}`}>{disputeCount}</p>
         </div>
-        <div className={`bg-white rounded-lg border p-4 ${unpaidCount > 0 ? 'border-blue-300 bg-blue-50' : 'border-gray-200'}`}>
-          <p className="text-sm text-gray-500">Ej betalda</p>
-          <p className={`text-2xl font-bold ${unpaidCount > 0 ? 'text-blue-600' : 'text-gray-400'}`}>{unpaidCount}</p>
+        <div className={`bg-white rounded-lg border p-4 ${unpaidCount > 0 ? 'border-blue-300 bg-blue-50' : 'border-border'}`}>
+          <p className="text-sm text-muted-foreground">Ej betalda</p>
+          <p className={`text-2xl font-bold ${unpaidCount > 0 ? 'text-blue-600' : 'text-muted-foreground'}`}>{unpaidCount}</p>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Levererade</p>
+        <div className="bg-white rounded-lg border border-border p-4">
+          <p className="text-sm text-muted-foreground">Levererade</p>
           <p className="text-2xl font-bold text-green-600">
             {orders.filter(o => o.status === 'DELIVERED').length}
           </p>
@@ -303,11 +303,11 @@ export default function AdminOrdersPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Status</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="px-3 py-2 border border-border rounded-lg text-sm"
           >
             <option value="ALL">Alla statusar</option>
             <option value="CONFIRMED">Bekräftad</option>
@@ -318,11 +318,11 @@ export default function AdminOrdersPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Hantering</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Hantering</label>
           <select
             value={conciergeFilter}
             onChange={(e) => setConciergeFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="px-3 py-2 border border-border rounded-lg text-sm"
           >
             <option value="ALL">Alla ordrar</option>
             <option value="CONCIERGE">Concierge-ordrar</option>
@@ -330,11 +330,11 @@ export default function AdminOrdersPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Reklamation</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Reklamation</label>
           <select
             value={disputeFilter}
             onChange={(e) => setDisputeFilter(e.target.value)}
-            className={`px-3 py-2 border rounded-lg text-sm ${disputeFilter !== 'ALL' ? 'border-amber-300 bg-amber-50' : 'border-gray-300'}`}
+            className={`px-3 py-2 border rounded-lg text-sm ${disputeFilter !== 'ALL' ? 'border-amber-300 bg-amber-50' : 'border-border'}`}
           >
             <option value="ALL">Alla</option>
             <option value="reported">Rapporterade</option>
@@ -343,11 +343,11 @@ export default function AdminOrdersPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Betalning</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Betalning</label>
           <select
             value={paymentFilter}
             onChange={(e) => setPaymentFilter(e.target.value)}
-            className={`px-3 py-2 border rounded-lg text-sm ${paymentFilter !== 'ALL' ? 'border-blue-300 bg-blue-50' : 'border-gray-300'}`}
+            className={`px-3 py-2 border rounded-lg text-sm ${paymentFilter !== 'ALL' ? 'border-blue-300 bg-blue-50' : 'border-border'}`}
           >
             <option value="ALL">Alla</option>
             <option value="pending">Ej fakturerad</option>
@@ -361,9 +361,9 @@ export default function AdminOrdersPage() {
 
       {/* Orders list */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Laddar ordrar...</div>
+        <div className="text-center py-12 text-muted-foreground">Laddar ordrar...</div>
       ) : filteredOrders.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">Inga ordrar hittades</div>
+        <div className="text-center py-12 text-muted-foreground">Inga ordrar hittades</div>
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => {
@@ -375,7 +375,7 @@ export default function AdminOrdersPage() {
             return (
               <div
                 key={order.id}
-                className={`bg-white rounded-lg border ${order.handled_by_winefeed ? 'border-wine/30 bg-wine/5' : 'border-gray-200'}`}
+                className={`bg-white rounded-lg border ${order.handled_by_winefeed ? 'border-wine/30 bg-wine/5' : 'border-border'}`}
               >
                 {/* Order header */}
                 <div
@@ -413,27 +413,27 @@ export default function AdminOrdersPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                     </div>
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <p className="text-xs text-gray-500">Restaurang</p>
-                      <p className="font-medium text-gray-900 truncate">{order.restaurant_name}</p>
+                      <p className="text-xs text-muted-foreground">Restaurang</p>
+                      <p className="font-medium text-foreground truncate">{order.restaurant_name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Leverantör</p>
-                      <p className="font-medium text-gray-900 truncate">{order.supplier_name}</p>
+                      <p className="text-xs text-muted-foreground">Leverantör</p>
+                      <p className="font-medium text-foreground truncate">{order.supplier_name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Antal</p>
-                      <p className="font-medium text-gray-900">{order.total_quantity} flaskor</p>
+                      <p className="text-xs text-muted-foreground">Antal</p>
+                      <p className="font-medium text-foreground">{order.total_quantity} flaskor</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Skapad</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-xs text-muted-foreground">Skapad</p>
+                      <p className="font-medium text-foreground">
                         {new Date(order.created_at).toLocaleDateString('sv-SE')}
                       </p>
                     </div>
@@ -442,14 +442,14 @@ export default function AdminOrdersPage() {
 
                 {/* Expanded content */}
                 {isExpanded && (
-                  <div className="border-t border-gray-200 p-4 space-y-4">
+                  <div className="border-t border-border p-4 space-y-4">
                     {/* Concierge toggle */}
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                       <div className="flex items-center gap-3">
                         <Handshake className="h-5 w-5 text-wine" />
                         <div>
-                          <p className="font-medium text-gray-900">Concierge-läge</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="font-medium text-foreground">Concierge-läge</p>
+                          <p className="text-sm text-muted-foreground">
                             Winefeed hanterar ordern åt kunden
                           </p>
                         </div>
@@ -461,7 +461,7 @@ export default function AdminOrdersPage() {
                         }}
                         disabled={isSaving}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          order.handled_by_winefeed ? 'bg-wine' : 'bg-gray-300'
+                          order.handled_by_winefeed ? 'bg-primary' : 'bg-muted-foreground/30'
                         } ${isSaving ? 'opacity-50' : ''}`}
                       >
                         <span
@@ -478,7 +478,7 @@ export default function AdminOrdersPage() {
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <AlertTriangle className="h-4 w-4 text-amber-600" />
-                            <p className="font-medium text-gray-900">Reklamation</p>
+                            <p className="font-medium text-foreground">Reklamation</p>
                           </div>
                           <select
                             value={order.dispute_status}
@@ -491,11 +491,11 @@ export default function AdminOrdersPage() {
                             <option value="resolved">Löst</option>
                           </select>
                         </div>
-                        <p className="text-sm text-gray-700 bg-white p-2 rounded border border-amber-100">
+                        <p className="text-sm text-foreground bg-white p-2 rounded border border-amber-100">
                           {order.dispute_reason || 'Ingen beskrivning'}
                         </p>
                         {order.dispute_reported_at && (
-                          <p className="text-xs text-gray-500 mt-2">
+                          <p className="text-xs text-muted-foreground mt-2">
                             Rapporterad: {new Date(order.dispute_reported_at).toLocaleString('sv-SE')}
                           </p>
                         )}
@@ -503,18 +503,18 @@ export default function AdminOrdersPage() {
                     )}
 
                     {/* Payment section */}
-                    <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="p-4 bg-muted rounded-lg">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4 text-gray-600" />
-                          <p className="font-medium text-gray-900">Betalning</p>
+                          <CreditCard className="h-4 w-4 text-muted-foreground" />
+                          <p className="font-medium text-foreground">Betalning</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <select
                             value={order.payment_status || 'pending'}
                             onChange={(e) => updatePaymentStatus(order.id, e.target.value)}
                             disabled={isSaving}
-                            className="px-2 py-1 text-xs border border-gray-300 rounded-lg"
+                            className="px-2 py-1 text-xs border border-border rounded-lg"
                           >
                             <option value="pending">Ej fakturerad</option>
                             <option value="invoiced">Fakturerad</option>
@@ -525,7 +525,7 @@ export default function AdminOrdersPage() {
                         </div>
                       </div>
                       {order.invoice_number && (
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           Fakturanr: {order.invoice_number}
                         </p>
                       )}
@@ -536,7 +536,7 @@ export default function AdminOrdersPage() {
                       <div className="p-4 bg-wine/5 rounded-lg">
                         <div className="flex items-center gap-2 mb-2">
                           <MessageSquare className="h-4 w-4 text-wine" />
-                          <p className="font-medium text-gray-900">Concierge-anteckningar</p>
+                          <p className="font-medium text-foreground">Concierge-anteckningar</p>
                         </div>
                         {editingNotes === order.id ? (
                           <div className="space-y-2">
@@ -544,7 +544,7 @@ export default function AdminOrdersPage() {
                               value={notesValue}
                               onChange={(e) => setNotesValue(e.target.value)}
                               rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+                              className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none"
                               placeholder="T.ex. 'Kontaktat leverantör 2/2, väntar på bekräftelse'"
                             />
                             <div className="flex gap-2">
@@ -558,7 +558,7 @@ export default function AdminOrdersPage() {
                               </button>
                               <button
                                 onClick={() => setEditingNotes(null)}
-                                className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm"
+                                className="px-3 py-1.5 text-muted-foreground hover:bg-accent rounded-lg text-sm"
                               >
                                 Avbryt
                               </button>
@@ -570,15 +570,15 @@ export default function AdminOrdersPage() {
                               setEditingNotes(order.id);
                               setNotesValue(order.concierge_notes || '');
                             }}
-                            className="text-sm text-gray-600 cursor-pointer hover:bg-wine/10 p-2 rounded-lg transition-colors"
+                            className="text-sm text-muted-foreground cursor-pointer hover:bg-wine/10 p-2 rounded-lg transition-colors"
                           >
                             {order.concierge_notes || (
-                              <span className="italic text-gray-400">Klicka för att lägga till anteckningar...</span>
+                              <span className="italic text-muted-foreground">Klicka för att lägga till anteckningar...</span>
                             )}
                           </div>
                         )}
                         {order.concierge_handled_at && (
-                          <p className="text-xs text-gray-500 mt-2">
+                          <p className="text-xs text-muted-foreground mt-2">
                             Aktiverat: {new Date(order.concierge_handled_at).toLocaleString('sv-SE')}
                           </p>
                         )}
@@ -587,7 +587,7 @@ export default function AdminOrdersPage() {
 
                     {/* Status change */}
                     <div className="flex items-center gap-4">
-                      <p className="text-sm font-medium text-gray-700">Ändra status:</p>
+                      <p className="text-sm font-medium text-foreground">Ändra status:</p>
                       <div className="flex gap-2">
                         {Object.entries(STATUS_CONFIG).map(([status, config]) => (
                           <button
@@ -597,7 +597,7 @@ export default function AdminOrdersPage() {
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                               order.status === status
                                 ? config.color
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                : 'bg-muted text-muted-foreground hover:bg-accent'
                             } disabled:opacity-50`}
                           >
                             {config.label}
@@ -607,8 +607,8 @@ export default function AdminOrdersPage() {
                     </div>
 
                     {/* Order ID */}
-                    <div className="pt-2 border-t border-gray-200">
-                      <p className="text-xs text-gray-400">
+                    <div className="pt-2 border-t border-border">
+                      <p className="text-xs text-muted-foreground">
                         Order-ID: {order.id}
                       </p>
                     </div>

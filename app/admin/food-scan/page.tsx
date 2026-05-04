@@ -142,7 +142,7 @@ export default function FoodScanPage() {
           <UtensilsCrossed className="h-6 w-6" />
           Matcha menyn
         </h1>
-        <p className="text-gray-500 mt-1">
+        <p className="text-muted-foreground mt-1">
           Analysera restaurangmenyer och föreslå viner från era importörer
         </p>
       </div>
@@ -156,7 +156,7 @@ export default function FoodScanPage() {
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.key
                 ? 'border-primary text-[#722F37]'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             {tab.label}
@@ -341,10 +341,10 @@ function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => voi
       {venues.length > 0 && (
         <div className="border rounded-lg divide-y">
           {venues.map(venue => (
-            <div key={venue.slug} className="flex items-center justify-between p-3 hover:bg-gray-50">
+            <div key={venue.slug} className="flex items-center justify-between p-3 hover:bg-accent">
               <div>
                 <div className="font-medium text-sm">{venue.name}</div>
-                {venue.address && <div className="text-xs text-gray-500">{venue.address}</div>}
+                {venue.address && <div className="text-xs text-muted-foreground">{venue.address}</div>}
               </div>
               <button
                 onClick={() => handleScan(venue)}
@@ -362,17 +362,17 @@ function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => voi
       {/* Divider */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
+          <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-3 text-gray-500">eller ladda upp meny-PDF</span>
+          <span className="bg-white px-3 text-muted-foreground">eller ladda upp meny-PDF</span>
         </div>
       </div>
 
       {/* PDF upload section */}
       <div className="space-y-3">
         <div>
-          <label className="text-xs font-medium text-gray-600">Restaurangnamn</label>
+          <label className="text-xs font-medium text-muted-foreground">Restaurangnamn</label>
           <input
             type="text"
             value={pdfRestaurantName}
@@ -383,13 +383,13 @@ function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => voi
         </div>
 
         {pdfFile ? (
-          <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="flex items-center gap-2 p-3 bg-muted border border-border rounded-lg">
             <FileUp className="h-4 w-4 text-[#722F37]" />
-            <span className="text-sm text-gray-700 truncate flex-1">{pdfFile.name}</span>
-            <span className="text-xs text-gray-400">{(pdfFile.size / 1024).toFixed(0)} KB</span>
+            <span className="text-sm text-foreground truncate flex-1">{pdfFile.name}</span>
+            <span className="text-xs text-muted-foreground">{(pdfFile.size / 1024).toFixed(0)} KB</span>
             <button
               onClick={() => setPdfFile(null)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-muted-foreground hover:text-muted-foreground"
             >
               <X className="h-4 w-4" />
             </button>
@@ -400,17 +400,17 @@ function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => voi
             className={`flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
               isDragActive
                 ? 'border-primary bg-primary/5'
-                : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50'
+                : 'border-border hover:border-primary/40 hover:bg-accent'
             }`}
           >
             <input {...getInputProps()} />
-            <Upload className={`h-8 w-8 ${isDragActive ? 'text-[#722F37]' : 'text-gray-400'}`} />
+            <Upload className={`h-8 w-8 ${isDragActive ? 'text-[#722F37]' : 'text-muted-foreground'}`} />
             {isDragActive ? (
               <p className="text-sm text-[#722F37] font-medium">Släpp PDF här...</p>
             ) : (
               <>
-                <p className="text-sm text-gray-600">Dra och släpp en PDF här, eller klicka för att välja</p>
-                <p className="text-xs text-gray-400">Max 10 MB</p>
+                <p className="text-sm text-muted-foreground">Dra och släpp en PDF här, eller klicka för att välja</p>
+                <p className="text-xs text-muted-foreground">Max 10 MB</p>
               </>
             )}
           </div>
@@ -430,7 +430,7 @@ function ScanTab({ onNavigateToVinforslag }: { onNavigateToVinforslag: () => voi
           <p className="text-xs text-amber-600">Fyll i restaurangnamn ovan för att fortsätta.</p>
         )}
         {!pdfFile && pdfRestaurantName.trim() && (
-          <p className="text-xs text-gray-400">Ladda upp en PDF-meny för att fortsätta.</p>
+          <p className="text-xs text-muted-foreground">Ladda upp en PDF-meny för att fortsätta.</p>
         )}
       </div>
 
@@ -469,27 +469,27 @@ function ScanResultView({
 
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="p-4 bg-gray-50 rounded-lg text-center">
+        <div className="p-4 bg-muted rounded-lg text-center">
           <div className="text-2xl font-bold">{result.total_dishes}</div>
-          <div className="text-xs text-gray-500">Totalt</div>
+          <div className="text-xs text-muted-foreground">Totalt</div>
         </div>
         <div className="p-4 bg-emerald-50 rounded-lg text-center">
           <div className="text-2xl font-bold text-emerald-700">{result.matched_dishes}</div>
-          <div className="text-xs text-gray-500">Matchade</div>
+          <div className="text-xs text-muted-foreground">Matchade</div>
         </div>
         <div className="p-4 bg-amber-50 rounded-lg text-center">
           <div className="text-2xl font-bold text-amber-700">{result.unmatched_dishes}</div>
-          <div className="text-xs text-gray-500">Omatchade</div>
+          <div className="text-xs text-muted-foreground">Omatchade</div>
         </div>
       </div>
 
       {/* Match rate bar */}
       <div>
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
+        <div className="flex justify-between text-xs text-muted-foreground mb-1">
           <span>Matchgrad</span>
           <span>{matchRate}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-muted rounded-full h-2">
           <div
             className="bg-emerald-500 h-2 rounded-full transition-all"
             style={{ width: `${matchRate}%` }}
@@ -509,7 +509,7 @@ function ScanResultView({
             <div>
               <span className="font-medium">{dish.dish_name_original}</span>
               {dish.match_key && (
-                <span className="ml-2 text-xs text-gray-500">
+                <span className="ml-2 text-xs text-muted-foreground">
                   → {dish.match_key} ({dish.method})
                 </span>
               )}
@@ -628,14 +628,14 @@ function VinforslagTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (recommendations.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-muted-foreground">
         <Wine className="h-12 w-12 mx-auto mb-3 opacity-40" />
         <p>Inga vinförslag ännu.</p>
         <p className="text-sm mt-1">Gå till &quot;Ny analys&quot; och analysera en restaurangmeny för att komma igång.</p>
@@ -654,7 +654,7 @@ function VinforslagTab() {
       {/* Recommendations (ready to review & send) */}
       {recommendations.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700">
+          <h3 className="text-sm font-semibold text-foreground">
             Vinförslag ({recommendations.length})
           </h3>
           {recommendations.map(rec => {
@@ -664,10 +664,10 @@ function VinforslagTab() {
             return (
               <div key={rec.id} className="border rounded-lg overflow-hidden">
                 {/* Header row */}
-                <div className="p-3 flex items-center justify-between hover:bg-gray-50">
+                <div className="p-3 flex items-center justify-between hover:bg-accent">
                   <div>
                     <div className="font-medium text-sm">{rec.restaurant_name}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {new Date(rec.created_at).toLocaleDateString('sv-SE')} | {wines.length} viner
                       {rec.dominant_styles?.length > 0 && ` | ${rec.dominant_styles.join(', ')}`}
                     </div>
@@ -697,7 +697,7 @@ function VinforslagTab() {
                     )}
                     <button
                       onClick={() => handleDelete(rec.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors"
+                      className="p-1.5 text-muted-foreground hover:text-red-600 rounded transition-colors"
                       title="Radera vinförslag"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -707,14 +707,14 @@ function VinforslagTab() {
 
                 {/* Expanded: wine cards + send form (only for drafts) */}
                 {isExpanded && (
-                  <div className="border-t bg-gray-50 p-4 space-y-4">
+                  <div className="border-t bg-muted p-4 space-y-4">
                     <div className="grid gap-2">
                       {wines.map((w, i) => (
                         <div key={i} className="bg-white border rounded-lg p-3">
                           <div className="flex justify-between items-start">
                             <div>
                               <div className="font-medium text-sm">{w.name}{w.vintage ? ` ${w.vintage}` : ''}</div>
-                              <div className="text-xs text-gray-500">{w.producer}{w.grape ? ` · ${w.grape}` : ''}</div>
+                              <div className="text-xs text-muted-foreground">{w.producer}{w.grape ? ` · ${w.grape}` : ''}</div>
                             </div>
                             <div className="text-sm font-medium text-[#722F37]">{Math.round(w.priceExVat / 100)} kr</div>
                           </div>
@@ -728,7 +728,7 @@ function VinforslagTab() {
                             </div>
                           )}
                           {w.reason && (
-                            <div className="text-xs text-gray-600 mt-2 italic">{w.reason}</div>
+                            <div className="text-xs text-muted-foreground mt-2 italic">{w.reason}</div>
                           )}
                         </div>
                       ))}
@@ -738,7 +738,7 @@ function VinforslagTab() {
                     {rec.status !== 'sent' && rec.status !== 'failed' && (
                       <div className="space-y-3 pt-2 border-t">
                         <div>
-                          <label className="text-xs font-medium text-gray-600">Ämnesrad</label>
+                          <label className="text-xs font-medium text-muted-foreground">Ämnesrad</label>
                           <input
                             type="text"
                             value={editSubject}
@@ -747,7 +747,7 @@ function VinforslagTab() {
                           />
                         </div>
                         <div>
-                          <label className="text-xs font-medium text-gray-600">Mottagare (email)</label>
+                          <label className="text-xs font-medium text-muted-foreground">Mottagare (email)</label>
                           <input
                             type="email"
                             value={editRecipient}
@@ -771,7 +771,7 @@ function VinforslagTab() {
                           </button>
                           <button
                             onClick={() => setExpandedId(null)}
-                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300"
+                            className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-medium hover:bg-accent"
                           >
                             Avbryt
                           </button>
@@ -879,14 +879,14 @@ function PairingsTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (suggestions.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-muted-foreground">
         Inga väntande pairings att granska.
       </div>
     );
@@ -900,7 +900,7 @@ function PairingsTab() {
         </div>
       )}
 
-      <div className="text-sm text-gray-500 mb-4">
+      <div className="text-sm text-muted-foreground mb-4">
         {suggestions.length} väntande pairings
       </div>
 
@@ -910,7 +910,7 @@ function PairingsTab() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="font-medium text-sm">{s.dish_name_original || s.dish_name}</div>
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-xs text-muted-foreground mt-0.5">
                   {s.occurrence_count}x | {s.source} | {s.categorization_method || 'okänd metod'}
                   {s.source_detail && ` | ${s.source_detail}`}
                 </div>
@@ -927,7 +927,7 @@ function PairingsTab() {
                     <button
                       onClick={() => handleReject(s.id)}
                       disabled={actionLoading === s.id}
-                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs font-medium hover:bg-gray-300 disabled:opacity-50"
+                      className="px-3 py-1 bg-muted text-foreground rounded text-xs font-medium hover:bg-accent disabled:opacity-50"
                     >
                       Avvisa
                     </button>
@@ -938,9 +938,9 @@ function PairingsTab() {
 
             {/* Inline edit */}
             {editingId === s.id && (
-              <div className="mt-3 space-y-2 bg-gray-50 p-3 rounded-lg">
+              <div className="mt-3 space-y-2 bg-muted p-3 rounded-lg">
                 <div>
-                  <label className="text-xs font-medium text-gray-600">Färger (komma-separerade)</label>
+                  <label className="text-xs font-medium text-muted-foreground">Färger (komma-separerade)</label>
                   <input
                     type="text"
                     value={editColors}
@@ -950,7 +950,7 @@ function PairingsTab() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">Regioner</label>
+                  <label className="text-xs font-medium text-muted-foreground">Regioner</label>
                   <input
                     type="text"
                     value={editRegions}
@@ -960,7 +960,7 @@ function PairingsTab() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">Druvor</label>
+                  <label className="text-xs font-medium text-muted-foreground">Druvor</label>
                   <input
                     type="text"
                     value={editGrapes}
@@ -984,7 +984,7 @@ function PairingsTab() {
                   </button>
                   <button
                     onClick={() => setEditingId(null)}
-                    className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-300"
+                    className="px-3 py-1.5 bg-muted text-foreground rounded-lg text-xs font-medium hover:bg-accent"
                   >
                     Avbryt
                   </button>

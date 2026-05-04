@@ -193,12 +193,12 @@ export default function WineImportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="mx-auto max-w-4xl px-4">
+    <div className="p-6 max-w-4xl mx-auto">
+      <div>
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Importera vinkatalog</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-2xl font-bold text-foreground">Importera vinkatalog</h1>
+          <p className="mt-2 text-muted-foreground">
             Ladda upp en Excel- eller CSV-fil med vindata för att importera till en leverantörs katalog.
           </p>
         </div>
@@ -249,17 +249,17 @@ export default function WineImportPage() {
 
         {/* Main form */}
         {!importResult?.success && (
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
             {/* Step 1: Select supplier */}
             <div className="mb-6">
-              <label htmlFor="supplier" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="supplier" className="block text-sm font-medium text-foreground">
                 1. Välj leverantör
               </label>
               <select
                 id="supplier"
                 value={selectedSupplierId}
                 onChange={(e) => setSelectedSupplierId(e.target.value)}
-                className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                className="mt-2 block w-full rounded-lg border border-border px-4 py-2.5 text-foreground focus:border-blue-500 focus:ring-blue-500"
                 disabled={isUploading || isImporting}
               >
                 <option value="">Välj leverantör...</option>
@@ -273,7 +273,7 @@ export default function WineImportPage() {
 
             {/* Step 2: Upload file */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-foreground">
                 2. Ladda upp fil
               </label>
               <div
@@ -283,7 +283,7 @@ export default function WineImportPage() {
                     ? 'border-blue-400 bg-blue-50'
                     : file
                     ? 'border-green-300 bg-green-50'
-                    : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                    : 'border-border bg-muted hover:border-primary'
                 }`}
               >
                 <input {...getInputProps()} />
@@ -302,8 +302,8 @@ export default function WineImportPage() {
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <p className="mt-2 font-medium text-gray-900">{file.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="mt-2 font-medium text-foreground">{file.name}</p>
+                    <p className="text-sm text-muted-foreground">
                       {(file.size / 1024).toFixed(1)} KB
                     </p>
                     <button
@@ -321,7 +321,7 @@ export default function WineImportPage() {
                 ) : (
                   <div className="text-center">
                     <svg
-                      className="mx-auto h-10 w-10 text-gray-400"
+                      className="mx-auto h-10 w-10 text-muted-foreground"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -333,12 +333,12 @@ export default function WineImportPage() {
                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                       />
                     </svg>
-                    <p className="mt-2 text-gray-600">
+                    <p className="mt-2 text-muted-foreground">
                       {isDragActive
                         ? 'Släpp filen här...'
                         : 'Dra och släpp en fil här, eller klicka för att välja'}
                     </p>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       Excel (.xlsx, .xls) eller CSV. Max 10 MB.
                     </p>
                   </div>
@@ -397,9 +397,9 @@ export default function WineImportPage() {
 
             {/* Preview results */}
             {preview && (
-              <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <h3 className="font-medium text-gray-900">Förhandsgranskning</h3>
-                <p className="mt-1 text-sm text-gray-600">
+              <div className="mt-6 rounded-lg border border-border bg-muted p-4">
+                <h3 className="font-medium text-foreground">Förhandsgranskning</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
                   Leverantör: <span className="font-medium">{supplierName}</span>
                 </p>
 
@@ -417,9 +417,9 @@ export default function WineImportPage() {
 
                 {/* Stats */}
                 <div className="mt-4 grid grid-cols-3 gap-4">
-                  <div className="rounded-lg bg-white p-3 text-center">
-                    <p className="text-2xl font-bold text-gray-900">{preview.totalRows}</p>
-                    <p className="text-sm text-gray-500">Totalt</p>
+                  <div className="rounded-lg bg-card p-3 text-center">
+                    <p className="text-2xl font-bold text-foreground">{preview.totalRows}</p>
+                    <p className="text-sm text-muted-foreground">Totalt</p>
                   </div>
                   <div className="rounded-lg bg-green-50 p-3 text-center">
                     <p className="text-2xl font-bold text-green-600">{preview.validCount}</p>
@@ -443,7 +443,7 @@ export default function WineImportPage() {
                     </button>
 
                     {showInvalidRows && (
-                      <div className="mt-2 max-h-64 overflow-auto rounded-lg border border-red-200 bg-white">
+                      <div className="mt-2 max-h-64 overflow-auto rounded-lg border border-red-200 bg-card">
                         <table className="min-w-full text-sm">
                           <thead className="bg-red-50">
                             <tr>
@@ -455,8 +455,8 @@ export default function WineImportPage() {
                           <tbody className="divide-y divide-red-100">
                             {preview.invalidRows.map((row) => (
                               <tr key={row.rowNumber}>
-                                <td className="px-3 py-2 text-gray-600">{row.rowNumber}</td>
-                                <td className="px-3 py-2 text-gray-900">
+                                <td className="px-3 py-2 text-muted-foreground">{row.rowNumber}</td>
+                                <td className="px-3 py-2 text-foreground">
                                   {String(row.raw.wine_name || row.raw.name || '(okänd)')}
                                 </td>
                                 <td className="px-3 py-2 text-red-600">
@@ -476,7 +476,7 @@ export default function WineImportPage() {
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 hover:bg-gray-50"
+                    className="flex-1 rounded-lg border border-border bg-card px-4 py-2.5 font-medium text-foreground hover:bg-accent"
                   >
                     Avbryt
                   </button>

@@ -120,16 +120,16 @@ export default function ProposalsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" />
             Vinförslag
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Skapa personliga vinförslag och skicka till restauranger
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={fetchProposals} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+          <button onClick={fetchProposals} className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-accent">
             <RefreshCw className="h-4 w-4" />
           </button>
           <button
@@ -145,26 +145,26 @@ export default function ProposalsPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white border rounded-lg p-4">
-          <p className="text-sm text-gray-500">Totalt</p>
+          <p className="text-sm text-muted-foreground">Totalt</p>
           <p className="text-2xl font-bold">{proposals.length}</p>
         </div>
         <div className="bg-white border rounded-lg p-4">
-          <p className="text-sm text-gray-500">Aktiva</p>
+          <p className="text-sm text-muted-foreground">Aktiva</p>
           <p className="text-2xl font-bold text-green-600">{activeCount}</p>
         </div>
         <div className="bg-white border rounded-lg p-4">
-          <p className="text-sm text-gray-500">Svar</p>
+          <p className="text-sm text-muted-foreground">Svar</p>
           <p className="text-2xl font-bold text-primary">{totalResponses}</p>
         </div>
       </div>
 
       {/* Proposals list */}
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Laddar...</div>
+        <div className="text-center py-12 text-muted-foreground">Laddar...</div>
       ) : proposals.length === 0 ? (
         <div className="text-center py-16 bg-white border rounded-lg">
-          <Sparkles className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 mb-4">Inga vinförslag ännu</p>
+          <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground mb-4">Inga vinförslag ännu</p>
           <button
             onClick={() => setShowCreate(true)}
             className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-sm"
@@ -201,7 +201,7 @@ export default function ProposalsPage() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg text-sm flex items-center gap-2 z-50">
+        <div className="fixed bottom-6 right-6 bg-foreground text-background px-4 py-2 rounded-lg shadow-lg text-sm flex items-center gap-2 z-50">
           <Check className="h-4 w-4 text-green-400" />
           {toast}
         </div>
@@ -231,21 +231,21 @@ function ProposalCard({
     <div className="bg-white border rounded-lg overflow-hidden">
       {/* Header row */}
       <div
-        className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50"
+        className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-accent"
         onClick={onToggle}
       >
         <div className="flex items-center gap-4 min-w-0">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-gray-900 truncate">{p.restaurant_name}</span>
+              <span className="font-semibold text-foreground truncate">{p.restaurant_name}</span>
               {p.restaurant_city && (
-                <span className="text-sm text-gray-400">{p.restaurant_city}</span>
+                <span className="text-sm text-muted-foreground">{p.restaurant_city}</span>
               )}
               {p.is_expired && (
-                <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Utgången</span>
+                <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Utgången</span>
               )}
             </div>
-            <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Wine className="h-3 w-3" />
                 {p.wine_count} viner
@@ -265,26 +265,26 @@ function ProposalCard({
         <div className="flex items-center gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); onCopyLink(); }}
-            className="p-2 text-gray-400 hover:text-primary rounded hover:bg-gray-100"
+            className="p-2 text-muted-foreground hover:text-primary rounded hover:bg-accent"
             title="Kopiera länk"
           >
             <Copy className="h-4 w-4" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); window.open(p.share_url, '_blank'); }}
-            className="p-2 text-gray-400 hover:text-primary rounded hover:bg-gray-100"
+            className="p-2 text-muted-foreground hover:text-primary rounded hover:bg-accent"
             title="Öppna förslaget"
           >
             <ExternalLink className="h-4 w-4" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-2 text-gray-400 hover:text-red-500 rounded hover:bg-gray-100"
+            className="p-2 text-muted-foreground hover:text-red-500 rounded hover:bg-accent"
             title="Ta bort"
           >
             <Trash2 className="h-4 w-4" />
           </button>
-          {expanded ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
+          {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
         </div>
       </div>
 
@@ -293,23 +293,23 @@ function ProposalCard({
         <div className="border-t px-5 py-4 space-y-4">
           {/* Message */}
           {p.message && (
-            <div className="text-sm text-gray-600 bg-gray-50 rounded p-3">
-              <span className="text-xs text-gray-400 uppercase tracking-wide">Meddelande</span>
+            <div className="text-sm text-muted-foreground bg-muted rounded p-3">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Meddelande</span>
               <p className="mt-1">{p.message}</p>
             </div>
           )}
 
           {/* Wines */}
           <div>
-            <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Viner</h4>
+            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Viner</h4>
             <div className="space-y-1">
               {p.wine_proposal_items?.map(item => (
-                <div key={item.id} className="flex items-center justify-between text-sm py-1.5 px-3 rounded bg-gray-50">
-                  <span className="text-gray-900">
+                <div key={item.id} className="flex items-center justify-between text-sm py-1.5 px-3 rounded bg-muted">
+                  <span className="text-foreground">
                     {item.supplier_wines?.name || 'Okänt vin'}
                     {item.supplier_wines?.vintage && ` ${item.supplier_wines.vintage}`}
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     {item.supplier_wines?.supplier?.namn || ''}
                   </span>
                 </div>
@@ -320,7 +320,7 @@ function ProposalCard({
           {/* Responses */}
           {p.wine_proposal_responses && p.wine_proposal_responses.length > 0 && (
             <div>
-              <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
+              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
                 Svar ({p.wine_proposal_responses.length})
               </h4>
               <div className="space-y-2">
@@ -328,11 +328,11 @@ function ProposalCard({
                   <div key={r.id} className="border rounded p-3 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{r.contact_name}</span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-muted-foreground">
                         {new Date(r.created_at).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className="text-gray-500 text-xs">{r.contact_email}</p>
+                    <p className="text-muted-foreground text-xs">{r.contact_email}</p>
                     {r.interested_wine_ids && r.interested_wine_ids.length > 0 && (
                       <p className="mt-1 text-xs text-green-700">
                         Intresserad av {r.interested_wine_ids.length} vin{r.interested_wine_ids.length > 1 ? 'er' : ''}
@@ -350,7 +350,7 @@ function ProposalCard({
               type="text"
               readOnly
               value={`${typeof window !== 'undefined' ? window.location.origin : ''}${p.share_url}`}
-              className="flex-1 text-xs text-gray-500 bg-gray-50 border rounded px-3 py-2 select-all"
+              className="flex-1 text-xs text-muted-foreground bg-muted border rounded px-3 py-2 select-all"
             />
             <button
               onClick={onCopyLink}
@@ -466,8 +466,8 @@ function CreateProposalModal({
         {/* Modal header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold">Nytt vinförslag</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="h-5 w-5 text-gray-400" />
+          <button onClick={onClose} className="p-1 hover:bg-accent rounded">
+            <X className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
 
@@ -481,7 +481,7 @@ function CreateProposalModal({
           {/* Restaurant info */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Restaurang *</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Restaurang *</label>
               <input
                 type="text"
                 value={restaurantName}
@@ -492,7 +492,7 @@ function CreateProposalModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Stad</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Stad</label>
               <input
                 type="text"
                 value={restaurantCity}
@@ -505,7 +505,7 @@ function CreateProposalModal({
 
           {/* Message */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Meddelande (valfritt)</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Meddelande (valfritt)</label>
             <textarea
               value={message}
               onChange={e => setMessage(e.target.value)}
@@ -517,7 +517,7 @@ function CreateProposalModal({
 
           {/* Expiry */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Giltighetstid</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Giltighetstid</label>
             <select
               value={expiresIn}
               onChange={e => setExpiresIn(e.target.value)}
@@ -533,11 +533,11 @@ function CreateProposalModal({
 
           {/* Wine selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Välj viner ({selectedWineIds.length} valda)
             </label>
             <div className="relative mb-2">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
                 value={wineSearch}
@@ -548,16 +548,16 @@ function CreateProposalModal({
             </div>
             <div className="border rounded-lg max-h-60 overflow-y-auto">
               {loadingWines ? (
-                <p className="text-sm text-gray-400 p-4 text-center">Laddar viner...</p>
+                <p className="text-sm text-muted-foreground p-4 text-center">Laddar viner...</p>
               ) : filteredWines.length === 0 ? (
-                <p className="text-sm text-gray-400 p-4 text-center">Inga viner hittades</p>
+                <p className="text-sm text-muted-foreground p-4 text-center">Inga viner hittades</p>
               ) : (
                 filteredWines.map(w => {
                   const selected = selectedWineIds.includes(w.id);
                   return (
                     <label
                       key={w.id}
-                      className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50 border-b last:border-0 ${
+                      className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-accent border-b last:border-0 ${
                         selected ? 'bg-primary/5' : ''
                       }`}
                     >
@@ -565,13 +565,13 @@ function CreateProposalModal({
                         type="checkbox"
                         checked={selected}
                         onChange={() => toggleWine(w.id)}
-                        className="rounded border-gray-300 text-primary focus:ring-primary"
+                        className="rounded border-border text-primary focus:ring-primary"
                       />
                       <div className="min-w-0 flex-1">
-                        <span className="text-sm text-gray-900">
+                        <span className="text-sm text-foreground">
                           {w.name}{w.vintage ? ` ${w.vintage}` : ''}
                         </span>
-                        <span className="text-xs text-gray-400 ml-2">
+                        <span className="text-xs text-muted-foreground ml-2">
                           {[w.grape_variety, w.region, w.supplierName].filter(Boolean).join(' · ')}
                         </span>
                       </div>
@@ -584,10 +584,10 @@ function CreateProposalModal({
         </div>
 
         {/* Modal footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-xl">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-muted rounded-b-xl">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+            className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
           >
             Avbryt
           </button>

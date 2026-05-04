@@ -250,8 +250,8 @@ export default function AdminSponsoredCategoriesPage() {
             <Sparkles className="w-6 h-6 text-amber-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Sponsrade Kategorier</h1>
-            <p className="text-gray-500 text-sm">Hantera kategorier för sponsrade platser</p>
+            <h1 className="text-2xl font-bold text-foreground">Sponsrade Kategorier</h1>
+            <p className="text-muted-foreground text-sm">Hantera kategorier för sponsrade platser</p>
           </div>
         </div>
         <button
@@ -273,10 +273,10 @@ export default function AdminSponsoredCategoriesPage() {
 
       {/* Categories Table */}
       {categories.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Inga kategorier</h3>
-          <p className="text-gray-500 mb-6">Skapa din första sponsrade kategori för att komma igång.</p>
+        <div className="bg-white rounded-xl border border-border p-12 text-center">
+          <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">Inga kategorier</h3>
+          <p className="text-muted-foreground mb-6">Skapa din första sponsrade kategori för att komma igång.</p>
           <button
             onClick={openCreateModal}
             className="inline-flex items-center gap-2 px-4 py-2 bg-wine text-white rounded-lg hover:bg-primary/90"
@@ -286,36 +286,36 @@ export default function AdminSponsoredCategoriesPage() {
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-border overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-muted border-b border-border">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Platser</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pris/månad</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Åtgärder</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Kategori</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Platser</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Pris/månad</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">Åtgärder</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {categories.map((category) => (
                 <>
-                  <tr key={category.id} className="hover:bg-gray-50">
+                  <tr key={category.id} className="hover:bg-accent">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => toggleExpand(category.id)}
-                          className="p-1 hover:bg-gray-100 rounded"
+                          className="p-1 hover:bg-accent rounded"
                         >
                           {expandedCategories.has(category.id) ? (
-                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
                           ) : (
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
                           )}
                         </button>
                         <div>
-                          <p className="font-medium text-gray-900">{category.name}</p>
-                          <p className="text-xs text-gray-500">/{category.slug}</p>
+                          <p className="font-medium text-foreground">{category.name}</p>
+                          <p className="text-xs text-muted-foreground">/{category.slug}</p>
                         </div>
                       </div>
                     </td>
@@ -328,23 +328,23 @@ export default function AdminSponsoredCategoriesPage() {
                               className={`w-5 h-5 rounded-full border-2 border-white ${
                                 i < category.active_slot_count
                                   ? 'bg-amber-400'
-                                  : 'bg-gray-200'
+                                  : 'bg-muted'
                               }`}
                             />
                           ))}
                         </div>
-                        <span className={`text-sm ${category.is_full ? 'text-amber-600 font-medium' : 'text-gray-500'}`}>
+                        <span className={`text-sm ${category.is_full ? 'text-amber-600 font-medium' : 'text-muted-foreground'}`}>
                           {category.active_slot_count}/{category.sponsor_cap}
                           {category.is_full && ' (Full)'}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-foreground">
                         {category.price_monthly_sek.toLocaleString('sv-SE')} kr
                       </p>
                       {category.price_yearly_sek > 0 && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           {category.price_yearly_sek.toLocaleString('sv-SE')} kr/år
                         </p>
                       )}
@@ -355,7 +355,7 @@ export default function AdminSponsoredCategoriesPage() {
                         className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
                           category.is_active
                             ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-500'
+                            : 'bg-muted text-muted-foreground'
                         }`}
                       >
                         {category.is_active ? (
@@ -375,14 +375,14 @@ export default function AdminSponsoredCategoriesPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEditModal(category)}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                          className="p-2 text-muted-foreground hover:text-muted-foreground hover:bg-accent rounded-lg"
                           title="Redigera"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(category)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-lg"
                           title="Ta bort"
                           disabled={category.active_slot_count > 0}
                         >
@@ -393,27 +393,27 @@ export default function AdminSponsoredCategoriesPage() {
                   </tr>
                   {/* Sponsors row */}
                   {expandedCategories.has(category.id) && (
-                    <tr className="bg-gray-50">
+                    <tr className="bg-muted">
                       <td colSpan={5} className="px-4 py-4">
                         <div className="ml-8">
                           <div className="flex items-center gap-2 mb-3">
-                            <Users className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm font-medium text-gray-700">
+                            <Users className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-medium text-foreground">
                               Sponsorer ({category.sponsors.length})
                             </span>
                           </div>
                           {category.sponsors.length === 0 ? (
-                            <p className="text-sm text-gray-500 italic">Inga sponsorer ännu</p>
+                            <p className="text-sm text-muted-foreground italic">Inga sponsorer ännu</p>
                           ) : (
                             <div className="space-y-2">
                               {category.sponsors.map((sponsor) => (
                                 <div
                                   key={sponsor.slot_id}
-                                  className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200"
+                                  className="flex items-center justify-between bg-white p-3 rounded-lg border border-border"
                                 >
                                   <div>
-                                    <p className="font-medium text-gray-900">{sponsor.supplier_name}</p>
-                                    <p className="text-xs text-gray-500">{sponsor.supplier_email}</p>
+                                    <p className="font-medium text-foreground">{sponsor.supplier_name}</p>
+                                    <p className="text-xs text-muted-foreground">{sponsor.supplier_email}</p>
                                   </div>
                                   <div className="flex items-center gap-3">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -423,7 +423,7 @@ export default function AdminSponsoredCategoriesPage() {
                                     }`}>
                                       {sponsor.slot_type === 'INCLUDED' ? 'Premium' : 'Köpt'}
                                     </span>
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-xs text-muted-foreground">
                                       Sedan {new Date(sponsor.starts_at).toLocaleDateString('sv-SE')}
                                     </span>
                                   </div>
@@ -447,13 +447,13 @@ export default function AdminSponsoredCategoriesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
           <div className="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">
                 {editingCategory ? 'Redigera kategori' : 'Ny kategori'}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="p-2 text-muted-foreground hover:text-muted-foreground hover:bg-accent rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -467,7 +467,7 @@ export default function AdminSponsoredCategoriesPage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Namn *
                 </label>
                 <input
@@ -480,36 +480,36 @@ export default function AdminSponsoredCategoriesPage() {
                       slug: editingCategory ? formData.slug : generateSlug(e.target.value)
                     });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                   placeholder="t.ex. Burgundy"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Slug *
                 </label>
                 <input
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase() })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent font-mono text-sm"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent font-mono text-sm"
                   placeholder="burgundy"
                   pattern="[a-z0-9-]+"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">Används i URL:er. Endast a-z, 0-9 och bindestreck.</p>
+                <p className="text-xs text-muted-foreground mt-1">Används i URL:er. Endast a-z, 0-9 och bindestreck.</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Beskrivning
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                   rows={2}
                   placeholder="Valfri beskrivning..."
                 />
@@ -517,65 +517,65 @@ export default function AdminSponsoredCategoriesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Max sponsorer
                   </label>
                   <input
                     type="number"
                     value={formData.sponsor_cap}
                     onChange={(e) => setFormData({ ...formData, sponsor_cap: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                     min={1}
                     max={10}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Pris/månad (SEK)
                   </label>
                   <input
                     type="number"
                     value={formData.price_monthly_sek}
                     onChange={(e) => setFormData({ ...formData, price_monthly_sek: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                     min={0}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Pris/år (SEK)
                 </label>
                 <input
                   type="number"
                   value={formData.price_yearly_sek}
                   onChange={(e) => setFormData({ ...formData, price_yearly_sek: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent"
                   min={0}
                 />
               </div>
 
-              <div className="border-t border-gray-200 pt-4">
-                <p className="text-sm font-medium text-gray-700 mb-3">Stripe Price IDs (valfritt)</p>
+              <div className="border-t border-border pt-4">
+                <p className="text-sm font-medium text-foreground mb-3">Stripe Price IDs (valfritt)</p>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Månadsvis</label>
+                    <label className="block text-xs text-muted-foreground mb-1">Månadsvis</label>
                     <input
                       type="text"
                       value={formData.stripe_price_id_monthly}
                       onChange={(e) => setFormData({ ...formData, stripe_price_id_monthly: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent font-mono text-sm"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent font-mono text-sm"
                       placeholder="price_xxx"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Årsvis</label>
+                    <label className="block text-xs text-muted-foreground mb-1">Årsvis</label>
                     <input
                       type="text"
                       value={formData.stripe_price_id_yearly}
                       onChange={(e) => setFormData({ ...formData, stripe_price_id_yearly: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent font-mono text-sm"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-wine focus:border-transparent font-mono text-sm"
                       placeholder="price_xxx"
                     />
                   </div>
@@ -588,18 +588,18 @@ export default function AdminSponsoredCategoriesPage() {
                   id="is_active"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 text-wine border-gray-300 rounded focus:ring-wine"
+                  className="w-4 h-4 text-wine border-border rounded focus:ring-wine"
                 />
-                <label htmlFor="is_active" className="text-sm text-gray-700">
+                <label htmlFor="is_active" className="text-sm text-foreground">
                   Aktiv (synlig för leverantörer)
                 </label>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
+              <div className="flex gap-3 pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent"
                 >
                   Avbryt
                 </button>

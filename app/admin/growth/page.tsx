@@ -76,7 +76,7 @@ interface Stats {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  identified: 'bg-gray-100 text-gray-800',
+  identified: 'bg-muted text-foreground',
   researched: 'bg-wine-riesling/30 text-wine-dark',
   outreach_drafted: 'bg-wine-dark/10 text-wine-dark',
   contacted: 'bg-yellow-100 text-yellow-800',
@@ -100,7 +100,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function getScoreColor(score: number | null): string {
-  if (score === null) return 'text-gray-400';
+  if (score === null) return 'text-muted-foreground';
   if (score >= 4) return 'text-green-600 font-semibold';
   if (score >= 3) return 'text-yellow-600 font-semibold';
   return 'text-red-500';
@@ -315,10 +315,10 @@ export default function AdminGrowthPage() {
   }
 
   function SortIcon({ column }: { column: string }) {
-    if (sortKey !== column) return <ArrowUpDown className="h-3 w-3 text-gray-400" />;
+    if (sortKey !== column) return <ArrowUpDown className="h-3 w-3 text-muted-foreground" />;
     return sortDir === 'asc'
-      ? <ArrowUp className="h-3 w-3 text-gray-700" />
-      : <ArrowDown className="h-3 w-3 text-gray-700" />;
+      ? <ArrowUp className="h-3 w-3 text-foreground" />
+      : <ArrowDown className="h-3 w-3 text-foreground" />;
   }
 
   function toggleCard(card: string) {
@@ -336,14 +336,14 @@ export default function AdminGrowthPage() {
       <div className="flex flex-col gap-3 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Tillväxtpipeline</h1>
+            <h1 className="text-2xl font-bold text-foreground">Tillväxtpipeline</h1>
             <div className="flex gap-1 mt-2">
               <button
                 onClick={() => { setLeadType('restaurant'); setExpandedLead(null); }}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   leadType === 'restaurant'
                     ? 'bg-wine-dark text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-muted text-muted-foreground hover:bg-accent'
                 }`}
               >
                 Restauranger
@@ -353,7 +353,7 @@ export default function AdminGrowthPage() {
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   leadType === 'importer'
                     ? 'bg-wine-dark text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-muted text-muted-foreground hover:bg-accent'
                 }`}
               >
                 Importörer
@@ -363,7 +363,7 @@ export default function AdminGrowthPage() {
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   leadType === 'producer'
                     ? 'bg-wine-dark text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-muted text-muted-foreground hover:bg-accent'
                 }`}
               >
                 Producenter
@@ -380,7 +380,7 @@ export default function AdminGrowthPage() {
             <button
               onClick={handleResolveLinks}
               disabled={resolvingLinks}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-lg hover:bg-accent disabled:opacity-50 text-sm"
               title="Matcha leads mot registrerade restaurangkonton på email"
             >
               <RefreshCw className={`h-4 w-4 ${resolvingLinks ? 'animate-spin' : ''}`} />
@@ -389,7 +389,7 @@ export default function AdminGrowthPage() {
             <button
               onClick={fetchLeads}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-lg hover:bg-accent disabled:opacity-50 text-sm"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Uppdatera
@@ -400,7 +400,7 @@ export default function AdminGrowthPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white"
+            className="px-3 py-1.5 border border-border rounded-lg text-sm bg-white"
           >
             <option value="ALL">Alla statusar</option>
             {Object.entries(STATUS_LABELS).map(([value, label]) => (
@@ -412,7 +412,7 @@ export default function AdminGrowthPage() {
           <select
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white"
+            className="px-3 py-1.5 border border-border rounded-lg text-sm bg-white"
           >
             <option value="ALL">Alla källor</option>
             {uniqueSources.map((s) => (
@@ -424,7 +424,7 @@ export default function AdminGrowthPage() {
           <select
             value={cityFilter}
             onChange={(e) => setCityFilter(e.target.value)}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white"
+            className="px-3 py-1.5 border border-border rounded-lg text-sm bg-white"
           >
             <option value="ALL">Alla städer</option>
             {uniqueCities.map((c) => (
@@ -436,7 +436,7 @@ export default function AdminGrowthPage() {
           {(cardFilter || statusFilter !== 'ALL' || sourceFilter !== 'ALL' || cityFilter !== 'ALL') && (
             <button
               onClick={() => { setCardFilter(null); setStatusFilter('ALL'); setSourceFilter('ALL'); setCityFilter('ALL'); }}
-              className="text-sm text-gray-500 hover:text-gray-700 underline"
+              className="text-sm text-muted-foreground hover:text-foreground underline"
             >
               Rensa filter
             </button>
@@ -457,16 +457,16 @@ export default function AdminGrowthPage() {
           <button
             onClick={() => toggleCard('identified')}
             className={`bg-white rounded-lg border-2 p-5 text-left transition-colors ${
-              cardFilter === 'identified' ? 'border-gray-500 ring-1 ring-gray-300' : 'border-gray-200 hover:border-gray-300'
+              cardFilter === 'identified' ? 'border-foreground ring-1 ring-border' : 'border-border hover:border-border'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-500/10 rounded-lg">
-                <Search className="h-5 w-5 text-gray-600" />
+              <div className="p-2 bg-muted0/10 rounded-lg">
+                <Search className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Identifierade</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-muted-foreground">Identifierade</p>
+                <p className="text-2xl font-bold text-foreground">
                   {stats.identified + stats.researched + stats.outreach_drafted}
                 </p>
               </div>
@@ -475,7 +475,7 @@ export default function AdminGrowthPage() {
           <button
             onClick={() => toggleCard('contacted')}
             className={`bg-white rounded-lg border-2 p-5 text-left transition-colors ${
-              cardFilter === 'contacted' ? 'border-wine-dark ring-1 ring-wine-light' : 'border-gray-200 hover:border-gray-300'
+              cardFilter === 'contacted' ? 'border-wine-dark ring-1 ring-wine-light' : 'border-border hover:border-border'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -483,7 +483,7 @@ export default function AdminGrowthPage() {
                 <Phone className="h-5 w-5 text-wine-dark" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Kontaktade</p>
+                <p className="text-sm text-muted-foreground">Kontaktade</p>
                 <p className="text-2xl font-bold text-wine-dark">
                   {stats.contacted + stats.responded}
                 </p>
@@ -493,7 +493,7 @@ export default function AdminGrowthPage() {
           <button
             onClick={() => toggleCard('meeting_booked')}
             className={`bg-white rounded-lg border-2 p-5 text-left transition-colors ${
-              cardFilter === 'meeting_booked' ? 'border-wine-dark ring-1 ring-wine-light' : 'border-gray-200 hover:border-gray-300'
+              cardFilter === 'meeting_booked' ? 'border-wine-dark ring-1 ring-wine-light' : 'border-border hover:border-border'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -501,7 +501,7 @@ export default function AdminGrowthPage() {
                 <CalendarCheck className="h-5 w-5 text-wine-dark" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Möte bokat</p>
+                <p className="text-sm text-muted-foreground">Möte bokat</p>
                 <p className="text-2xl font-bold text-wine-dark">{stats.meeting_booked}</p>
               </div>
             </div>
@@ -509,7 +509,7 @@ export default function AdminGrowthPage() {
           <button
             onClick={() => toggleCard('onboarded')}
             className={`bg-white rounded-lg border-2 p-5 text-left transition-colors ${
-              cardFilter === 'onboarded' ? 'border-green-500 ring-1 ring-green-300' : 'border-gray-200 hover:border-gray-300'
+              cardFilter === 'onboarded' ? 'border-green-500 ring-1 ring-green-300' : 'border-border hover:border-border'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -517,7 +517,7 @@ export default function AdminGrowthPage() {
                 <CheckCircle className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Anslutna</p>
+                <p className="text-sm text-muted-foreground">Anslutna</p>
                 <p className="text-2xl font-bold text-green-600">{stats.onboarded}</p>
               </div>
             </div>
@@ -529,22 +529,22 @@ export default function AdminGrowthPage() {
 
       {/* Lead table */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Laddar leads...</div>
+        <div className="text-center py-12 text-muted-foreground">Laddar leads...</div>
       ) : sortedLeads.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <Rocket className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-700 mb-2">
+        <div className="bg-white rounded-lg border border-border p-12 text-center">
+          <Rocket className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             {leadType === 'restaurant' ? 'Inga restaurang-leads ännu' : leadType === 'importer' ? 'Inga importör-leads ännu' : 'Inga producent-leads ännu'}
           </h3>
-          <p className="text-gray-500">
-            Kör <code className="bg-gray-100 px-2 py-0.5 rounded text-sm">/growth</code> i Claude
+          <p className="text-muted-foreground">
+            Kör <code className="bg-muted px-2 py-0.5 rounded text-sm">/growth</code> i Claude
             Code för att börja söka {leadType === 'restaurant' ? 'restauranger' : leadType === 'importer' ? 'importörer' : 'producenter'}.
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-lg border border-border overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-muted border-b border-border">
               <tr>
                 {[
                   { key: 'name', label: 'Namn' },
@@ -559,7 +559,7 @@ export default function AdminGrowthPage() {
                   <th
                     key={col.key}
                     onClick={() => toggleSort(col.key)}
-                    className="px-4 py-3 text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                    className="px-4 py-3 text-left font-medium text-foreground cursor-pointer hover:bg-accent select-none"
                   >
                     <span className="inline-flex items-center gap-1">
                       {col.label}
@@ -567,7 +567,7 @@ export default function AdminGrowthPage() {
                     </span>
                   </th>
                 ))}
-                <th className="px-4 py-3 text-right font-medium text-gray-700"></th>
+                <th className="px-4 py-3 text-right font-medium text-foreground"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -656,15 +656,15 @@ function NewLeadModal({
         <form onSubmit={submit} className="space-y-3">
           <div>
             <label className="text-sm">
-              <span className="text-gray-700 block mb-1">Typ av lead</span>
-              <div className="inline-flex rounded-lg border border-gray-300 bg-gray-50 p-0.5">
+              <span className="text-foreground block mb-1">Typ av lead</span>
+              <div className="inline-flex rounded-lg border border-border bg-muted p-0.5">
                 {(['restaurant', 'importer', 'producer'] as const).map((k) => (
                   <button
                     key={k}
                     type="button"
                     onClick={() => setLeadType(k)}
                     className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      leadType === k ? 'bg-wine-dark text-white' : 'text-gray-600 hover:text-gray-900'
+                      leadType === k ? 'bg-wine-dark text-white' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     {k === 'restaurant' ? 'Restaurang' : k === 'importer' ? 'Importör' : 'Producent'}
@@ -675,24 +675,24 @@ function NewLeadModal({
           </div>
           <div>
             <label className="text-sm">
-              <span className="text-gray-700 block mb-1">{t.nameLabel} *</span>
+              <span className="text-foreground block mb-1">{t.nameLabel} *</span>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded"
+                className="w-full px-3 py-2 border border-border rounded"
                 placeholder={t.placeholder}
               />
             </label>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm">
-              <span className="text-gray-700 block mb-1">Stad</span>
-              <input value={city} onChange={(e) => setCity(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+              <span className="text-foreground block mb-1">Stad</span>
+              <input value={city} onChange={(e) => setCity(e.target.value)} className="w-full px-3 py-2 border border-border rounded" />
             </label>
             <label className="text-sm">
-              <span className="text-gray-700 block mb-1">Källa</span>
-              <select value={source} onChange={(e) => setSource(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
+              <span className="text-foreground block mb-1">Källa</span>
+              <select value={source} onChange={(e) => setSource(e.target.value)} className="w-full px-3 py-2 border border-border rounded">
                 <option value="">—</option>
                 <option value="linkedin">LinkedIn</option>
                 <option value="munskankarna">Munskänkarna</option>
@@ -711,25 +711,25 @@ function NewLeadModal({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm">
-              <span className="text-gray-700 block mb-1">Kontaktnamn</span>
-              <input value={contactName} onChange={(e) => setContactName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+              <span className="text-foreground block mb-1">Kontaktnamn</span>
+              <input value={contactName} onChange={(e) => setContactName(e.target.value)} className="w-full px-3 py-2 border border-border rounded" />
             </label>
             <label className="text-sm">
-              <span className="text-gray-700 block mb-1">Roll</span>
-              <input value={contactRole} onChange={(e) => setContactRole(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder={t.rolePh} />
+              <span className="text-foreground block mb-1">Roll</span>
+              <input value={contactRole} onChange={(e) => setContactRole(e.target.value)} className="w-full px-3 py-2 border border-border rounded" placeholder={t.rolePh} />
             </label>
           </div>
           <label className="text-sm block">
-            <span className="text-gray-700 block mb-1">Email</span>
-            <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+            <span className="text-foreground block mb-1">Email</span>
+            <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="w-full px-3 py-2 border border-border rounded" />
           </label>
           <label className="text-sm block">
-            <span className="text-gray-700 block mb-1">LinkedIn-URL</span>
-            <input value={contactLinkedin} onChange={(e) => setContactLinkedin(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder="https://linkedin.com/in/..." />
+            <span className="text-foreground block mb-1">LinkedIn-URL</span>
+            <input value={contactLinkedin} onChange={(e) => setContactLinkedin(e.target.value)} className="w-full px-3 py-2 border border-border rounded" placeholder="https://linkedin.com/in/..." />
           </label>
           <label className="text-sm block">
-            <span className="text-gray-700 block mb-1">Signal-typ</span>
-            <select value={signalType} onChange={(e) => setSignalType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
+            <span className="text-foreground block mb-1">Signal-typ</span>
+            <select value={signalType} onChange={(e) => setSignalType(e.target.value)} className="w-full px-3 py-2 border border-border rounded">
               <option value="">—</option>
               <option value="job_change">Jobbskifte</option>
               <option value="post_engagement">Engagemang (inlägg/kommentar)</option>
@@ -740,12 +740,12 @@ function NewLeadModal({
           </label>
           {signalType && (
             <label className="text-sm block">
-              <span className="text-gray-700 block mb-1">Signal-kontext</span>
-              <textarea value={signalContext} onChange={(e) => setSignalContext(e.target.value)} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder="T.ex. tillträdde 2026-04-15, inlägg-länk, citat..." />
+              <span className="text-foreground block mb-1">Signal-kontext</span>
+              <textarea value={signalContext} onChange={(e) => setSignalContext(e.target.value)} rows={2} className="w-full px-3 py-2 border border-border rounded" placeholder="T.ex. tillträdde 2026-04-15, inlägg-länk, citat..." />
             </label>
           )}
           <div className="flex justify-end gap-2 pt-3">
-            <button type="button" onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded text-sm">Avbryt</button>
+            <button type="button" onClick={onCancel} className="px-4 py-2 border border-border rounded text-sm">Avbryt</button>
             <button type="submit" disabled={saving || !name.trim()} className="px-4 py-2 bg-wine-dark text-white rounded text-sm font-medium disabled:opacity-50">
               {saving ? 'Skapar...' : 'Skapa lead'}
             </button>
@@ -757,7 +757,7 @@ function NewLeadModal({
 }
 
 const EMAIL_EVENT_LABELS: Record<string, { label: string; color: string; icon: 'sent' | 'opened' }> = {
-  delivered: { label: 'Levererat', color: 'text-gray-500', icon: 'sent' },
+  delivered: { label: 'Levererat', color: 'text-muted-foreground', icon: 'sent' },
   opened: { label: 'Öppnat', color: 'text-green-600', icon: 'opened' },
   clicked: { label: 'Klickat', color: 'text-green-700', icon: 'opened' },
   bounced: { label: 'Studsade', color: 'text-red-500', icon: 'sent' },
@@ -779,7 +779,7 @@ function LeadRow({
   emailStatusLoaded: boolean;
   onUpdate: (id: string, patch: Partial<Lead>) => Promise<boolean>;
 }) {
-  const badgeClass = STATUS_BADGE[lead.status] || 'bg-gray-100 text-gray-800';
+  const badgeClass = STATUS_BADGE[lead.status] || 'bg-muted text-foreground';
   const statusLabel = STATUS_LABELS[lead.status] || lead.status;
   const resendId = lead.outreach_draft?.startsWith('resend:')
     ? lead.outreach_draft.replace('resend:', '')
@@ -789,10 +789,10 @@ function LeadRow({
 
   return (
     <>
-      <tr className="hover:bg-gray-50 cursor-pointer" onClick={onToggle}>
-        <td className="px-4 py-3 font-medium text-gray-900">{lead.name}</td>
-        <td className="px-4 py-3 text-gray-600">{lead.restaurant_type || '—'}</td>
-        <td className="px-4 py-3 text-gray-600">{lead.city || '—'}</td>
+      <tr className="hover:bg-accent cursor-pointer" onClick={onToggle}>
+        <td className="px-4 py-3 font-medium text-foreground">{lead.name}</td>
+        <td className="px-4 py-3 text-muted-foreground">{lead.restaurant_type || '—'}</td>
+        <td className="px-4 py-3 text-muted-foreground">{lead.city || '—'}</td>
         <td className="px-4 py-3">
           <span className={getScoreColor(lead.pilot_fit_score)}>
             {lead.pilot_fit_score !== null ? `${lead.pilot_fit_score}/5` : '—'}
@@ -832,54 +832,54 @@ function LeadRow({
               </span>
             ))}
             {resendId && (
-              <span className={`inline-flex items-center gap-1 text-xs ${eventInfo ? eventInfo.color : emailStatusLoaded ? 'text-yellow-600' : 'text-gray-400'}`} title={`Mail: ${eventInfo?.label || 'Ej tillgänglig'}`}>
+              <span className={`inline-flex items-center gap-1 text-xs ${eventInfo ? eventInfo.color : emailStatusLoaded ? 'text-yellow-600' : 'text-muted-foreground'}`} title={`Mail: ${eventInfo?.label || 'Ej tillgänglig'}`}>
                 {eventInfo?.icon === 'opened' ? <MailOpen className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
                 {eventInfo?.label || (emailStatusLoaded ? 'Skickat' : '...')}
               </span>
             )}
           </div>
         </td>
-        <td className="px-4 py-3 text-gray-600 truncate max-w-[200px]">
+        <td className="px-4 py-3 text-muted-foreground truncate max-w-[200px]">
           {lead.next_action || '—'}
         </td>
-        <td className="px-4 py-3 text-gray-500">
+        <td className="px-4 py-3 text-muted-foreground">
           {lead.last_sign_in_at ? (
             <span className="text-green-600" title={new Date(lead.last_sign_in_at).toLocaleString('sv-SE')}>
               {formatDate(lead.last_sign_in_at)}
             </span>
           ) : '—'}
         </td>
-        <td className="px-4 py-3 text-gray-500">{formatDate(lead.created_at)}</td>
-        <td className="px-4 py-3 text-right text-gray-400">
+        <td className="px-4 py-3 text-muted-foreground">{formatDate(lead.created_at)}</td>
+        <td className="px-4 py-3 text-right text-muted-foreground">
           {isExpanded ? <ChevronUp className="h-4 w-4 inline" /> : <ChevronDown className="h-4 w-4 inline" />}
         </td>
       </tr>
 
       {isExpanded && (
         <tr>
-          <td colSpan={9} className="bg-gray-50 px-4 py-4">
+          <td colSpan={9} className="bg-muted px-4 py-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Left: Contact info */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                   Kontaktinfo
                 </h4>
                 <div className="space-y-1 text-sm">
                   {lead.contact_name && (
                     <p>
-                      <span className="text-gray-500">Namn:</span>{' '}
-                      <span className="text-gray-900">{lead.contact_name}</span>
+                      <span className="text-muted-foreground">Namn:</span>{' '}
+                      <span className="text-foreground">{lead.contact_name}</span>
                     </p>
                   )}
                   {lead.contact_role && (
                     <p>
-                      <span className="text-gray-500">Roll:</span>{' '}
-                      <span className="text-gray-900">{lead.contact_role}</span>
+                      <span className="text-muted-foreground">Roll:</span>{' '}
+                      <span className="text-foreground">{lead.contact_role}</span>
                     </p>
                   )}
                   {lead.contact_email && (
                     <p>
-                      <span className="text-gray-500">Email:</span>{' '}
+                      <span className="text-muted-foreground">Email:</span>{' '}
                       <a href={`mailto:${lead.contact_email}`} className="text-blue-600 hover:underline">
                         {lead.contact_email}
                       </a>
@@ -887,13 +887,13 @@ function LeadRow({
                   )}
                   {lead.contact_phone && (
                     <p>
-                      <span className="text-gray-500">Telefon:</span>{' '}
-                      <span className="text-gray-900">{lead.contact_phone}</span>
+                      <span className="text-muted-foreground">Telefon:</span>{' '}
+                      <span className="text-foreground">{lead.contact_phone}</span>
                     </p>
                   )}
                   {lead.contact_linkedin && (
                     <p>
-                      <span className="text-gray-500">LinkedIn:</span>{' '}
+                      <span className="text-muted-foreground">LinkedIn:</span>{' '}
                       <a
                         href={lead.contact_linkedin}
                         target="_blank"
@@ -906,7 +906,7 @@ function LeadRow({
                   )}
                   {lead.website && (
                     <p>
-                      <span className="text-gray-500">Webb:</span>{' '}
+                      <span className="text-muted-foreground">Webb:</span>{' '}
                       <a
                         href={lead.website}
                         target="_blank"
@@ -919,8 +919,8 @@ function LeadRow({
                   )}
                   {lead.instagram && (
                     <p>
-                      <span className="text-gray-500">Instagram:</span>{' '}
-                      <span className="text-gray-900">{lead.instagram}</span>
+                      <span className="text-muted-foreground">Instagram:</span>{' '}
+                      <span className="text-foreground">{lead.instagram}</span>
                     </p>
                   )}
                 </div>
@@ -928,41 +928,41 @@ function LeadRow({
 
               {/* Middle: Wine match & Outreach */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                   Vinmatch & Kontakt
                 </h4>
                 <div className="space-y-3 text-sm">
                   {lead.wine_focus_notes && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Vinfokus</p>
-                      <p className="text-gray-900">{lead.wine_focus_notes}</p>
+                      <p className="text-muted-foreground text-xs mb-0.5">Vinfokus</p>
+                      <p className="text-foreground">{lead.wine_focus_notes}</p>
                     </div>
                   )}
                   {lead.wine_match_notes && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Vinmatch</p>
-                      <p className="text-gray-900">{lead.wine_match_notes}</p>
+                      <p className="text-muted-foreground text-xs mb-0.5">Vinmatch</p>
+                      <p className="text-foreground">{lead.wine_match_notes}</p>
                     </div>
                   )}
                   {lead.outreach_angle && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Kontaktvinkel</p>
-                      <p className="text-gray-900">{lead.outreach_angle}</p>
+                      <p className="text-muted-foreground text-xs mb-0.5">Kontaktvinkel</p>
+                      <p className="text-foreground">{lead.outreach_angle}</p>
                     </div>
                   )}
                   {resendId && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Mailstatus</p>
+                      <p className="text-muted-foreground text-xs mb-0.5">Mailstatus</p>
                       <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium ${
                         eventInfo
                           ? emailEvent === 'opened' || emailEvent === 'clicked'
                             ? 'bg-green-100 text-green-700'
                             : emailEvent === 'bounced' || emailEvent === 'complained'
                               ? 'bg-red-100 text-red-700'
-                              : 'bg-gray-100 text-gray-700'
+                              : 'bg-muted text-foreground'
                           : emailStatusLoaded
                             ? 'bg-yellow-50 text-yellow-700'
-                            : 'bg-gray-100 text-gray-500'
+                            : 'bg-muted text-muted-foreground'
                       }`}>
                         {eventInfo?.icon === 'opened'
                           ? <MailOpen className="h-3.5 w-3.5" />
@@ -973,14 +973,14 @@ function LeadRow({
                   )}
                   {lead.outreach_draft && !resendId && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Kontaktutkast</p>
-                      <pre className="text-gray-900 whitespace-pre-wrap bg-white p-2 rounded border border-gray-200 text-xs">
+                      <p className="text-muted-foreground text-xs mb-0.5">Kontaktutkast</p>
+                      <pre className="text-foreground whitespace-pre-wrap bg-white p-2 rounded border border-border text-xs">
                         {lead.outreach_draft}
                       </pre>
                     </div>
                   )}
                   {lead.wine_focus_score !== null && (
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-muted-foreground text-xs">
                       Vinfokus-score:{' '}
                       <span className={getScoreColor(lead.wine_focus_score)}>
                         {lead.wine_focus_score}/5
@@ -992,40 +992,40 @@ function LeadRow({
 
               {/* Right: Notes & Next steps */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                   Anteckningar & Nästa steg
                 </h4>
                 <div className="space-y-3 text-sm">
                   {lead.notes && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Anteckningar</p>
-                      <p className="text-gray-900">{lead.notes}</p>
+                      <p className="text-muted-foreground text-xs mb-0.5">Anteckningar</p>
+                      <p className="text-foreground">{lead.notes}</p>
                     </div>
                   )}
                   {lead.next_action && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Nästa steg</p>
-                      <p className="text-gray-900">{lead.next_action}</p>
+                      <p className="text-muted-foreground text-xs mb-0.5">Nästa steg</p>
+                      <p className="text-foreground">{lead.next_action}</p>
                     </div>
                   )}
                   {lead.next_action_date && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Datum för nästa steg</p>
-                      <p className="text-gray-900">
+                      <p className="text-muted-foreground text-xs mb-0.5">Datum för nästa steg</p>
+                      <p className="text-foreground">
                         {new Date(lead.next_action_date).toLocaleDateString('sv-SE')}
                       </p>
                     </div>
                   )}
                   {lead.source && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Källa</p>
-                      <p className="text-gray-900">{lead.source}</p>
+                      <p className="text-muted-foreground text-xs mb-0.5">Källa</p>
+                      <p className="text-foreground">{lead.source}</p>
                     </div>
                   )}
                   {lead.last_contact_at && (
                     <div>
-                      <p className="text-gray-500 text-xs mb-0.5">Senaste kontakt</p>
-                      <p className="text-gray-900">
+                      <p className="text-muted-foreground text-xs mb-0.5">Senaste kontakt</p>
+                      <p className="text-foreground">
                         {new Date(lead.last_contact_at).toLocaleDateString('sv-SE')}
                       </p>
                     </div>
@@ -1036,31 +1036,31 @@ function LeadRow({
 
             {/* Signal + Länkning — visas alltid om någondera finns */}
             {(lead.signal_type || lead.restaurant_id) && (
-              <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-6">
                 {lead.signal_type && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                       Signal
                     </h4>
                     <div className="space-y-1 text-sm">
                       <p>
-                        <span className="text-gray-500">Typ:</span>{' '}
-                        <span className="font-medium text-gray-900">{lead.signal_type}</span>
+                        <span className="text-muted-foreground">Typ:</span>{' '}
+                        <span className="font-medium text-foreground">{lead.signal_type}</span>
                         {lead.signal_date && (
-                          <span className="text-gray-500 ml-2">
+                          <span className="text-muted-foreground ml-2">
                             ({new Date(lead.signal_date).toLocaleDateString('sv-SE')})
                           </span>
                         )}
                       </p>
                       {lead.signal_context && (
-                        <p className="text-gray-700 italic">{lead.signal_context}</p>
+                        <p className="text-foreground italic">{lead.signal_context}</p>
                       )}
                     </div>
                   </div>
                 )}
                 {lead.restaurant_id && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                       Registrerat konto
                     </h4>
                     <a
@@ -1118,17 +1118,17 @@ function QuickEdit({
   };
 
   return (
-    <div className="mt-4 pt-4 border-t border-gray-200">
-      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+    <div className="mt-4 pt-4 border-t border-border">
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
         Snabbredigera
       </h4>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <label className="text-xs">
-          <span className="text-gray-500 block mb-1">Status</span>
+          <span className="text-muted-foreground block mb-1">Status</span>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            className="w-full px-2 py-1.5 border border-border rounded text-sm"
           >
             {Object.entries(STATUS_LABELS).map(([k, v]) => (
               <option key={k} value={k}>{v}</option>
@@ -1136,32 +1136,32 @@ function QuickEdit({
           </select>
         </label>
         <label className="text-xs">
-          <span className="text-gray-500 block mb-1">Nästa steg</span>
+          <span className="text-muted-foreground block mb-1">Nästa steg</span>
           <input
             value={nextAction}
             onChange={(e) => setNextAction(e.target.value)}
-            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            className="w-full px-2 py-1.5 border border-border rounded text-sm"
             placeholder="T.ex. skicka uppföljning"
           />
         </label>
         <label className="text-xs">
-          <span className="text-gray-500 block mb-1">Datum</span>
+          <span className="text-muted-foreground block mb-1">Datum</span>
           <input
             type="date"
             value={nextActionDate?.slice(0, 10) || ''}
             onChange={(e) => setNextActionDate(e.target.value)}
-            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            className="w-full px-2 py-1.5 border border-border rounded text-sm"
           />
         </label>
       </div>
       <div className="mb-3">
         <label className="text-xs">
-          <span className="text-gray-500 block mb-1">Lägg till anteckning (tidsstämplas)</span>
+          <span className="text-muted-foreground block mb-1">Lägg till anteckning (tidsstämplas)</span>
           <textarea
             value={noteAddition}
             onChange={(e) => setNoteAddition(e.target.value)}
             rows={2}
-            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
+            className="w-full px-2 py-1.5 border border-border rounded text-sm"
             placeholder='Nya anteckningar — skriv "varm:vinkoll" för varm-tagg'
           />
         </label>
