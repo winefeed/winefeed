@@ -75,13 +75,31 @@ nödvändig pappersexercis åt er: tulldokument, alkoholskatte-anmälan,
 logistik och dokumentation hela vägen till källaren. Det är en av
 sakerna vi byggt plattformen kring.
 
-Vill ni testa? Vi kan skicka en länk så är ni igång på 10 minuter,
-eller boka in en kort demo på telefon om det känns bättre.
+Vill ni testa? Tre vägar:
+1. Registrera direkt på winefeed.se/signup (tar 5 minuter, ni är
+   igång samma kväll)
+2. Svara på det här mejlet med orgnr + kontaktperson, så skapar
+   vi inloggningen åt er och skickar tillbaka
+3. 15 min på telefon om ni vill se plattformen live först
 
 Med vänlig hälsning,
 Markus
 winefeed.se
 ```
+
+### Tre-vägs-CTA — varför
+
+Olika restauranger har olika friktion-tolerans. Att låsa in en CTA
+gör att vi förlorar de som hade tagit en annan väg in:
+
+| Väg | För vem | Vår input |
+|-----|---------|-----------|
+| Self-register på winefeed.se/signup | Tech-van, vill snabba upp | Ingen |
+| Svara med orgnr | Busy sommelier, vill ha det gjort åt sig | 5 min för Markus |
+| Demo-call | Vill se plattformen innan de förbinder sig | 15 min för Markus |
+
+Bonus: spår 2 (svara-med-orgnr) ger oss en konversation även när de
+inte är redo att handla. Låg-tröskel-engagemang.
 
 ---
 
@@ -129,3 +147,4 @@ AKO, Gårdshol, Vinagenterna, Wena) eller producent-namn direkt.
 - **v1** (2026-05-04). Initial mall efter Sandra/N4 + Morbror Fabian-utkasten.
 - **v1.1** (2026-05-04). Minimerade em-dashar. Bytte till punkt/komma/kolon i mall-texten + lade till tonalitetsregel.
 - **v1.2** (2026-05-05). Lade till outreach-fabriken (`scripts/outreach.mjs` + `lib/outreach/*`). Strukturändring i mall-texten: "Så funkar Winefeed"-stycke först (USP), inkluderar både svenska importörer + direktimport-spåret med pappersexercis. Tonalitetsregler: använd recipientens egen vokabulär (inte generisk jargon), hook-stil observerande (inte smörig).
+- **v1.3** (2026-05-05). CTA bytt från enkel "skicka en länk"-formulering till tre vägar: (1) self-register på winefeed.se/signup, (2) svara med orgnr + kontaktperson så skapar vi konto åt dem, (3) demo-call. Sänker friktion + ger fler engagemangs-vägar.
