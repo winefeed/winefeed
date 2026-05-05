@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, Wine, MapPin } from 'lucide-react';
 
 // Wine type chips — matches database enum (wine_color)
@@ -25,17 +26,36 @@ interface FreeTextEntryProps {
 }
 
 export function FreeTextEntry({ onSubmit, isLoading, defaultDeliveryCity }: FreeTextEntryProps) {
-  const [freeText, setFreeText] = useState('');
-  const [wineType, setWineType] = useState('all');
-  const [deliveryCity, setDeliveryCity] = useState(defaultDeliveryCity || '');
-  const [showDelivery, setShowDelivery] = useState(false);
+  const searchParams = useSearchParams();
+  const qParam = searchParams?.get('q') || '';
+  const wineTypeParam = searchParams?.get('wineType') || '';
+  const cityParam = searchParams?.get('city') || '';
+  const autorun = searchParams?.get('autorun') === '1';
 
-  // Prefill delivery city from profile
+  const [freeText, setFreeText] = useState(qParam);
+  const [wineType, setWineType] = useState(wineTypeParam || 'all');
+  const [deliveryCity, setDeliveryCity] = useState(cityParam || defaultDeliveryCity || '');
+  const [showDelivery, setShowDelivery] = useState(!!cityParam);
+  const autoRanRef = useRef(false);
+
+  // Prefill delivery city from profile (only if URL didn't already set it)
   useEffect(() => {
-    if (defaultDeliveryCity) {
+    if (defaultDeliveryCity && !cityParam) {
       setDeliveryCity(defaultDeliveryCity);
     }
-  }, [defaultDeliveryCity]);
+  }, [defaultDeliveryCity, cityParam]);
+
+  // Auto-run search if ?autorun=1 and we have a query (one-time only)
+  useEffect(() => {
+    if (autorun && qParam && !autoRanRef.current && !isLoading) {
+      autoRanRef.current = true;
+      onSubmit({
+        freeText: qParam.trim(),
+        wineType: wineTypeParam || 'all',
+        deliveryCity: (cityParam || '').trim() || undefined,
+      });
+    }
+  }, [autorun, qParam, wineTypeParam, cityParam, isLoading, onSubmit]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
