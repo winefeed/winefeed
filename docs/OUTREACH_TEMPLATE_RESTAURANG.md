@@ -23,6 +23,14 @@ Personlig hook med restaurangens specifika kontext. Exempel:
 - Inga emojis, inga klichéer ("revolutionerar", "AI-driven", "next-gen")
 - Tredje person för Markus om han nämns
 - **Minimera em-dashar (—).** Använd punkt, komma eller kolon istället. Em-dashar förlorar effekt om de spammas. Max 1–2 per mejl, helst noll.
+- **Använd recipientens egen vokabulär, inte generisk bransch-jargon.**
+  - ✓ "VIB-listan" om det är Bistro Vinotekets egna term, "Coravin-rotation" om de har Coravin, "Winemaker Dinners" om de gör det, "tema-fredagar" om Bryggargatan kör det
+  - ✗ Generic jargon som "by-the-glass-program", "stockkeeping-rotation", "logistisk bedrift", "vi har följt er". Låter säljigt.
+  - Tumregel: om termen kommer från deras egen sajt/marknadsföring → använd den. Om vi hittar på den → byt ut.
+- **Hook-stil: observerande, inte smörig.**
+  - ✓ "47 länder och en VIB-lista är ovanligt brett för en svensk vinbar. Tänkte höra om Winefeed kan passa in."
+  - ✗ "Vi har följt Bistro Vinoteket under tiden ni byggt upp 47 länder och VIB-listan. En lista som rör sig så snabbt är en logistisk bedrift för en sommelier-grupp på fem."
+  - Direkt observation → varför det kan matter för dem. Inga superlativ, ingen "logistisk bedrift", inga "vi har följt".
 
 ---
 
@@ -120,3 +128,4 @@ AKO, Gårdshol, Vinagenterna, Wena) eller producent-namn direkt.
 
 - **v1** (2026-05-04). Initial mall efter Sandra/N4 + Morbror Fabian-utkasten.
 - **v1.1** (2026-05-04). Minimerade em-dashar. Bytte till punkt/komma/kolon i mall-texten + lade till tonalitetsregel.
+- **v1.2** (2026-05-05). Lade till outreach-fabriken (`scripts/outreach.mjs` + `lib/outreach/*`). Strukturändring i mall-texten: "Så funkar Winefeed"-stycke först (USP), inkluderar både svenska importörer + direktimport-spåret med pappersexercis. Tonalitetsregler: använd recipientens egen vokabulär (inte generisk jargon), hook-stil observerande (inte smörig).
