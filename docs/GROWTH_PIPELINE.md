@@ -103,13 +103,14 @@ Producenter med viner i Winefeed-katalogen som EU-direktimport via Brasri (eller
 - **Varför:** Liten, vindriven, ständigt uppdaterad lista, artisan-känsla
 - **Outreach-vinkel:** Perfekt "discovery"-restaurang — småskaligt, nyfiket, roterar ofta
 
-### 4. Brogatan — Malmö 🟡
+### 4. Brogatan — Malmö 🟡 KONTAKTAD
 - **Typ:** Vinbar & bistro
 - **Adress:** Brogatan 12, Malmö
-- **Kontakt:** @brogatan.eu (7.7K followers)
-- **Profil:** Naturvin, klassisk bistro, Frankrike-fokus (Burgund, Jura, Loire), ständigt föränderligt utbud
-- **Varför:** Frankrike-fokus matchar Brasri direkt, roterande lista, stimmig vinbar
-- **Outreach-vinkel:** "Vi har franska viner som passar er profil perfekt"
+- **Kontakt:** Restaurang.brogatan@gmail.com | bokning@brogatan.eu | +46 40 30 77 17 | @brogatan.eu (7.7K followers) | brogatan.eu
+- **Profil:** Naturvin, klassisk bistro, Frankrike-fokus (Bourgogne, Jura, Loire), ständigt föränderligt utbud
+- **Outreach skickat:** 2026-05-05 till Restaurang.brogatan@gmail.com med Markus i BCC. Subject: "Sourcing till Brogatans roterande vinlista?". Vinkel: generell signal om fransk naturvinstäckning utan producent-lista. Skript: `scripts/send-brogatan-outreach.mjs`. Resend-ID: `323194c6-17e8-4dfd-b0a5-171c65987129`.
+- **Uppföljnings-ammunition:** Vedette Cinsault (Wena) som konkret fransk naturvinsexempel om de svarar och vill ha specifika producenter. Pipeline-noteringen "Frankrike-fokus matchar Brasri direkt" gäller fortfarande.
+- **Nästa steg:** Följ upp om inget svar inom 7 dagar (≈ 2026-05-12). Om de svarar: introducera Vedette Cinsault som första konkret namn.
 
 ### 5. BISe — Malmö 🟡
 - **Typ:** Restaurang, vinbar & cocktailbar
@@ -677,16 +678,15 @@ Norrlands-argumentet: 500–1 200 km från Stockholm. Importörer besöker säll
 
 ### Skellefteå
 
-### 73. Bryggargatan — Skellefteå 🟡
+### 73. Bryggargatan — Skellefteå 🟡 KONTAKTAD
 - **Typ:** Restaurang & cocktailbar vid älven
 - **Adress:** Strandgatan 32, Skellefteå
 - **Kontakt:** info@bryggargatan.se | 0910-21 16 50
-- **Ägarstatus:** **Sarah Arnason sålde sin andel jan 2025 till ex-maken Jón Óskar Arnason** (kronisk inflammation, jobbar nu med Brigade). **Jón Óskar = ensam ägare nu.** Briefen om "Runar" inaktuell.
-- **Sommelier-namn:** OBEKRÄFTAT — sajten beskriver "an artistic sommelier from Piteå" men namnger inte.
-- **Profil:** Time Magazine 50 mest intressanta platser 2022. **17 fredag-tema-provningar 2026:** Nebbiolo, Cab Sauv, orange, rosé bubbel, Jura, Sydafrika, English bubbel, Alvarinho, Pinot Noir, Portugal, Andalusien, Riesling, Loire vit, rosé, Priorat. Mycket bred kalender = behöver brett vinflöde.
-- **Kvalificering:** wine_focus: 5, pilot_fit: 5.
-- **Outreach-vinkel:** Direkt mappning mot konkreta provningsteman → bundle-erbjudande per fredag. Ägarbyte = mindre känslig för "lojalitet mot gamla importörer".
-- **Risk:** Jón Óskar är kock, inte sommelier — vinansvar fortfarande hos "Piteå-personen" (icke namngiven). Identifiera först.
+- **Ägarstatus:** Sarah Arnason sålde sin andel jan 2025 till ex-maken Jón Óskar Arnason (kronisk inflammation, jobbar nu med Brigade). **Jón Óskar = ensam ägare nu.**
+- **Sommelier-namn:** OBEKRÄFTAT. Sajten beskriver "an artistic sommelier from Piteå" men namnger inte.
+- **Profil:** Time Magazine 50 mest intressanta platser 2022. **17 fredag-tema-provningar 2026:** Nebbiolo, Cab Sauv, orange, rosé bubbel, Jura, Sydafrika, English bubbel, Alvarinho, Pinot Noir, Portugal, Andalusien, Riesling, Loire vit, rosé, Priorat.
+- **Outreach skickat:** 2026-05-05 till info@bryggargatan.se med Markus i BCC. Subject: "En sourcing-idé inför era 17 tema-fredagar?". Vinkel: tema-pitch ("lägg en förfrågan per tema") + tre konkreta exempel som matchar tre av deras 17 fredagar (Misha's Pinot, Hemel-en-Aarde Pinot för Pinot+Sydafrika-fredagar, Frey Riesling för Riesling-fredagen). Skript: `scripts/send-bryggargatan-outreach.mjs`. Resend-ID: `c0612b66-a17e-4b16-9b00-1dfb4f6a2d30`.
+- **Nästa steg:** Följ upp om inget svar inom 7 dagar (≈ 2026-05-12). Identifiera Piteå-sommelierens namn vid eventuellt svar.
 
 ### 74. Kork Vinbar — Skellefteå 🟡
 - **Typ:** Dedikerad vinbar (öppnade mars 2023)
