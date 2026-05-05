@@ -288,6 +288,16 @@ Producenter med viner i Winefeed-katalogen som EU-direktimport via Brasri (eller
 - **Varför:** Dedikerad vinbar med hög glasvinsvolym. Sundbyberg växer.
 - **Outreach-vinkel:** "Med 30 glasviner behöver ni konstant pipeline av nya viner — Winefeed gör det enkelt."
 
+### 20b. Pontus Frithiof city venues (Mario Moroni) — Stockholm 🟢 ONBOARDAD
+- **Typ:** Restaurangkedja (~7 koncept) — Fabriken by Pontus Frithiof, La Tour by Pontus, Pontus by Pontus m.fl.
+- **Adress:** Box 12011, 102 21 Stockholm | Org 556600-5293 | 08-23 99 50
+- **Kontakt:** Mario Moroni (sommelier), Mario.moroni@pontusfrithiof.com
+- **Bolag:** Pontus Frithiof city venues AB. VD Mattias Ekström, ordförande Pontus Frithiof.
+- **Källa:** Varm referral från Corentin (Brasri) via Messenger 2026-05-05. Corentin = expertkontakt för vinfrågor (+46 738 240 272 / corentin@brasri.com).
+- **Onboardad:** 2026-05-05 19:11. Pre-build flow: Pontus restaurang skapad i prod (auth-user 39edddf7-599c-4e21-a3aa-db0a27945e4a + DB-trigger), temp-lösenord, intro-mejl med 91 äldre Bordeaux-titlar 1958-2005 + förifyllt sökord. Resend-ID: 5b99b4f4-f0e7-49d1-af83-421f3bc4e5be.
+- **Login-credentials:** Pontusbef0d4ce! (rekommenderad lösenordsbyte vid första inloggning).
+- **Nästa steg:** Följ upp 2026-05-12 om ingen aktivitet (inloggning/förfrågan). Corentin SMS:ar Mario som heads-up.
+
 ### 21. Nabo Matbar — Helsingborg 🟡 KONTAKTAD
 - **Typ:** Modern bistro, fine-casual
 - **Adress:** Drottninggatan 124, 252 22 Helsingborg
