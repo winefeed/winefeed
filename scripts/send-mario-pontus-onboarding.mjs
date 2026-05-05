@@ -112,7 +112,7 @@ ${credBox}
   <li style="margin-bottom:6px;">Gå till <a href="${NEW_REQUEST_URL}" style="color:#722F37;">Sök vin</a> och klistra in: <em>äldre fransk Bordeaux från 1958 till 2005, alla prisnivåer</em></li>
   <li style="margin-bottom:6px;">Du ser hela listan med priser, lager och MOQ direkt</li>
 </ol>
-<p style="margin:0 0 18px 0;"><strong>Frågor om vinerna?</strong> Corentin på Brasri har riktigt bra koll på provenance och cellar conditions för de äldre årgångarna. Han är reachable direkt på <strong>+46 738 240 272</strong> eller via mejl. Plattformsfrågor tar du med mig.</p>
+<p style="margin:0 0 18px 0;"><strong>Frågor om vinerna?</strong> Corentin på Brasri har riktigt bra koll på provenance och cellar conditions för de äldre årgångarna. Reachable direkt på <strong>+46 738 240 272</strong> eller <a href="mailto:corentin@brasri.com" style="color:#722F37;">corentin@brasri.com</a>. Plattformsfrågor tar du med mig.</p>
 <p style="margin:0 0 18px 0;">Plattformen är gratis för restauranger. Vid direktimport sköter vi all pappersexercis åt er — tull, alkoholskatt, 5369, transportkoordinering. Ni bestämmer vinet, vi tar resten.</p>
 <p style="margin:0 0 18px 0;">När du har kikat: säg till om du vill att vi tar 15 min på telefon och går igenom flödet, eller om du vill att jag ringer upp Corentin för en specifik fråga om något vin.</p>
 <p style="margin:24px 0 4px 0;">Mvh</p>
@@ -135,7 +135,7 @@ Så här ser du listan:
 2. Gå till ${NEW_REQUEST_URL} och klistra in: "äldre fransk Bordeaux från 1958 till 2005, alla prisnivåer"
 3. Du ser hela listan med priser, lager och MOQ direkt
 
-Frågor om vinerna? Corentin på Brasri har riktigt bra koll på provenance och cellar conditions för de äldre årgångarna. Han är reachable direkt på +46 738 240 272 eller via mejl. Plattformsfrågor tar du med mig.
+Frågor om vinerna? Corentin på Brasri har riktigt bra koll på provenance och cellar conditions för de äldre årgångarna. Reachable direkt på +46 738 240 272 eller corentin@brasri.com. Plattformsfrågor tar du med mig.
 
 Plattformen är gratis för restauranger. Vid direktimport sköter vi all pappersexercis åt er — tull, alkoholskatt, 5369, transportkoordinering. Ni bestämmer vinet, vi tar resten.
 
