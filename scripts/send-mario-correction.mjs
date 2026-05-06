@@ -2,6 +2,10 @@
  * Korrigerings-mejl till Mario med smakprov + direktlänk.
  *
  * Skickar via Resend, BCC Markus, uppdaterar restaurant_leads-noten.
+ *
+ * NOT: detta är en historisk skript — kör inte om utan att uppdatera
+ * lösenord-fälten. Klartext-lösenord borttaget från mall efter
+ * incident 2026-05-06 (se feedback_credential_handling.md).
  */
 import { config } from 'dotenv';
 import { Resend } from 'resend';
@@ -73,7 +77,7 @@ ${tableHtml}
 <p style="margin:0 0 8px 0;"><strong>Inloggning</strong> (samma som förra mejlet):</p>
 <ul style="margin:0 0 18px 0;padding-left:22px;">
   <li>E-post: Mario.moroni@pontusfrithiof.com</li>
-  <li>Lösenord: Pontusbef0d4ce!</li>
+  <li>Lösenord: (temp-lösenord från första mejlet)</li>
 </ul>
 <p style="margin:0 0 18px 0;">Corentin på Brasri (+46 738 240 272 / corentin@brasri.com) sitter på all expertis kring vinerna. Jag hjälper gärna med allt annat — plattformen, vad det än är. Säg till om du vill att vi tar 15 min på telefon.</p>
 <p style="margin:24px 0 4px 0;">Mvh</p>
@@ -97,7 +101,7 @@ ${directLink}
 
 Inloggning (samma som förra mejlet):
 - E-post: Mario.moroni@pontusfrithiof.com
-- Lösenord: Pontusbef0d4ce!
+- Lösenord: (temp-lösenord från första mejlet)
 
 Corentin på Brasri (+46 738 240 272 / corentin@brasri.com) sitter på all expertis kring vinerna. Jag hjälper gärna med allt annat — plattformen, vad det än är. Säg till om du vill att vi tar 15 min på telefon.
 

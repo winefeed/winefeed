@@ -295,7 +295,7 @@ Producenter med viner i Winefeed-katalogen som EU-direktimport via Brasri (eller
 - **Bolag:** Pontus Frithiof city venues AB. VD Mattias Ekström, ordförande Pontus Frithiof.
 - **Källa:** Varm referral från Corentin (Brasri) via Messenger 2026-05-05. Corentin = expertkontakt för vinfrågor (+46 738 240 272 / corentin@brasri.com).
 - **Onboardad:** 2026-05-05 19:11. Pre-build flow: Pontus restaurang skapad i prod (auth-user 39edddf7-599c-4e21-a3aa-db0a27945e4a + DB-trigger), temp-lösenord, intro-mejl med 91 äldre Bordeaux-titlar 1958-2005 + förifyllt sökord. Resend-ID: 5b99b4f4-f0e7-49d1-af83-421f3bc4e5be.
-- **Login-credentials:** Pontusbef0d4ce! (rekommenderad lösenordsbyte vid första inloggning).
+- **Login-credentials:** temp-lösenord skickat direkt till Mario via mejl (lösenordet dokumenteras inte här, byts vid första inloggning).
 - **Nästa steg:** Följ upp 2026-05-12 om ingen aktivitet (inloggning/förfrågan). Corentin SMS:ar Mario som heads-up.
 
 ### 21. Nabo Matbar — Helsingborg 🟡 KONTAKTAD
