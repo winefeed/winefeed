@@ -22,7 +22,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { checkRateLimit, getRateLimitType, getRateLimitHeaders } from '@/lib/rate-limit';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // SEO: Permanent redirect non-www → www
   const host = request.headers.get('host') ?? '';
   if (host === 'winefeed.se') {
