@@ -11,7 +11,7 @@
     "build": "npm run check:routes && next build",
     "build:skip-checks": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "check:routes": "bash scripts/check-route-slugs.sh",
     "test": "vitest run",
     "test:watch": "vitest",
