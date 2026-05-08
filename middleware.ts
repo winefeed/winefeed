@@ -95,6 +95,11 @@ export async function middleware(request: NextRequest) {
     '/sitemap.xml',                   // SEO sitemap
     '/robots.txt',                    // SEO robots
     '/brasri',                        // Vanity slug: Brasri catalog
+    '/direktimport',                  // Public direct-import landing + sub-pages (kalkylator, guide, alkoholskatt)
+    '/om-oss',                        // Public about page
+    '/cookies',                       // Public cookie policy
+    '/anvandarvillkor',               // Public terms of service
+    '/integritetspolicy',             // Public privacy policy
   ];
 
   // Exact match for root landing page

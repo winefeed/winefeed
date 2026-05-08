@@ -18,6 +18,26 @@
       "source": "/api/ior/:path*",
       "destination": "/api/direct-import/:path*",
       "permanent": true
+    },
+    {
+      "source": "/direct-import",
+      "destination": "/direktimport",
+      "permanent": true
+    },
+    {
+      "source": "/direct-import/:path*",
+      "destination": "/direktimport/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/imports",
+      "destination": "/direktimport",
+      "permanent": true
+    },
+    {
+      "source": "/imports/:path*",
+      "destination": "/direktimport/:path*",
+      "permanent": true
     }
   ],
   "crons": [{
