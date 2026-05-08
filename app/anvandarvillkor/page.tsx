@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Användarvillkor — Winefeed',
   description:
     'Användarvillkor för Winefeeds B2B-marknadsplats för svenska restauranger och vinimportörer.',
-  alternates: { canonical: 'https://winefeed.se/anvandarvillkor' },
+  alternates: { canonical: 'https://www.winefeed.se/anvandarvillkor' },
 };
 
 export default function AnvandarvillkorPage() {

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Integritetspolicy — Winefeed',
   description:
     'Hur Winefeed samlar in, använder och skyddar personuppgifter. GDPR-policy för Winefeeds B2B-marknadsplats.',
-  alternates: { canonical: 'https://winefeed.se/integritetspolicy' },
+  alternates: { canonical: 'https://www.winefeed.se/integritetspolicy' },
 };
 
 export default function IntegritetspolicyPage() {

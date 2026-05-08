@@ -35,7 +35,7 @@ export const metadata: Metadata = {
       'Räkna ut totalkostnaden för direktimport av vin från europeisk producent.',
   },
   alternates: {
-    canonical: 'https://winefeed.se/direktimport/kalkylator',
+    canonical: 'https://www.winefeed.se/direktimport/kalkylator',
   },
 };
 

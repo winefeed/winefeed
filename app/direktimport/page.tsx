@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     locale: 'sv_SE',
     type: 'website',
   },
-  alternates: { canonical: 'https://winefeed.se/direktimport' },
+  alternates: { canonical: 'https://www.winefeed.se/direktimport' },
 };
 
 const resources = [

@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     locale: 'sv_SE',
     type: 'article',
   },
-  alternates: { canonical: 'https://winefeed.se/direktimport/guide' },
+  alternates: { canonical: 'https://www.winefeed.se/direktimport/guide' },
 };
 
 const articleJsonLd = {

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Om oss — Winefeed',
   description:
     'Winefeed är en sluten B2B-marknadsplats där svenska restauranger hittar vin och importörer hittar köpare. Source & Serve.',
-  alternates: { canonical: 'https://winefeed.se/om-oss' },
+  alternates: { canonical: 'https://www.winefeed.se/om-oss' },
   openGraph: {
     title: 'Om Winefeed — Source & Serve',
     description:

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     description: 'Gratis att lista sig. Ta emot förfrågningar och svara med offert. 4 % success-fee.',
   },
   alternates: {
-    canonical: 'https://winefeed.se/leverantorer',
+    canonical: 'https://www.winefeed.se/leverantorer',
   },
 };
 

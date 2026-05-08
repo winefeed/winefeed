@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     description: 'Slipp mejlkarusellen. Sök, jämför och beställ vin direkt från importörer.',
   },
   alternates: {
-    canonical: 'https://winefeed.se/restauranger',
+    canonical: 'https://www.winefeed.se/restauranger',
   },
 };
 

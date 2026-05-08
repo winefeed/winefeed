@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Cookies — Winefeed',
   description:
     'Hur Winefeed använder cookies och liknande tekniker. Lista över cookies och hur du hanterar dem.',
-  alternates: { canonical: 'https://winefeed.se/cookies' },
+  alternates: { canonical: 'https://www.winefeed.se/cookies' },
 };
 
 export default function CookiesPage() {
