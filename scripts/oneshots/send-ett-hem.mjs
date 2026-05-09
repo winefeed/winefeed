@@ -6,7 +6,10 @@ const env = Object.fromEntries(readFileSync('.env.local','utf8').split('\n').fil
 const resend = new Resend(env.RESEND_API_KEY);
 const s = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth:{autoRefreshToken:false,persistSession:false} });
 
-const INVITE_URL = 'https://winefeed.se/invite?token=7b92c11ebd69a5deeb09f3b4d1335e474fdc0d7ce7b31d02c4d5be272f76c3f2';
+const INVITE_URL = process.env.INVITE_URL;
+if (!INVITE_URL) {
+  throw new Error('Set INVITE_URL env var (mint via onboard-ett-hem.mjs first). Never hardcode invite tokens — see feedback_credential_handling.md.');
+}
 
 const html = `<div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
   <div style="background: linear-gradient(135deg, #722F37 0%, #8B3A42 100%); padding: 28px 20px; text-align: center; border-radius: 8px 8px 0 0;">
