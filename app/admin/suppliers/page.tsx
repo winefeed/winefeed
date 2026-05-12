@@ -58,6 +58,12 @@ export default function AdminSuppliersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const t = new URLSearchParams(window.location.search).get('type');
+    if (t) setTypeFilter(t);
+  }, []);
   const [sortColumn, setSortColumn] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 

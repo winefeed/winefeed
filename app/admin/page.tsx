@@ -521,7 +521,7 @@ export default function AdminDashboardPage() {
             subtitle="EU-producenter"
             icon={Grape}
             color="purple"
-            href="/admin/pilot"
+            href="/admin/suppliers?type=EU_PRODUCER"
           />
         </div>
 
